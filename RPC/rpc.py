@@ -4,50 +4,47 @@ Created on 02 feb 2017
 @author: Daniel
 '''
 from utils import utils
-import xmlrpclib
+from XmlRpc.xmlRpc import XmlRpcConnection
 
 
 class RpcConnection(object):
-    
-    def __init__(self, userName, userPassword, databaseName, xmlrpcPort=8069, scheme='http', xmlrpcServerIP='127.0.0.1'):
+
+    def __init__(self, connectionType, userName, userPassword, databaseName, xmlrpcPort=8069, scheme='http', xmlrpcServerIP='127.0.0.1'):
         self.userName = userName
         self.userPassword = userPassword
         self.databaseName = databaseName
         self.xmlrpcPort = xmlrpcPort
         self.scheme = scheme
         self.xmlrpcServerIP = xmlrpcServerIP
-        self.urlCommon = self.scheme + '://' + str(self.xmlrpcServerIP) + ':' + str(self.xmlrpcPort) + '/xmlrpc/'
-        self.urlNoLogin = self.urlCommon + 'common'
-        self.urlYesLogin = self.urlCommon + 'object'
         self.socketNoLogin = False
         self.socketYesLogin = False
         self.userId = False
-        
+        self.connectionType = connectionType
+        self.sockInstance = False
+        if connectionType == 'xmlrpc':
+            self.sockInstance = XmlRpcConnection(userName, userPassword, databaseName, xmlrpcPort, scheme, xmlrpcServerIP)
+            return self.sockInstance.__init__(userName, userPassword, databaseName, xmlrpcPort, scheme, xmlrpcServerIP)
+        return None
+
     def loginNoUser(self):
-        try:
-            self.socketNoLogin = xmlrpclib.ServerProxy (self.urlNoLogin)
-        except Exception, ex:
-            return False
-            pass
-        utils.logMessage('info', 'Successfull connection to Odoo using login No User', 'loginNoUser')
-        return True
-        
+        return self.sockInstance.loginNoUser()
+
     def loginWithUser(self):
-        if not self.socketNoLogin:
-            self.loginNoUser()
-        try:
-            self.userId = self.socketNoLogin.login(self.databaseName, self.userName, self.userPassword)
-        except Exception, ex:
-            return False
-            pass
-        try:
-            self.socketYesLogin = xmlrpclib.ServerProxy(self.urlYesLogin)
-        except Exception, ex:
-            return False
-            pass
-        utils.logMessage('info', 'Successfull connection to Odoo with user %r and database %r' % (self.userName, self.databaseName), 'loginNoUser')
-        return True
-        
-        
-        
-        
+        return self.sockInstance.loginWithUser()
+
+    def search(self, obj, filterList):
+        return self.sockInstance.search(obj, filterList)
+
+    def write(self, obj, values, idsToWrite):
+        return self.sockInstance.write(obj, values, idsToWrite)
+
+    def writeSearch(self, obj, values, filterList):
+        idsToWrite = self.search(obj, filterList)
+        return self.write(obj, values, idsToWrite)
+
+    def delete(self, obj, idsToUnlink):
+        return self.sockInstance.delete(obj, idsToUnlink)
+
+    def deleteSearch(self, obj, filterList):
+        idsToUnlink = self.search(obj, filterList)
+        return self.delete(obj, idsToUnlink)
