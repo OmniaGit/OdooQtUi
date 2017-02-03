@@ -48,3 +48,16 @@ class XmlRpcConnection(object):
             return False
         utils.logMessage('info', 'Successfull connection to Odoo with user %r and database %r' % (self.userName, self.databaseName), 'loginNoUser')
         return True
+
+    def callOdooFunction(self, odooObj, functionName, parameters=[], kwargParameters={}):
+        '''
+            @odooObj: product.product, product.template ...
+            @functionName: 'search', 'read', ...
+            @parameters: [val1, val2, ...]
+            @kwargParameters: {'context': {}, limit: val, 'order': val,...}
+        '''
+        return self.socketYesLogin.execute_kw(self.databaseName, self.userId, self.userPassword,
+                                              odooObj,
+                                              functionName,
+                                              parameters,
+                                              kwargParameters)
