@@ -35,6 +35,12 @@ class RpcConnection(object):
     def search(self, obj, filterList):
         return self.sockInstance.search(obj, filterList)
 
+    def read(self, obj, fields, ids):
+        return self.sockInstance.read(obj, fields, ids)
+
+    def readSearch(self, obj, fields, filterList):
+        return self.sockInstance.readSearch(obj, fields, filterList)
+
     def write(self, obj, values, idsToWrite):
         return self.sockInstance.write(obj, values, idsToWrite)
 
@@ -48,3 +54,16 @@ class RpcConnection(object):
     def deleteSearch(self, obj, filterList):
         idsToUnlink = self.search(obj, filterList)
         return self.delete(obj, idsToUnlink)
+
+    def searchCount(self, filterList):
+        return self.sockInstance.searchCount(filterList)
+    
+    def create(self, obj, values):
+        return self.sockInstance.create(obj, values)
+        
+    def fieldsGet(self, obj, attributesToRead=[]):
+        '''
+        @attributesToRead: ['string', 'help', 'type']
+        '''
+        return self.sockInstance.fieldsGet(obj, attributesToRead)
+        

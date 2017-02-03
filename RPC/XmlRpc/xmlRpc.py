@@ -49,6 +49,57 @@ class XmlRpcConnection(object):
         utils.logMessage('info', 'Successfull connection to Odoo with user %r and database %r' % (self.userName, self.databaseName), 'loginNoUser')
         return True
 
+    def search(self, obj, filterList, kwargParameters={}):
+        try:
+            return self.callOdooFunction(obj, 'search', [filterList], kwargParameters)
+        except Exception, ex:
+            utils.logMessage('error', 'Error during search with values: object %r, filter %r, parameters %r. Error: %r'  % (obj, filterList, kwargParameters, ex), 'search')
+        return []
+    
+    def read(self, obj, fields, ids):
+        try:
+            kargs = {'fields': fields}
+            return self.callOdooFunction(obj, 'read', ids, kargs)
+        except Exception, ex:
+            utils.logMessage('error', 'Error during read with values: object %r, fields %r, ids %r. Error: %r'  % (obj, fields, ids, ex), 'read')
+        return []
+    
+    def fieldsGet(self, obj, attributesToRead=[]):
+        '''
+        @attributesToRead: {'attributes': ['string', 'help', 'type']}
+        '''
+        try:
+            kargs = {'attributes': attributesToRead}
+            return self.callOdooFunction(obj, 'fields_get', [], kargs)
+        except Exception, ex:
+            utils.logMessage('error', 'Error during reading fields with values: object %r, kargs %r. Error: %r'  % (obj, kargs, ex), 'fieldsGet')
+        return {}
+
+    def readSearch(self, obj, fields, filterList, limit=False):
+        try:
+            kargs = {'fields': fields}
+            return self.callOdooFunction(obj, 'search_read', [filterList], kargs)
+        except Exception, ex:
+            utils.logMessage('error', 'Error during reading fields with values: object %r, kargs %r, filterList %r. Error: %r'  % (obj, kargs, filterList, ex), 'readSearch')
+        return []
+
+    def create(self, obj, values):
+        try:
+            kargs = {}
+            return self.callOdooFunction(obj, 'create', [values], kargs)
+        except Exception, ex:
+            utils.logMessage('error', 'Error during create with values: object %r, kargs %r, filterList %r. Error: %r'  % (obj, kargs, values, ex), 'create')
+        return []
+
+    def write(self, obj, values, idsToWrite):
+        pass
+    
+    def delete(self, obj, idsToUnlink):
+        pass
+
+    def searchCount(self, filterList):
+        pass
+        
     def callOdooFunction(self, odooObj, functionName, parameters=[], kwargParameters={}):
         '''
             @odooObj: product.product, product.template ...
