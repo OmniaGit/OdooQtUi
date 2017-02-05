@@ -77,4 +77,5 @@ if __name__ == '__main__':
     newId2 = connectorObj.rpc.create(partnerObj, {'name': 'Daniel_2'})
     print 'Search Delete resut: %r' % (connectorObj.rpc.deleteSearch(partnerObj, [('id', 'in', [newId1, newId2])]))
     print 'Search count res: %r' % (connectorObj.rpc.searchCount(partnerObj, [('name', 'ilike', 'daniel')]))
+    print 'Fields get res: %r' % (connectorObj.rpc.fieldsGet(partnerObj, []))
     
