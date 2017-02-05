@@ -5,6 +5,7 @@ Created on 02 feb 2017
 '''
 import logging
 from RPC.rpc import RpcConnection
+from views.templateView import TemplateView
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
@@ -39,7 +40,7 @@ class MainConnector(object):
 
         tree_list and tree_tree views are always read only
         '''
-        pass
+        templateViewObj = TemplateView(viewType)
 
 if __name__ == '__main__':
     scheme = 'http'
@@ -60,6 +61,12 @@ if __name__ == '__main__':
     connectorObj = MainConnector()
     connectorObj.loginWithUser(user, password, dbName, xmlrpcServerIP, xmlrpcPort, scheme, loginType)
     
+    
+    connectorObj.getViewLayout('tree', 'product.product', {}, [], 1)
+    
+    
+    
+    # Odoo calls
     usersObj = 'res.users'
     partnerObj = 'res.partner'
     prodProdObj = 'product.product'
