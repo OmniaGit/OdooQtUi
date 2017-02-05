@@ -115,6 +115,14 @@ class XmlRpcConnection(object):
             utils.logMessage('error', 'Error during create with values: object %r, kargs %r, filterList %r. Error: %r'  % (obj, kargs, filterList, ex), 'searchCount')
         return []
         
+    def fieldsViewGet(self, odooObj, view_id=False, view_type='form'):
+        try:
+            kwargParameters = {}
+            return self.callOdooFunction(odooObj, 'fields_view_get', [view_id, view_type], kwargParameters)
+        except Exception, ex:
+            utils.logMessage('error', 'Error during fields view get: %r' % (ex), 'fieldsViewGet')
+        return {}
+        
     def callOdooFunction(self, odooObj, functionName, parameters=[], kwargParameters={}):
         '''
             @odooObj: product.product, product.template ...

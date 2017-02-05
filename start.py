@@ -31,7 +31,7 @@ class MainConnector(object):
         logger = logging.getLogger()
         logger.setLevel(logInteger)
 
-    def getViewLayout(self, viewType, odooObjectName, startingFieldValues={}, clientReadonlyFields={}, idsToLoad=[]):
+    def getViewLayout(self, viewType, odooObjectName, viewName='', view_id=False, startingFieldValues={}, clientReadonlyFields={}, idsToLoad=[]):
         '''
         @viewType: tree_tree, tree_list, form, search
         @odooObjectName: product.product, mrp.bom, ...
@@ -40,7 +40,8 @@ class MainConnector(object):
 
         tree_list and tree_tree views are always read only
         '''
-        templateViewObj = TemplateView(viewType)
+        templateViewObj = TemplateView(self.rpc)
+        templateViewObj.getView(odooObjectName, viewName, view_id, viewType, startingFieldValues, clientReadonlyFields, idsToLoad)
 
 if __name__ == '__main__':
     scheme = 'http'
@@ -62,7 +63,7 @@ if __name__ == '__main__':
     connectorObj.loginWithUser(user, password, dbName, xmlrpcServerIP, xmlrpcPort, scheme, loginType)
     
     
-    connectorObj.getViewLayout('tree', 'product.product', {}, [], 1)
+    connectorObj.getViewLayout('form', 'product.product', '', False, {}, {}, [])
     
     
     
@@ -70,19 +71,21 @@ if __name__ == '__main__':
     usersObj = 'res.users'
     partnerObj = 'res.partner'
     prodProdObj = 'product.product'
-    print 'Search result: %r' % (connectorObj.rpc.search(usersObj, []))
-    print 'Read result: %r' % (connectorObj.rpc.read(usersObj, [], [1]))
-    print 'Read search result: %r' % (unicode(connectorObj.rpc.readSearch(usersObj, [], [])))
-    print ''
-    print 'Write result %r' % (connectorObj.rpc.write(prodProdObj, {'description': 'ciaooo'}, [69, 70]))
-    print 'Search Write result %r' % (connectorObj.rpc.writeSearch(prodProdObj, {'description': 'ciao2'}, [('id', 'in', [69, 70])]))
-    print 'Fields get result: %r' % (connectorObj.rpc.fieldsGet(usersObj, []))
-    newId = connectorObj.rpc.create(partnerObj, {'name': 'Daniel'})
-    print 'Create result: %r' % (newId)
-    print 'Delete resut: %r' % (connectorObj.rpc.delete(prodProdObj, [newId]))
-    newId1 = connectorObj.rpc.create(partnerObj, {'name': 'Daniel_1'})
-    newId2 = connectorObj.rpc.create(partnerObj, {'name': 'Daniel_2'})
-    print 'Search Delete resut: %r' % (connectorObj.rpc.deleteSearch(partnerObj, [('id', 'in', [newId1, newId2])]))
-    print 'Search count res: %r' % (connectorObj.rpc.searchCount(partnerObj, [('name', 'ilike', 'daniel')]))
-    print 'Fields get res: %r' % (connectorObj.rpc.fieldsGet(partnerObj, []))
+#     connectorObj.rpc.fieldsViewGet(prodProdObj, False, 'form')
+#     
+#     print 'Search result: %r' % (connectorObj.rpc.search(usersObj, []))
+#     print 'Read result: %r' % (connectorObj.rpc.read(usersObj, [], [1]))
+#     print 'Read search result: %r' % (unicode(connectorObj.rpc.readSearch(usersObj, [], [])))
+#     print ''
+#     print 'Write result %r' % (connectorObj.rpc.write(prodProdObj, {'description': 'ciaooo'}, [69, 70]))
+#     print 'Search Write result %r' % (connectorObj.rpc.writeSearch(prodProdObj, {'description': 'ciao2'}, [('id', 'in', [69, 70])]))
+#     print 'Fields get result: %r' % (connectorObj.rpc.fieldsGet(usersObj, []))
+#     newId = connectorObj.rpc.create(partnerObj, {'name': 'Daniel'})
+#     print 'Create result: %r' % (newId)
+#     print 'Delete resut: %r' % (connectorObj.rpc.delete(prodProdObj, [newId]))
+#     newId1 = connectorObj.rpc.create(partnerObj, {'name': 'Daniel_1'})
+#     newId2 = connectorObj.rpc.create(partnerObj, {'name': 'Daniel_2'})
+#     print 'Search Delete resut: %r' % (connectorObj.rpc.deleteSearch(partnerObj, [('id', 'in', [newId1, newId2])]))
+#     print 'Search count res: %r' % (connectorObj.rpc.searchCount(partnerObj, [('name', 'ilike', 'daniel')]))
+#     print 'Fields get res: %r' % (connectorObj.rpc.fieldsGet(partnerObj, []))
     

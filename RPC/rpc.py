@@ -66,3 +66,6 @@ class RpcConnection(object):
         '''
         return self.sockInstance.fieldsGet(obj, attributesToRead)
         
+    def fieldsViewGet(self, obj, view_id, view_type):
+        return self.sockInstance.fieldsViewGet(obj, view_id, view_type)
+        
