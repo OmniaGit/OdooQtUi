@@ -23,8 +23,7 @@ class RpcConnection(object):
         self.sockInstance = False
         if connectionType == 'xmlrpc':
             self.sockInstance = XmlRpcConnection(userName, userPassword, databaseName, xmlrpcPort, scheme, xmlrpcServerIP)
-            return self.sockInstance.__init__(userName, userPassword, databaseName, xmlrpcPort, scheme, xmlrpcServerIP)
-        return None
+        return super(RpcConnection, self).__init__()
 
     def loginNoUser(self):
         return self.sockInstance.loginNoUser()
@@ -55,8 +54,8 @@ class RpcConnection(object):
         idsToUnlink = self.search(obj, filterList)
         return self.delete(obj, idsToUnlink)
 
-    def searchCount(self, filterList):
-        return self.sockInstance.searchCount(filterList)
+    def searchCount(self, obj, filterList):
+        return self.sockInstance.searchCount(obj, filterList)
     
     def create(self, obj, values):
         return self.sockInstance.create(obj, values)

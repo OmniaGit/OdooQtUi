@@ -62,11 +62,19 @@ if __name__ == '__main__':
     
     usersObj = 'res.users'
     partnerObj = 'res.partner'
-    connectorObj.rpc.search(usersObj, [])
-    connectorObj.rpc.read(usersObj, [], [1])
-    connectorObj.rpc.fieldsGet(usersObj, [])
-    connectorObj.rpc.readSearch(usersObj, [], [])
-    connectorObj.rpc.create(partnerObj, {'name': 'Daniel'})
-    
-    
+    prodProdObj = 'product.product'
+    print 'Search result: %r' % (connectorObj.rpc.search(usersObj, []))
+    print 'Read result: %r' % (connectorObj.rpc.read(usersObj, [], [1]))
+    print 'Read search result: %r' % (unicode(connectorObj.rpc.readSearch(usersObj, [], [])))
+    print ''
+    print 'Write result %r' % (connectorObj.rpc.write(prodProdObj, {'description': 'ciaooo'}, [69, 70]))
+    print 'Search Write result %r' % (connectorObj.rpc.writeSearch(prodProdObj, {'description': 'ciao2'}, [('id', 'in', [69, 70])]))
+    print 'Fields get result: %r' % (connectorObj.rpc.fieldsGet(usersObj, []))
+    newId = connectorObj.rpc.create(partnerObj, {'name': 'Daniel'})
+    print 'Create result: %r' % (newId)
+    print 'Delete resut: %r' % (connectorObj.rpc.delete(prodProdObj, [newId]))
+    newId1 = connectorObj.rpc.create(partnerObj, {'name': 'Daniel_1'})
+    newId2 = connectorObj.rpc.create(partnerObj, {'name': 'Daniel_2'})
+    print 'Search Delete resut: %r' % (connectorObj.rpc.deleteSearch(partnerObj, [('id', 'in', [newId1, newId2])]))
+    print 'Search count res: %r' % (connectorObj.rpc.searchCount(partnerObj, [('name', 'ilike', 'daniel')]))
     

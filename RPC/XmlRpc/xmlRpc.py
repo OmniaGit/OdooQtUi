@@ -92,13 +92,28 @@ class XmlRpcConnection(object):
         return []
 
     def write(self, obj, values, idsToWrite):
-        pass
+        try:
+            kargs = {}
+            return self.callOdooFunction(obj, 'write', [idsToWrite, values], kargs)
+        except Exception, ex:
+            utils.logMessage('error', 'Error during create with values: object %r, kargs %r, filterList %r. Error: %r'  % (obj, kargs, values, ex), 'write')
+        return []
     
-    def delete(self, obj, idsToUnlink):
-        pass
+    def delete(self, obj, idsToDelete):
+        try:
+            kargs = {}
+            return self.callOdooFunction(obj, 'unlink', [idsToDelete], kargs)
+        except Exception, ex:
+            utils.logMessage('error', 'Error during create with values: object %r, kargs %r, idsToDelete %r. Error: %r'  % (obj, kargs, idsToDelete, ex), 'delete')
+        return []
 
-    def searchCount(self, filterList):
-        pass
+    def searchCount(self, obj, filterList):
+        try:
+            kargs = {}
+            return self.callOdooFunction(obj, 'search_count', [filterList], kargs)
+        except Exception, ex:
+            utils.logMessage('error', 'Error during create with values: object %r, kargs %r, filterList %r. Error: %r'  % (obj, kargs, filterList, ex), 'searchCount')
+        return []
         
     def callOdooFunction(self, odooObj, functionName, parameters=[], kwargParameters={}):
         '''
