@@ -31,7 +31,7 @@ class MainConnector(object):
         logger = logging.getLogger()
         logger.setLevel(logInteger)
 
-    def getViewLayout(self, viewType, odooObjectName, viewName='', view_id=False, startingFieldValues={}, clientReadonlyFields={}, idsToLoad=[]):
+    def initViewObj(self, viewType, odooObjectName, viewName='', view_id=False, startingFieldValues={}, clientReadonlyFields={}, idsToLoad=[]):
         '''
         @viewType: tree_tree, tree_list, form, search
         @odooObjectName: product.product, mrp.bom, ...
@@ -63,7 +63,7 @@ if __name__ == '__main__':
     connectorObj.loginWithUser(user, password, dbName, xmlrpcServerIP, xmlrpcPort, scheme, loginType)
     
     
-    connectorObj.getViewLayout('form', 'product.product', '', False, {}, {}, [])
+    connectorObj.initViewObj('form', 'product.product', '', False, {}, {}, [])
     
     
     
