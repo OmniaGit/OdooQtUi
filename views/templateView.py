@@ -21,7 +21,7 @@ class TemplateView(object):
         self.requiredFields = []
         self.fieldsNameTypeRel = {}
         self.startingFieldValues = {}
-        self.fields = {}
+        self.objects = Objects()
         self.fieldsChanged = {}
         self.mappingInterface = {}
         self.readonly = False
@@ -34,7 +34,6 @@ class TemplateView(object):
         self.arch = fieldsViewDefinition.get('arch', '')
         self.model = fieldsViewDefinition.get('model', '')
         self.startingFieldValues = fieldsViewDefinition.get('fields', {})
-        self.fields = self.startingFieldValues.copy()
         self.viewName = fieldsViewDefinition.get('name', '')
         self.field_parent = fieldsViewDefinition.get('field_parent', '')
         self.fieldsNameTypeRel = self.rpcObject.fieldsGet(self.model, [])
@@ -49,8 +48,12 @@ class TemplateView(object):
             pass
         elif viewType == 'search':
             pass
-        pass
+        self.addToObject()
 
+    def addToObject(self):
+        for key, val in self.mappingInterface.items():
+            self.objects.__dict__[key] = val
+        
     def loadIds(self, objIds):
         if self.viewType in ['form', 'search'] and len(objIds) > 1:
             utils.launchMessage('You cannot load multiple ids on form or search view!', 'warning')
@@ -75,3 +78,9 @@ class TemplateView(object):
 
     def getStartingFieldValues(self):
         return self.startingFieldValues
+    
+class Objects(object):
+    def __init__(self):
+        return super(Objects, self).__init__()
+
+    

@@ -3,6 +3,8 @@ Created on 02 feb 2017
 
 @author: Daniel
 '''
+from PyQt4 import QtGui
+
 
 class OdooFieldTemplate(object):
     def __init__(self, xmlField, fieldsDefinition):
@@ -15,3 +17,6 @@ class OdooFieldTemplate(object):
         self.widgetQtObj = None
         return super(OdooFieldTemplate, self).__init__()
 
+    @property
+    def qtObject(self):
+        return QtGui.QHBoxLayout()

@@ -41,14 +41,16 @@ class FormView(object):
             elif childTag == 'group':
                 mainVLay.addLayout(self.computeArchRecursion(childElement))
             elif childTag == 'field':
-                fieldObj, fieldQt = utilsView.computeField(childElement, self.fieldsNameTypeRel)
-                if isinstance(fieldQt, QtGui.QLayout):
-                    mainVLay.addLayout(fieldQt)
-                elif isinstance(fieldQt, QtGui.QWidget):
-                    mainVLay.addWidget(fieldQt)
+                fieldObj = utilsView.computeField(childElement, self.fieldsNameTypeRel)
                 if fieldObj:
-                    mapping = {fieldObj.fieldName: {'fieldObj': fieldObj, 'fieldQt': fieldQt}}
-                    self.globalMapping.update(mapping)
+                    fieldQt = fieldObj.qtObject
+                    if isinstance(fieldQt, QtGui.QLayout):
+                        mainVLay.addLayout(fieldQt)
+                    elif isinstance(fieldQt, QtGui.QWidget):
+                        mainVLay.addWidget(fieldQt)
+                    if fieldObj:
+                        mapping = {fieldObj.fieldName: fieldObj}
+                        self.globalMapping.update(mapping)
         return mainVLay
 
     def computeArch(self):

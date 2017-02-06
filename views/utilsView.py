@@ -15,10 +15,8 @@ def computeField(xmlObj, fieldsDefinition):
     fieldDefinition = fieldsDefinition.get(fieldName, {})
     fieldType = fieldDefinition.get('type', False)
     fieldObj = None
-    fieldQt = None
     if fieldType == 'selection':
         fieldObj = Selection(xmlObj, fieldsDefinition)
-        fieldQt = fieldObj.getQtObject()
     elif fieldType == 'char':
         pass
     elif fieldType == 'integer':
@@ -33,7 +31,7 @@ def computeField(xmlObj, fieldsDefinition):
         pass
     elif fieldType == 'text':
         pass
-    return fieldObj, fieldQt
+    return fieldObj
 
 def computeHeader(archHeader, fieldsDefinition):
     mapping = {}
@@ -47,11 +45,11 @@ def computeHeader(archHeader, fieldsDefinition):
     for xmlObj in archHeader._children:
         if xmlObj.tag == 'button':
             buttonObj = button.Button(xmlObj)
-            buttonQt = buttonObj.getQtObject()
-            headerLayout.addWidget(buttonQt)
-            commonAppend(buttonObj.buttonString, {'buttonObj': buttonObj, 'buttonQt': buttonQt})
+            headerLayout.addWidget(buttonObj.qtObject)
+            commonAppend(buttonObj.buttonString.replace(' ', '_'), buttonObj)
         elif xmlObj.tag == 'field':
-            fieldObj, fieldQt = computeField(xmlObj, fieldsDefinition)
+            fieldObj = computeField(xmlObj, fieldsDefinition)
+            fieldQt = fieldObj.qtObject
             fieldName = fieldObj.fieldName
             if not fieldQt:
                 utils.logMessage('warning', 'Qt field %r could not be loaded' % (fieldName), 'computeHeader')
@@ -63,7 +61,7 @@ def computeHeader(archHeader, fieldsDefinition):
             else:
                 utils.logMessage('warning', 'Field %r could not be added to layout' % (fieldName), 'computeHeader')
                 continue
-            commonAppend(fieldName, {'fieldObj': fieldObj, 'fieldQt': fieldQt})
+            commonAppend(fieldName, fieldObj)
         else:
             pass
     return mapping, headerLayout

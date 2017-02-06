@@ -13,8 +13,13 @@ class Button(object):
         self.buttonString = self.buttonAttribs.get('string', '')
         self.buttonType = self.buttonAttribs.get('type', '')
         self.buttonName = self.buttonAttribs.get('name', '')
+        self.buttonObj = self.getQtObject()
         return super(Button, self).__init__()
     
+    @property
+    def qtObject(self):
+        return self.buttonObj
+
     def getQtObject(self):
-        buttonObj = QtGui.QPushButton(self.buttonString)
-        return buttonObj
+        self.buttonObj = QtGui.QPushButton(self.buttonString)
+        return self.buttonObj

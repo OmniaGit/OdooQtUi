@@ -14,6 +14,7 @@ class Selection(OdooFieldTemplate):
         self.selectionMappingReverse = {}
         self.labelQtObj = False
         self.widgetQtObj = False
+        self.hboxLay = self.getQtObject()
     
     def populateMapping(self, items):
         for odooName, interfaceName in items:
@@ -22,15 +23,19 @@ class Selection(OdooFieldTemplate):
             self.selectionMapping[odooName] = interfaceName
             self.selectionMappingReverse[interfaceName] = odooName
         
+    @property
+    def qtObject(self):
+        return self.hboxLay
+        
     def getQtObject(self):
-        hboxLay = QtGui.QHBoxLayout()
+        self.hboxLay = QtGui.QHBoxLayout()
         self.labelQtObj = QtGui.QLabel(self.labelString)
-        hboxLay.addWidget(self.labelQtObj)
+        self.hboxLay.addWidget(self.labelQtObj)
         self.widgetQtObj = QtGui.QComboBox()
         self.populateMapping(self.fieldDefinition.get('selection', []))
         self.widgetQtObj.addItems(self.selectionMappingReverse.keys())
         self.widgetQtObj.setToolTip(self.fieldDefinition.get('help', ''))
-        hboxLay.addWidget(self.widgetQtObj)
-        return hboxLay
+        self.hboxLay.addWidget(self.widgetQtObj)
+        return self.hboxLay
         
         
