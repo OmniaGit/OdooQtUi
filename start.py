@@ -24,7 +24,7 @@ class MainConnector(object):
         return self.rpc.loginNoUser()
 
     def loginWithUser(self, user, password, dbName, xmlrpcServerIP='127.0.0.1', xmlrpcPort=8069, scheme='http', loginType='xmlrpc'):
-        self.rpc =  self._getRpcInstance(loginType, user, password, dbName, xmlrpcPort, scheme, xmlrpcServerIP)
+        self.rpc = self._getRpcInstance(loginType, user, password, dbName, xmlrpcPort, scheme, xmlrpcServerIP)
         return self.rpc.loginWithUser()
 
     def setLogLevel(self, logInteger=logging.WARNING):
@@ -41,24 +41,24 @@ class MainConnector(object):
         tree_list and tree_tree views are always read only
         '''
         templateViewObj = TemplateView(self.rpc)
-        templateViewObj.getView(odooObjectName, viewName, view_id, viewType, startingFieldValues, clientReadonlyFields, idsToLoad)
+        templateViewObj.initViewObj(odooObjectName, viewName, view_id, viewType, startingFieldValues, clientReadonlyFields, idsToLoad)
 
 if __name__ == '__main__':
-    scheme = 'http'
-    xmlrpcServerIP = '127.0.0.1'
-    xmlrpcPort = 8069
-    user = 'admin'
-    password = 'admin'
-    dbName = 'plm_9'
-    loginType = 'xmlrpc'
-
 #     scheme = 'http'
 #     xmlrpcServerIP = '127.0.0.1'
-#     xmlrpcPort = 8081
+#     xmlrpcPort = 8069
 #     user = 'admin'
-#     password = 'Maus2016'
-#     dbName = 'Maus_real'
+#     password = 'admin'
+#     dbName = 'plm_9'
 #     loginType = 'xmlrpc'
+
+    scheme = 'http'
+    xmlrpcServerIP = '127.0.0.1'
+    xmlrpcPort = 8081
+    user = 'admin'
+    password = 'Maus2016'
+    dbName = 'Maus_real'
+    loginType = 'xmlrpc'
     connectorObj = MainConnector()
     connectorObj.loginWithUser(user, password, dbName, xmlrpcServerIP, xmlrpcPort, scheme, loginType)
     
