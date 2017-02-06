@@ -23,6 +23,7 @@ class TemplateView(object):
         self.startingFieldValues = {}
         self.fields = {}
         self.fieldsChanged = {}
+        self.mappingInterface = {}
         self.readonly = False
         self.layout = QtGui.QHBoxLayout()
 
@@ -40,6 +41,7 @@ class TemplateView(object):
         self.viewType = viewType
         if viewType == 'form':
             formObj = FormView(self.arch, self.fieldsNameTypeRel)
+            self.mappingInterface = formObj.globalMapping
             self.layout = formObj.computeArch()
         elif viewType == 'tree_tree':
             pass
