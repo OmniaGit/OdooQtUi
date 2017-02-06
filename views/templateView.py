@@ -47,6 +47,7 @@ class TemplateView(object):
             pass
         elif viewType == 'search':
             pass
+        pass
 
     def loadIds(self, objIds):
         if self.viewType in ['form', 'search'] and len(objIds) > 1:
@@ -58,6 +59,9 @@ class TemplateView(object):
     def setReadonly(self, val=False):
         pass
 
+    def getQtInterface(self):
+        return self.layout
+        
     def getXml(self):
         return self.arch
 

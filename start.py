@@ -44,6 +44,7 @@ class MainConnector(object):
         '''
         templateViewObj = TemplateView(self.rpc)
         templateViewObj.initViewObj(odooObjectName, viewName, view_id, viewType, startingFieldValues, clientReadonlyFields, idsToLoad)
+        return templateViewObj
 
 if __name__ == '__main__':
     scheme = 'http'
@@ -66,10 +67,11 @@ if __name__ == '__main__':
     connectorObj = MainConnector()
     connectorObj.loginWithUser(user, password, dbName, xmlrpcServerIP, xmlrpcPort, scheme, loginType)
     
-    
-    connectorObj.initViewObj('form', 'product.product', '', False, {}, {}, [])
-    
-    
+    dialog = QtGui.QDialog()
+    templateViewObj = connectorObj.initViewObj('form', 'product.product', '', False, {}, {}, [])
+    qtInterface = templateViewObj.getQtInterface()
+    dialog.setLayout(qtInterface)
+    dialog.exec_()
     
     # Odoo calls
     usersObj = 'res.users'

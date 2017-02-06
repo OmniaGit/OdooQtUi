@@ -23,6 +23,7 @@ class FormView(object):
                 layout = self.computeArchRecursion(childElement)
                 if layout:
                     sheetLay.addLayout(layout)
+                mainVLay.addLayout(sheetLay)
             elif childTag == 'header':
                 mapping, layout = utilsView.computeHeader(childElement, self.fieldsNameTypeRel)
                 if layout:
@@ -30,11 +31,24 @@ class FormView(object):
                 if mapping:
                     self.globalMapping.update(mapping)
             elif childTag == 'div':
-                self.computeArchRecursion(childElement)
+                divVlay = QtGui.QVBoxLayout()
+                if childElement.text:
+                    label = QtGui.QLabel(childElement.text)
+                    divVlay.addWidget(label)
+                childLay = self.computeArchRecursion(childElement)
+                divVlay.addLayout(childLay)
+                mainVLay.addLayout(divVlay)
             elif childTag == 'group':
-                self.computeArchRecursion(childElement)
+                mainVLay.addLayout(self.computeArchRecursion(childElement))
             elif childTag == 'field':
-                fieldObj = utilsView.computeField(childElement, self.fieldsNameTypeRel)
+                fieldObj, fieldQt = utilsView.computeField(childElement, self.fieldsNameTypeRel)
+                if isinstance(fieldQt, QtGui.QLayout):
+                    mainVLay.addLayout(fieldQt)
+                elif isinstance(fieldQt, QtGui.QWidget):
+                    mainVLay.addWidget(fieldQt)
+                if fieldObj:
+                    mapping = {fieldObj.fieldName: {'fieldObj': fieldObj, 'fieldQt': fieldQt}}
+                    self.globalMapping.update(mapping)
         return mainVLay
 
     def computeArch(self):

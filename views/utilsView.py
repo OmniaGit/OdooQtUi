@@ -7,7 +7,6 @@ from PyQt4 import QtGui
 from objects import button
 from utils import utils
 from objects.selection.selection import Selection
-from cookielib import vals_sorted_by_key
     
 
 def computeField(xmlObj, fieldsDefinition):
@@ -20,6 +19,20 @@ def computeField(xmlObj, fieldsDefinition):
     if fieldType == 'selection':
         fieldObj = Selection(xmlObj, fieldsDefinition)
         fieldQt = fieldObj.getQtObject()
+    elif fieldType == 'char':
+        pass
+    elif fieldType == 'integer':
+        pass
+    elif fieldType == 'float':
+        pass
+    elif fieldType == 'datetime':
+        pass
+    elif fieldType == 'many2one':
+        pass
+    elif fieldType == 'many2many':
+        pass
+    elif fieldType == 'text':
+        pass
     return fieldObj, fieldQt
 
 def computeHeader(archHeader, fieldsDefinition):
