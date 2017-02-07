@@ -49,7 +49,7 @@ class FormView(object):
                     elif isinstance(fieldQt, QtGui.QWidget):
                         mainVLay.addWidget(fieldQt)
                     if fieldObj:
-                        mapping = {fieldObj.fieldName: fieldObj}
+                        mapping = {'field_' + fieldObj.fieldName: fieldObj}
                         self.globalMapping.update(mapping)
         return mainVLay
 

@@ -15,6 +15,9 @@ class OdooFieldTemplate(object):
         self.labelString = self.fieldDefinition.get('string', '')
         self.labelQtObj = None
         self.widgetQtObj = None
+        self.initVal = ''
+        self.currentValue = ''
+        self.changed = False
         return super(OdooFieldTemplate, self).__init__()
 
     @property

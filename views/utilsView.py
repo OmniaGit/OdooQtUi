@@ -31,22 +31,26 @@ def computeField(xmlObj, fieldsDefinition):
         pass
     elif fieldType == 'text':
         pass
+    elif fieldType == 'boolean':
+        pass
     return fieldObj
+
 
 def computeHeader(archHeader, fieldsDefinition):
     mapping = {}
+
     def commonAppend(key, vals):
         if key not in mapping:
             mapping[key] = vals
         else:
             utils.launchMessage('multiple widgets with the same key: %r' % (key), 'warning')
-        
+
     headerLayout = QtGui.QHBoxLayout()
     for xmlObj in archHeader._children:
         if xmlObj.tag == 'button':
             buttonObj = button.Button(xmlObj)
             headerLayout.addWidget(buttonObj.qtObject)
-            commonAppend(buttonObj.buttonString.replace(' ', '_'), buttonObj)
+            commonAppend('button_' + unicode(buttonObj.buttonString).replace(' ', '_'), buttonObj)
         elif xmlObj.tag == 'field':
             fieldObj = computeField(xmlObj, fieldsDefinition)
             fieldQt = fieldObj.qtObject
@@ -61,7 +65,7 @@ def computeHeader(archHeader, fieldsDefinition):
             else:
                 utils.logMessage('warning', 'Field %r could not be added to layout' % (fieldName), 'computeHeader')
                 continue
-            commonAppend(fieldName, fieldObj)
+            commonAppend('field_' + unicode(fieldName), fieldObj)
         else:
             pass
     return mapping, headerLayout
