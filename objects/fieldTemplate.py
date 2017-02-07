@@ -18,6 +18,8 @@ class OdooFieldTemplate(object):
         self.initVal = ''
         self.currentValue = ''
         self.changed = False
+        self.readonly = False
+        self.visible = True
         return super(OdooFieldTemplate, self).__init__()
 
     @property

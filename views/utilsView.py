@@ -7,32 +7,43 @@ from PyQt4 import QtGui
 from objects import button
 from utils import utils
 from objects.selection.selection import Selection
-    
+from objects.boolean.boolean import Boolean
+from objects.char.char import Charachter
+from objects.date.date import Date
+from objects.datetime.datetime import Datetime
+from objects.float.float import Float
+from objects.integer.integer import Integer
+from objects.many2many.many2many import Many2many
+from objects.many2one.many2one import Many2one
+from objects.text.text import Text
+
 
 def computeField(xmlObj, fieldsDefinition):
     fieldAttributes = xmlObj.attrib
-    fieldName = fieldAttributes.get('name','')
+    fieldName = fieldAttributes.get('name', '')
     fieldDefinition = fieldsDefinition.get(fieldName, {})
     fieldType = fieldDefinition.get('type', False)
     fieldObj = None
     if fieldType == 'selection':
         fieldObj = Selection(xmlObj, fieldsDefinition)
     elif fieldType == 'char':
-        pass
+        fieldObj = Charachter(xmlObj, fieldsDefinition)
     elif fieldType == 'integer':
-        pass
+        fieldObj = Integer(xmlObj, fieldsDefinition)
     elif fieldType == 'float':
-        pass
+        fieldObj = Float(xmlObj, fieldsDefinition)
     elif fieldType == 'datetime':
-        pass
+        fieldObj = Datetime(xmlObj, fieldsDefinition)
     elif fieldType == 'many2one':
-        pass
+        fieldObj = Many2one(xmlObj, fieldsDefinition)
     elif fieldType == 'many2many':
-        pass
+        fieldObj = Many2many(xmlObj, fieldsDefinition)
     elif fieldType == 'text':
-        pass
+        fieldObj = Text(xmlObj, fieldsDefinition)
+    elif fieldType == 'date':
+        fieldObj = Date(xmlObj, fieldsDefinition)
     elif fieldType == 'boolean':
-        pass
+        fieldObj = Boolean(xmlObj, fieldsDefinition)
     return fieldObj
 
 
