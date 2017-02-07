@@ -4,6 +4,7 @@ Created on 06 feb 2017
 @author: Daniel
 '''
 from PyQt4 import QtGui
+from utils import utils
 
 
 class Button(object):
@@ -13,7 +14,13 @@ class Button(object):
         self.buttonString = self.buttonAttribs.get('string', '')
         self.buttonType = self.buttonAttribs.get('type', '')
         self.buttonName = self.buttonAttribs.get('name', '')
+        self.modifiers = self.buttonAttribs.get('modifiers', {})
         self.buttonObj = self.getQtObject()
+        self.invisible = utils.evaluateBoolean(self.buttonAttribs.get('invisible', False))
+        self.readonly = utils.evaluateBoolean(self.buttonAttribs.get('readonly', False))
+        self.buttonObj.setDisabled(self.readonly)
+        self.buttonObj.setHidden(self.invisible)
+        self.invisibleConditions, self.readonlyConditions = utils.evaluateModifiers(self.modifiers)
         return super(Button, self).__init__()
     
     @property

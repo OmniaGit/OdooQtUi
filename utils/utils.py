@@ -4,6 +4,7 @@ Created on 20/set/2015
 @author: Daniel
 '''
 from PyQt4 import QtGui
+import json
 import os
 import logging
 import sys
@@ -510,6 +511,21 @@ def commonPopulateTable(headers, values, tableWidget, flags={}):
         rowPosition = rowPosition + 1
     return outDict
 
+def evaluateBoolean(val):
+    if isinstance(val, bool):
+        return val
+    elif isinstance(val, (unicode, str)):
+        invisible = eval(val)
+        if invisible:
+            return True
+        return False
+
+def evaluateModifiers(modifiers):
+    if isinstance(modifiers, (unicode, str)):
+        modifiers = json.loads(modifiers)
+    invisibleConditions = modifiers.get('invisible', {})
+    readonlyConditions = modifiers.get('readonly', {})
+    return invisibleConditions, readonlyConditions
 
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)

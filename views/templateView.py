@@ -6,24 +6,25 @@ Created on 3 Feb 2017
 from form_view import FormView
 from utils import utils
 from PyQt4 import QtGui
+import copy
 
 
 class TemplateView(object):
 
     def __init__(self, rpcObject):
         self.rpcObject = rpcObject
-        self.arch = ''
-        self.model = ''
-        self.viewName = ''
-        self.field_parent = ''
-        self.viewtype = ''
-        self.readonlyFields = []
-        self.requiredFields = []
+        self.arch = ''  # xml view...
+        self.model = '' # 'product.product' / ...
+        self.viewName = ''  
+        self.field_parent = ''  
+        self.viewtype = ''  # 'form' / 'search' / ...
+        self.readonlyFields = []     # ['field1', 'field2']
+        self.requiredFields = []    # ['field1', 'field2']
         self.fieldsNameTypeRel = {}
-        self.startingFieldValues = {}
-        self.objects = Objects()
-        self.fieldsChanged = {}
-        self.mappingInterface = {}
+        self.objects = Objects()    # objects.fieldName
+        self.objectsInit = copy.deepcopy(self.objects)
+        self.fieldsChanged = {} # {'fieldName' : fieldObj}
+        self.mappingInterface = {}   # {'fieldName' : fieldObj}
         self.readonly = False
         self.layout = QtGui.QHBoxLayout()
 
