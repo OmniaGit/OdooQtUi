@@ -49,7 +49,23 @@ class FormView(object):
                 childLay = self.computeArchRecursion(childElement)
                 divVlay.addLayout(childLay)
                 mainVLay.addLayout(divVlay)
+            elif childTag == 'notebook':
+                tabWidget = QtGui.QTabWidget()
+                for page in childElement._children:
+                    pageString = page.attrib.get('string', '')
+                    pageWidget = QtGui.QWidget()
+                    childLay = self.computeArchRecursion(page)
+                    pageWidget.setLayout(childLay)
+                    tabWidget.addTab(pageWidget, pageString)
+                mainVLay.addWidget(tabWidget)
             elif childTag == 'group':
+                mainVLay.addLayout(self.computeArchRecursion(childElement))
+            elif childTag == 'button':
+                continue
+                buttonObj = button.Button(childElement)
+                mainVLay.addWidget(buttonObj.qtObject)
+                mapping = {'button_' + unicode(buttonObj.buttonString).replace(' ', '_') : buttonObj}
+                self.globalMapping.update(mapping)
                 mainVLay.addLayout(self.computeArchRecursion(childElement))
             elif childTag == 'field':
                 fieldObj = self.computeField(childElement, self.fieldsNameTypeRel)
