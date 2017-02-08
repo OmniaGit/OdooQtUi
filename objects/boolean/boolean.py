@@ -16,4 +16,10 @@ class Boolean(OdooFieldTemplate):
         self.hboxLay = self.getQtObject()
 
     def getQtObject(self):
-        pass
+        self.hboxLay = QtGui.QHBoxLayout()
+        self.labelQtObj = QtGui.QLabel(self.labelString)
+        self.hboxLay.addWidget(self.labelQtObj)
+        self.widgetQtObj = QtGui.QCheckBox()
+        self.widgetQtObj.setToolTip(self.fieldDefinition.get('help', ''))
+        self.hboxLay.addWidget(self.widgetQtObj)
+        return self.hboxLay

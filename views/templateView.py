@@ -14,16 +14,16 @@ class TemplateView(object):
     def __init__(self, rpcObject):
         self.rpcObject = rpcObject
         self.arch = ''  # xml view...
-        self.model = '' # 'product.product' / ...
-        self.viewName = ''  
-        self.field_parent = ''  
+        self.model = ''     # 'product.product' / ...
+        self.viewName = ''
+        self.field_parent = ''
         self.viewtype = ''  # 'form' / 'search' / ...
         self.readonlyFields = []     # ['field1', 'field2']
         self.requiredFields = []    # ['field1', 'field2']
         self.fieldsNameTypeRel = {}
         self.objects = Objects()    # objects.fieldName
         self.objectsInit = copy.deepcopy(self.objects)
-        self.fieldsChanged = {} # {'fieldName' : fieldObj}
+        self.fieldsChanged = {}     # {'fieldName' : fieldObj}
         self.mappingInterface = {}   # {'fieldName' : fieldObj}
         self.readonly = False
         self.layout = QtGui.QHBoxLayout()
@@ -54,10 +54,14 @@ class TemplateView(object):
     def addToObject(self):
         for key, val in self.mappingInterface.items():
             self.objects.__dict__[key] = val
-        
+        return True
+
     def loadIds(self, objIds):
         if self.viewType in ['form', 'search'] and len(objIds) > 1:
             utils.launchMessage('You cannot load multiple ids on form or search view!', 'warning')
+            return False
+        # Copy objects to self.objectsInit
+        # Modify self.layout
 
     def isReadonly(self):
         return self.readonly
@@ -65,23 +69,15 @@ class TemplateView(object):
     def setReadonly(self, val=False):
         pass
 
-    def getQtInterface(self):
+    @property
+    def QtInterface(self):
         return self.layout
-        
-    def getXml(self):
+
+    @property
+    def xmlOdooView(self):
         return self.arch
 
-    def getRequiredFields(self):
-        return self.requiredFields
 
-    def getReadonlyFields(self):
-        return self.readonlyFields
-
-    def getStartingFieldValues(self):
-        return self.startingFieldValues
-    
 class Objects(object):
     def __init__(self):
         return super(Objects, self).__init__()
-
-    
