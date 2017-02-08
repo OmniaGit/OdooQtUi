@@ -75,9 +75,8 @@ class FormView(object):
                         mainVLay.addLayout(fieldQt)
                     elif isinstance(fieldQt, QtGui.QWidget):
                         mainVLay.addWidget(fieldQt)
-                    if fieldObj:
-                        mapping = {'field_' + fieldObj.fieldName: fieldObj}
-                        self.globalMapping.update(mapping)
+                    mapping = {'field_' + fieldObj.fieldName: fieldObj}
+                    self.globalMapping.update(mapping)
         return mainVLay
 
     def computeField(self, xmlObj, fieldsDefinition):
