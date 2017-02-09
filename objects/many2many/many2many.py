@@ -16,4 +16,21 @@ class Many2many(OdooFieldTemplate):
         self.hboxLay = self.getQtObject()
 
     def getQtObject(self):
-        pass
+        self.hboxLay = QtGui.QVBoxLayout()
+        buttonsLay = QtGui.QHBoxLayout()
+        self.labelQtObj = QtGui.QLabel(self.labelString)
+        buttonsLay.addWidget(self.labelQtObj)
+        createButt = QtGui.QPushButton('Create')
+        editButton = QtGui.QPushButton('Edit')
+        addButton = QtGui.QPushButton('Add')
+        removeButton = QtGui.QPushButton('Remove')
+        buttonsLay.addWidget(createButt)
+        buttonsLay.addWidget(editButton)
+        buttonsLay.addWidget(addButton)
+        buttonsLay.addWidget(removeButton)
+        buttonsLay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum))
+        self.hboxLay.addLayout(buttonsLay)
+        self.widgetQtObj = QtGui.QTableWidget()
+        self.widgetQtObj.setToolTip(self.fieldDefinition.get('help', ''))
+        self.hboxLay.addWidget(self.widgetQtObj)
+        return self.hboxLay
