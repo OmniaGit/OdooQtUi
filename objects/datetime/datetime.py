@@ -1,5 +1,6 @@
 
 from PyQt4 import QtGui
+from utils import utils
 from objects.fieldTemplate import OdooFieldTemplate
 
 
@@ -16,5 +17,7 @@ class Datetime(OdooFieldTemplate):
         self.hboxLay.addWidget(self.labelQtObj)
         self.widgetQtObj = QtGui.QDateTimeEdit()
         self.widgetQtObj.setToolTip(self.tooltip)
+        if self.required:
+            utils.setRequiredBackground(self.widgetQtObj)
         self.hboxLay.addWidget(self.widgetQtObj)
         return self.hboxLay

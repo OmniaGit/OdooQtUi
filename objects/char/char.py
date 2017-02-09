@@ -24,4 +24,6 @@ class Charachter(OdooFieldTemplate):
         self.widgetQtObj = QtGui.QLineEdit()
         self.widgetQtObj.setToolTip(self.tooltip)
         self.hboxLay.addWidget(self.widgetQtObj)
+        if self.required:
+            utils.setRequiredBackground(self.widgetQtObj)
         return self.hboxLay

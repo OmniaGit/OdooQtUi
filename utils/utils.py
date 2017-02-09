@@ -527,6 +527,9 @@ def evaluateModifiers(modifiers):
     readonlyConditions = modifiers.get('readonly', {})
     return invisibleConditions, readonlyConditions
 
+def setRequiredBackground(widgetQtObj):
+    widgetQtObj.setStyleSheet('Background-color: rgb(210,210,255)')
+    
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
     # aaa = getExeFromPath('/home/daniel/eclipse/committers-neon/eclipse/')
