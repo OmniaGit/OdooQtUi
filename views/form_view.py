@@ -17,6 +17,7 @@ from objects.integer.integer import Integer
 from objects.many2many.many2many import Many2many
 from objects.many2one.many2one import Many2one
 from objects.text.text import Text
+import json
 
 
 class FormView(object):
@@ -28,7 +29,7 @@ class FormView(object):
     def computeArchRecursion(self, parent):
         # TODO:    div name <div name="button_box" class="oe_button_box"> 
         mainVLay = QtGui.QVBoxLayout()
-        for childElement in parent:
+        for childElement in parent._children:
             childTag = childElement.tag
             if childTag == 'sheet':
                 sheetLay = QtGui.QVBoxLayout()
@@ -37,7 +38,7 @@ class FormView(object):
                     sheetLay.addLayout(layout)
                 mainVLay.addLayout(sheetLay)
             elif childTag == 'header':
-                mapping, layout = self.computeHeader(childElement, self.fieldsNameTypeRel)
+                mapping, layout = self.computeHeader(childElement)
                 if layout:
                     mainVLay.addLayout(layout)
                 if mapping:
@@ -60,59 +61,107 @@ class FormView(object):
                     tabWidget.addTab(pageWidget, pageString)
                 mainVLay.addWidget(tabWidget)
             elif childTag == 'group':
-                colspan = childElement.attrib.get('colspan', 1)
-                col = childElement.attrib.get('col')
-                mainVLay.addLayout(self.computeArchRecursion(childElement))
+                layout = self.computeGroup(childElement)
+                mainVLay.addLayout(layout)
             elif childTag == 'button':
                 continue
                 buttonObj = button.Button(childElement)
                 mainVLay.addWidget(buttonObj.qtObject)
-                mapping = {'button_' + unicode(buttonObj.buttonString).replace(' ', '_') : buttonObj}
-                self.globalMapping.update(mapping)
-                mainVLay.addLayout(self.computeArchRecursion(childElement))
+                key = 'button_' + unicode(buttonObj.buttonString).replace(' ', '_')
+                self.appendToglobalMapping(key, buttonObj)
             elif childTag == 'field':
                 colspan = childElement.attrib.get('colspan', 1)
                 col = childElement.attrib.get('col')
-                fieldObj = self.computeField(childElement, self.fieldsNameTypeRel)
+                fieldObj = self.computeField(childElement)
                 if fieldObj:
                     fieldQt = fieldObj.qtObject
                     if isinstance(fieldQt, QtGui.QLayout):
                         mainVLay.addLayout(fieldQt)
                     elif isinstance(fieldQt, QtGui.QWidget):
                         mainVLay.addWidget(fieldQt)
-                    mapping = {'field_' + fieldObj.fieldName: fieldObj}
-                    self.globalMapping.update(mapping)
+                    self.appendToglobalMapping('field_' + fieldObj.fieldName, fieldObj)
         return mainVLay
 
-    def computeField(self, xmlObj, fieldsDefinition):
+    def computeGroup(self, groupXmlObj):
+        # grid.addWidget(widget, row, column, rowspan, colspan)
+        # grid.addLayout(widget, row, column, rowspan, colspan)
+        def computeCol(val):
+            try:
+                if isinstance(val,  (str, unicode)):
+                    val = json.loads(val)
+                if val % 2 == 0:
+                    return val / 2
+                if val == 1:
+                    return 1
+                return (val - 1) / 2
+            except Exception, ex:
+                utils.logMessage('error', 'Error during computing col and colspan %r' % (ex), 'computeCol')
+                return 1
+            
+        childColCount = computeCol(groupXmlObj.attrib.get('col', 2))
+        globalLay = QtGui.QGridLayout()
+        colCount = 0
+        rowCount = 0
+        for childElement in groupXmlObj._children:
+            if colCount >= childColCount:
+                colCount = 0
+                rowCount = rowCount + 1
+            childTag = childElement.tag
+            childColSpan = computeCol(childElement.attrib.get('colspan', 2))
+            if childTag == 'group':
+                layout = self.computeGroup(childElement)
+                globalLay.addLayout(layout, rowCount, colCount, 1, childColSpan)
+                colCount = colCount + childColSpan
+            elif childTag == 'field':
+                fieldObj = self.computeField(childElement)
+                if fieldObj:
+                    fieldQt = fieldObj.qtObject
+                    if isinstance(fieldQt, QtGui.QLayout):
+                        globalLay.addLayout(fieldQt, rowCount, colCount, 1, childColSpan)
+                    elif isinstance(fieldQt, QtGui.QWidget):
+                        globalLay.addWidget(fieldQt, rowCount, colCount, 1, childColSpan)
+                    self.appendToglobalMapping('field_' + fieldObj.fieldName, fieldObj)
+                    colCount = colCount + childColSpan
+            elif childTag == 'button':
+                buttonObj = button.Button(childElement)
+                globalLay.addWidget(buttonObj.qtObject, rowCount, colCount, 1, childColSpan)
+                key = 'button_' + unicode(buttonObj.buttonString).replace(' ', '_')
+                self.appendToglobalMapping(key, buttonObj)
+                colCount = colCount + childColSpan
+        return globalLay
+        
+    def appendToglobalMapping(self, key, value):
+        self.globalMapping.update({key: value})
+        
+    def computeField(self, xmlObj):
         fieldAttributes = xmlObj.attrib
         fieldName = fieldAttributes.get('name', '')
-        fieldDefinition = fieldsDefinition.get(fieldName, {})
+        fieldDefinition = self.fieldsNameTypeRel.get(fieldName, {})
         fieldType = fieldDefinition.get('type', False)
         fieldObj = None
         if fieldType == 'selection':
-            fieldObj = Selection(xmlObj, fieldsDefinition)
+            fieldObj = Selection(xmlObj, self.fieldsNameTypeRel)
         elif fieldType == 'char':
-            fieldObj = Charachter(xmlObj, fieldsDefinition)
+            fieldObj = Charachter(xmlObj, self.fieldsNameTypeRel)
         elif fieldType == 'integer':
-            fieldObj = Integer(xmlObj, fieldsDefinition)
+            fieldObj = Integer(xmlObj, self.fieldsNameTypeRel)
         elif fieldType == 'float':
-            fieldObj = Float(xmlObj, fieldsDefinition)
+            fieldObj = Float(xmlObj, self.fieldsNameTypeRel)
         elif fieldType == 'datetime':
-            fieldObj = Datetime(xmlObj, fieldsDefinition)
+            fieldObj = Datetime(xmlObj, self.fieldsNameTypeRel)
         elif fieldType == 'many2one':
-            fieldObj = Many2one(xmlObj, fieldsDefinition)
+            fieldObj = Many2one(xmlObj, self.fieldsNameTypeRel)
         elif fieldType == 'many2many':
-            fieldObj = Many2many(xmlObj, fieldsDefinition)
+            fieldObj = Many2many(xmlObj, self.fieldsNameTypeRel)
         elif fieldType == 'text':
-            fieldObj = Text(xmlObj, fieldsDefinition)
+            fieldObj = Text(xmlObj, self.fieldsNameTypeRel)
         elif fieldType == 'date':
-            fieldObj = Date(xmlObj, fieldsDefinition)
+            fieldObj = Date(xmlObj, self.fieldsNameTypeRel)
         elif fieldType == 'boolean':
-            fieldObj = Boolean(xmlObj, fieldsDefinition)
+            fieldObj = Boolean(xmlObj, self.fieldsNameTypeRel)
         return fieldObj
 
-    def computeHeader(self, archHeader, fieldsDefinition):
+    def computeHeader(self, archHeader):
         mapping = {}
 
         def commonAppend(key, vals):
@@ -128,7 +177,7 @@ class FormView(object):
                 headerLayout.addWidget(buttonObj.qtObject)
                 commonAppend('button_' + unicode(buttonObj.buttonString).replace(' ', '_'), buttonObj)
             elif xmlObj.tag == 'field':
-                fieldObj = self.computeField(xmlObj, fieldsDefinition)
+                fieldObj = self.computeField(xmlObj)
                 fieldQt = fieldObj.qtObject
                 fieldName = fieldObj.fieldName
                 if not fieldQt:
