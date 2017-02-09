@@ -29,4 +29,5 @@ class Button(object):
 
     def getQtObject(self):
         self.buttonObj = QtGui.QPushButton(self.buttonString)
+        self.buttonObj.setMaximumWidth(200)
         return self.buttonObj

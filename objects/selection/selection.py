@@ -38,7 +38,7 @@ class Selection(OdooFieldTemplate):
         self.widgetQtObj = QtGui.QComboBox()
         self.populateMapping(self.fieldDefinition.get('selection', []))
         self.widgetQtObj.addItems(self.selectionMappingReverse.keys())
-        self.widgetQtObj.setToolTip(self.fieldDefinition.get('help', ''))
+        self.widgetQtObj.setToolTip(self.tooltip)
         self.hboxLay.addWidget(self.widgetQtObj)
         return self.hboxLay
 

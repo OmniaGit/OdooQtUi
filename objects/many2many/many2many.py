@@ -31,6 +31,6 @@ class Many2many(OdooFieldTemplate):
         buttonsLay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum))
         self.hboxLay.addLayout(buttonsLay)
         self.widgetQtObj = QtGui.QTableWidget()
-        self.widgetQtObj.setToolTip(self.fieldDefinition.get('help', ''))
+        self.widgetQtObj.setToolTip(self.tooltip)
         self.hboxLay.addWidget(self.widgetQtObj)
         return self.hboxLay

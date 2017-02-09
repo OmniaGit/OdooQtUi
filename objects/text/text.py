@@ -16,10 +16,10 @@ class Text(OdooFieldTemplate):
         self.hboxLay = self.getQtObject()
 
     def getQtObject(self):
-        self.hboxLay = QtGui.QHBoxLayout()
+        self.hboxLay = QtGui.QVBoxLayout()
         self.labelQtObj = QtGui.QLabel(self.labelString)
         self.hboxLay.addWidget(self.labelQtObj)
         self.widgetQtObj = QtGui.QTextEdit()
-        self.widgetQtObj.setToolTip(self.fieldDefinition.get('help', ''))
+        self.widgetQtObj.setToolTip(self.tooltip)
         self.hboxLay.addWidget(self.widgetQtObj)
         return self.hboxLay
