@@ -69,3 +69,6 @@ class RpcConnection(object):
     def fieldsViewGet(self, obj, view_id, view_type):
         return self.sockInstance.fieldsViewGet(obj, view_id, view_type)
         
+    def on_change(self, obj, funcName, positionalAttrs=[], otherAttrs={}):
+        return self.sockInstance.on_change(obj, funcName, positionalAttrs, otherAttrs)
+        

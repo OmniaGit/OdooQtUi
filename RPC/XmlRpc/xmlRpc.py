@@ -123,6 +123,13 @@ class XmlRpcConnection(object):
             utils.logMessage('error', 'Error during fields view get: %r' % (ex), 'fieldsViewGet')
         return {}
         
+    def on_change(self, odooObj, funcName, positionalAttrs, otherAttrs):
+        try:
+            return self.callOdooFunction(odooObj, funcName, positionalAttrs, otherAttrs)
+        except Exception, ex:
+            utils.logMessage('error', 'Wrong on_change call with odooObj: %r, funcName: %r, positionalAttrs: %r, otherAttrs: %r. Error: %r'  % (odooObj, funcName, positionalAttrs, otherAttrs, ex), 'on_change')
+        return {}
+        
     def callOdooFunction(self, odooObj, functionName, parameters=[], kwargParameters={}):
         '''
             @odooObj: product.product, product.template ...
