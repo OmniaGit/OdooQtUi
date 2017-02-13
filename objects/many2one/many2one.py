@@ -32,3 +32,7 @@ class Many2one(OdooFieldTemplate):
             utils.setRequiredBackground(self.widgetQtObj)
         self.hboxLay.addWidget(self.widgetQtObj)
         return self.hboxLay
+
+    def setValue(self, newVal):
+        return
+        self.widgetQtObj.setText(newVal)

@@ -30,4 +30,8 @@ class Date(OdooFieldTemplate):
 
     def valueChanged(self, newDate):
         self.currentValue = unicode(newDate)
-        return super(Date, self).dateChanged(newDate)
+        self.valueTemplateChanged()
+        
+    def setValue(self, newVal):
+        # To Be Implemented
+        self.widgetQtObj

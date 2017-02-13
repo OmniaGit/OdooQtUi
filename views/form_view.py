@@ -61,8 +61,6 @@ class FormView(object):
                     tabWidget.addTab(pageWidget, pageString)
                 mainVLay.addWidget(tabWidget)
             elif childTag == 'group':
-                colspan = childElement.attrib.get('colspan', 1)
-                col = childElement.attrib.get('col')
                 mainVLay.addLayout(self.computeArchRecursion(childElement))
             elif childTag == 'button':
                 continue
@@ -72,8 +70,6 @@ class FormView(object):
                 self.globalMapping.update(mapping)
                 mainVLay.addLayout(self.computeArchRecursion(childElement))
             elif childTag == 'field':
-                colspan = childElement.attrib.get('colspan', 1)
-                col = childElement.attrib.get('col')
                 fieldObj = self.computeField(childElement, self.fieldsNameTypeRel)
                 if fieldObj:
                     fieldQt = fieldObj.qtObject

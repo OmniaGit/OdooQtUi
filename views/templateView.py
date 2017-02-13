@@ -7,6 +7,7 @@ from form_view import FormView
 from utils import utils
 from PyQt4 import QtGui
 import copy
+from docutils.nodes import field
 
 
 class TemplateView(object):
@@ -28,6 +29,7 @@ class TemplateView(object):
         self.mappingInterface = {}   # {'fieldName' : fieldObj}
         self.readonly = False
         self.layout = QtGui.QHBoxLayout()
+        self.activeIds = []
 
     def initViewObj(self, odooObjectName, viewName='', view_id=False, viewType='form', startingFieldValues=[], clientReadonlyFields=[], idsToLoad=[]):
         if not viewType:
@@ -55,13 +57,14 @@ class TemplateView(object):
     def addToObject(self):
         fieldIdentifier = 'field_'
         buttonIdentifier = 'button_'
-        for key, val in self.mappingInterface.items():
+        for key, obj in self.mappingInterface.items():
             if key.startswith(fieldIdentifier):
                 newKey =key.replace(fieldIdentifier, '')
-                self.fields.__dict__[newKey] = val
+                self.fields.__dict__[newKey] = obj
+                obj.value_changed_signal.connect(self._valueChanged)
             elif key.startswith(buttonIdentifier):
                 newKey =key.replace(buttonIdentifier, '')
-                self.buttons.__dict__[newKey] = val
+                self.buttons.__dict__[newKey] = obj
         return True
 
     def loadIds(self, objIds):
@@ -85,6 +88,39 @@ class TemplateView(object):
     def xmlOdooView(self):
         return self.arch
 
+    def getAllFieldsValues(self):
+        outDict = {}
+        for fieldName, fieldObject in self.fields.__dict__.items():
+            outDict[fieldName] = fieldObject.currentValue
+        return outDict
+    
+    def getAllOnChange(self):
+        outDict = {}
+        for fieldName, fieldObject in self.fields.__dict__.items():
+            outDict[fieldName] = fieldObject.on_change
+        return outDict
+        
+    def _valueChanged(self, fieldName):
+        fieldObj = self.fields.__dict__.get(unicode(fieldName))
+        changeResult = self._on_change(fieldObj.fieldName)
+        changedValues = changeResult.get('value', {})
+        for fieldNameFromServer, fieldValueFromServer in changedValues.items():
+            fieldObj1 = self.fields.__dict__.get(unicode(fieldNameFromServer))
+            fieldObj1.setValue(fieldValueFromServer)
+
+    def _on_change(self, fieldName):
+        '''
+            [
+            [id],
+            {all values},
+            launcher field name, 
+            {All form on_changes},
+            {context},
+            ]
+        '''
+        allVals = self.getAllFieldsValues()
+        allOnchanges = self.getAllOnChange()
+        return self.rpcObject.on_change(self.model, self.activeIds, allVals, fieldName, allOnchanges, {})
 
 class Objects(object):
     def __init__(self):

@@ -30,4 +30,8 @@ class Integer(OdooFieldTemplate):
 
     def valueChanged(self, newValue):
         self.currentValue = int(unicode(newValue))
-        return super(Integer, self).valueChanged(newValue)
+        self.valueTemplateChanged()
+        
+    def setValue(self, newVal):
+        newVal = int(unicode(newVal))
+        self.widgetQtObj.setValue(newVal)

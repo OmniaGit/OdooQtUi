@@ -30,4 +30,7 @@ class Text(OdooFieldTemplate):
 
     def valueChanged(self):
         self.currentValue = unicode(self.widgetQtObj.toPlainText())
-        return super(Text, self).textChanged()
+        self.valueTemplateChanged()
+        
+    def setValue(self, newVal):
+        self.widgetQtObj.setText(newVal)

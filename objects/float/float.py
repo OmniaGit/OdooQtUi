@@ -10,6 +10,7 @@ from objects.fieldTemplate import OdooFieldTemplate
 
 
 class Float(OdooFieldTemplate):
+    
     def __init__(self, xmlField, fieldsDefinition, rpc):
         super(Float, self).__init__(xmlField, fieldsDefinition, rpc)
         self.labelQtObj = False
@@ -30,4 +31,8 @@ class Float(OdooFieldTemplate):
 
     def valueChanged(self, newVal):
         self.currentValue = float(unicode(newVal))
-        return OdooFieldTemplate.valueChanged(self, newVal)
+        self.valueTemplateChanged()
+
+    def setValue(self, newVal):
+        newVal = float(unicode(newVal))
+        self.widgetQtObj.setValue(newVal)

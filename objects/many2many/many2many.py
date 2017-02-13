@@ -37,3 +37,7 @@ class Many2many(OdooFieldTemplate):
             utils.setRequiredBackground(self.widgetQtObj)
         self.hboxLay.addWidget(self.widgetQtObj)
         return self.hboxLay
+
+    def setValue(self, newVal):
+        return
+        self.widgetQtObj.setText(newVal)

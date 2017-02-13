@@ -31,4 +31,8 @@ class Charachter(OdooFieldTemplate):
 
     def valueChanged(self):
         self.currentValue = unicode(self.widgetQtObj.text())
-        return super(Charachter, self).editingFinished()
+        self.valueTemplateChanged()
+
+    def setValue(self, newVal):
+        self.widgetQtObj.setText(newVal)
+        

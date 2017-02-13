@@ -50,4 +50,10 @@ class Selection(OdooFieldTemplate):
     def valueChanged(self, newIndex):
         # To verify if is the correct value, otherwise take it from list of elements
         self.currentValue = self.widgetQtObj.currentText()
-        return super(Selection, self).currentIndexChanged()
+        self.valueTemplateChanged()
+        
+    def setValue(self, newVal):
+        allItems = self.selectionMappingReverse.keys()
+        newIndex = allItems.index(newVal)
+        if newIndex:
+            self.widgetQtObj.setCurrentIndex(newIndex)

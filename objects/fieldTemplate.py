@@ -3,11 +3,14 @@ Created on 02 feb 2017
 
 @author: Daniel
 '''
-from PyQt4 import QtGui
+from PyQt4 import QtGui, QtCore
 from utils import utils
 
 
-class OdooFieldTemplate(object):
+class OdooFieldTemplate(QtCore.QObject, object):
+    
+    value_changed_signal = QtCore.pyqtSignal(QtCore.QString)
+
     def __init__(self, xmlField, fieldsDefinition, rpc):
         self.rpc = rpc
         self.fieldAttributes = xmlField.attrib
@@ -45,3 +48,13 @@ class OdooFieldTemplate(object):
     @property
     def value(self):
         return self.currentValue
+
+    def valueTemplateChanged(self):
+        self.value_changed_signal.emit(self.fieldName)
+
+    def setValue(self, newVal):
+        utils.logMessage('warning', 'setValue not implemented for field: %r' % (self.fieldName), 'setValue')
+        
+    def valueChanged(self):
+        utils.logMessage('warning', 'valueChanged not implmented for field: %r' % (self.fieldName), 'valueChanged')
+        

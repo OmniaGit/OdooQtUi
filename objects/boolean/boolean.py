@@ -35,4 +35,8 @@ class Boolean(OdooFieldTemplate):
             self.currentValue = True
         else:
             self.currentValue = 'third-state'
-        return super(Boolean, self).stateChanged(val)
+        self.valueTemplateChanged()
+
+    def setValue(self, newVal):
+        newVal = eval(unicode(newVal))
+        self.widgetQtObj.setChecked(newVal)
