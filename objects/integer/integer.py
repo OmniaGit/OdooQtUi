@@ -5,6 +5,7 @@ Created on 7 Feb 2017
 '''
 
 from PyQt4 import QtGui
+from utils import utils
 from objects.fieldTemplate import OdooFieldTemplate
 
 
@@ -20,6 +21,8 @@ class Integer(OdooFieldTemplate):
         self.labelQtObj = QtGui.QLabel(self.labelString)
         self.hboxLay.addWidget(self.labelQtObj)
         self.widgetQtObj = QtGui.QSpinBox()
-        self.widgetQtObj.setToolTip(self.fieldDefinition.get('help', ''))
+        self.widgetQtObj.setToolTip(self.tooltip)
+        if self.required:
+            utils.setRequiredBackground(self.widgetQtObj)
         self.hboxLay.addWidget(self.widgetQtObj)
         return self.hboxLay

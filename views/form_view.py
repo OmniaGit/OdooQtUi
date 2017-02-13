@@ -28,12 +28,6 @@ class FormView(object):
     def computeArchRecursion(self, parent):
         # TODO:    div name <div name="button_box" class="oe_button_box"> 
         mainVLay = QtGui.QVBoxLayout()
-        fieldsCounter = 0
-        parentColspan = parent.attrib.get('colspan', 2)
-        parentCol = parent.attrib.get('col', 2)
-        fieldsList = []
-        # colSpanLay = QtGui.QHBoxLayout()
-        colGridLay = QtGui.QGridLayout()
         for childElement in parent:
             childTag = childElement.tag
             if childTag == 'sheet':
@@ -77,22 +71,15 @@ class FormView(object):
                 self.globalMapping.update(mapping)
                 mainVLay.addLayout(self.computeArchRecursion(childElement))
             elif childTag == 'field':
-                fieldColspan = childElement.attrib.get('colspan', 2)
+                colspan = childElement.attrib.get('colspan', 1)
+                col = childElement.attrib.get('col')
                 fieldObj = self.computeField(childElement, self.fieldsNameTypeRel)
                 if fieldObj:
                     fieldQt = fieldObj.qtObject
-                    if not fieldsList:
-                        fieldsList.append(fieldQt)
-                        colSpanLay = QtGui.QHBoxLayout()
-                    else:
-                        if len(fieldsList) >= parentCol/2:
-                            pass
-                        fieldsList.append(fieldQt)
-                    
                     if isinstance(fieldQt, QtGui.QLayout):
-                        colSpanLay.addLayout(fieldQt)
+                        mainVLay.addLayout(fieldQt)
                     elif isinstance(fieldQt, QtGui.QWidget):
-                        colSpanLay.addWidget(fieldQt)
+                        mainVLay.addWidget(fieldQt)
                     mapping = {'field_' + fieldObj.fieldName: fieldObj}
                     self.globalMapping.update(mapping)
         return mainVLay

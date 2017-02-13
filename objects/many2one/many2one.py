@@ -5,6 +5,7 @@ Created on 7 Feb 2017
 '''
 
 from PyQt4 import QtGui
+from utils import utils
 from objects.fieldTemplate import OdooFieldTemplate
 
 
@@ -13,7 +14,21 @@ class Many2one(OdooFieldTemplate):
         super(Many2one, self).__init__(xmlField, fieldsDefinition)
         self.labelQtObj = False
         self.widgetQtObj = False
+        self.availableItems = self.getItems()
+        self.availableItems.append('Create and Edit...')
         self.hboxLay = self.getQtObject()
 
+    def getItems(self):
+        return ['']
+        
     def getQtObject(self):
-        pass
+        self.hboxLay = QtGui.QHBoxLayout()
+        self.labelQtObj = QtGui.QLabel(self.labelString)
+        self.hboxLay.addWidget(self.labelQtObj)
+        self.widgetQtObj = QtGui.QComboBox()
+        self.widgetQtObj.addItems(self.availableItems)
+        self.widgetQtObj.setToolTip(self.tooltip)
+        if self.required:
+            utils.setRequiredBackground(self.widgetQtObj)
+        self.hboxLay.addWidget(self.widgetQtObj)
+        return self.hboxLay
