@@ -22,7 +22,12 @@ class Date(OdooFieldTemplate):
         self.hboxLay.addWidget(self.labelQtObj)
         self.widgetQtObj = QtGui.QDateEdit()
         self.widgetQtObj.setToolTip(self.tooltip)
+        self.widgetQtObj.dateChanged.connect(self.valueChanged)
         if self.required:
             utils.setRequiredBackground(self.widgetQtObj)
         self.hboxLay.addWidget(self.widgetQtObj)
         return self.hboxLay
+
+    def valueChanged(self, newDate):
+        self.currentValue = unicode(newDate)
+        return super(Date, self).dateChanged(newDate)

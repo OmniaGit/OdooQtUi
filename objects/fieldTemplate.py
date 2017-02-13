@@ -40,3 +40,7 @@ class OdooFieldTemplate(object):
     @property
     def qtObject(self):
         return self.hboxLay
+
+    @property
+    def value(self):
+        return self.currentValue

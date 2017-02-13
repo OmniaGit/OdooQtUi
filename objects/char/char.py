@@ -23,7 +23,12 @@ class Charachter(OdooFieldTemplate):
         self.hboxLay.addWidget(self.labelQtObj)
         self.widgetQtObj = QtGui.QLineEdit()
         self.widgetQtObj.setToolTip(self.tooltip)
+        self.widgetQtObj.editingFinished.connect(self.valueChanged)
         self.hboxLay.addWidget(self.widgetQtObj)
         if self.required:
             utils.setRequiredBackground(self.widgetQtObj)
         return self.hboxLay
+
+    def valueChanged(self):
+        self.currentValue = unicode(self.widgetQtObj.text())
+        return super(Charachter, self).editingFinished()

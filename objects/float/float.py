@@ -22,7 +22,12 @@ class Float(OdooFieldTemplate):
         self.hboxLay.addWidget(self.labelQtObj)
         self.widgetQtObj = QtGui.QDoubleSpinBox()
         self.widgetQtObj.setToolTip(self.tooltip)
+        self.widgetQtObj.valueChanged.connect(self.valueChanged)
         if self.required:
             utils.setRequiredBackground(self.widgetQtObj)
         self.hboxLay.addWidget(self.widgetQtObj)
         return self.hboxLay
+
+    def valueChanged(self, newVal):
+        self.currentValue = float(unicode(newVal))
+        return OdooFieldTemplate.valueChanged(self, newVal)

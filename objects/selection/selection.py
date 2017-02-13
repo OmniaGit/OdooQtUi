@@ -36,16 +36,18 @@ class Selection(OdooFieldTemplate):
         self.labelQtObj = QtGui.QLabel(self.labelString)
         self.hboxLay.addWidget(self.labelQtObj)
         self.widgetQtObj = QtGui.QComboBox()
-        selectionVals = [('','')]
+        selectionVals = [('', '')]
         selectionVals.extend(self.fieldDefinition.get('selection', []))
         self.populateMapping(selectionVals)
         self.widgetQtObj.addItems(self.selectionMappingReverse.keys())
         self.widgetQtObj.setToolTip(self.tooltip)
+        self.widgetQtObj.currentIndexChanged.connect(self.valueChanged)
         if self.required:
             utils.setRequiredBackground(self.widgetQtObj)
         self.hboxLay.addWidget(self.widgetQtObj)
         return self.hboxLay
 
-    @property
-    def value(self):
-        return self.currentValue
+    def valueChanged(self, newIndex):
+        # To verify if is the correct value, otherwise take it from list of elements
+        self.currentValue = self.widgetQtObj.currentText()
+        return super(Selection, self).currentIndexChanged()

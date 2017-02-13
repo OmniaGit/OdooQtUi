@@ -22,7 +22,12 @@ class Integer(OdooFieldTemplate):
         self.hboxLay.addWidget(self.labelQtObj)
         self.widgetQtObj = QtGui.QSpinBox()
         self.widgetQtObj.setToolTip(self.tooltip)
+        self.widgetQtObj.valueChanged.connect(self.valueChanged)
         if self.required:
             utils.setRequiredBackground(self.widgetQtObj)
         self.hboxLay.addWidget(self.widgetQtObj)
         return self.hboxLay
+
+    def valueChanged(self, newValue):
+        self.currentValue = int(unicode(newValue))
+        return super(Integer, self).valueChanged(newValue)

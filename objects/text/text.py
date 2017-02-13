@@ -22,7 +22,12 @@ class Text(OdooFieldTemplate):
         self.hboxLay.addWidget(self.labelQtObj)
         self.widgetQtObj = QtGui.QTextEdit()
         self.widgetQtObj.setToolTip(self.tooltip)
+        self.widgetQtObj.textChanged.connect(self.valueChanged)
         if self.required:
             utils.setRequiredBackground(self.widgetQtObj)
         self.hboxLay.addWidget(self.widgetQtObj)
         return self.hboxLay
+
+    def valueChanged(self):
+        self.currentValue = unicode(self.widgetQtObj.toPlainText())
+        return super(Text, self).textChanged()
