@@ -20,10 +20,11 @@ from objects.text.text import Text
 
 
 class FormView(object):
-    def __init__(self, arch, fieldsNameTypeRel):
+    def __init__(self, arch, fieldsNameTypeRel, rpc):
         self.arch = arch
         self.fieldsNameTypeRel = fieldsNameTypeRel
         self.globalMapping = {}
+        self.rpc = rpc
 
     def computeArchRecursion(self, parent):
         # TODO:    div name <div name="button_box" class="oe_button_box"> 
@@ -91,25 +92,25 @@ class FormView(object):
         fieldType = fieldDefinition.get('type', False)
         fieldObj = None
         if fieldType == 'selection':
-            fieldObj = Selection(xmlObj, fieldsDefinition)
+            fieldObj = Selection(xmlObj, fieldsDefinition, self.rpc)
         elif fieldType == 'char':
-            fieldObj = Charachter(xmlObj, fieldsDefinition)
+            fieldObj = Charachter(xmlObj, fieldsDefinition, self.rpc)
         elif fieldType == 'integer':
-            fieldObj = Integer(xmlObj, fieldsDefinition)
+            fieldObj = Integer(xmlObj, fieldsDefinition, self.rpc)
         elif fieldType == 'float':
-            fieldObj = Float(xmlObj, fieldsDefinition)
+            fieldObj = Float(xmlObj, fieldsDefinition, self.rpc)
         elif fieldType == 'datetime':
-            fieldObj = Datetime(xmlObj, fieldsDefinition)
+            fieldObj = Datetime(xmlObj, fieldsDefinition, self.rpc)
         elif fieldType == 'many2one':
-            fieldObj = Many2one(xmlObj, fieldsDefinition)
+            fieldObj = Many2one(xmlObj, fieldsDefinition, self.rpc)
         elif fieldType == 'many2many':
-            fieldObj = Many2many(xmlObj, fieldsDefinition)
+            fieldObj = Many2many(xmlObj, fieldsDefinition, self.rpc)
         elif fieldType == 'text':
-            fieldObj = Text(xmlObj, fieldsDefinition)
+            fieldObj = Text(xmlObj, fieldsDefinition, self.rpc)
         elif fieldType == 'date':
-            fieldObj = Date(xmlObj, fieldsDefinition)
+            fieldObj = Date(xmlObj, fieldsDefinition, self.rpc)
         elif fieldType == 'boolean':
-            fieldObj = Boolean(xmlObj, fieldsDefinition)
+            fieldObj = Boolean(xmlObj, fieldsDefinition, self.rpc)
         return fieldObj
 
     def computeHeader(self, archHeader, fieldsDefinition):

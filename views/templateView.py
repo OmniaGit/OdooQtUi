@@ -21,8 +21,9 @@ class TemplateView(object):
         self.readonlyFields = []     # ['field1', 'field2']
         self.requiredFields = []    # ['field1', 'field2']
         self.fieldsNameTypeRel = {}
-        self.objects = Objects()    # objects.fieldName
-        self.objectsInit = copy.deepcopy(self.objects)
+        self.fields = Objects()    # objects.fieldName
+        self.buttons = Objects()
+        self.objectsInit = copy.deepcopy(self.fields)
         self.fieldsChanged = {}     # {'fieldName' : fieldObj}
         self.mappingInterface = {}   # {'fieldName' : fieldObj}
         self.readonly = False
@@ -40,7 +41,7 @@ class TemplateView(object):
         self.fieldsNameTypeRel = self.rpcObject.fieldsGet(self.model, [])
         self.viewType = viewType
         if viewType == 'form':
-            formObj = FormView(self.arch, self.fieldsNameTypeRel)
+            formObj = FormView(self.arch, self.fieldsNameTypeRel, self.rpcObject)
             self.mappingInterface = formObj.globalMapping
             self.layout = formObj.computeArch()
         elif viewType == 'tree_tree':
@@ -52,8 +53,15 @@ class TemplateView(object):
         self.addToObject()
 
     def addToObject(self):
+        fieldIdentifier = 'field_'
+        buttonIdentifier = 'button_'
         for key, val in self.mappingInterface.items():
-            self.objects.__dict__[key] = val
+            if key.startswith(fieldIdentifier):
+                newKey =key.replace(fieldIdentifier, '')
+                self.fields.__dict__[newKey] = val
+            elif key.startswith(buttonIdentifier):
+                newKey =key.replace(buttonIdentifier, '')
+                self.buttons.__dict__[newKey] = val
         return True
 
     def loadIds(self, objIds):

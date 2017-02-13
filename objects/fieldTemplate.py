@@ -8,7 +8,8 @@ from utils import utils
 
 
 class OdooFieldTemplate(object):
-    def __init__(self, xmlField, fieldsDefinition):
+    def __init__(self, xmlField, fieldsDefinition, rpc):
+        self.rpc = rpc
         self.fieldAttributes = xmlField.attrib
         self.fieldName = self.fieldAttributes.get('name', '')
         self.modifiers = self.fieldAttributes.get('modifiers', {})

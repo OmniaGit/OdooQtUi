@@ -9,8 +9,8 @@ from objects.fieldTemplate import OdooFieldTemplate
 
 
 class Selection(OdooFieldTemplate):
-    def __init__(self, xmlField, fieldsDefinition):
-        super(Selection, self).__init__(xmlField, fieldsDefinition)
+    def __init__(self, xmlField, fieldsDefinition, rpc):
+        super(Selection, self).__init__(xmlField, fieldsDefinition, rpc)
         self.selectionMapping = {}
         self.selectionMappingReverse = {}
         self.labelQtObj = False

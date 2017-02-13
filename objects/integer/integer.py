@@ -10,8 +10,8 @@ from objects.fieldTemplate import OdooFieldTemplate
 
 
 class Integer(OdooFieldTemplate):
-    def __init__(self, xmlField, fieldsDefinition):
-        super(Integer, self).__init__(xmlField, fieldsDefinition)
+    def __init__(self, xmlField, fieldsDefinition, rpc):
+        super(Integer, self).__init__(xmlField, fieldsDefinition, rpc)
         self.labelQtObj = False
         self.widgetQtObj = False
         self.hboxLay = self.getQtObject()

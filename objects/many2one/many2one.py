@@ -10,8 +10,8 @@ from objects.fieldTemplate import OdooFieldTemplate
 
 
 class Many2one(OdooFieldTemplate):
-    def __init__(self, xmlField, fieldsDefinition):
-        super(Many2one, self).__init__(xmlField, fieldsDefinition)
+    def __init__(self, xmlField, fieldsDefinition, rpc):
+        super(Many2one, self).__init__(xmlField, fieldsDefinition, rpc)
         self.labelQtObj = False
         self.widgetQtObj = False
         self.availableItems = self.getItems()
