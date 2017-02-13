@@ -55,13 +55,13 @@ if __name__ == '__main__':
     dbName = 'plm_9'
     loginType = 'xmlrpc'
 
-#     scheme = 'http'
-#     xmlrpcServerIP = '127.0.0.1'
-#     xmlrpcPort = 8081
-#     user = 'admin'
-#     password = 'Maus2016'
-#     dbName = 'Maus_real'
-#     loginType = 'xmlrpc'
+    scheme = 'http'
+    xmlrpcServerIP = '127.0.0.1'
+    xmlrpcPort = 8081
+    user = 'admin'
+    password = 'Maus2016'
+    dbName = 'Maus_real'
+    loginType = 'xmlrpc'
 
     app = QtGui.QApplication(sys.argv)
     
