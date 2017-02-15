@@ -529,6 +529,19 @@ def evaluateModifiers(modifiers):
 
 def setRequiredBackground(widgetQtObj):
     widgetQtObj.setStyleSheet('Background-color: rgb(210,210,255)')
+
+def evaluateAttrs(fieldsDict, toCompute):
+    def evalSingleCondition(cond):
+        fieldName, operator, valToCompare = cond
+        fieldObj = fieldsDict.get(fieldName, None)
+        if not fieldObj:
+            logMessage('warning', 'No field obj found for name %r' % (fieldName), 'evalSingleCondition')
+        fieldVal = fieldObj.currentValue
+        
+        
+    for singleCompute in toCompute:
+        evalSingleCondition(singleCompute)
+        fieldsDict
     
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)

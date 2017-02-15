@@ -96,7 +96,12 @@ class TemplateView(object):
         fieldObj.setInvisible(val)
 
     def _setFieldModifiers(self):
-        pass
+        fieldDict = self.interfaceFieldsDict
+        for fieldObj in fieldDict.values():
+            readonlyModif = fieldObj.modifiers.get('readonly', {})
+            invisibleModif = fieldObj.modifiers.get('invisible', {})
+            utils.evaluateAttrs(fieldDict, readonlyModif)
+            utils.evaluateAttrs(fieldDict, invisibleModif)
         
     def loadIds(self, objIds=[], forceFieldValues={}, readonlyFields={}, invisibleFields={}):
         if self.viewType in ['form', 'search'] and len(objIds) > 1:
