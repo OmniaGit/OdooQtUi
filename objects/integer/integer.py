@@ -35,3 +35,6 @@ class Integer(OdooFieldTemplate):
     def setValue(self, newVal):
         newVal = int(unicode(newVal))
         self.widgetQtObj.setValue(newVal)
+
+    def setReadonly(self, val=False):
+        self.widgetQtObj.setEnabled(not val)

@@ -33,7 +33,7 @@ class MainConnector(object):
         logger = logging.getLogger()
         logger.setLevel(logInteger)
 
-    def initViewObj(self, viewType, odooObjectName, viewName='', view_id=False, startingFieldValues={}, clientReadonlyFields={}, idsToLoad=[]):
+    def initViewObj(self, viewType, odooObjectName, viewName='', view_id=False):
         '''
         @viewType: tree_tree, tree_list, form, search
         @odooObjectName: product.product, mrp.bom, ...
@@ -43,7 +43,7 @@ class MainConnector(object):
         tree_list and tree_tree views are always read only
         '''
         templateViewObj = TemplateView(self.rpc)
-        templateViewObj.initViewObj(odooObjectName, viewName, view_id, viewType, clientReadonlyFields)
+        templateViewObj.initViewObj(odooObjectName, viewName, view_id, viewType)
         return templateViewObj
 
 if __name__ == '__main__':
@@ -55,13 +55,13 @@ if __name__ == '__main__':
     dbName = 'plm_9'
     loginType = 'xmlrpc'
 
-    scheme = 'http'
-    xmlrpcServerIP = '127.0.0.1'
-    xmlrpcPort = 8081
-    user = 'admin'
-    password = 'Maus2016'
-    dbName = 'Maus_real'
-    loginType = 'xmlrpc'
+#     scheme = 'http'
+#     xmlrpcServerIP = '127.0.0.1'
+#     xmlrpcPort = 8081
+#     user = 'admin'
+#     password = 'Maus2016'
+#     dbName = 'Maus_real'
+#     loginType = 'xmlrpc'
 
     app = QtGui.QApplication(sys.argv)
     
@@ -69,11 +69,12 @@ if __name__ == '__main__':
     connectorObj.loginWithUser(user, password, dbName, xmlrpcServerIP, xmlrpcPort, scheme, loginType)
     
     dialog = QtGui.QDialog()
-    templateViewObj = connectorObj.initViewObj('form', 'product.product', '', False, {})
+    templateViewObj = connectorObj.initViewObj('form', 'product.product', '', False)
     qtInterface = templateViewObj.QtInterface
     objIds = [2]
     startingFieldValues = {'description': 'non-settare'}
-    templateViewObj.loadIds(objIds, startingFieldValues)
+    readonlyFields = {'description': True}
+    templateViewObj.loadIds(objIds, startingFieldValues, readonlyFields)
     dialog.setLayout(qtInterface)
     dialog.exec_()
     

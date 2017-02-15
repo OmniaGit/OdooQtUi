@@ -54,6 +54,9 @@ class OdooFieldTemplate(QtCore.QObject, object):
 
     def setValue(self, newVal):
         utils.logMessage('warning', 'setValue not implemented for field: %r' % (self.fieldName), 'setValue')
+
+    def setReadonly(self, val=False):
+        utils.logMessage('warning', 'setReadonly not implemented for field: %r' % (self.fieldName), 'setReadonly')
         
     def valueChanged(self):
         utils.logMessage('warning', 'valueChanged not implmented for field: %r' % (self.fieldName), 'valueChanged')

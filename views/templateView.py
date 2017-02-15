@@ -22,8 +22,8 @@ class TemplateView(object):
         self.readonlyFields = []     # ['field1', 'field2']
         self.requiredFields = []    # ['field1', 'field2']
         self.fieldsNameTypeRel = {}
-        self.fields = Objects()    # objects.fieldName
-        self.buttons = Objects()
+        self.fields = Objects()    # fields.fieldName
+        self.buttons = Objects()    # buttons.fieldName
         self.objectsInit = copy.deepcopy(self.fields)
         self.fieldsChanged = {}     # {'fieldName' : fieldObj}
         self.mappingInterface = {}   # {'fieldName' : fieldObj}
@@ -31,7 +31,7 @@ class TemplateView(object):
         self.layout = QtGui.QHBoxLayout()
         self.activeIds = []
 
-    def initViewObj(self, odooObjectName, viewName='', view_id=False, viewType='form', clientReadonlyFields=[]):
+    def initViewObj(self, odooObjectName, viewName='', view_id=False, viewType='form'):
         if not viewType:
             viewType = self.viewType
         fieldsViewDefinition = self.rpcObject.fieldsViewGet(odooObjectName, view_id, viewType)
@@ -67,14 +67,21 @@ class TemplateView(object):
                 self.buttons.__dict__[newKey] = obj
         return True
 
-    def _setValue(self, fieldName, fieldVal):
+    def _setValueField(self, fieldName, fieldVal):
         fieldObj = self.fields.__dict__.get(fieldName, None)
         if not fieldObj:
-            utils.logMessage('warning', 'Field %r not found in the local fields' % (fieldName), 'loadIds')
+            utils.logMessage('warning', 'Field %r not found in the local fields' % (fieldName), '_setValueField')
             return
         fieldObj.setValue(fieldVal)
 
-    def loadIds(self, objIds, forceFieldValues):
+    def _setReadonlyField(self, fieldName, val=False):
+        fieldObj = self.fields.__dict__.get(fieldName, None)
+        if not fieldObj:
+            utils.logMessage('warning', 'Field %r not found in the local fields' % (fieldName), '_setReadonlyField')
+            return
+        fieldObj.setReadonly(val)
+
+    def loadIds(self, objIds=[], forceFieldValues={}, readonlyFields=[]):
         if self.viewType in ['form', 'search'] and len(objIds) > 1:
             utils.launchMessage('You cannot load multiple ids on form or search view!', 'warning')
             return False
@@ -84,9 +91,11 @@ class TemplateView(object):
                 formId = objIds[0]
                 formVals = self.rpcObject.read(self.model, [], [formId])
                 for fieldName, fieldVal in formVals.items():
-                    self._setValue(fieldName, fieldVal)
+                    self._setValueField(fieldName, fieldVal)
             for fieldName, fieldVal in forceFieldValues.items():
-                self._setValue(fieldName, fieldVal)
+                self._setValueField(fieldName, fieldVal)
+            for readonlyField, fieldAttr in readonlyFields.items():
+                self._setReadonlyField(readonlyField, fieldAttr)
         self.objectsInit = copy.copy(self.fields)
 
     def isReadonly(self):

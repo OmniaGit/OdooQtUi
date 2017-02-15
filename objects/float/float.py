@@ -36,3 +36,6 @@ class Float(OdooFieldTemplate):
     def setValue(self, newVal):
         newVal = float(unicode(newVal))
         self.widgetQtObj.setValue(newVal)
+
+    def setReadonly(self, val=False):
+        self.widgetQtObj.setEnabled(not val)

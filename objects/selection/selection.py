@@ -63,3 +63,6 @@ class Selection(OdooFieldTemplate):
         newIndex = allItems.index(newVal)
         if newIndex:
             self.widgetQtObj.setCurrentIndex(newIndex)
+
+    def setReadonly(self, val=False):
+        self.widgetQtObj.setEnabled(not val)
