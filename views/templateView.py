@@ -44,8 +44,8 @@ class TemplateView(object):
         self.viewType = viewType
         if viewType == 'form':
             formObj = FormView(self.arch, self.fieldsNameTypeRel, self.rpcObject)
-            self.mappingInterface = formObj.globalMapping
             self.layout = formObj.computeArch()
+            self.mappingInterface = formObj.globalMapping
         elif viewType == 'tree_tree':
             pass
         elif viewType == 'tree_list':
@@ -89,7 +89,7 @@ class TemplateView(object):
             formId = False
             if objIds:
                 formId = objIds[0]
-                formVals = self.rpcObject.read(self.model, [], [formId])
+                formVals = self.rpcObject.read(self.model, self.fields.__dict__.keys(), [formId])
                 for fieldName, fieldVal in formVals.items():
                     self._setValueField(fieldName, fieldVal)
             for fieldName, fieldVal in forceFieldValues.items():
