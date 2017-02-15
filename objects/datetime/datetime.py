@@ -33,3 +33,7 @@ class Datetime(OdooFieldTemplate):
 
     def setReadonly(self, val=False):
         self.widgetQtObj.setEnabled(not val)
+
+    def setInvisible(self, val=False):
+        self.labelQtObj.setHidden(val)
+        self.widgetQtObj.setHidden(val)

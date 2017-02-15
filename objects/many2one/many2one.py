@@ -41,3 +41,7 @@ class Many2one(OdooFieldTemplate):
         self.widgetQtObj.setEnabled(not val)
         self.widgetQtObj.setEditable(not val)
         self.widgetQtObj.setDisabled(val)
+
+    def setInvisible(self, val=False):
+        self.labelQtObj.setHidden(val)
+        self.widgetQtObj.setHidden(val)

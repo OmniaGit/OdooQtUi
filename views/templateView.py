@@ -88,7 +88,14 @@ class TemplateView(object):
             return
         fieldObj.setReadonly(val)
 
-    def loadIds(self, objIds=[], forceFieldValues={}, readonlyFields=[]):
+    def _setInvisibleField(self, fieldName, val=False):
+        fieldObj = self.fields.__dict__.get(fieldName, None)
+        if not fieldObj:
+            utils.logMessage('warning', 'Field %r not found in the local fields' % (fieldName), '_setInvisibleField')
+            return
+        fieldObj.setInvisible(val)
+
+    def loadIds(self, objIds=[], forceFieldValues={}, readonlyFields={}, invisibleFields={}):
         if self.viewType in ['form', 'search'] and len(objIds) > 1:
             utils.launchMessage('You cannot load multiple ids on form or search view!', 'warning')
             return False
@@ -103,6 +110,8 @@ class TemplateView(object):
                 self._setValueField(fieldName, fieldVal)
             for readonlyField, fieldAttr in readonlyFields.items():
                 self._setReadonlyField(readonlyField, fieldAttr)
+            for invisibleField, fieldAttr in invisibleFields.items():
+                self._setInvisibleField(invisibleField, fieldAttr)
         self.objectsInit = copy.copy(self.fields)
 
     def isReadonly(self):
