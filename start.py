@@ -76,7 +76,7 @@ if __name__ == '__main__':
     readonlyFields = {'description': True}
     invisibleFields = {'description': True, 'state': True}
     templateViewObj.loadIds(objIds, startingFieldValues, readonlyFields, invisibleFields)
-    templateViewObj.setReadonly(True)
+    # templateViewObj.setReadonly(True)
     dialog.setLayout(qtInterface)
     dialog.exec_()
     

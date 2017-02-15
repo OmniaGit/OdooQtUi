@@ -62,7 +62,7 @@ class TemplateView(object):
         for key, obj in self.mappingInterface.items():
             if key.startswith(fieldIdentifier):
                 newKey = key.replace(fieldIdentifier, '')
-                self.fields.__dict__[newKey] = obj
+                self.interfaceFieldsDict[newKey] = obj
                 obj.value_changed_signal.connect(self._valueChanged)
             elif key.startswith(buttonIdentifier):
                 newKey = key.replace(buttonIdentifier, '')
@@ -70,31 +70,34 @@ class TemplateView(object):
         return True
 
     def setDefaults(self):
-        self.fieldDefaultVals = self.rpcObject.defaultGet(self.model, self.fields.__dict__.keys())
+        self.fieldDefaultVals = self.rpcObject.defaultGet(self.model, self.interfaceFieldsDict.keys())
         for fieldName, fieldVal in self.fieldDefaultVals.items():
-            self._setValueField(fieldName, fieldVal)
+            self.setValueField(fieldName, fieldVal)
         
-    def _setValueField(self, fieldName, fieldVal):
-        fieldObj = self.fields.__dict__.get(fieldName, None)
+    def setValueField(self, fieldName, fieldVal):
+        fieldObj = self.interfaceFieldsDict.get(fieldName, None)
         if not fieldObj:
-            utils.logMessage('warning', 'Field %r not found in the local fields' % (fieldName), '_setValueField')
+            utils.logMessage('warning', 'Field %r not found in the local fields' % (fieldName), 'setValueField')
             return
         fieldObj.setValue(fieldVal)
 
-    def _setReadonlyField(self, fieldName, val=False):
-        fieldObj = self.fields.__dict__.get(fieldName, None)
+    def setReadonlyField(self, fieldName, val=False):
+        fieldObj = self.interfaceFieldsDict.get(fieldName, None)
         if not fieldObj:
-            utils.logMessage('warning', 'Field %r not found in the local fields' % (fieldName), '_setReadonlyField')
+            utils.logMessage('warning', 'Field %r not found in the local fields' % (fieldName), 'setReadonlyField')
             return
         fieldObj.setReadonly(val)
 
-    def _setInvisibleField(self, fieldName, val=False):
-        fieldObj = self.fields.__dict__.get(fieldName, None)
+    def setInvisibleField(self, fieldName, val=False):
+        fieldObj = self.interfaceFieldsDict.get(fieldName, None)
         if not fieldObj:
-            utils.logMessage('warning', 'Field %r not found in the local fields' % (fieldName), '_setInvisibleField')
+            utils.logMessage('warning', 'Field %r not found in the local fields' % (fieldName), 'setInvisibleField')
             return
         fieldObj.setInvisible(val)
 
+    def _setFieldModifiers(self):
+        pass
+        
     def loadIds(self, objIds=[], forceFieldValues={}, readonlyFields={}, invisibleFields={}):
         if self.viewType in ['form', 'search'] and len(objIds) > 1:
             utils.launchMessage('You cannot load multiple ids on form or search view!', 'warning')
@@ -103,22 +106,23 @@ class TemplateView(object):
             formId = False
             if objIds:
                 formId = objIds[0]
-                formVals = self.rpcObject.read(self.model, self.fields.__dict__.keys(), [formId])
+                formVals = self.rpcObject.read(self.model, self.interfaceFieldsDict.keys(), [formId])
                 for fieldName, fieldVal in formVals.items():
-                    self._setValueField(fieldName, fieldVal)
+                    self.setValueField(fieldName, fieldVal)
             for fieldName, fieldVal in forceFieldValues.items():
-                self._setValueField(fieldName, fieldVal)
+                self.setValueField(fieldName, fieldVal)
+            self._setFieldModifiers()
             for readonlyField, fieldAttr in readonlyFields.items():
-                self._setReadonlyField(readonlyField, fieldAttr)
+                self.setReadonlyField(readonlyField, fieldAttr)
             for invisibleField, fieldAttr in invisibleFields.items():
-                self._setInvisibleField(invisibleField, fieldAttr)
+                self.setInvisibleField(invisibleField, fieldAttr)
         self.objectsInit = copy.copy(self.fields)
 
     def isReadonly(self):
         return self.readonly
 
     def setReadonly(self, val=False):
-        for fieldObj in self.fields.__dict__.values():
+        for fieldObj in self.interfaceFieldsDict.values():
             if val:
                 fieldObj.setReadonly(True)
             else:
@@ -135,24 +139,28 @@ class TemplateView(object):
 
     def getAllFieldsValues(self):
         outDict = {}
-        for fieldName, fieldObject in self.fields.__dict__.items():
+        for fieldName, fieldObject in self.interfaceFieldsDict.items():
             outDict[fieldName] = fieldObject.currentValue
         return outDict
 
     def getAllOnChange(self):
         outDict = {}
-        for fieldName, fieldObject in self.fields.__dict__.items():
+        for fieldName, fieldObject in self.interfaceFieldsDict.items():
             outDict[fieldName] = fieldObject.on_change
         return outDict
 
     def _valueChanged(self, fieldName):
-        fieldObj = self.fields.__dict__.get(unicode(fieldName))
+        fieldObj = self.interfaceFieldsDict.get(unicode(fieldName))
         changeResult = self._on_change(fieldObj.fieldName)
         changedValues = changeResult.get('value', {})
         for fieldNameFromServer, fieldValueFromServer in changedValues.items():
-            fieldObj1 = self.fields.__dict__.get(unicode(fieldNameFromServer))
+            fieldObj1 = self.interfaceFieldsDict.get(unicode(fieldNameFromServer))
             fieldObj1.setValue(fieldValueFromServer)
 
+    @property
+    def interfaceFieldsDict(self):
+        return self.fields.__dict__
+        
     def _on_change(self, fieldName):
         '''
             [
