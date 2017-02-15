@@ -36,3 +36,8 @@ class Many2one(OdooFieldTemplate):
     def setValue(self, newVal):
         return
         self.widgetQtObj.setText(newVal)
+
+    def setReadonly(self, val=False):
+        self.widgetQtObj.setEnabled(not val)
+        self.widgetQtObj.setEditable(not val)
+        self.widgetQtObj.setDisabled(val)

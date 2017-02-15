@@ -74,7 +74,8 @@ if __name__ == '__main__':
     objIds = [2]
     startingFieldValues = {'description': 'non-settare'}
     readonlyFields = {'description': True}
-    #templateViewObj.loadIds(objIds, startingFieldValues, readonlyFields)
+    templateViewObj.loadIds(objIds, startingFieldValues, readonlyFields)
+    templateViewObj.setReadonly(True)
     dialog.setLayout(qtInterface)
     dialog.exec_()
     

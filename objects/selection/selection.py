@@ -66,3 +66,5 @@ class Selection(OdooFieldTemplate):
 
     def setReadonly(self, val=False):
         self.widgetQtObj.setEnabled(not val)
+        self.widgetQtObj.setEditable(not val)
+        self.widgetQtObj.setDisabled(val)
