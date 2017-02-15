@@ -27,6 +27,7 @@ class TemplateView(object):
         self.objectsInit = copy.deepcopy(self.fields)
         self.fieldsChanged = {}     # {'fieldName' : fieldObj}
         self.mappingInterface = {}   # {'fieldName' : fieldObj}
+        self.fieldDefaultVals = {}  # {'fieldName' : fieldval}
         self.readonly = False
         self.layout = QtGui.QHBoxLayout()
         self.activeIds = []
@@ -53,6 +54,7 @@ class TemplateView(object):
         elif viewType == 'search':
             pass
         self.addToObject()
+        self.setDefaults()
 
     def addToObject(self):
         fieldIdentifier = 'field_'
@@ -67,6 +69,11 @@ class TemplateView(object):
                 self.buttons.__dict__[newKey] = obj
         return True
 
+    def setDefaults(self):
+        self.fieldDefaultVals = self.rpcObject.defaultGet(self.model, self.fields.__dict__.keys())
+        for fieldName, fieldVal in self.fieldDefaultVals.items():
+            self._setValueField(fieldName, fieldVal)
+        
     def _setValueField(self, fieldName, fieldVal):
         fieldObj = self.fields.__dict__.get(fieldName, None)
         if not fieldObj:

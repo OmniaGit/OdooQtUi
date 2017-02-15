@@ -67,7 +67,13 @@ class RpcConnection(object):
         @attributesToRead: ['string', 'help', 'type']
         '''
         return self.sockInstance.fieldsGet(obj, attributesToRead)
-        
+
+    def defaultGet(self, obj, fieldsToRead=[]):
+        '''
+        @attributesToRead: ['string', 'help', 'type']
+        '''
+        return self.sockInstance.defaultGet(obj, fieldsToRead)
+
     def fieldsViewGet(self, obj, view_id, view_type):
         return self.sockInstance.fieldsViewGet(obj, view_id, view_type)
         

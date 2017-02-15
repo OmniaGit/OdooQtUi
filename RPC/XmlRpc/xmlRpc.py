@@ -75,6 +75,17 @@ class XmlRpcConnection(object):
             utils.logMessage('error', 'Error during reading fields with values: object %r, kargs %r. Error: %r'  % (obj, kargs, ex), 'fieldsGet')
         return {}
 
+    def defaultGet(self, obj, fieldsToRead=[]):
+        '''
+        @attributesToRead: {'attributes': ['string', 'help', 'type']}
+        '''
+        try:
+            kargs = {}
+            return self.callOdooFunction(obj, 'default_get', [fieldsToRead], kargs)
+        except Exception, ex:
+            utils.logMessage('error', 'Error during reading fields with values: object %r, kargs %r. Error: %r'  % (obj, kargs, ex), 'fieldsGet')
+        return {}
+
     def readSearch(self, obj, fields, filterList, limit=False):
         try:
             kargs = {'fields': fields}
