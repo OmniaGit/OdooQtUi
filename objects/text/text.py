@@ -31,6 +31,9 @@ class Text(OdooFieldTemplate):
     def valueChanged(self):
         self.currentValue = unicode(self.widgetQtObj.toPlainText())
         self.valueTemplateChanged()
-        
+
     def setValue(self, newVal):
+        if isinstance(newVal, bool):
+            utils.logMessage('warning', 'Boolean value %r is passed to char field %r, check better' % (newVal, self.fieldName), 'setValue')
+            newVal = ''
         self.widgetQtObj.setText(newVal)

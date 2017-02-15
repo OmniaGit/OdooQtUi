@@ -35,6 +35,8 @@ class RpcConnection(object):
         return self.sockInstance.search(obj, filterList)
 
     def read(self, obj, fields, ids):
+        if isinstance(ids, int):
+            ids = [ids]
         return self.sockInstance.read(obj, fields, ids)
 
     def readSearch(self, obj, fields, filterList):

@@ -31,7 +31,7 @@ class TemplateView(object):
         self.layout = QtGui.QHBoxLayout()
         self.activeIds = []
 
-    def initViewObj(self, odooObjectName, viewName='', view_id=False, viewType='form', startingFieldValues=[], clientReadonlyFields=[], idsToLoad=[]):
+    def initViewObj(self, odooObjectName, viewName='', view_id=False, viewType='form', clientReadonlyFields=[]):
         if not viewType:
             viewType = self.viewType
         fieldsViewDefinition = self.rpcObject.fieldsViewGet(odooObjectName, view_id, viewType)
@@ -59,20 +59,35 @@ class TemplateView(object):
         buttonIdentifier = 'button_'
         for key, obj in self.mappingInterface.items():
             if key.startswith(fieldIdentifier):
-                newKey =key.replace(fieldIdentifier, '')
+                newKey = key.replace(fieldIdentifier, '')
                 self.fields.__dict__[newKey] = obj
                 obj.value_changed_signal.connect(self._valueChanged)
             elif key.startswith(buttonIdentifier):
-                newKey =key.replace(buttonIdentifier, '')
+                newKey = key.replace(buttonIdentifier, '')
                 self.buttons.__dict__[newKey] = obj
         return True
 
-    def loadIds(self, objIds):
+    def _setValue(self, fieldName, fieldVal):
+        fieldObj = self.fields.__dict__.get(fieldName, None)
+        if not fieldObj:
+            utils.logMessage('warning', 'Field %r not found in the local fields' % (fieldName), 'loadIds')
+            return
+        fieldObj.setValue(fieldVal)
+
+    def loadIds(self, objIds, forceFieldValues):
         if self.viewType in ['form', 'search'] and len(objIds) > 1:
             utils.launchMessage('You cannot load multiple ids on form or search view!', 'warning')
             return False
-        # Copy objects to self.objectsInit
-        # Modify self.layout
+        if self.viewType == 'form':
+            formId = False
+            if objIds:
+                formId = objIds[0]
+                formVals = self.rpcObject.read(self.model, [], [formId])
+                for fieldName, fieldVal in formVals.items():
+                    self._setValue(fieldName, fieldVal)
+            for fieldName, fieldVal in forceFieldValues.items():
+                self._setValue(fieldName, fieldVal)
+        self.objectsInit = copy.copy(self.fields)
 
     def isReadonly(self):
         return self.readonly
@@ -93,13 +108,13 @@ class TemplateView(object):
         for fieldName, fieldObject in self.fields.__dict__.items():
             outDict[fieldName] = fieldObject.currentValue
         return outDict
-    
+
     def getAllOnChange(self):
         outDict = {}
         for fieldName, fieldObject in self.fields.__dict__.items():
             outDict[fieldName] = fieldObject.on_change
         return outDict
-        
+
     def _valueChanged(self, fieldName):
         fieldObj = self.fields.__dict__.get(unicode(fieldName))
         changeResult = self._on_change(fieldObj.fieldName)
@@ -113,7 +128,7 @@ class TemplateView(object):
             [
             [id],
             {all values},
-            launcher field name, 
+            launcher field name,
             {All form on_changes},
             {context},
             ]
@@ -121,6 +136,7 @@ class TemplateView(object):
         allVals = self.getAllFieldsValues()
         allOnchanges = self.getAllOnChange()
         return self.rpcObject.on_change(self.model, self.activeIds, allVals, fieldName, allOnchanges, {})
+
 
 class Objects(object):
     def __init__(self):
