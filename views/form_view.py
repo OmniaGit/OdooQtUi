@@ -114,6 +114,16 @@ class FormView(object):
             # childColSpan = computeCol(childElement.attrib.get('colspan', 1))
             childColSpan = int(childAttrs.get('colspan', 2))
             if childTag == 'group':
+                groupString = childAttrs.get('string', '')
+                if groupString:
+                    label = QtGui.QLabel(groupString)
+                    label.setStyleSheet('color: #7C7BAD;font-size: 17px;font-weight: bold;')
+                    globalLay.addWidget(label, rowCount, colCount, 1, childColSpan)
+                    rowCount = rowCount + 1
+                layout = self.computeGroup(childElement)
+                globalLay.addLayout(layout, rowCount, colCount, 1, childColSpan)
+                colCount = colCount + childColSpan
+            elif childTag == 'strong':
                 layout = self.computeGroup(childElement)
                 globalLay.addLayout(layout, rowCount, colCount, 1, childColSpan)
                 colCount = colCount + childColSpan
