@@ -532,19 +532,96 @@ def setRequiredBackground(widgetQtObj):
 
 def evaluateAttrs(fieldsDict, toCompute):
     def evalSingleCondition(cond):
+        if len(cond) != 3:
+            logMessage('warning', 'Condition lenght != 3: %r' % (cond), 'evalSingleCondition')
+            return False
         fieldName, operator, valToCompare = cond
         fieldObj = fieldsDict.get(fieldName, None)
         if not fieldObj:
             logMessage('warning', 'No field obj found for name %r' % (fieldName), 'evalSingleCondition')
+            return False
         fieldVal = fieldObj.currentValue
-        
-        
+        if operator == '=':
+            return fieldVal == valToCompare
+        elif operator == '!=':
+            return fieldVal != valToCompare
+        elif operator == '>':
+            return fieldVal > valToCompare
+        elif operator == '<':
+            return fieldVal < valToCompare
+        elif operator == '>=':
+            return fieldVal >= valToCompare
+        elif operator == '<=':
+            return fieldVal <= valToCompare
+        elif operator == 'in':
+            if not isinstance(valToCompare, (list, tuple)):
+                logMessage('warning', 'valToCompare: %r is not a list for operator: %r' % (valToCompare, operator), 'evalSingleCondition')
+                return False
+            return fieldVal in valToCompare
+        elif operator == 'not in':
+            if not isinstance(valToCompare, (list, tuple)):
+                logMessage('warning', 'valToCompare: %r is not a list for operator: %r' % (valToCompare, operator), 'evalSingleCondition')
+                return False
+            return fieldVal not in valToCompare
+        elif operator == 'like':
+            if not isinstance(valToCompare, (unicode, str)):
+                logMessage('warning', 'valToCompare: %r is not a char for operator: %r' % (valToCompare, operator), 'evalSingleCondition')
+                return False
+            return fieldVal in valToCompare
+        elif operator == 'ilike':
+            if not isinstance(valToCompare, (unicode, str)):
+                logMessage('warning', 'valToCompare: %r is not a char for operator: %r' % (valToCompare, operator), 'evalSingleCondition')
+                return False
+            return fieldVal.lower() in valToCompare.lower()
+    
+    if isinstance(toCompute, bool):
+        return toCompute
+    if len(toCompute) == 1:
+        return evalSingleCondition(toCompute[0])
+    
+    conditions = []
+    operators = []
     for singleCompute in toCompute:
-        evalSingleCondition(singleCompute)
-        fieldsDict
+        if isinstance(singleCompute, (unicode, str)):
+            if singleCompute == '|':
+                operators.append(singleCompute)
+                continue
+            elif singleCompute == '&':
+                operators.append(singleCompute)
+                continue
+            else:
+                logMessage('warning', 'Operator %r not implemented' % (singleCompute), 'evaluateAttrs')
+        if not operators:
+            operators.append('&')
+        res = evalSingleCondition(singleCompute)
+        conditions.append(res)
+
+    return _evalSimple(conditions, operators)
+    
+def _evalSimple(conditions, operators):
+    if len(operators) != len(conditions) - 1:
+        logMessage('warning', 'Cannot eval with conditions: %r and operators: %r' % (conditions, operators), '_evalSimple')
+        return False
+    count = 0
+    lastCond = False
+    for cond in conditions:
+        if count == 0:
+            lastCond = cond
+        else:
+            oper = operators[count - 1]
+            if oper == '&':
+                lastCond = lastCond and cond
+            elif oper == '|':
+                lastCond = lastCond or cond
+        count = count + 1
+    return lastCond
     
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
     # aaa = getExeFromPath('/home/daniel/eclipse/committers-neon/eclipse/')
-    aaa = getExeFromPath('C:\Program Files (x86)')
+    #aaa = getExeFromPath('C:\Program Files (x86)')
+    
+    conditions = [True, False, True, True]
+    operators = ['|', '&', '&']
+    print _evalSimple(conditions, operators)
     app.exec_()

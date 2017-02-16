@@ -48,8 +48,8 @@ class Selection(OdooFieldTemplate):
         return self.hboxLay
 
     def valueChanged(self, newIndex):
-        # To verify if is the correct value, otherwise take it from list of elements
-        self.currentValue = self.widgetQtObj.currentText()
+        currentValue = unicode(self.widgetQtObj.currentText())
+        self.currentValue = self.selectionMappingReverse.get(currentValue)
         self.valueTemplateChanged()
 
     def setValue(self, newVal):

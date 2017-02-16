@@ -100,8 +100,10 @@ class TemplateView(object):
         for fieldObj in fieldDict.values():
             readonlyModif = fieldObj.modifiers.get('readonly', {})
             invisibleModif = fieldObj.modifiers.get('invisible', {})
-            utils.evaluateAttrs(fieldDict, readonlyModif)
-            utils.evaluateAttrs(fieldDict, invisibleModif)
+            if readonlyModif:
+                fieldObj.setReadonly(utils.evaluateAttrs(fieldDict, readonlyModif))
+            if invisibleModif:
+                fieldObj.setInvisible(utils.evaluateAttrs(fieldDict, invisibleModif))
         
     def loadIds(self, objIds=[], forceFieldValues={}, readonlyFields={}, invisibleFields={}):
         if self.viewType in ['form', 'search'] and len(objIds) > 1:
@@ -112,6 +114,9 @@ class TemplateView(object):
             if objIds:
                 formId = objIds[0]
                 formVals = self.rpcObject.read(self.model, self.interfaceFieldsDict.keys(), [formId])
+                if not formVals:
+                    utils.logMessage('warning', 'No values found for id %r and model %r' % (formId, self.model), 'loadIds')
+                    return 
                 for fieldName, fieldVal in formVals.items():
                     self.setValueField(fieldName, fieldVal)
             for fieldName, fieldVal in forceFieldValues.items():
