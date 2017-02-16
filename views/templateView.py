@@ -104,6 +104,16 @@ class TemplateView(object):
                 fieldObj.setReadonly(utils.evaluateAttrs(fieldDict, readonlyModif))
             if invisibleModif:
                 fieldObj.setInvisible(utils.evaluateAttrs(fieldDict, invisibleModif))
+                
+    def _setButtonsModifiers(self):
+        fieldDict = self.interfaceFieldsDict
+        for buttonObj in self.buttons.__dict__.values():
+            readonlyModif = buttonObj.modifiers.get('readonly', {})
+            invisibleModif = buttonObj.modifiers.get('invisible', {})
+            if readonlyModif:
+                buttonObj.setReadonly(utils.evaluateAttrs(fieldDict, readonlyModif))
+            if invisibleModif:
+                buttonObj.setInvisible(utils.evaluateAttrs(fieldDict, invisibleModif))
         
     def loadIds(self, objIds=[], forceFieldValues={}, readonlyFields={}, invisibleFields={}):
         if self.viewType in ['form', 'search'] and len(objIds) > 1:
@@ -126,6 +136,7 @@ class TemplateView(object):
                 self.setReadonlyField(readonlyField, fieldAttr)
             for invisibleField, fieldAttr in invisibleFields.items():
                 self.setInvisibleField(invisibleField, fieldAttr)
+            self._setButtonsModifiers()
         self.objectsInit = copy.copy(self.fields)
 
     def isReadonly(self):

@@ -5,6 +5,7 @@ Created on 06 feb 2017
 '''
 from PyQt4 import QtGui
 from utils import utils
+import json
 
 
 class Button(object):
@@ -14,7 +15,7 @@ class Button(object):
         self.buttonString = self.buttonAttribs.get('string', '')
         self.buttonType = self.buttonAttribs.get('type', '')
         self.buttonName = self.buttonAttribs.get('name', '')
-        self.modifiers = self.buttonAttribs.get('modifiers', {})
+        self.modifiers = json.loads(self.buttonAttribs.get('modifiers', '{}'))
         self.buttonObj = self.getQtObject()
         self.invisible = utils.evaluateBoolean(self.buttonAttribs.get('invisible', False))
         self.readonly = utils.evaluateBoolean(self.buttonAttribs.get('readonly', False))
@@ -31,3 +32,9 @@ class Button(object):
         self.buttonObj = QtGui.QPushButton(self.buttonString)
         self.buttonObj.setMaximumWidth(200)
         return self.buttonObj
+
+    def setReadonly(self, val=False):
+        self.buttonObj.setDisabled(val)
+
+    def setInvisible(self, val=False):
+        self.buttonObj.setHidden(val)

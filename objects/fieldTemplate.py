@@ -16,7 +16,7 @@ class OdooFieldTemplate(QtCore.QObject, object):
         self.rpc = rpc
         self.fieldAttributes = xmlField.attrib
         self.fieldName = self.fieldAttributes.get('name', '')
-        self.modifiers = json.loads(self.fieldAttributes.get('modifiers', {}))
+        self.modifiers = json.loads(self.fieldAttributes.get('modifiers', '{}'))
         self.on_change = self.fieldAttributes.get('on_change', '')
         self.fieldDefinition = fieldsDefinition.get(self.fieldName, {})
         self.readonly = utils.evaluateBoolean(self.fieldDefinition.get('readonly', False))
