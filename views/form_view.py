@@ -25,6 +25,7 @@ class FormView(object):
         self.arch = arch
         self.fieldsNameTypeRel = fieldsNameTypeRel
         self.globalMapping = {}
+        self.aloneLabels = {}
         self.rpc = rpc
 
     def computeArchRecursion(self, parent):
@@ -100,6 +101,7 @@ class FormView(object):
                 return 1
             
         childColCount = computeCol(groupXmlObj.attrib.get('col', 2))
+        childColCount = childColCount * 2
         globalLay = QtGui.QGridLayout()
         colCount = 0
         rowCount = 0
@@ -108,7 +110,9 @@ class FormView(object):
                 colCount = 0
                 rowCount = rowCount + 1
             childTag = childElement.tag
-            childColSpan = computeCol(childElement.attrib.get('colspan', 2))
+            childAttrs = childElement.attrib
+            # childColSpan = computeCol(childElement.attrib.get('colspan', 1))
+            childColSpan = int(childAttrs.get('colspan', 2))
             if childTag == 'group':
                 layout = self.computeGroup(childElement)
                 globalLay.addLayout(layout, rowCount, colCount, 1, childColSpan)
@@ -116,13 +120,26 @@ class FormView(object):
             elif childTag == 'field':
                 fieldObj = self.computeField(childElement)
                 if fieldObj:
-                    fieldQt = fieldObj.qtObject
-                    if isinstance(fieldQt, QtGui.QLayout):
-                        globalLay.addLayout(fieldQt, rowCount, colCount, 1, childColSpan)
-                    elif isinstance(fieldQt, QtGui.QWidget):
-                        globalLay.addWidget(fieldQt, rowCount, colCount, 1, childColSpan)
+                    nolabel = childAttrs.get('nolabel', False)
+                    if nolabel:
+                        labelObj = self.aloneLabels.get(fieldObj.fieldName, '')
+                        if labelObj:
+                            fieldObj.labelQtObj = labelObj
+                            labelObj.setText(fieldObj.fieldName)
+                            del self.aloneLabels[fieldObj.fieldName]
+                    else:
+                        globalLay.addWidget(fieldObj.labelQtObj, rowCount, colCount, 1, 1)
+                        colCount = colCount + 1
+                        childColSpan = childColSpan - 1
+                    globalLay.addWidget(fieldObj.widgetQtObj, rowCount, colCount, 1, childColSpan)
                     self.appendToglobalMapping('field_' + fieldObj.fieldName, fieldObj)
                     colCount = colCount + childColSpan
+            elif childTag == 'label':
+                fieldRelated = childAttrs.get('for', '')
+                labelObj = QtGui.QLabel()
+                self.aloneLabels[fieldRelated] = labelObj
+                globalLay.addWidget(labelObj, rowCount, colCount, 1, childColSpan)
+                colCount = colCount + childColSpan
             elif childTag == 'button':
                 buttonObj = button.Button(childElement)
                 globalLay.addWidget(buttonObj.qtObject, rowCount, colCount, 1, childColSpan)
