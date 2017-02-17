@@ -17,6 +17,7 @@ from objects.integer.integer import Integer
 from objects.many2many.many2many import Many2many
 from objects.many2one.many2one import Many2one
 from objects.text.text import Text
+from utils import constants
 import json
 
 
@@ -49,6 +50,7 @@ class FormView(object):
                 divVlay = QtGui.QVBoxLayout()
                 if childElement.text:
                     label = QtGui.QLabel(childElement.text)
+                    label.setStyleSheet(constants.LABEL_STYLE)
                     divVlay.addWidget(label)
                 childLay = self.computeRecursion(childElement)
                 divVlay.addLayout(childLay)
@@ -88,6 +90,7 @@ class FormView(object):
     def computeArchRecursion(self, parent):
         mainVLay = self.computeRecursion(parent)
         widgetContents = QtGui.QWidget()
+        widgetContents.setStyleSheet('background-color:#ffffff;')
         widgetContents.setLayout(mainVLay)
         scroll = QtGui.QScrollArea()
         scroll.setWidget(widgetContents)
@@ -129,7 +132,7 @@ class FormView(object):
                 groupString = childAttrs.get('string', '')
                 if groupString:
                     label = QtGui.QLabel(groupString)
-                    label.setStyleSheet('color: #7C7BAD;font-size: 17px;font-weight: bold;')
+                    label.setStyleSheet(constants.LABEL_STYLE)
                     globalLay.addWidget(label, rowCount, colCount, 1, childColSpan)
                     rowCount = rowCount + 1
                 layout = self.computeGroup(childElement)
@@ -160,12 +163,13 @@ class FormView(object):
                 separatorVal = childAttrs.get('string', '')
                 if separatorVal:
                     labelObj = QtGui.QLabel(separatorVal)
-                    labelObj.setStyleSheet('color: #7C7BAD;font-size: 17px;font-weight: bold;')
+                    labelObj.setStyleSheet(constants.LABEL_STYLE)
                     globalLay.addWidget(labelObj, rowCount, colCount, 1, childColSpan)
                     colCount = colCount + childColSpan
             elif childTag == 'label':
                 fieldRelated = childAttrs.get('for', '')
                 labelObj = QtGui.QLabel()
+                labelObj.setStyleSheet(constants.LABEL_STYLE)
                 self.aloneLabels[fieldRelated] = labelObj
                 globalLay.addWidget(labelObj, rowCount, colCount, 1, childColSpan)
                 colCount = colCount + childColSpan
@@ -215,7 +219,7 @@ class FormView(object):
             if key not in mapping:
                 mapping[key] = vals
             else:
-                utils.launchMessage('multiple widgets with the same key: %r' % (key), 'warning')
+                utils.logMessage('warning', 'multiple widgets with the same key: %r' % (key), 'computeHeader')
 
         headerLayout = QtGui.QHBoxLayout()
         for xmlObj in archHeader._children:

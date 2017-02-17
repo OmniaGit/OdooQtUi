@@ -6,6 +6,7 @@ Created on 7 Feb 2017
 
 from PyQt4 import QtGui
 from utils import utils
+from utils import constants
 from objects.fieldTemplate import OdooFieldTemplate
 
 
@@ -20,6 +21,7 @@ class Many2many(OdooFieldTemplate):
         self.hboxLay = QtGui.QVBoxLayout()
         buttonsLay = QtGui.QHBoxLayout()
         self.labelQtObj = QtGui.QLabel(self.labelString)
+        self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
         buttonsLay.addWidget(self.labelQtObj)
         createButt = QtGui.QPushButton('Create')
         editButton = QtGui.QPushButton('Edit')

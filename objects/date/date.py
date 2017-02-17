@@ -6,6 +6,7 @@ Created on 7 Feb 2017
 
 from PyQt4 import QtGui
 from utils import utils
+from utils import constants
 from objects.fieldTemplate import OdooFieldTemplate
 
 
@@ -19,6 +20,7 @@ class Date(OdooFieldTemplate):
     def getQtObject(self):
         self.hboxLay = QtGui.QHBoxLayout()
         self.labelQtObj = QtGui.QLabel(self.labelString)
+        self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
         self.hboxLay.addWidget(self.labelQtObj)
         self.widgetQtObj = QtGui.QDateEdit()
         self.widgetQtObj.setToolTip(self.tooltip)

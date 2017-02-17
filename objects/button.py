@@ -5,6 +5,7 @@ Created on 06 feb 2017
 '''
 from PyQt4 import QtGui
 from utils import utils
+from utils import constants
 import json
 
 
@@ -22,8 +23,9 @@ class Button(object):
         self.buttonObj.setDisabled(self.readonly)
         self.buttonObj.setHidden(self.invisible)
         self.invisibleConditions, self.readonlyConditions = utils.evaluateModifiers(self.modifiers)
+        self.buttonObj.setStyleSheet(constants.BUTTON_STYLE)
         return super(Button, self).__init__()
-    
+
     @property
     def qtObject(self):
         return self.buttonObj

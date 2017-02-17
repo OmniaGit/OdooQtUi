@@ -69,7 +69,7 @@ if __name__ == '__main__':
     connectorObj.loginWithUser(user, password, dbName, xmlrpcServerIP, xmlrpcPort, scheme, loginType)
     
     dialog = QtGui.QDialog()
-    templateViewObj = connectorObj.initViewObj('form', 'product.product', '', False)
+    templateViewObj = connectorObj.initViewObj('form', 'sale.order', '', False)
     qtInterface = templateViewObj.QtInterface
     #objIds = [77540]
     objIds = [1]
@@ -79,7 +79,8 @@ if __name__ == '__main__':
     templateViewObj.loadIds(objIds, startingFieldValues, readonlyFields, invisibleFields)
     # templateViewObj.setReadonly(True)
     dialog.setLayout(qtInterface)
-    dialog.resize(800, 600)
+    dialog.setStyleSheet('background-color:#893b74;')
+    dialog.resize(1000, 700)
     dialog.exec_()
     
     # Odoo calls
