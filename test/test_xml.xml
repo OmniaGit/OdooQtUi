@@ -1,0 +1,84 @@
+<form string="Document" version="7.0">
+               <header>
+                    <button name="release" states="confirmed" string="Release Document" icon="gtk-apply" class="oe_highlight" attrs="{'invisible': ['|',('is_checkout','=',True)]}" modifiers="{&quot;invisible&quot;: [&quot;|&quot;, [&quot;is_checkout&quot;, &quot;=&quot;, true], [&quot;state&quot;, &quot;not in&quot;, [&quot;confirmed&quot;]]]}"/>
+                    <button name="correct" states="confirmed" string="Correct Document" icon="gtk-cancel" modifiers="{&quot;invisible&quot;: [[&quot;state&quot;, &quot;not in&quot;, [&quot;confirmed&quot;]]]}"/>
+                    <button name="confirm" states="draft" string="Confirm Document" icon="gtk-go-forward" class="oe_highlight" attrs="{'invisible': ['|',('is_checkout','=',True)]}" modifiers="{&quot;invisible&quot;: [&quot;|&quot;, [&quot;is_checkout&quot;, &quot;=&quot;, true], [&quot;state&quot;, &quot;not in&quot;, [&quot;draft&quot;]]]}"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,released" statusbar_colors="{&quot;undermodify&quot;:&quot;red&quot;,&quot;obsoleted&quot;:&quot;red&quot;}" readonly="1" modifiers="{&quot;readonly&quot;: true, &quot;required&quot;: true}"/>
+               </header>
+               <sheet>
+               		<label for="name" class="oe_edit_only"/>
+               		<group colspan="4" col="4" name="DocData">
+               			<strong>
+               				<field name="name" select="1" readonly="0" colspan="2" modifiers="{&quot;required&quot;: true}"/>
+               			</strong>
+               			<strong>
+        					<field name="revisionid" readonly="True" colspan="2" modifiers="{&quot;readonly&quot;: true, &quot;required&quot;: true}"/>
+       					</strong>
+               		</group>
+               		<group colspan="4" col="4" name="DocData">
+               			<group col="4" colspan="1">
+                    		<field name="preview" widget="image" readonly="1" nolabel="1" colspan="2" img_height="400" img_width="400" modifiers="{&quot;readonly&quot;: true}"/>
+           				</group>
+               			<group colspan="2" col="2" name="DocData">
+ 							<group colspan="4" col="4">
+ 								<group colspan="2" col="2">
+                    				<newline/>
+                    				<separator string="Spare Part" colspan="2"/>
+                    				<field name="usedforspare" colspan="2" attrs="{'readonly':[('state','in',['released','obsoleted'])]}" modifiers="{&quot;readonly&quot;: [[&quot;state&quot;, &quot;in&quot;, [&quot;released&quot;, &quot;obsoleted&quot;]]]}"/>
+                    				<newline/>
+                    				<group col="4" colspan="4" string="Created and Modified" name="DocUser">
+                    					<field name="create_uid" readonly="1" can_create="true" can_write="true" modifiers="{&quot;readonly&quot;: true}"/>
+                            			<field name="create_date" readonly="1" modifiers="{&quot;readonly&quot;: true}"/>
+                            			<newline/>
+                            			<field name="write_uid" readonly="1" can_create="true" can_write="true" modifiers="{&quot;readonly&quot;: true}"/>
+                            			<field name="write_date" readonly="1" modifiers="{&quot;readonly&quot;: true}"/>
+                    				</group>
+                        			<group col="2" colspan="2">
+                        				<field name="checkout_user" colspan="2" modifiers="{&quot;readonly&quot;: true}"/>
+                        				<field name="is_checkout" colspan="2" modifiers="{&quot;readonly&quot;: true}"/>
+                        			</group>
+                     			</group>
+                    		</group>
+               			</group>
+            		</group>
+                	<notebook col="4" colspan="4">
+                		<page string="Attachment">
+                		<group col="4" colspan="4" name="Attachment">
+	                		<group col="4" colspan="2" string="File Data" name="FileData">
+		                        <group col="2" colspan="2" attrs="{'invisible':[('type','=','url')]}" modifiers="{&quot;invisible&quot;: [[&quot;type&quot;, &quot;=&quot;, &quot;url&quot;]]}">
+		                            <field name="datas" filename="datas_fname" attrs="{'readonly':[('state','in',['released','obsoleted'])]}" modifiers="{&quot;readonly&quot;: [[&quot;state&quot;, &quot;in&quot;, [&quot;released&quot;, &quot;obsoleted&quot;]]]}"/>
+		                            <field name="datas_fname" select="1" attrs="{'readonly':[('state','in',['released','obsoleted'])]}" modifiers="{&quot;readonly&quot;: [[&quot;state&quot;, &quot;in&quot;, [&quot;released&quot;, &quot;obsoleted&quot;]]]}"/>
+		                        </group>
+		                        <group col="2" colspan="2">
+		                            <field name="url" widget="url" attrs="{'invisible':[('type','=','binary')],'readonly':[('state','in',['released','obsoleted'])]}" modifiers="{&quot;invisible&quot;: [[&quot;type&quot;, &quot;=&quot;, &quot;binary&quot;]], &quot;readonly&quot;: [[&quot;state&quot;, &quot;in&quot;, [&quot;released&quot;, &quot;obsoleted&quot;]]]}"/>
+		                        	<field name="type" attrs="{'readonly':[('state','in',['released','obsoleted'])]}" modifiers="{&quot;readonly&quot;: [[&quot;state&quot;, &quot;in&quot;, [&quot;released&quot;, &quot;obsoleted&quot;]]], &quot;required&quot;: true}"/><field name="x_typedoc" modifiers="{&quot;required&quot;: true}"/><field name="x_descrmod" modifiers="{}"/><field name="desc_comp" modifiers="{&quot;readonly&quot;: true}"/><field name="x_cliente" modifiers="{}"/><field name="x_commessa" modifiers="{}"/><field name="x_matricola" modifiers="{}"/><field name="x_docopec" invisible="True" modifiers="{&quot;invisible&quot;: true}"/><field name="x_docopem" invisible="True" modifiers="{&quot;invisible&quot;: true}"/>
+	                        	</group>
+                        	</group>
+                            <group col="2" colspan="2" string="Attached To">
+	                        	<newline/>
+	                       		<field name="res_id" readonly="True" modifiers="{&quot;readonly&quot;: true}"/>
+	                            <field name="res_model" readonly="True" modifiers="{&quot;readonly&quot;: true}"/>
+                            </group>
+                            <group col="2" colspan="2" string="Related To">
+                            	<newline/>
+                                <field name="res_name" readonly="1" modifiers="{&quot;readonly&quot;: true}"/>
+                           	</group>
+                           	<separator/>
+                        </group>
+                		</page>
+                		<page string="Linked Parts">
+                    		<field colspan="4" name="linkedcomponents" nolabel="1" attrs="{'readonly':[('state','in',['released','obsoleted'])]}" can_create="true" can_write="true" modifiers="{&quot;readonly&quot;: [[&quot;state&quot;, &quot;in&quot;, [&quot;released&quot;, &quot;obsoleted&quot;]]]}"/>
+                		</page>
+	                	<page string="Indexed Content" invisible="1" modifiers="{&quot;invisible&quot;: true}">
+	                    	<field name="index_content" colspan="4" nolabel="1" attrs="{'readonly':[('state','in',['released','obsoleted'])]}" modifiers="{&quot;readonly&quot;: [[&quot;state&quot;, &quot;in&quot;, [&quot;released&quot;, &quot;obsoleted&quot;]]]}"/>
+	                	</page>
+	                	<page string="Notes">
+	                    	<field colspan="4" name="description" nolabel="1" attrs="{'readonly':[('state','in',['released','obsoleted'])]}" modifiers="{&quot;readonly&quot;: [[&quot;state&quot;, &quot;in&quot;, [&quot;released&quot;, &quot;obsoleted&quot;]]]}"/>
+	                	</page>
+                	</notebook>
+                </sheet>
+<div class="oe_chatter">
+<field name="message_follower_ids" widget="mail_followers" modifiers="{}"/>
+<field name="message_ids" widget="mail_thread" modifiers="{}" options="{'display_log_button': True, 'emoji_list': [{'source': u':)', 'substitution': u&quot;&lt;img src='/mail/static/src/img/smiley/smile.png'/&gt;&quot;, 'id': 1, 'description': u'Emoji Smile'}, {'source': u':(', 'substitution': u&quot;&lt;img src='/mail/static/src/img/smiley/sad.png'/&gt;&quot;, 'id': 2, 'description': u'Emoji Sad'}, {'source': u':D', 'substitution': u&quot;&lt;img src='/mail/static/src/img/smiley/laugh.png'/&gt;&quot;, 'id': 3, 'description': u'Emoji Laugh'}, {'source': u';)', 'substitution': u&quot;&lt;img src='/mail/static/src/img/smiley/wink.png'/&gt;&quot;, 'id': 4, 'description': u'Emoji Wink'}, {'source': u'O_0', 'substitution': u&quot;&lt;img src='/mail/static/src/img/smiley/stuck_out_tongue.png'/&gt;&quot;, 'id': 5, 'description': u'Emoji Stuck Out Tongue Winking Eye'}, {'source': u':@', 'substitution': u&quot;&lt;img src='/mail/static/src/img/smiley/scream.png'/&gt;&quot;, 'id': 6, 'description': u'Emoji Scream'}, {'source': u':|', 'substitution': u&quot;&lt;img src='/mail/static/src/img/smiley/neutral.png'/&gt;&quot;, 'id': 7, 'description': u'Emoji Speechless/Neutral face'}, {'source': u':p', 'substitution': u&quot;&lt;img src='/mail/static/src/img/smiley/yum.png'/&gt;&quot;, 'id': 8, 'description': u'Emoji Cheeky'}, {'source': u':/', 'substitution': u&quot;&lt;img src='/mail/static/src/img/smiley/confused.png'/&gt;&quot;, 'id': 9, 'description': u'Emoji Confused'}, {'source': u':O', 'substitution': u&quot;&lt;img src='/mail/static/src/img/smiley/open_mouth.png'/&gt;&quot;, 'id': 10, 'description': u'Emoji Open Mouth'}, {'source': u'&lt;3', 'substitution': u&quot;&lt;img src='/mail/static/src/img/smiley/heart.png'/&gt;&quot;, 'id': 11, 'description': u'Emoji Heart'}, {'source': u':+1', 'substitution': u&quot;&lt;img src='/mail/static/src/img/smiley/thumbsup.png'/&gt;&quot;, 'id': 12, 'description': u'Emoji Thumbs Up'}, {'source': u':-1', 'substitution': u&quot;&lt;img src='/mail/static/src/img/smiley/thumbsdown.png'/&gt;&quot;, 'id': 13, 'description': u'Emoji Thumbs Down'}, {'source': u':kitten', 'substitution': u&quot;&lt;img src='/mail/static/src/img/smiley/cat.png'/&gt;&quot;, 'id': 14, 'description': u'Emoji Kitten'}, {'source': u':pinky', 'substitution': u&quot;&lt;img src='/mail/static/src/img/smiley/pinky.png'/&gt;&quot;, 'id': 15, 'description': u'Emoji Pinky'}, {'source': u':musti', 'substitution': u&quot;&lt;img src='/mail/static/src/img/smiley/musti.png'/&gt;&quot;, 'id': 16, 'description': u'Emoji Musti'}, {'source': u':turban', 'substitution': u&quot;&lt;img src='/mail/static/src/img/smiley/man_with_turban.png'/&gt;&quot;, 'id': 17, 'description': u'Emoji Man With Turban'}, {'source': u':troll', 'substitution': u&quot;&lt;img src='/mail/static/src/img/smiley/trollface.png'/&gt;&quot;, 'id': 18, 'description': u'Emoji Troll Face'}, {'source': u':boar', 'substitution': u&quot;&lt;img src='/mail/static/src/img/smiley/boar.png'/&gt;&quot;, 'id': 19, 'description': u'Emoji Boar'}, {'source': u':poop', 'substitution': u&quot;&lt;img src='/mail/static/src/img/smiley/poop.png'/&gt;&quot;, 'id': 20, 'description': u'Emoji Poop'}, {'source': u':cookie', 'substitution': u&quot;&lt;img src='/mail/static/src/img/smiley/cookie.png'/&gt;&quot;, 'id': 21, 'description': u'Emoji Cookie'}, {'source': u':postal_horn', 'substitution': u&quot;&lt;img src='/mail/static/src/img/smiley/postal_horn.png'/&gt;&quot;, 'id': 22, 'description': u'Emoji Postal Horn'}, {'source': u':ghost', 'substitution': u&quot;&lt;img src='/mail/static/src/img/smiley/ghost.png'/&gt;&quot;, 'id': 23, 'description': u'Emoji Ghost'}, {'source': u':beer', 'substitution': u&quot;&lt;img src='/mail/static/src/img/smiley/beer.png'/&gt;&quot;, 'id': 24, 'description': u'Emoji Beer'}, {'source': u':man', 'substitution': u&quot;&lt;img src='/mail/static/src/img/smiley/man.png'/&gt;&quot;, 'id': 25, 'description': u'Emoji Man'}], 'internal_subtypes': [{'description': False, 'sequence': 100, 'id': 2, 'name': u'Note'}]}"/>
+</div>
+            </form>

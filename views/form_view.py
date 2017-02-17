@@ -28,14 +28,14 @@ class FormView(object):
         self.aloneLabels = {}
         self.rpc = rpc
 
-    def computeArchRecursion(self, parent):
-        # TODO:    div name <div name="button_box" class="oe_button_box"> 
+    def computeRecursion(self, parent):
+        # TODO:    div name <div name="button_box" class="oe_button_box">
         mainVLay = QtGui.QVBoxLayout()
         for childElement in parent._children:
             childTag = childElement.tag
             if childTag == 'sheet':
                 sheetLay = QtGui.QVBoxLayout()
-                layout = self.computeArchRecursion(childElement)
+                layout = self.computeRecursion(childElement)
                 if layout:
                     sheetLay.addLayout(layout)
                 mainVLay.addLayout(sheetLay)
@@ -50,7 +50,7 @@ class FormView(object):
                 if childElement.text:
                     label = QtGui.QLabel(childElement.text)
                     divVlay.addWidget(label)
-                childLay = self.computeArchRecursion(childElement)
+                childLay = self.computeRecursion(childElement)
                 divVlay.addLayout(childLay)
                 mainVLay.addLayout(divVlay)
             elif childTag == 'notebook':
@@ -58,7 +58,7 @@ class FormView(object):
                 for page in childElement._children:
                     pageString = page.attrib.get('string', '')
                     pageWidget = QtGui.QWidget()
-                    childLay = self.computeArchRecursion(page)
+                    childLay = self.computeRecursion(page)
                     pageWidget.setLayout(childLay)
                     tabWidget.addTab(pageWidget, pageString)
                 mainVLay.addWidget(tabWidget)
@@ -82,14 +82,26 @@ class FormView(object):
                     elif isinstance(fieldQt, QtGui.QWidget):
                         mainVLay.addWidget(fieldQt)
                     self.appendToglobalMapping('field_' + fieldObj.fieldName, fieldObj)
+        mainVLay.setSpacing(3)
         return mainVLay
+
+    def computeArchRecursion(self, parent):
+        mainVLay = self.computeRecursion(parent)
+        widgetContents = QtGui.QWidget()
+        widgetContents.setLayout(mainVLay)
+        scroll = QtGui.QScrollArea()
+        scroll.setWidget(widgetContents)
+        scroll.setWidgetResizable(True)
+        outLay = QtGui.QVBoxLayout()
+        outLay.addWidget(scroll)
+        return outLay
 
     def computeGroup(self, groupXmlObj):
         # grid.addWidget(widget, row, column, rowspan, colspan)
         # grid.addLayout(widget, row, column, rowspan, colspan)
         def computeCol(val):
             try:
-                if isinstance(val,  (str, unicode)):
+                if isinstance(val, (str, unicode)):
                     val = json.loads(val)
                 if val % 2 == 0:
                     return val / 2
@@ -99,7 +111,7 @@ class FormView(object):
             except Exception, ex:
                 utils.logMessage('error', 'Error during computing col and colspan %r' % (ex), 'computeCol')
                 return 1
-            
+
         childColCount = computeCol(groupXmlObj.attrib.get('col', 2))
         childColCount = childColCount * 2
         globalLay = QtGui.QGridLayout()
@@ -144,6 +156,13 @@ class FormView(object):
                     globalLay.addWidget(fieldObj.widgetQtObj, rowCount, colCount, 1, childColSpan)
                     self.appendToglobalMapping('field_' + fieldObj.fieldName, fieldObj)
                     colCount = colCount + childColSpan
+            elif childTag == 'separator':
+                separatorVal = childAttrs.get('string', '')
+                if separatorVal:
+                    labelObj = QtGui.QLabel(separatorVal)
+                    labelObj.setStyleSheet('color: #7C7BAD;font-size: 17px;font-weight: bold;')
+                    globalLay.addWidget(labelObj, rowCount, colCount, 1, childColSpan)
+                    colCount = colCount + childColSpan
             elif childTag == 'label':
                 fieldRelated = childAttrs.get('for', '')
                 labelObj = QtGui.QLabel()
@@ -157,10 +176,10 @@ class FormView(object):
                 self.appendToglobalMapping(key, buttonObj)
                 colCount = colCount + childColSpan
         return globalLay
-        
+
     def appendToglobalMapping(self, key, value):
         self.globalMapping.update({key: value})
-        
+
     def computeField(self, xmlObj):
         fieldAttributes = xmlObj.attrib
         fieldName = fieldAttributes.get('name', '')
@@ -227,7 +246,3 @@ class FormView(object):
         if self.arch:
             etreeObj = ElementTree.fromstring(self.arch)
             return self.computeArchRecursion(etreeObj)
-
-    def loadIds(self, odooIds):
-        for odooId in odooIds:
-            break

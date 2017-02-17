@@ -53,17 +53,17 @@ class XmlRpcConnection(object):
         try:
             return self.callOdooFunction(obj, 'search', [filterList], kwargParameters)
         except Exception, ex:
-            utils.logMessage('error', 'Error during search with values: object %r, filter %r, parameters %r. Error: %r'  % (obj, filterList, kwargParameters, ex), 'search')
+            utils.logMessage('error', 'Error during search with values: object %r, filter %r, parameters %r. Error: %r' % (obj, filterList, kwargParameters, ex), 'search')
         return []
-    
+
     def read(self, obj, fields, ids):
         try:
-            kargs = {'fields': fields}
-            return self.callOdooFunction(obj, 'read', ids, kargs)
+            kargs = {}
+            return self.callOdooFunction(obj, 'read', [ids, fields], kargs)
         except Exception, ex:
-            utils.logMessage('error', 'Error during read with values: object %r, fields %r, ids %r. Error: %r'  % (obj, fields, ids, ex), 'read')
+            utils.logMessage('error', 'Error during read with values: object %r, fields %r, ids %r. Error: %r' % (obj, fields, ids, ex), 'read')
         return []
-    
+
     def fieldsGet(self, obj, attributesToRead=[]):
         '''
         @attributesToRead: {'attributes': ['string', 'help', 'type']}
@@ -72,7 +72,7 @@ class XmlRpcConnection(object):
             kargs = {'attributes': attributesToRead}
             return self.callOdooFunction(obj, 'fields_get', [], kargs)
         except Exception, ex:
-            utils.logMessage('error', 'Error during reading fields with values: object %r, kargs %r. Error: %r'  % (obj, kargs, ex), 'fieldsGet')
+            utils.logMessage('error', 'Error during reading fields with values: object %r, kargs %r. Error: %r' % (obj, kargs, ex), 'fieldsGet')
         return {}
 
     def defaultGet(self, obj, fieldsToRead=[]):
@@ -83,7 +83,7 @@ class XmlRpcConnection(object):
             kargs = {}
             return self.callOdooFunction(obj, 'default_get', [fieldsToRead], kargs)
         except Exception, ex:
-            utils.logMessage('error', 'Error during reading fields with values: object %r, kargs %r. Error: %r'  % (obj, kargs, ex), 'fieldsGet')
+            utils.logMessage('error', 'Error during reading fields with values: object %r, kargs %r. Error: %r' % (obj, kargs, ex), 'fieldsGet')
         return {}
 
     def readSearch(self, obj, fields, filterList, limit=False):
@@ -91,7 +91,7 @@ class XmlRpcConnection(object):
             kargs = {'fields': fields}
             return self.callOdooFunction(obj, 'search_read', [filterList], kargs)
         except Exception, ex:
-            utils.logMessage('error', 'Error during reading fields with values: object %r, kargs %r, filterList %r. Error: %r'  % (obj, kargs, filterList, ex), 'readSearch')
+            utils.logMessage('error', 'Error during reading fields with values: object %r, kargs %r, filterList %r. Error: %r' % (obj, kargs, filterList, ex), 'readSearch')
         return []
 
     def create(self, obj, values):
@@ -99,7 +99,7 @@ class XmlRpcConnection(object):
             kargs = {}
             return self.callOdooFunction(obj, 'create', [values], kargs)
         except Exception, ex:
-            utils.logMessage('error', 'Error during create with values: object %r, kargs %r, filterList %r. Error: %r'  % (obj, kargs, values, ex), 'create')
+            utils.logMessage('error', 'Error during create with values: object %r, kargs %r, filterList %r. Error: %r' % (obj, kargs, values, ex), 'create')
         return []
 
     def write(self, obj, values, idsToWrite):
@@ -107,15 +107,15 @@ class XmlRpcConnection(object):
             kargs = {}
             return self.callOdooFunction(obj, 'write', [idsToWrite, values], kargs)
         except Exception, ex:
-            utils.logMessage('error', 'Error during create with values: object %r, kargs %r, filterList %r. Error: %r'  % (obj, kargs, values, ex), 'write')
+            utils.logMessage('error', 'Error during create with values: object %r, kargs %r, filterList %r. Error: %r' % (obj, kargs, values, ex), 'write')
         return []
-    
+
     def delete(self, obj, idsToDelete):
         try:
             kargs = {}
             return self.callOdooFunction(obj, 'unlink', [idsToDelete], kargs)
         except Exception, ex:
-            utils.logMessage('error', 'Error during create with values: object %r, kargs %r, idsToDelete %r. Error: %r'  % (obj, kargs, idsToDelete, ex), 'delete')
+            utils.logMessage('error', 'Error during create with values: object %r, kargs %r, idsToDelete %r. Error: %r' % (obj, kargs, idsToDelete, ex), 'delete')
         return []
 
     def searchCount(self, obj, filterList):
@@ -123,9 +123,9 @@ class XmlRpcConnection(object):
             kargs = {}
             return self.callOdooFunction(obj, 'search_count', [filterList], kargs)
         except Exception, ex:
-            utils.logMessage('error', 'Error during create with values: object %r, kargs %r, filterList %r. Error: %r'  % (obj, kargs, filterList, ex), 'searchCount')
+            utils.logMessage('error', 'Error during create with values: object %r, kargs %r, filterList %r. Error: %r' % (obj, kargs, filterList, ex), 'searchCount')
         return []
-        
+
     def fieldsViewGet(self, odooObj, view_id=False, view_type='form'):
         try:
             kwargParameters = {}
@@ -133,14 +133,14 @@ class XmlRpcConnection(object):
         except Exception, ex:
             utils.logMessage('error', 'Error during fields view get: %r' % (ex), 'fieldsViewGet')
         return {}
-        
+
     def on_change(self, odooObj, activeIds, allVals, fieldName, allOnchanges, context):
         try:
             return self.callOdooFunction(odooObj, 'onchange', [activeIds, allVals, fieldName, allOnchanges, context])
         except Exception, ex:
-            utils.logMessage('error', 'Wrong on_change call with odooObj: %r, fieldName: %r, activeIds: %r, context: %r. Error: %r'  % (odooObj, fieldName, activeIds, context, ex), 'on_change')
+            utils.logMessage('error', 'Wrong on_change call with odooObj: %r, fieldName: %r, activeIds: %r, context: %r. Error: %r' % (odooObj, fieldName, activeIds, context, ex), 'on_change')
         return {}
-        
+
     def callOdooFunction(self, odooObj, functionName, parameters=[], kwargParameters={}):
         '''
             @odooObj: product.product, product.template ...

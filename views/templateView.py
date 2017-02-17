@@ -73,7 +73,7 @@ class TemplateView(object):
         self.fieldDefaultVals = self.rpcObject.defaultGet(self.model, self.interfaceFieldsDict.keys())
         for fieldName, fieldVal in self.fieldDefaultVals.items():
             self.setValueField(fieldName, fieldVal)
-        
+
     def setValueField(self, fieldName, fieldVal):
         fieldObj = self.interfaceFieldsDict.get(fieldName, None)
         if not fieldObj:
@@ -104,7 +104,7 @@ class TemplateView(object):
                 fieldObj.setReadonly(utils.evaluateAttrs(fieldDict, readonlyModif))
             if invisibleModif:
                 fieldObj.setInvisible(utils.evaluateAttrs(fieldDict, invisibleModif))
-                
+
     def _setButtonsModifiers(self):
         fieldDict = self.interfaceFieldsDict
         for buttonObj in self.buttons.__dict__.values():
@@ -114,7 +114,7 @@ class TemplateView(object):
                 buttonObj.setReadonly(utils.evaluateAttrs(fieldDict, readonlyModif))
             if invisibleModif:
                 buttonObj.setInvisible(utils.evaluateAttrs(fieldDict, invisibleModif))
-        
+
     def loadIds(self, objIds=[], forceFieldValues={}, readonlyFields={}, invisibleFields={}):
         if self.viewType in ['form', 'search'] and len(objIds) > 1:
             utils.launchMessage('You cannot load multiple ids on form or search view!', 'warning')
@@ -126,7 +126,8 @@ class TemplateView(object):
                 formVals = self.rpcObject.read(self.model, self.interfaceFieldsDict.keys(), [formId])
                 if not formVals:
                     utils.logMessage('warning', 'No values found for id %r and model %r' % (formId, self.model), 'loadIds')
-                    return 
+                    return
+                formVals = formVals[0]
                 for fieldName, fieldVal in formVals.items():
                     self.setValueField(fieldName, fieldVal)
             for fieldName, fieldVal in forceFieldValues.items():
