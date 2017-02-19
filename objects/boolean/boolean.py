@@ -45,6 +45,10 @@ class Boolean(OdooFieldTemplate):
         
     def setReadonly(self, val=False):
         self.widgetQtObj.setEnabled(not val)
+        if val:
+            self.widgetQtObj.setStyleSheet(constants.READONLY_STYLE)
+        else:
+            self.widgetQtObj.setStyleSheet('background-color:white;')
 
     def setInvisible(self, val=False):
         self.labelQtObj.setHidden(val)

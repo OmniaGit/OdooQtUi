@@ -69,7 +69,7 @@ if __name__ == '__main__':
     connectorObj.loginWithUser(user, password, dbName, xmlrpcServerIP, xmlrpcPort, scheme, loginType)
     
     dialog = QtGui.QDialog()
-    templateViewObj = connectorObj.initViewObj('form', 'product.product', '', False)
+    templateViewObj = connectorObj.initViewObj('form', 'plm.document', '', False)
     qtInterface = templateViewObj.QtInterface
     #objIds = [77540]
     objIds = [1]

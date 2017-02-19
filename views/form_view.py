@@ -50,7 +50,7 @@ class FormView(object):
                 divVlay = QtGui.QVBoxLayout()
                 if childElement.text:
                     label = QtGui.QLabel(childElement.text)
-                    label.setStyleSheet(constants.LABEL_STYLE)
+                    label.setStyleSheet(constants.LABEL_SEPARATOR)
                     divVlay.addWidget(label)
                 childLay = self.computeRecursion(childElement)
                 divVlay.addLayout(childLay)
@@ -135,7 +135,7 @@ class FormView(object):
                 groupString = childAttrs.get('string', '')
                 if groupString:
                     label = QtGui.QLabel(groupString)
-                    label.setStyleSheet(constants.LABEL_STYLE)
+                    label.setStyleSheet(constants.LABEL_SEPARATOR)
                     globalLay.addWidget(label, rowCount, colCount, 1, childColSpan)
                     rowCount = rowCount + 1
                 layout = self.computeGroup(childElement)
@@ -166,7 +166,7 @@ class FormView(object):
                 separatorVal = childAttrs.get('string', '')
                 if separatorVal:
                     labelObj = QtGui.QLabel(separatorVal)
-                    labelObj.setStyleSheet(constants.LABEL_STYLE)
+                    labelObj.setStyleSheet(constants.LABEL_SEPARATOR)
                     globalLay.addWidget(labelObj, rowCount, colCount, 1, childColSpan)
                     colCount = colCount + childColSpan
             elif childTag == 'label':

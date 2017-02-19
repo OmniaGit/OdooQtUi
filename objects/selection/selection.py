@@ -71,6 +71,10 @@ class Selection(OdooFieldTemplate):
         self.widgetQtObj.setEnabled(not val)
         self.widgetQtObj.setEditable(not val)
         self.widgetQtObj.setDisabled(val)
+        if val:
+            self.widgetQtObj.setStyleSheet(constants.SELECTION_STYLE + constants.READONLY_STYLE)
+        else:
+            self.widgetQtObj.setStyleSheet(constants.SELECTION_STYLE)
 
     def setInvisible(self, val=False):
         self.labelQtObj.setHidden(val)
