@@ -62,7 +62,13 @@ class FormView(object):
                 tabWidgetBar.setStyleSheet(constants.NOOTEBOOK_TABBAR_STYLE)
                 for page in childElement._children:
                     pageString = page.attrib.get('string', '')
+                    invisible = page.attrib.get('invisible', False)
+                    modifInvisible, modifReadonly = utils.evaluateModifiers(page.attrib.get('modifiers', {}))
+                    if invisible or modifInvisible:
+                        continue
                     pageWidget = QtGui.QWidget()
+                    if modifReadonly:
+                        pageWidget.setDisabled(True)
                     childLay = self.computeRecursion(page)
                     pageWidget.setLayout(childLay)
                     tabWidget.addTab(pageWidget, pageString)
