@@ -527,8 +527,8 @@ def evaluateModifiers(modifiers):
     readonlyConditions = modifiers.get('readonly', {})
     return invisibleConditions, readonlyConditions
 
-def setRequiredBackground(widgetQtObj):
-    widgetQtObj.setStyleSheet('Background-color: rgb(210,210,255)')
+def setRequiredBackground(widgetQtObj, baseBackground):
+    widgetQtObj.setStyleSheet(baseBackground + 'Background-color: rgb(210,210,255)')
 
 def evaluateAttrs(fieldsDict, toCompute):
     def evalSingleCondition(cond):

@@ -29,7 +29,7 @@ class Charachter(OdooFieldTemplate):
         self.widgetQtObj.editingFinished.connect(self.valueChanged)
         self.hboxLay.addWidget(self.widgetQtObj)
         if self.required:
-            utils.setRequiredBackground(self.widgetQtObj)
+            utils.setRequiredBackground(self.widgetQtObj, constants.CHAR_STYLE)
         return self.hboxLay
 
     def valueChanged(self):

@@ -22,7 +22,7 @@ class Datetime(OdooFieldTemplate):
         self.widgetQtObj.setToolTip(self.tooltip)
         self.widgetQtObj.dateTimeChanged.connect(self.valueChanged)
         if self.required:
-            utils.setRequiredBackground(self.widgetQtObj)
+            utils.setRequiredBackground(self.widgetQtObj, constants.DATE_STYLE)
         self.hboxLay.addWidget(self.widgetQtObj)
         return self.hboxLay
 

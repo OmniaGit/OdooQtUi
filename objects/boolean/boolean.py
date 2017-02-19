@@ -26,7 +26,7 @@ class Boolean(OdooFieldTemplate):
         self.widgetQtObj.setToolTip(self.tooltip)
         self.widgetQtObj.stateChanged.connect(self.valueChanged)
         if self.required:
-            utils.setRequiredBackground(self.widgetQtObj)
+            utils.setRequiredBackground(self.widgetQtObj, '')
         self.hboxLay.addWidget(self.widgetQtObj)
         return self.hboxLay
 

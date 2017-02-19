@@ -36,7 +36,7 @@ class Many2many(OdooFieldTemplate):
         self.widgetQtObj = QtGui.QTableWidget()
         self.widgetQtObj.setToolTip(self.tooltip)
         if self.required:
-            utils.setRequiredBackground(self.widgetQtObj)
+            utils.setRequiredBackground(self.widgetQtObj, '')
         self.hboxLay.addWidget(self.widgetQtObj)
         return self.hboxLay
 
