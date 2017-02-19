@@ -39,7 +39,7 @@ class RpcConnection(object):
             ids = [ids]
         return self.sockInstance.read(obj, fields, ids)
 
-    def readSearch(self, obj, fields, filterList):
+    def readSearch(self, obj, fields, filterList=[]):
         return self.sockInstance.readSearch(obj, fields, filterList)
 
     def write(self, obj, values, idsToWrite):
