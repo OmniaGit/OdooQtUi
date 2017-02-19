@@ -52,16 +52,16 @@ if __name__ == '__main__':
     xmlrpcPort = 8069
     user = 'admin'
     password = 'admin'
-    dbName = 'plm_9'
+    dbName = 'plm-9-enterprise'
     loginType = 'xmlrpc'
 
-    scheme = 'http'
-    xmlrpcServerIP = '127.0.0.1'
-    xmlrpcPort = 8081
-    user = 'admin'
-    password = 'Maus2016'
-    dbName = 'Maus_real'
-    loginType = 'xmlrpc'
+#     scheme = 'http'
+#     xmlrpcServerIP = '127.0.0.1'
+#     xmlrpcPort = 8081
+#     user = 'admin'
+#     password = 'Maus2016'
+#     dbName = 'Maus_real'
+#     loginType = 'xmlrpc'
 
     app = QtGui.QApplication(sys.argv)
     
@@ -69,7 +69,7 @@ if __name__ == '__main__':
     connectorObj.loginWithUser(user, password, dbName, xmlrpcServerIP, xmlrpcPort, scheme, loginType)
     
     dialog = QtGui.QDialog()
-    templateViewObj = connectorObj.initViewObj('form', 'sale.order', '', False)
+    templateViewObj = connectorObj.initViewObj('form', 'product.product', '', False)
     qtInterface = templateViewObj.QtInterface
     #objIds = [77540]
     objIds = [1]

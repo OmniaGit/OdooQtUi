@@ -18,6 +18,7 @@ class Datetime(OdooFieldTemplate):
         self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
         self.hboxLay.addWidget(self.labelQtObj)
         self.widgetQtObj = QtGui.QDateTimeEdit()
+        self.widgetQtObj.setStyleSheet(constants.DATE_STYLE)
         self.widgetQtObj.setToolTip(self.tooltip)
         self.widgetQtObj.dateTimeChanged.connect(self.valueChanged)
         if self.required:

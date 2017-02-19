@@ -57,6 +57,9 @@ class FormView(object):
                 mainVLay.addLayout(divVlay)
             elif childTag == 'notebook':
                 tabWidget = QtGui.QTabWidget()
+                tabWidget.setStyleSheet(constants.NOOTEBOOK_STYLE)
+                tabWidgetBar = tabWidget.tabBar()
+                tabWidgetBar.setStyleSheet(constants.NOOTEBOOK_TABBAR_STYLE)
                 for page in childElement._children:
                     pageString = page.attrib.get('string', '')
                     pageWidget = QtGui.QWidget()

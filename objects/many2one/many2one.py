@@ -28,6 +28,7 @@ class Many2one(OdooFieldTemplate):
         self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
         self.hboxLay.addWidget(self.labelQtObj)
         self.widgetQtObj = QtGui.QComboBox()
+        self.widgetQtObj.setStyleSheet(constants.SELECTION_STYLE)
         self.widgetQtObj.addItems(self.availableItems)
         self.widgetQtObj.setToolTip(self.tooltip)
         if self.required:

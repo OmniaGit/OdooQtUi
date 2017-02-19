@@ -38,6 +38,7 @@ class Selection(OdooFieldTemplate):
         self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
         self.hboxLay.addWidget(self.labelQtObj)
         self.widgetQtObj = QtGui.QComboBox()
+        self.widgetQtObj.setStyleSheet(constants.SELECTION_STYLE)
         selectionVals = [('', '')]
         selectionVals.extend(self.fieldDefinition.get('selection', []))
         self.populateMapping(selectionVals)

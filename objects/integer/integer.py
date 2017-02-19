@@ -23,6 +23,7 @@ class Integer(OdooFieldTemplate):
         self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
         self.hboxLay.addWidget(self.labelQtObj)
         self.widgetQtObj = QtGui.QSpinBox()
+        self.widgetQtObj.setStyleSheet(constants.INTEGER_STYLE)
         self.widgetQtObj.setToolTip(self.tooltip)
         self.widgetQtObj.valueChanged.connect(self.valueChanged)
         if self.required:

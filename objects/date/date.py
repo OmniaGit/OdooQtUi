@@ -23,6 +23,7 @@ class Date(OdooFieldTemplate):
         self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
         self.hboxLay.addWidget(self.labelQtObj)
         self.widgetQtObj = QtGui.QDateEdit()
+        self.widgetQtObj.setStyleSheet(constants.DATE_STYLE)
         self.widgetQtObj.setToolTip(self.tooltip)
         self.widgetQtObj.dateChanged.connect(self.valueChanged)
         if self.required:
