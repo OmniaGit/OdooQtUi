@@ -6,6 +6,7 @@ Created on 02 feb 2017
 import logging
 import sys
 from PyQt4 import QtGui
+from PyQt4 import QtCore
 from RPC.rpc import RpcConnection
 from views.templateView import TemplateView
 logger = logging.getLogger()
@@ -68,6 +69,7 @@ if __name__ == '__main__':
     connectorObj = MainConnector()
     connectorObj.loginWithUser(user, password, dbName, xmlrpcServerIP, xmlrpcPort, scheme, loginType)
     
+    #dialog = QtGui.QDialog(None, QtCore.Qt.WindowSystemMenuHint | QtCore.Qt.WindowTitleHint)
     dialog = QtGui.QDialog()
     templateViewObj = connectorObj.initViewObj('form', 'plm.document', '', False)
     qtInterface = templateViewObj.QtInterface
@@ -78,9 +80,10 @@ if __name__ == '__main__':
     invisibleFields = {}# {'description': True, 'state': True}
     templateViewObj.loadIds(objIds, startingFieldValues, readonlyFields, invisibleFields)
     # templateViewObj.setReadonly(True)
+    #dialog.setWindowFlags(QtCore.Qt.FramelessWindowHint)
     dialog.setLayout(qtInterface)
     dialog.setStyleSheet('background-color:#893b74;')
-    dialog.resize(1000, 700)
+    dialog.resize(1000, 650)
     dialog.exec_()
     
     # Odoo calls
