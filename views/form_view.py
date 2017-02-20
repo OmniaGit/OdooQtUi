@@ -82,6 +82,13 @@ class FormView(object):
                 mainVLay.addWidget(buttonObj.qtObject)
                 key = 'button_' + unicode(buttonObj.buttonString).replace(' ', '_')
                 self.appendToglobalMapping(key, buttonObj)
+            elif childTag == 'separator':
+                childAttrs = childElement.attrib
+                separatorVal = childAttrs.get('string', '')
+                if separatorVal:
+                    labelObj = QtGui.QLabel(separatorVal)
+                    labelObj.setStyleSheet(constants.LABEL_SEPARATOR)
+                    mainVLay.addWidget(labelObj)
             elif childTag == 'field':
 #                 colspan = childElement.attrib.get('colspan', 1)
 #                 col = childElement.attrib.get('col')
@@ -147,6 +154,9 @@ class FormView(object):
                 layout = self.computeGroup(childElement)
                 globalLay.addLayout(layout, rowCount, colCount, 1, childColSpan)
                 colCount = colCount + childColSpan
+            elif childTag == 'newline':
+                colCount = 0
+                rowCount = rowCount + 1
             elif childTag == 'strong':
                 layout = self.computeGroup(childElement)
                 globalLay.addLayout(layout, rowCount, colCount, 1, childColSpan)
@@ -164,7 +174,8 @@ class FormView(object):
                     else:
                         globalLay.addWidget(fieldObj.labelQtObj, rowCount, colCount, 1, 1)
                         colCount = colCount + 1
-                        childColSpan = childColSpan - 1
+                        if childColSpan > 1:
+                            childColSpan = childColSpan - 1
                     globalLay.addWidget(fieldObj.widgetQtObj, rowCount, colCount, 1, childColSpan)
                     self.appendToglobalMapping('field_' + fieldObj.fieldName, fieldObj)
                     colCount = colCount + childColSpan
@@ -174,7 +185,8 @@ class FormView(object):
                     labelObj = QtGui.QLabel(separatorVal)
                     labelObj.setStyleSheet(constants.LABEL_SEPARATOR)
                     globalLay.addWidget(labelObj, rowCount, colCount, 1, childColSpan)
-                    colCount = colCount + childColSpan
+                    colCount = 0
+                    rowCount = rowCount + 1
             elif childTag == 'label':
                 fieldRelated = childAttrs.get('for', '')
                 labelObj = QtGui.QLabel()
