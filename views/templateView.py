@@ -29,7 +29,7 @@ class TemplateView(object):
         self.mappingInterface = {}   # {'fieldName' : fieldObj}
         self.fieldDefaultVals = {}  # {'fieldName' : fieldval}
         self.readonly = False
-        self.layout = QtGui.QHBoxLayout()
+        self.layout = QtGui.QVBoxLayout()
         self.activeIds = []
 
     def initViewObj(self, odooObjectName, viewName='', view_id=False, viewType='form'):

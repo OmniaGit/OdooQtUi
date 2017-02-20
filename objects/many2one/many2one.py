@@ -17,14 +17,13 @@ class Many2one(OdooFieldTemplate):
         self.labelQtObj = False
         self.widgetQtObj = False
         self.editButton = None
+        self.itemToIdRel = {}
         self.canCreate = json.loads(self.fieldAttributes.get('can_create', 'true'))
         self.canWrite = json.loads(self.fieldAttributes.get('can_write', 'true'))
         self.relation = self.fieldDefinition.get('relation', '')
         self.availableItems = self.getItems()
         if self.canCreate:
             self.availableItems.append('Create and Edit...')
-        if self.canWrite:
-            self.availableItems.append('Edit...')
         self.hboxLay = self.getQtObject()
 
     def getItems(self):
@@ -34,6 +33,7 @@ class Many2one(OdooFieldTemplate):
                 val = singleDict.get('name', '')
                 if val:
                     outVal.append(val)
+                    self.itemToIdRel[val] = singleDict.get('id', False)
         return outVal
         
     def getQtObject(self):
@@ -42,46 +42,104 @@ class Many2one(OdooFieldTemplate):
         self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
         self.hboxLay.addWidget(self.labelQtObj)
         
-        if self.canWrite:
-            self.editButton = QtGui.QPushButton('O')
-            self.editButton.clicked.connect(self.editItem)
-            self.hboxLay.addWidget(self.editButton)
-        self.widgetQtObj = QtGui.QComboBox()
-        self.widgetQtObj.currentIndexChanged.connect(self.indexChanged)
-        self.widgetQtObj.setStyleSheet(constants.SELECTION_STYLE)
-        self.widgetQtObj.addItems(self.availableItems)
-        self.widgetQtObj.setToolTip(self.tooltip)
+        self.widgetQtObj = QtGui.QWidget()
+        self.childLay = QtGui.QHBoxLayout()
+        self.widgetQtObj2 = QtGui.QComboBox()
+        self.widgetQtObj2.currentIndexChanged.connect(self.indexChanged)
+        self.widgetQtObj2.setStyleSheet(constants.SELECTION_STYLE)
+        self.widgetQtObj2.addItems(self.availableItems)
+        self.widgetQtObj2.setToolTip(self.tooltip)
         if self.required:
-            utils.setRequiredBackground(self.widgetQtObj, constants.SELECTION_STYLE)
+            utils.setRequiredBackground(self.widgetQtObj2, constants.SELECTION_STYLE)
+        self.childLay.addWidget(self.widgetQtObj2)
+        if self.canWrite:
+            self.editButton = QtGui.QPushButton('Edit')
+            self.editButton.clicked.connect(self.editItem)
+            self.editButton.setStyleSheet(constants.BUTTON_STYLE_MANY_2_ONE)
+            self.childLay.addWidget(self.editButton)
+            if not self.currentValue:
+                self.editButton.setHidden(True)
+        self.widgetQtObj.setLayout(self.childLay)
         self.hboxLay.addWidget(self.widgetQtObj)
         return self.hboxLay
 
     def setValue(self, newVal):
         return
-        self.widgetQtObj.setText(newVal)
+        self.widgetQtObj2.setText(newVal)
 
     def setReadonly(self, val=False):
-        self.widgetQtObj.setEnabled(not val)
-        self.widgetQtObj.setEditable(not val)
-        self.widgetQtObj.setDisabled(val)
+        self.widgetQtObj2.setEnabled(not val)
+        self.widgetQtObj2.setEditable(not val)
+        self.widgetQtObj2.setDisabled(val)
         if val:
-            self.widgetQtObj.setStyleSheet(constants.SELECTION_STYLE + constants.READONLY_STYLE)
+            self.widgetQtObj2.setStyleSheet(constants.SELECTION_STYLE + constants.READONLY_STYLE)
         else:
-            self.widgetQtObj.setStyleSheet(constants.SELECTION_STYLE)
+            self.widgetQtObj2.setStyleSheet(constants.SELECTION_STYLE)
 
     def setInvisible(self, val=False):
         self.labelQtObj.setHidden(val)
-        self.widgetQtObj.setHidden(val)
+        self.widgetQtObj2.setHidden(val)
         
     def editItem(self, res=False):
-        pass
+        if not self.currentValue:
+            return
+        dialog = QtGui.QDialog()
+
+        def accept():
+            dialog.accept()
+
+        def reject():
+            dialog.reject()
+
+        from start import MainConnector
+        conn = MainConnector()
+        viewObj = conn.initViewObj('form', self.relation, rpcObj=self.rpc)
+        objIds = [self.itemToIdRel.get(self.currentValue)]
+        viewObj.loadIds(objIds)
+        mainLay = viewObj.QtInterface
+        lay, okButt, cancelButt = utils.getButtonBox()
+        okButt.clicked.connect(accept)
+        cancelButt.clicked.connect(reject)
+        okButt.setStyleSheet(constants.BUTTON_STYLE_OK)
+        cancelButt.setStyleSheet(constants.BUTTON_STYLE_CANCEL)
+        mainLay.addLayout(lay)
+        dialog.setLayout(mainLay)
+        dialog.setStyleSheet('background-color:#893b74;')
+        dialog.resize(1000, 650)
+        if dialog.exec_() == QtGui.QDialog.Accepted:
+            pass
         
     def indexChanged(self, res=False):
-        currText = unicode(self.widgetQtObj.currentText())
-        if currText == 'Edit...':
-            if self.currentValue:
+        currText = unicode(self.widgetQtObj2.currentText())
+        if currText == 'Create and Edit...':
+            dialog = QtGui.QDialog()
+            def accept():
+                dialog.accept()
+    
+            def reject():
+                dialog.reject()
+
+            from start import MainConnector
+            conn = MainConnector()
+            viewObj = conn.initViewObj('form', self.relation, rpcObj=self.rpc)
+            viewObj.loadIds([])
+            mainLay = viewObj.QtInterface
+            lay, okButt, cancelButt = utils.getButtonBox()
+            okButt.clicked.connect(accept)
+            cancelButt.clicked.connect(reject)
+            okButt.setStyleSheet(constants.BUTTON_STYLE_OK)
+            cancelButt.setStyleSheet(constants.BUTTON_STYLE_CANCEL)
+            mainLay.addLayout(lay)
+            dialog.setLayout(mainLay)
+            dialog.setStyleSheet('background-color:#893b74;')
+            dialog.resize(1000, 650)
+            if dialog.exec_() == QtGui.QDialog.Accepted:
                 pass
-        elif currText == 'Create and Edit...':
-            pass
+            self.widgetQtObj2.setCurrentIndex(0)
         else:
             self.currentValue = currText
+            if self.currentValue:
+                self.editButton.setHidden(False)
+            else:
+                self.editButton.setHidden(True)
+

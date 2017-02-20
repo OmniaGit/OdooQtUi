@@ -616,6 +616,14 @@ def _evalSimple(conditions, operators):
         count = count + 1
     return lastCond
     
+def getButtonBox():
+    mainLay = QtGui.QHBoxLayout()
+    okButt = QtGui.QPushButton('Ok')
+    cancelButt = QtGui.QPushButton('Cancel')
+    mainLay.addWidget(okButt)
+    mainLay.addWidget(cancelButt)
+    return mainLay, okButt, cancelButt
+    
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
     # aaa = getExeFromPath('/home/daniel/eclipse/committers-neon/eclipse/')

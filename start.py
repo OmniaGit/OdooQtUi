@@ -34,7 +34,7 @@ class MainConnector(object):
         logger = logging.getLogger()
         logger.setLevel(logInteger)
 
-    def initViewObj(self, viewType, odooObjectName, viewName='', view_id=False):
+    def initViewObj(self, viewType, odooObjectName, viewName='', view_id=False, rpcObj=None):
         '''
         @viewType: tree_tree, tree_list, form, search
         @odooObjectName: product.product, mrp.bom, ...
@@ -43,7 +43,10 @@ class MainConnector(object):
 
         tree_list and tree_tree views are always read only
         '''
-        templateViewObj = TemplateView(self.rpc)
+        if rpcObj:
+            templateViewObj = TemplateView(rpcObj)
+        else:
+            templateViewObj = TemplateView(self.rpc)
         templateViewObj.initViewObj(odooObjectName, viewName, view_id, viewType)
         return templateViewObj
 
@@ -63,6 +66,14 @@ if __name__ == '__main__':
 #     password = 'Maus2016'
 #     dbName = 'Maus_real'
 #     loginType = 'xmlrpc'
+
+    scheme = 'http'
+    xmlrpcServerIP = '127.0.0.1'
+    xmlrpcPort = 8069
+    user = 'admin'
+    password = 'admin'
+    dbName = 'Maus_1'
+    loginType = 'xmlrpc'
 
     app = QtGui.QApplication(sys.argv)
     
