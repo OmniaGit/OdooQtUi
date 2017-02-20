@@ -95,6 +95,7 @@ if __name__ == '__main__':
     dialog.setLayout(qtInterface)
     dialog.setStyleSheet('background-color:#893b74;')
     dialog.resize(1000, 650)
+    #dialog.adjustSize()
     dialog.exec_()
     
     # Odoo calls
