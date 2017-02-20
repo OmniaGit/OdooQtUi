@@ -63,14 +63,30 @@ class Many2one(OdooFieldTemplate):
         self.hboxLay.addWidget(self.widgetQtObj)
         return self.hboxLay
 
-    def setValue(self, newVal):
-        return
-        self.widgetQtObj2.setText(newVal)
+    def setValue(self, val=False):
+        indexToSet = 0
+        newTextVal = ''
+        if isinstance(val, (list, tuple)):
+            _objId, newTextVal = val
+        elif isinstance(val, bool):
+            indexToSet = 0
+            newTextVal = ''
+        elif isinstance(val, int):
+            res = self.rpc.read(self.relation, ['name'], [val])
+            if res:
+                newTextVal = res[0].get('name', '')
+        elif isinstance(val, (unicode, str)):
+            newTextVal = val
+        if newTextVal in self.availableItems:
+            indexToSet = self.availableItems.index(newTextVal)
+        self.widgetQtObj2.setCurrentIndex(indexToSet)
 
     def setReadonly(self, val=False):
         self.widgetQtObj2.setEnabled(not val)
         self.widgetQtObj2.setEditable(not val)
         self.widgetQtObj2.setDisabled(val)
+        if self.editButton:
+            self.editButton.setHidden(val)
         if val:
             self.widgetQtObj2.setStyleSheet(constants.SELECTION_STYLE + constants.READONLY_STYLE)
         else:
@@ -78,7 +94,10 @@ class Many2one(OdooFieldTemplate):
 
     def setInvisible(self, val=False):
         self.labelQtObj.setHidden(val)
-        self.widgetQtObj2.setHidden(val)
+        if self.widgetQtObj2:
+            self.widgetQtObj2.setHidden(val)
+        if self.editButton:
+            self.editButton.setHidden(val)
         
     def editItem(self, res=False):
         if not self.currentValue:
@@ -138,8 +157,8 @@ class Many2one(OdooFieldTemplate):
             self.widgetQtObj2.setCurrentIndex(0)
         else:
             self.currentValue = currText
-            if self.currentValue:
+            if self.currentValue and self.editButton:
                 self.editButton.setHidden(False)
-            else:
+            elif self.editButton:
                 self.editButton.setHidden(True)
 
