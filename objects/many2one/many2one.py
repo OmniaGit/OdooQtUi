@@ -16,14 +16,12 @@ class Many2one(OdooFieldTemplate):
         super(Many2one, self).__init__(xmlField, fieldsDefinition, rpc)
         self.labelQtObj = False
         self.widgetQtObj = False
-        self.editButton = None
+        self.editButton = QtGui.QPushButton()
         self.itemToIdRel = {}
         self.canCreate = json.loads(self.fieldAttributes.get('can_create', 'true'))
         self.canWrite = json.loads(self.fieldAttributes.get('can_write', 'true'))
         self.relation = self.fieldDefinition.get('relation', '')
         self.availableItems = self.getItems()
-        if self.canCreate:
-            self.availableItems.append('Create and Edit...')
         self.hboxLay = self.getQtObject()
 
     def getItems(self):
@@ -34,6 +32,8 @@ class Many2one(OdooFieldTemplate):
                 if val:
                     outVal.append(val)
                     self.itemToIdRel[val] = singleDict.get('id', False)
+        if self.canCreate:
+            outVal.append('Create and Edit...')
         return outVal
         
     def getQtObject(self):
@@ -85,19 +85,24 @@ class Many2one(OdooFieldTemplate):
         self.widgetQtObj2.setEnabled(not val)
         self.widgetQtObj2.setEditable(not val)
         self.widgetQtObj2.setDisabled(val)
-        if self.editButton:
-            self.editButton.setHidden(val)
         if val:
+            self.editButton.setHidden(True)
             self.widgetQtObj2.setStyleSheet(constants.SELECTION_STYLE + constants.READONLY_STYLE)
         else:
+            if self.currentValue:
+                self.editButton.setHidden(False)
+            else:
+                self.editButton.setHidden(True)
             self.widgetQtObj2.setStyleSheet(constants.SELECTION_STYLE)
 
     def setInvisible(self, val=False):
         self.labelQtObj.setHidden(val)
         if self.widgetQtObj2:
             self.widgetQtObj2.setHidden(val)
-        if self.editButton:
-            self.editButton.setHidden(val)
+        if self.currentValue and not val:
+            self.editButton.setHidden(False)
+        else:
+            self.editButton.setHidden(True)
         
     def editItem(self, res=False):
         if not self.currentValue:
@@ -127,7 +132,21 @@ class Many2one(OdooFieldTemplate):
         dialog.adjustSize()
         dialog.resize(800, dialog.height())
         if dialog.exec_() == QtGui.QDialog.Accepted:
-            pass
+            valuesToUpdate = {}
+            for fieldName, fieldObj in viewObj.fieldsChanged.items():
+                valuesToUpdate[fieldName] = fieldObj.value
+            self.rpc.write(self.relation, valuesToUpdate, objIds)
+            if 'name' in valuesToUpdate:
+                indexToReplace = self.availableItems.index(self.currentValue)
+                valToUpdate = unicode(valuesToUpdate['name'])
+                self.availableItems[indexToReplace] = valToUpdate
+                del self.itemToIdRel[self.currentValue]
+                self.itemToIdRel[valToUpdate] = objIds[0]
+                self.currentValue = valToUpdate
+                self.widgetQtObj2.clear()
+                self.widgetQtObj2.addItems(self.availableItems)
+                self.widgetQtObj2.setCurrentIndex(indexToReplace)
+                self.valueTemplateChanged()
         
     def indexChanged(self, res=False):
         currText = unicode(self.widgetQtObj2.currentText())
@@ -155,12 +174,27 @@ class Many2one(OdooFieldTemplate):
             dialog.adjustSize()
             dialog.resize(800, dialog.height())
             if dialog.exec_() == QtGui.QDialog.Accepted:
-                pass
-            self.widgetQtObj2.setCurrentIndex(0)
+                valuesToCreate = {}
+                for fieldName, fieldObj in viewObj.fields.__dict__.items():
+                    valuesToCreate[fieldName] = fieldObj.value
+                res = self.rpc.create(self.relation, valuesToCreate)
+                if res:
+                    name = unicode(valuesToCreate.get('name', ''))
+                    self.itemToIdRel[name] = res
+                    self.availableItems = self.getItems()
+                    self.widgetQtObj2.clear()
+                    self.widgetQtObj2.addItems(self.availableItems)
+                    currentIndex = self.availableItems.index(name)
+                    self.widgetQtObj2.setCurrentIndex(currentIndex)
+                    self.currentValue = name
+                    self.valueTemplateChanged()
+            else:
+                self.widgetQtObj2.setCurrentIndex(0)
         else:
             self.currentValue = currText
             if self.currentValue and self.editButton:
                 self.editButton.setHidden(False)
             elif self.editButton:
                 self.editButton.setHidden(True)
+            self.valueTemplateChanged()
 

@@ -126,10 +126,11 @@ class TemplateView(object):
                 formVals = self.rpcObject.read(self.model, self.interfaceFieldsDict.keys(), [formId])
                 if not formVals:
                     utils.logMessage('warning', 'No values found for id %r and model %r' % (formId, self.model), 'loadIds')
-                    return
-                formVals = formVals[0]
-                for fieldName, fieldVal in formVals.items():
-                    self.setValueField(fieldName, fieldVal)
+                    formId = False
+                else:
+                    formVals = formVals[0]
+                    for fieldName, fieldVal in formVals.items():
+                        self.setValueField(fieldName, fieldVal)
             for fieldName, fieldVal in forceFieldValues.items():
                 self.setValueField(fieldName, fieldVal)
             self._setFieldModifiers()
@@ -172,12 +173,16 @@ class TemplateView(object):
         return outDict
 
     def _valueChanged(self, fieldName):
-        fieldObj = self.interfaceFieldsDict.get(unicode(fieldName))
+        fieldName = unicode(fieldName)
+        fieldObj = self.interfaceFieldsDict.get(fieldName)
+        if not fieldObj:
+            utils.logMessage('warning', 'Field %r not found in interfacefieldsdict' % (fieldName), '_valueChanged')
         changeResult = self._on_change(fieldObj.fieldName)
         changedValues = changeResult.get('value', {})
         for fieldNameFromServer, fieldValueFromServer in changedValues.items():
             fieldObj1 = self.interfaceFieldsDict.get(unicode(fieldNameFromServer))
             fieldObj1.setValue(fieldValueFromServer)
+        self.fieldsChanged[fieldName] = fieldObj
 
     @property
     def interfaceFieldsDict(self):
