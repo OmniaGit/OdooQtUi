@@ -1,0 +1,3 @@
+Verificare che i campi relazionati si comportino bene con readonly e required
+Implementare campo preview
+Implementare campo stato workflow
