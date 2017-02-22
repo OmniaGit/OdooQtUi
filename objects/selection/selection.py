@@ -26,7 +26,6 @@ class Selection(OdooFieldTemplate):
         self.widgetQtObj.setHidden(self.invisible)
 
     def populateMapping(self, items):
-        #return
         for odooName, interfaceName in items:
             odooName = unicode(odooName)
             interfaceName = unicode(interfaceName)

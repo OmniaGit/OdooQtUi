@@ -26,7 +26,7 @@ class Many2one(OdooFieldTemplate):
 
     def getItems(self):
         outVal = ['']
-        #return outVal
+        return outVal
         if self.relation:
             for singleDict in self.rpc.readSearch(self.relation, ['name']):
                 val = singleDict.get('name', '')
