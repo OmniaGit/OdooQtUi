@@ -68,6 +68,7 @@ class RpcConnection(object):
         '''
         return self.sockInstance.fieldsGet(obj, attributesToRead)
 
+    @utils.timeit
     def defaultGet(self, obj, fieldsToRead=[]):
         '''
         @attributesToRead: ['string', 'help', 'type']

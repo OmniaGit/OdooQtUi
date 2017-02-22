@@ -56,10 +56,12 @@ class Selection(OdooFieldTemplate):
         self.valueTemplateChanged()
 
     def setValue(self, newVal):
+#         self.widgetQtObj.setCurrentIndex(0)
+#         return
         if isinstance(newVal, bool):
             utils.logMessage('warning', 'Boolean value %r is passed to char field %r, check better' % (newVal, self.fieldName), 'setValue')
             newVal = ''
-        allItems = self.selectionMapping.keys()
+        allItems = tuple(self.selectionMapping.keys())
         if newVal not in allItems:
             utils.logMessage('warning', '[%r] Value %r not found in values: %r' % (self.fieldName, newVal, allItems), 'setValue')
             return

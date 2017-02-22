@@ -12,6 +12,7 @@ import datetime
 import traceback
 from os.path import expanduser
 import stat
+import time
 
 
 try:
@@ -624,6 +625,19 @@ def getButtonBox():
     mainLay.addWidget(cancelButt)
     return mainLay, okButt, cancelButt
     
+def timeit(method):
+
+    def timed(*args, **kw):
+        ts = time.time()
+        result = method(*args, **kw)
+        te = time.time()
+
+        print '%2.2f sec, %r par: %r' % \
+              (te-ts, method.__name__, args[1:])
+        return result
+
+    return timed
+
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
     # aaa = getExeFromPath('/home/daniel/eclipse/committers-neon/eclipse/')

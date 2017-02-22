@@ -7,6 +7,7 @@ import logging
 import sys
 from PyQt4 import QtGui
 from PyQt4 import QtCore
+from utils import utils
 from RPC.rpc import RpcConnection
 from views.templateView import TemplateView
 logger = logging.getLogger()
@@ -26,6 +27,7 @@ class MainConnector(object):
         self.rpc = self._getRpcInstance(loginType, user, password, dbName, xmlrpcPort, scheme, xmlrpcServerIP)
         return self.rpc.loginNoUser()
 
+    @utils.timeit
     def loginWithUser(self, user, password, dbName, xmlrpcServerIP='127.0.0.1', xmlrpcPort=8069, scheme='http', loginType='xmlrpc'):
         self.rpc = self._getRpcInstance(loginType, user, password, dbName, xmlrpcPort, scheme, xmlrpcServerIP)
         return self.rpc.loginWithUser()
@@ -51,6 +53,8 @@ class MainConnector(object):
         return templateViewObj
 
 if __name__ == '__main__':
+    import datetime
+    print 'START MAIN datetime: %r' % (str(datetime.datetime.now()))
     scheme = 'http'
     xmlrpcServerIP = '127.0.0.1'
     xmlrpcPort = 8069
@@ -75,6 +79,14 @@ if __name__ == '__main__':
     dbName = 'Maus_1'
     loginType = 'xmlrpc'
 
+    scheme = 'http'
+    xmlrpcServerIP = 'www.odooplm.cloud'
+    xmlrpcPort = 8066
+    user = 'odooplm'
+    password = 'odooplm'
+    dbName = 'odoov9_0'
+    loginType = 'xmlrpc'
+    
     app = QtGui.QApplication(sys.argv)
     
     connectorObj = MainConnector()
@@ -85,17 +97,20 @@ if __name__ == '__main__':
     templateViewObj = connectorObj.initViewObj('form', 'product.product', '', False)
     qtInterface = templateViewObj.QtInterface
     #objIds = [77540]
-    objIds = [1]
-    startingFieldValues = {'description': 'non-settare'}
+    objIds = []
+    #startingFieldValues = {'description': 'non-settare'}
+    startingFieldValues = {}
     readonlyFields = {}# {'description': True}
     invisibleFields = {}# {'description': True, 'state': True}
     templateViewObj.loadIds(objIds, startingFieldValues, readonlyFields, invisibleFields)
-    # templateViewObj.setReadonly(True)
+    templateViewObj.setReadonly(True)
     #dialog.setWindowFlags(QtCore.Qt.FramelessWindowHint)
     dialog.setLayout(qtInterface)
     dialog.setStyleSheet('background-color:#893b74;')
     dialog.resize(1000, 650)
     #dialog.adjustSize()
+    dialog.show()
+    print 'STOP datetime: %r' % (str(datetime.datetime.now()))
     dialog.exec_()
     
     # Odoo calls

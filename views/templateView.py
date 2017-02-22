@@ -7,8 +7,15 @@ from form_view import FormView
 from utils import utils
 from PyQt4 import QtGui
 import copy
-from docutils.nodes import field
+import datetime
 
+# 
+# 
+# class Form(TemplateView):
+#     pass
+# 
+# class Tree(TemplateView):
+#     pass
 
 class TemplateView(object):
 
@@ -32,6 +39,7 @@ class TemplateView(object):
         self.layout = QtGui.QVBoxLayout()
         self.activeIds = []
 
+    @utils.timeit
     def initViewObj(self, odooObjectName, viewName='', view_id=False, viewType='form'):
         if not viewType:
             viewType = self.viewType
@@ -69,11 +77,13 @@ class TemplateView(object):
                 self.buttons.__dict__[newKey] = obj
         return True
 
+    @utils.timeit
     def setDefaults(self):
         self.fieldDefaultVals = self.rpcObject.defaultGet(self.model, self.interfaceFieldsDict.keys())
         for fieldName, fieldVal in self.fieldDefaultVals.items():
             self.setValueField(fieldName, fieldVal)
 
+    @utils.timeit
     def setValueField(self, fieldName, fieldVal):
         fieldObj = self.interfaceFieldsDict.get(fieldName, None)
         if not fieldObj:
@@ -115,6 +125,7 @@ class TemplateView(object):
             if invisibleModif:
                 buttonObj.setInvisible(utils.evaluateAttrs(fieldDict, invisibleModif))
 
+    @utils.timeit
     def loadIds(self, objIds=[], forceFieldValues={}, readonlyFields={}, invisibleFields={}):
         if self.viewType in ['form', 'search'] and len(objIds) > 1:
             utils.launchMessage('You cannot load multiple ids on form or search view!', 'warning')

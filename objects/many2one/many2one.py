@@ -64,13 +64,13 @@ class Many2one(OdooFieldTemplate):
         return self.hboxLay
 
     def setValue(self, val=False):
-        indexToSet = 0
         newTextVal = ''
         if isinstance(val, (list, tuple)):
             _objId, newTextVal = val
         elif isinstance(val, bool):
-            indexToSet = 0
+            self.widgetQtObj2.setCurrentIndex(0)
             newTextVal = ''
+            return
         elif isinstance(val, int):
             res = self.rpc.read(self.relation, ['name'], [val])
             if res:
