@@ -3,7 +3,8 @@ Created on 3 Feb 2017
 
 @author: Daniel Smerghetto
 '''
-import xml.etree.ElementTree as ElementTree
+#import xml.etree.ElementTree as ElementTree
+import xml.etree.cElementTree as ElementTree
 from PyQt4 import QtGui
 from objects import button
 from utils import utils
@@ -32,7 +33,7 @@ class FormView(object):
     def computeRecursion(self, parent):
         # TODO:    div name <div name="button_box" class="oe_button_box">
         mainVLay = QtGui.QVBoxLayout()
-        for childElement in parent._children:
+        for childElement in parent.getchildren():
             childTag = childElement.tag
             if childTag == 'sheet':
                 sheetLay = QtGui.QVBoxLayout()
@@ -60,7 +61,7 @@ class FormView(object):
                 tabWidget.setStyleSheet(constants.NOOTEBOOK_STYLE)
                 tabWidgetBar = tabWidget.tabBar()
                 tabWidgetBar.setStyleSheet(constants.NOOTEBOOK_TABBAR_STYLE)
-                for page in childElement._children:
+                for page in childElement.getchildren():
                     pageString = page.attrib.get('string', '')
                     invisible = page.attrib.get('invisible', False)
                     modifInvisible, modifReadonly = utils.evaluateModifiers(page.attrib.get('modifiers', {}))
@@ -136,7 +137,7 @@ class FormView(object):
         globalLay = QtGui.QGridLayout()
         colCount = 0
         rowCount = 0
-        for childElement in groupXmlObj._children:
+        for childElement in groupXmlObj.getchildren():
             if colCount >= childColCount:
                 colCount = 0
                 rowCount = rowCount + 1
@@ -243,7 +244,7 @@ class FormView(object):
                 utils.logMessage('warning', 'multiple widgets with the same key: %r' % (key), 'computeHeader')
 
         headerLayout = QtGui.QHBoxLayout()
-        for xmlObj in archHeader._children:
+        for xmlObj in archHeader.getchildren():
             if xmlObj.tag == 'button':
                 buttonObj = button.Button(xmlObj)
                 headerLayout.addWidget(buttonObj.qtObject)
@@ -269,5 +270,4 @@ class FormView(object):
 
     def computeArch(self):
         if self.arch:
-            etreeObj = ElementTree.fromstring(self.arch)
-            return self.computeArchRecursion(etreeObj)
+            return self.computeArchRecursion(ElementTree.XML(self.arch))
