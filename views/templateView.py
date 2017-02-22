@@ -35,6 +35,7 @@ class TemplateView(object):
         self.fieldsChanged = {}     # {'fieldName' : fieldObj}
         self.mappingInterface = {}   # {'fieldName' : fieldObj}
         self.fieldDefaultVals = {}  # {'fieldName' : fieldval}
+        self.skipOnChange = False
         self.readonly = False
         self.layout = QtGui.QVBoxLayout()
         self.activeIds = []
@@ -62,7 +63,6 @@ class TemplateView(object):
         elif viewType == 'search':
             pass
         self.addToObject()
-        self.setDefaults()
 
     def addToObject(self):
         fieldIdentifier = 'field_'
@@ -83,7 +83,6 @@ class TemplateView(object):
         for fieldName, fieldVal in self.fieldDefaultVals.items():
             self.setValueField(fieldName, fieldVal)
 
-    @utils.timeit
     def setValueField(self, fieldName, fieldVal):
         fieldObj = self.interfaceFieldsDict.get(fieldName, None)
         if not fieldObj:
@@ -138,10 +137,16 @@ class TemplateView(object):
                 if not formVals:
                     utils.logMessage('warning', 'No values found for id %r and model %r' % (formId, self.model), 'loadIds')
                     formId = False
+                    self.skipOnChange = True
+                    self.setDefaults()
+                    self.skipOnChange = False
                 else:
+                    self.skipOnChange = True
+                    self.setDefaults()
                     formVals = formVals[0]
                     for fieldName, fieldVal in formVals.items():
                         self.setValueField(fieldName, fieldVal)
+                    self.skipOnChange = False
             for fieldName, fieldVal in forceFieldValues.items():
                 self.setValueField(fieldName, fieldVal)
             self._setFieldModifiers()
@@ -209,6 +214,8 @@ class TemplateView(object):
             {context},
             ]
         '''
+        if self.skipOnChange:
+            return {}
         allVals = self.getAllFieldsValues()
         allOnchanges = self.getAllOnChange()
         return self.rpcObject.on_change(self.model, self.activeIds, allVals, fieldName, allOnchanges, {})

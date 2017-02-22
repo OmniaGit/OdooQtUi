@@ -26,6 +26,7 @@ class Many2one(OdooFieldTemplate):
 
     def getItems(self):
         outVal = ['']
+        #return outVal
         if self.relation:
             for singleDict in self.rpc.readSearch(self.relation, ['name']):
                 val = singleDict.get('name', '')
@@ -65,6 +66,7 @@ class Many2one(OdooFieldTemplate):
 
     def setValue(self, val=False):
         newTextVal = ''
+        indexToSet = 0
         if isinstance(val, (list, tuple)):
             _objId, newTextVal = val
         elif isinstance(val, bool):

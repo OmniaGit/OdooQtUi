@@ -71,21 +71,21 @@ if __name__ == '__main__':
 #     dbName = 'Maus_real'
 #     loginType = 'xmlrpc'
 
-    scheme = 'http'
-    xmlrpcServerIP = '127.0.0.1'
-    xmlrpcPort = 8069
-    user = 'admin'
-    password = 'admin'
-    dbName = 'Maus_1'
-    loginType = 'xmlrpc'
+#     scheme = 'http'
+#     xmlrpcServerIP = '192.168.1.16'
+#     xmlrpcPort = 8069
+#     user = 'admin'
+#     password = 'admin'
+#     dbName = 'Maus_1'
+#     loginType = 'xmlrpc'
 
-    scheme = 'http'
-    xmlrpcServerIP = 'www.odooplm.cloud'
-    xmlrpcPort = 8066
-    user = 'odooplm'
-    password = 'odooplm'
-    dbName = 'odoov9_0'
-    loginType = 'xmlrpc'
+#     scheme = 'http'
+#     xmlrpcServerIP = 'www.odooplm.cloud'
+#     xmlrpcPort = 8066
+#     user = 'odooplm'
+#     password = 'odooplm'
+#     dbName = 'odoov9_0'
+#     loginType = 'xmlrpc'
     
     app = QtGui.QApplication(sys.argv)
     
@@ -97,11 +97,12 @@ if __name__ == '__main__':
     templateViewObj = connectorObj.initViewObj('form', 'product.product', '', False)
     qtInterface = templateViewObj.QtInterface
     #objIds = [77540]
-    objIds = []
+    objIds = [1]
     #startingFieldValues = {'description': 'non-settare'}
     startingFieldValues = {}
     readonlyFields = {}# {'description': True}
     invisibleFields = {}# {'description': True, 'state': True}
+    
     templateViewObj.loadIds(objIds, startingFieldValues, readonlyFields, invisibleFields)
     templateViewObj.setReadonly(True)
     #dialog.setWindowFlags(QtCore.Qt.FramelessWindowHint)
