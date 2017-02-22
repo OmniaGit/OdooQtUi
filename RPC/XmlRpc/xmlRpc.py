@@ -134,6 +134,7 @@ class XmlRpcConnection(object):
             utils.logMessage('error', 'Error during fields view get: %r' % (ex), 'fieldsViewGet')
         return {}
 
+    @utils.timeit
     def on_change(self, odooObj, activeIds, allVals, fieldName, allOnchanges, context):
         try:
             return self.callOdooFunction(odooObj, 'onchange', [activeIds, allVals, fieldName, allOnchanges, context])

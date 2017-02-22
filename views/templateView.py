@@ -142,7 +142,6 @@ class TemplateView(object):
                     self.skipOnChange = False
                 else:
                     self.skipOnChange = True
-                    self.setDefaults()
                     formVals = formVals[0]
                     for fieldName, fieldVal in formVals.items():
                         self.setValueField(fieldName, fieldVal)
