@@ -54,7 +54,8 @@ class MainConnector(object):
 
 if __name__ == '__main__':
     import datetime
-    print 'START MAIN datetime: %r' % (str(datetime.datetime.now()))
+    import time
+    ts = time.time()
     scheme = 'http'
     xmlrpcServerIP = '127.0.0.1'
     xmlrpcPort = 8069
@@ -71,21 +72,21 @@ if __name__ == '__main__':
 #     dbName = 'Maus_real'
 #     loginType = 'xmlrpc'
 
-#     scheme = 'http'
-#     xmlrpcServerIP = '192.168.1.16'
-#     xmlrpcPort = 8069
-#     user = 'admin'
-#     password = 'admin'
-#     dbName = 'Maus_1'
-#     loginType = 'xmlrpc'
+    scheme = 'http'
+    xmlrpcServerIP = '192.168.1.16'
+    xmlrpcPort = 8069
+    user = 'admin'
+    password = 'admin'
+    dbName = 'Maus_1'
+    loginType = 'xmlrpc'
 
-#     scheme = 'http'
-#     xmlrpcServerIP = 'www.odooplm.cloud'
-#     xmlrpcPort = 8066
-#     user = 'odooplm'
-#     password = 'odooplm'
-#     dbName = 'odoov9_0'
-#     loginType = 'xmlrpc'
+    scheme = 'http'
+    xmlrpcServerIP = 'www.odooplm.cloud'
+    xmlrpcPort = 8066
+    user = 'odooplm'
+    password = 'odooplm'
+    dbName = 'odoov9_0'
+    loginType = 'xmlrpc'
     
     app = QtGui.QApplication(sys.argv)
     
@@ -97,7 +98,7 @@ if __name__ == '__main__':
     templateViewObj = connectorObj.initViewObj('form', 'product.product', '', False)
     qtInterface = templateViewObj.QtInterface
     #objIds = [77540]
-    objIds = [1]
+    objIds = [216]
     #startingFieldValues = {'description': 'non-settare'}
     startingFieldValues = {}
     readonlyFields = {}# {'description': True}
@@ -111,7 +112,8 @@ if __name__ == '__main__':
     dialog.resize(1000, 650)
     #dialog.adjustSize()
     dialog.show()
-    print 'STOP datetime: %r' % (str(datetime.datetime.now()))
+    te = time.time()
+    print 'TOTAL = %2.2f sec' % (te-ts)
     dialog.exec_()
     
     # Odoo calls

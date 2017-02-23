@@ -4,9 +4,11 @@ Created on 06 feb 2017
 @author: Daniel
 '''
 from PyQt4 import QtGui
+from PyQt4 import QtCore
 from utils import utils
 from utils import constants
 from objects.fieldTemplate import OdooFieldTemplate
+import json
 
 
 class Selection(OdooFieldTemplate):
@@ -14,12 +16,13 @@ class Selection(OdooFieldTemplate):
         super(Selection, self).__init__(xmlField, fieldsDefinition, rpc)
         self.selectionMapping = {}
         self.selectionMappingReverse = {}
-        self.labelQtObj = False
-        self.widgetQtObj = False
+        self.labels = []
+        self.labelQtObj = QtGui.QLabel()
+        self.widgetQtObj = QtGui.QComboBox()
         self.widget = self.fieldAttributes.get('widget', '')
         if self.widget == 'statusbar':
-            self.statusbar_colors = self.fieldAttributes.get('statusbar_colors', '')
-            self.statusbar_visible = self.fieldAttributes.get('statusbar_visible', '')
+            self.statusbar_colors = json.loads(self.fieldAttributes.get('statusbar_colors', ''))
+            self.statusbar_visible = self.fieldAttributes.get('statusbar_visible', '').split(',')
         self.hboxLay = self.getQtObject()
 
         self.widgetQtObj.setDisabled(self.readonly)
@@ -32,7 +35,22 @@ class Selection(OdooFieldTemplate):
             self.selectionMapping[odooName] = interfaceName
             self.selectionMappingReverse[interfaceName] = odooName
 
+    def statusBar(self):
+        self.labels = []
+        self.hboxLay = QtGui.QHBoxLayout()
+        for visibleText in self.statusbar_visible:
+            labelQtObj = QtGui.QLabel(visibleText.title())
+            labelQtObj.setStyleSheet(constants.LABEL_STYLE_STATUSBAR)
+            labelQtObj.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+            self.hboxLay.addWidget(labelQtObj)
+            self.labels.append(labelQtObj)
+        self.hboxLay.setSpacing(0)
+        self.hboxLay.setMargin(0)
+        return self.hboxLay
+        
     def getQtObject(self):
+        if self.widget == 'statusbar':
+            return self.statusBar()
         self.hboxLay = QtGui.QHBoxLayout()
         self.labelQtObj = QtGui.QLabel(self.labelString)
         self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
@@ -56,11 +74,15 @@ class Selection(OdooFieldTemplate):
         self.valueTemplateChanged()
 
     def setValue(self, newVal):
-#         self.widgetQtObj.setCurrentIndex(0)
-#         return
         if isinstance(newVal, bool):
             utils.logMessage('warning', 'Boolean value %r is passed to char field %r, check better' % (newVal, self.fieldName), 'setValue')
             newVal = ''
+
+        if self.widget == 'statusbar':
+            for label in self.labels:
+                if unicode(label.text()).upper() == unicode(newVal).upper():
+                    label.setStyleSheet(constants.LABEL_STYLE_STATUSBAR_ACTIVE)
+                    return
         allItems = tuple(self.selectionMapping.keys())
         if newVal not in allItems:
             utils.logMessage('warning', '[%r] Value %r not found in values: %r' % (self.fieldName, newVal, allItems), 'setValue')

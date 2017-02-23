@@ -87,8 +87,12 @@ class TemplateView(object):
         fieldObj = self.interfaceFieldsDict.get(fieldName, None)
         if not fieldObj:
             utils.logMessage('warning', 'Field %r not found in the local fields' % (fieldName), 'setValueField')
-            return
-        fieldObj.setValue(fieldVal)
+        else:
+            fieldObj.setValue(fieldVal)
+        headerField = 'header_' + fieldName
+        fieldObj = self.interfaceFieldsDict.get(headerField, None)
+        if fieldObj:
+            fieldObj.setValue(fieldVal)
 
     def setReadonlyField(self, fieldName, val=False):
         fieldObj = self.interfaceFieldsDict.get(fieldName, None)

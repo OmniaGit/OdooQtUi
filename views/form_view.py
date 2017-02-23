@@ -249,7 +249,7 @@ class FormView(object):
             if xmlObj.tag == 'button':
                 buttonObj = button.Button(xmlObj)
                 headerLayout.addWidget(buttonObj.qtObject)
-                commonAppend('button_' + unicode(buttonObj.buttonString).replace(' ', '_'), buttonObj)
+                commonAppend('button_header_' + unicode(buttonObj.buttonString).replace(' ', '_'), buttonObj)
             elif xmlObj.tag == 'field':
                 fieldObj = self.computeField(xmlObj)
                 fieldQt = fieldObj.qtObject
@@ -264,7 +264,7 @@ class FormView(object):
                 else:
                     utils.logMessage('warning', 'Field %r could not be added to layout' % (fieldName), 'computeHeader')
                     continue
-                commonAppend('field_' + unicode(fieldName), fieldObj)
+                commonAppend('field_header_' + unicode(fieldName), fieldObj)
             else:
                 pass
         return mapping, headerLayout
