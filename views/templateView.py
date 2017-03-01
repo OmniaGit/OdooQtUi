@@ -6,8 +6,9 @@ Created on 3 Feb 2017
 from form_view import FormView
 from utils import utils
 from PyQt4 import QtGui
+from PyQt4 import QtCore
 import copy
-import datetime
+import logging
 
 # 
 # 
@@ -17,9 +18,10 @@ import datetime
 # class Tree(TemplateView):
 #     pass
 
+
 class TemplateView(object):
 
-    def __init__(self, rpcObject):
+    def __init__(self, rpcObject, activeLanguageCode='en_US', availableLanguages={'en_US': 'English'}):
         self.rpcObject = rpcObject
         self.arch = ''  # xml view...
         self.model = ''     # 'product.product' / ...
@@ -39,6 +41,8 @@ class TemplateView(object):
         self.readonly = False
         self.layout = QtGui.QVBoxLayout()
         self.activeIds = []
+        self.activeLanguageCode = activeLanguageCode    # 'en_US'
+        self.availableLanguages = availableLanguages    # {'en_US': 'English', ...}
 
     @utils.timeit
     def initViewObj(self, odooObjectName, viewName='', view_id=False, viewType='form'):
@@ -72,6 +76,7 @@ class TemplateView(object):
                 newKey = key.replace(fieldIdentifier, '')
                 self.interfaceFieldsDict[newKey] = obj
                 obj.value_changed_signal.connect(self._valueChanged)
+                obj.translation_clicked.connect(self.translationDial)
             elif key.startswith(buttonIdentifier):
                 newKey = key.replace(buttonIdentifier, '')
                 self.buttons.__dict__[newKey] = obj
@@ -130,6 +135,7 @@ class TemplateView(object):
 
     @utils.timeit
     def loadIds(self, objIds=[], forceFieldValues={}, readonlyFields={}, invisibleFields={}):
+        self.activeIds = objIds
         if self.viewType in ['form', 'search'] and len(objIds) > 1:
             utils.launchMessage('You cannot load multiple ids on form or search view!', 'warning')
             return False
@@ -137,7 +143,7 @@ class TemplateView(object):
             formId = False
             if objIds:
                 formId = objIds[0]
-                formVals = self.rpcObject.read(self.model, self.interfaceFieldsDict.keys(), [formId])
+                formVals = self.rpcObject.read(self.model, self.interfaceFieldsDict.keys(), [formId], {'lang': self.activeLanguageCode})
                 if not formVals:
                     utils.logMessage('warning', 'No values found for id %r and model %r' % (formId, self.model), 'loadIds')
                     formId = False
@@ -206,7 +212,7 @@ class TemplateView(object):
     @property
     def interfaceFieldsDict(self):
         return self.fields.__dict__
-        
+
     def _on_change(self, fieldName):
         '''
             [
@@ -222,6 +228,73 @@ class TemplateView(object):
         allVals = self.getAllFieldsValues()
         allOnchanges = self.getAllOnChange()
         return self.rpcObject.on_change(self.model, self.activeIds, allVals, fieldName, allOnchanges, {})
+
+    def setLanguage(self, langCode):
+        if langCode not in self.availableLanguages:
+            logging.warning('langCode %r not present in available languages.' % (langCode))
+            return
+        self.activeLanguageCode = langCode
+        logging.info('Forced language as %r' % (self.availableLanguages.get(langCode, '')))
+
+    def translationDial(self, fieldName):
+        fieldName = unicode(fieldName)
+        def acceptTransDial():
+            translationDial.accept()
+
+        def rejectTransDial():
+            translationDial.reject()
+
+        translationDial = QtGui.QDialog()
+        mainLay = QtGui.QVBoxLayout()
+        tableWidget = QtGui.QTableWidget()
+        model = self.model
+        if model == 'product.product':
+            model = 'product.template'
+        translationName = unicode(model + ',' + fieldName)
+        filterList = [('res_id', '=', self.activeIds[0]),
+                      ('name', '=', translationName)
+                      ]
+        headers = ['Source value', 'Translated Value', 'Language', 'Name']
+        fieldNames = ['source', 'translated', 'lang', 'name']
+        values = []
+        translationObj = 'ir.translation'
+        res = self.rpcObject.readSearch(translationObj, ['src', 'value', 'lang'], filterList)
+        for elemDict in res:
+            src = elemDict.get('src', '')
+            value = elemDict.get('value', '')
+            lang = elemDict.get('lang', '')
+            values.append([src, value, lang, translationName])
+        tableFlags = {0: QtCore.Qt.ItemIsEnabled,
+                      2: QtCore.Qt.ItemIsEnabled,
+                      3: QtCore.Qt.ItemIsEnabled,
+                      }
+        utils.commonPopulateTable(headers, values, tableWidget, tableFlags)
+        mainLay.addWidget(tableWidget)
+        layButtons, okButt, cancelButt = utils.getButtonBox()
+        okButt.clicked.connect(acceptTransDial)
+        cancelButt.clicked.connect(rejectTransDial)
+        mainLay.addLayout(layButtons)
+        translationDial.setLayout(mainLay)
+        translationDial.resize(800, 400)
+        tableWidget.resizeColumnsToContents()
+        tableWidget.horizontalHeader().setStretchLastSection(True)
+        if translationDial.exec_() == QtGui.QDialog.Accepted:
+            rowsDict = utils.getRowsFromTableWidget(tableWidget, 'dict', fieldNames)
+            for rowDict in rowsDict.values():
+                elemId = False
+                translated = unicode(rowDict.get('translated', ''))
+                source = unicode(rowDict.get('source', ''))
+                lang = unicode(rowDict.get('lang', ''))
+                for elem in res:
+                    sourceRel = elem.get('src', '')
+                    langRel = elem.get('lang', '')
+                    if source == sourceRel and lang == langRel:
+                        elemId = elem.get('id', False)
+                        break
+                if elemId:
+                    self.rpcObject.write(translationObj, {'value': translated}, [elemId])
+                    if lang == self.activeLanguageCode:
+                        self.setValueField(fieldName, translated)
 
 
 class Objects(object):

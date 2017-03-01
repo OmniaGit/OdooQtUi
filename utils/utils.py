@@ -429,7 +429,11 @@ def getRowsFromListWidget(listWidget):
     return outList
 
 
-def getRowsFromTableWidget(tableWidget, outType='list', headers=[]):
+def getRowsFromTableWidget(tableWidget, outType='list', fieldNames=[]):
+    '''
+        @outType: 'list' / 'dict'
+        @outType: ['field1', 'field2', ...]
+    '''
     rowCount = tableWidget.rowCount()
     columnCount = tableWidget.columnCount()
     if outType == 'list':
@@ -444,11 +448,11 @@ def getRowsFromTableWidget(tableWidget, outType='list', headers=[]):
                 rowList.append(cellValue)
             outList.append(rowList)
         return outList
-    elif outType == 'dict' and headers:
+    elif outType == 'dict' and fieldNames:
         outDict = {}
         for rowIndex in range(0, rowCount):
             for colIndex in range(0, columnCount):
-                colName = headers[colIndex]
+                colName = fieldNames[colIndex]
                 tableItem = tableWidget.item(rowIndex, colIndex)
                 cellValue = ''
                 if tableItem:
@@ -489,7 +493,9 @@ def getSelectedRowsFromListWidget(listWidget):
 
 def commonPopulateTable(headers, values, tableWidget, flags={}):
     '''
+        @headers: [header1, header2, ...]
         @flags: {'colIndex': flags}
+        @values: [[val1, val2, ...], ...] or [obj1, obj2, ...]
     '''
     outDict = {}
     colCount = len(headers)
@@ -502,7 +508,10 @@ def commonPopulateTable(headers, values, tableWidget, flags={}):
         rowDict = {}
         for colIndex in colIndexList:
             colName = headers[colIndex]
-            colVal = menuObj.__dict__.get(colName, '')
+            if isinstance(menuObj, (list, tuple)):
+                colVal = menuObj[colIndex]
+            else:
+                colVal = menuObj.__dict__.get(colName, '')
             rowDict[colName] = colVal
             twItem = QtGui.QTableWidgetItem(colVal)
             if colIndex in flags:

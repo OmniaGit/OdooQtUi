@@ -56,9 +56,9 @@ class XmlRpcConnection(object):
             utils.logMessage('error', 'Error during search with values: object %r, filter %r, parameters %r. Error: %r' % (obj, filterList, kwargParameters, ex), 'search')
         return []
 
-    def read(self, obj, fields, ids):
+    def read(self, obj, fields, ids, context={}):
         try:
-            kargs = {}
+            kargs = {'context': context}
             return self.callOdooFunction(obj, 'read', [ids, fields], kargs)
         except Exception, ex:
             utils.logMessage('error', 'Error during read with values: object %r, fields %r, ids %r. Error: %r' % (obj, fields, ids, ex), 'read')

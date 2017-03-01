@@ -91,8 +91,6 @@ class FormView(object):
                     labelObj.setStyleSheet(constants.LABEL_SEPARATOR)
                     mainVLay.addWidget(labelObj)
             elif childTag == 'field':
-#                 colspan = childElement.attrib.get('colspan', 1)
-#                 col = childElement.attrib.get('col')
                 fieldObj = self.computeField(childElement)
                 if fieldObj:
                     fieldQt = fieldObj.qtObject

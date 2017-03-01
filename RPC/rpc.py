@@ -29,15 +29,17 @@ class RpcConnection(object):
         return self.sockInstance.loginNoUser()
 
     def loginWithUser(self):
-        return self.sockInstance.loginWithUser()
+        res = self.sockInstance.loginWithUser()
+        self.userId = self.sockInstance.userId
+        return res
 
     def search(self, obj, filterList):
         return self.sockInstance.search(obj, filterList)
 
-    def read(self, obj, fields, ids):
+    def read(self, obj, fields, ids, context={}):
         if isinstance(ids, int):
             ids = [ids]
-        return self.sockInstance.read(obj, fields, ids)
+        return self.sockInstance.read(obj, fields, ids, context)
 
     def readSearch(self, obj, fields, filterList=[]):
         return self.sockInstance.readSearch(obj, fields, filterList)

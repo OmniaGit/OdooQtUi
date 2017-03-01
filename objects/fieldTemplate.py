@@ -9,8 +9,9 @@ import json
 
 
 class OdooFieldTemplate(QtCore.QObject, object):
-    
+
     value_changed_signal = QtCore.pyqtSignal(QtCore.QString)
+    translation_clicked = QtCore.pyqtSignal(QtCore.QString)
 
     def __init__(self, xmlField, fieldsDefinition, rpc):
         self.rpc = rpc
@@ -53,6 +54,7 @@ class OdooFieldTemplate(QtCore.QObject, object):
 
     def connectTranslationButton(self):
         self.translateButton = QtGui.QPushButton('Translate')
+        self.translateButton.clicked.connect(self.translateDialog)
 
     def valueTemplateChanged(self):
         self.value_changed_signal.emit(self.fieldName)
@@ -68,4 +70,6 @@ class OdooFieldTemplate(QtCore.QObject, object):
 
     def valueChanged(self):
         utils.logMessage('warning', 'valueChanged not implmented for field: %r' % (self.fieldName), 'valueChanged')
-        
+
+    def translateDialog(self):
+        self.translation_clicked.emit(self.fieldName)

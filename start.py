@@ -6,7 +6,6 @@ Created on 02 feb 2017
 import logging
 import sys
 from PyQt4 import QtGui
-from PyQt4 import QtCore
 from utils import utils
 from RPC.rpc import RpcConnection
 from views.templateView import TemplateView
@@ -18,6 +17,8 @@ class MainConnector(object):
 
     def __init__(self):
         self.rpc = False
+        self.activeLanguage = 'en_US'
+        self.availableLanguages = {'en_US': 'English'}
         return object.__init__(self)
 
     def _getRpcInstance(self, loginType, user, password, dbName, xmlrpcPort, scheme, xmlrpcServerIP):
@@ -30,13 +31,32 @@ class MainConnector(object):
     @utils.timeit
     def loginWithUser(self, user, password, dbName, xmlrpcServerIP='127.0.0.1', xmlrpcPort=8069, scheme='http', loginType='xmlrpc'):
         self.rpc = self._getRpcInstance(loginType, user, password, dbName, xmlrpcPort, scheme, xmlrpcServerIP)
-        return self.rpc.loginWithUser()
+        res = self.rpc.loginWithUser()
+        if res:
+            self.computeAvailableLanguages()
+            self.computeUserLanguage()
+        return res
+
+    def computeUserLanguage(self):
+        res = self.rpc.readSearch('res.users', ['lang'], [('id', '=', self.rpc.userId)])
+        if not res:
+            logging.warning('Unable to get active user language.')
+        for codeDict in res:
+            langCode = codeDict.get('lang', '')
+            self.activeLanguage = langCode
+            break
+
+    def computeAvailableLanguages(self):
+        self.availableLanguages = {}
+        res = self.rpc.readSearch('res.lang', ['name', 'code'], [])
+        for codeDict in res:
+            self.availableLanguages[codeDict.get('code', '')] = codeDict.get('name', '')
 
     def setLogLevel(self, logInteger=logging.WARNING):
         logger = logging.getLogger()
         logger.setLevel(logInteger)
 
-    def initViewObj(self, viewType, odooObjectName, viewName='', view_id=False, rpcObj=None):
+    def initViewObj(self, viewType, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', availableLanguages=[]):
         '''
         @viewType: tree_tree, tree_list, form, search
         @odooObjectName: product.product, mrp.bom, ...
@@ -45,10 +65,14 @@ class MainConnector(object):
 
         tree_list and tree_tree views are always read only
         '''
+        if not activeLanguage:
+            activeLanguage = self.activeLanguage
+        if not availableLanguages:
+            availableLanguages = self.availableLanguages
         if rpcObj:
-            templateViewObj = TemplateView(rpcObj)
+            templateViewObj = TemplateView(rpcObj, activeLanguage, availableLanguages)
         else:
-            templateViewObj = TemplateView(self.rpc)
+            templateViewObj = TemplateView(self.rpc, activeLanguage, availableLanguages)
         templateViewObj.initViewObj(odooObjectName, viewName, view_id, viewType)
         return templateViewObj
 
@@ -63,14 +87,6 @@ if __name__ == '__main__':
     password = 'admin'
     dbName = 'plm-9-enterprise'
     loginType = 'xmlrpc'
-
-#     scheme = 'http'
-#     xmlrpcServerIP = '127.0.0.1'
-#     xmlrpcPort = 8081
-#     user = 'admin'
-#     password = 'Maus2016'
-#     dbName = 'Maus_real'
-#     loginType = 'xmlrpc'
 
     scheme = 'http'
     xmlrpcServerIP = '192.168.1.16'
@@ -87,7 +103,15 @@ if __name__ == '__main__':
     password = 'odooplm'
     dbName = 'odoov9_0'
     loginType = 'xmlrpc'
-    
+
+    scheme = 'http'
+    xmlrpcServerIP = '127.0.0.1'
+    xmlrpcPort = 8069
+    user = 'daniel'
+    password = 'daniel'
+    dbName = 'odoo-9-clean'
+    loginType = 'xmlrpc'
+
     app = QtGui.QApplication(sys.argv)
     
     connectorObj = MainConnector()
@@ -98,7 +122,7 @@ if __name__ == '__main__':
     templateViewObj = connectorObj.initViewObj('form', 'product.product', '', False)
     qtInterface = templateViewObj.QtInterface
     #objIds = [77540]
-    objIds = [216]
+    objIds = [31]
     #startingFieldValues = {'description': 'non-settare'}
     startingFieldValues = {}
     readonlyFields = {}# {'description': True}
