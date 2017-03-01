@@ -15,6 +15,13 @@ def window():
    for i in range(1,8):
       for j in range(1,8):
          grid.addWidget(QPushButton("B"+str(i)+str(j)),i,j)
+   grid.addWidget(QPushButton("aaa"), 5, 1)
+   lll = QHBoxLayout()
+   line = QLineEdit()
+   butt = QPushButton('aaa')
+   lll.addWidget(line)
+   lll.addWidget(butt)
+   grid.addLayout(lll, 5, 2)
             
    win.setLayout(grid)
    win.setGeometry(100,100,200,100)

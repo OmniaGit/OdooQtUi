@@ -33,22 +33,26 @@ class OdooFieldTemplate(QtCore.QObject, object):
         self.company_dependent = utils.evaluateBoolean(self.fieldDefinition.get('company_dependent', False))
         self.sortable = utils.evaluateBoolean(self.fieldDefinition.get('sortable', True))
         self.store = utils.evaluateBoolean(self.fieldDefinition.get('store', True))
+        self.translatable = self.fieldDefinition.get('translate', self.fieldAttributes.get('translate', False))
         self.labelQtObj = None
         self.widgetQtObj = None
         self.initVal = ''
         self.currentValue = ''
         self.changed = False
-        self.hboxLay = QtGui.QHBoxLayout()
+        self.widgetLyQtObject = QtGui.QHBoxLayout()
         self.invisibleConditions, self.readonlyConditions = utils.evaluateModifiers(self.modifiers)
         return super(OdooFieldTemplate, self).__init__()
 
     @property
     def qtObject(self):
-        return self.hboxLay
+        return self.widgetLyQtObject
 
     @property
     def value(self):
         return self.currentValue
+
+    def connectTranslationButton(self):
+        self.translateButton = QtGui.QPushButton('Translate')
 
     def valueTemplateChanged(self):
         self.value_changed_signal.emit(self.fieldName)

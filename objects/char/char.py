@@ -16,21 +16,21 @@ class Charachter(OdooFieldTemplate):
         self.labelQtObj = False
         self.widgetQtObj = False
         self.translatable = utils.evaluateBoolean(self.fieldDefinition.get('translate', False))
-        self.hboxLay = self.getQtObject()
+        self.getQtObject()
 
     def getQtObject(self):
-        self.hboxLay = QtGui.QHBoxLayout()
         self.labelQtObj = QtGui.QLabel(self.labelString)
         self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
-        self.hboxLay.addWidget(self.labelQtObj)
         self.widgetQtObj = QtGui.QLineEdit()
         self.widgetQtObj.setStyleSheet(constants.CHAR_STYLE)
         self.widgetQtObj.setToolTip(self.tooltip)
         self.widgetQtObj.editingFinished.connect(self.valueChanged)
-        self.hboxLay.addWidget(self.widgetQtObj)
+        self.widgetLyQtObject.addWidget(self.widgetQtObj)
+        if self.translatable:
+            self.connectTranslationButton()
+            self.widgetLyQtObject.addWidget(self.translateButton)
         if self.required:
             utils.setRequiredBackground(self.widgetQtObj, constants.CHAR_STYLE)
-        return self.hboxLay
 
     def valueChanged(self):
         self.currentValue = unicode(self.widgetQtObj.text())

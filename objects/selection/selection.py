@@ -23,7 +23,7 @@ class Selection(OdooFieldTemplate):
         if self.widget == 'statusbar':
             self.statusbar_colors = json.loads(self.fieldAttributes.get('statusbar_colors', ''))
             self.statusbar_visible = self.fieldAttributes.get('statusbar_visible', '').split(',')
-        self.hboxLay = self.getQtObject()
+        self.getQtObject()
 
         self.widgetQtObj.setDisabled(self.readonly)
         self.widgetQtObj.setHidden(self.invisible)
@@ -37,24 +37,21 @@ class Selection(OdooFieldTemplate):
 
     def statusBar(self):
         self.labels = []
-        self.hboxLay = QtGui.QHBoxLayout()
+        self.widgetLyQtObject = QtGui.QHBoxLayout()
         for visibleText in self.statusbar_visible:
             labelQtObj = QtGui.QLabel(visibleText.title())
             labelQtObj.setStyleSheet(constants.LABEL_STYLE_STATUSBAR)
             labelQtObj.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
-            self.hboxLay.addWidget(labelQtObj)
+            self.widgetLyQtObject.addWidget(labelQtObj)
             self.labels.append(labelQtObj)
-        self.hboxLay.setSpacing(0)
-        self.hboxLay.setMargin(0)
-        return self.hboxLay
-        
+        self.widgetLyQtObject.setSpacing(0)
+        self.widgetLyQtObject.setMargin(0)
+
     def getQtObject(self):
         if self.widget == 'statusbar':
             return self.statusBar()
-        self.hboxLay = QtGui.QHBoxLayout()
         self.labelQtObj = QtGui.QLabel(self.labelString)
         self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
-        self.hboxLay.addWidget(self.labelQtObj)
         self.widgetQtObj = QtGui.QComboBox()
         self.widgetQtObj.setStyleSheet(constants.SELECTION_STYLE)
         selectionVals = [('', '')]
@@ -65,8 +62,10 @@ class Selection(OdooFieldTemplate):
         self.widgetQtObj.currentIndexChanged.connect(self.valueChanged)
         if self.required:
             utils.setRequiredBackground(self.widgetQtObj, constants.SELECTION_STYLE)
-        self.hboxLay.addWidget(self.widgetQtObj)
-        return self.hboxLay
+        self.widgetLyQtObject.addWidget(self.widgetQtObj)
+        if self.translatable:
+            self.connectTranslationButton()
+            self.widgetLyQtObject.addWidget(self.translateButton)
 
     def valueChanged(self, newIndex):
         currentValue = unicode(self.widgetQtObj.currentText())

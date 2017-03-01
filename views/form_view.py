@@ -118,8 +118,6 @@ class FormView(object):
         return outLay
 
     def computeGroup(self, groupXmlObj):
-        # grid.addWidget(widget, row, column, rowspan, colspan)
-        # grid.addLayout(widget, row, column, rowspan, colspan)
         def computeCol(val):
             try:
                 if isinstance(val, (str, unicode)):
@@ -144,7 +142,6 @@ class FormView(object):
                 rowCount = rowCount + 1
             childTag = childElement.tag
             childAttrs = childElement.attrib
-            # childColSpan = computeCol(childElement.attrib.get('colspan', 1))
             childColSpan = int(childAttrs.get('colspan', 2))
             if childTag == 'group':
                 groupString = childAttrs.get('string', '')
@@ -178,7 +175,7 @@ class FormView(object):
                         colCount = colCount + 1
                         if childColSpan > 1:
                             childColSpan = childColSpan - 1
-                    globalLay.addWidget(fieldObj.widgetQtObj, rowCount, colCount, 1, childColSpan)
+                    globalLay.addLayout(fieldObj.widgetLyQtObject, rowCount, colCount, 1, childColSpan)
                     self.appendToglobalMapping('field_' + fieldObj.fieldName, fieldObj)
                     colCount = colCount + childColSpan
             elif childTag == 'separator':

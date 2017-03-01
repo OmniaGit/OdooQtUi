@@ -22,7 +22,7 @@ class Many2one(OdooFieldTemplate):
         self.canWrite = json.loads(self.fieldAttributes.get('can_write', 'true'))
         self.relation = self.fieldDefinition.get('relation', '')
         self.availableItems = self.getItems()
-        self.hboxLay = self.getQtObject()
+        self.getQtObject()
 
     def getItems(self):
         outVal = ['']
@@ -36,12 +36,10 @@ class Many2one(OdooFieldTemplate):
         if self.canCreate:
             outVal.append('Create and Edit...')
         return outVal
-        
+
     def getQtObject(self):
-        self.hboxLay = QtGui.QHBoxLayout()
         self.labelQtObj = QtGui.QLabel(self.labelString)
         self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
-        self.hboxLay.addWidget(self.labelQtObj)
         
         self.widgetQtObj = QtGui.QWidget()
         self.childLay = QtGui.QHBoxLayout()
@@ -61,8 +59,10 @@ class Many2one(OdooFieldTemplate):
             if not self.currentValue:
                 self.editButton.setHidden(True)
         self.widgetQtObj.setLayout(self.childLay)
-        self.hboxLay.addWidget(self.widgetQtObj)
-        return self.hboxLay
+        self.widgetLyQtObject.addWidget(self.widgetQtObj)
+        if self.translatable:
+            self.connectTranslationButton()
+            self.widgetLyQtObject.addWidget(self.translateButton)
 
     def setValue(self, val=False):
         newTextVal = ''

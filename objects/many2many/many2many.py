@@ -15,10 +15,9 @@ class Many2many(OdooFieldTemplate):
         super(Many2many, self).__init__(xmlField, fieldsDefinition, rpc)
         self.labelQtObj = False
         self.widgetQtObj = False
-        self.hboxLay = self.getQtObject()
+        self.getQtObject()
 
     def getQtObject(self):
-        self.hboxLay = QtGui.QVBoxLayout()
         buttonsLay = QtGui.QHBoxLayout()
         self.labelQtObj = QtGui.QLabel(self.labelString)
         self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
@@ -36,13 +35,14 @@ class Many2many(OdooFieldTemplate):
         buttonsLay.addWidget(addButton)
         buttonsLay.addWidget(removeButton)
         buttonsLay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum))
-        self.hboxLay.addLayout(buttonsLay)
         self.widgetQtObj = QtGui.QTableWidget()
         self.widgetQtObj.setToolTip(self.tooltip)
         if self.required:
             utils.setRequiredBackground(self.widgetQtObj, '')
-        self.hboxLay.addWidget(self.widgetQtObj)
-        return self.hboxLay
+        self.widgetLyQtObject.addWidget(self.widgetQtObj)
+        if self.translatable:
+            self.connectTranslationButton()
+            self.widgetLyQtObject.addWidget(self.translateButton)
 
     def setValue(self, newVal):
         return
