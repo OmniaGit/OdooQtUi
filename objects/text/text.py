@@ -21,10 +21,11 @@ class Text(OdooFieldTemplate):
         self.labelQtObj = QtGui.QLabel(self.labelString)
         self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
         self.widgetQtObj = QtGui.QTextEdit()
+        self.widgetQtObj.setStyleSheet(constants.TEXT_STYLE)
         self.widgetQtObj.setToolTip(self.tooltip)
         self.widgetQtObj.textChanged.connect(self.valueChanged)
         if self.required:
-            utils.setRequiredBackground(self.widgetQtObj, '')
+            utils.setRequiredBackground(self.widgetQtObj, constants.TEXT_STYLE)
         self.widgetLyQtObject.addWidget(self.widgetQtObj)
         if self.translatable:
             self.connectTranslationButton()

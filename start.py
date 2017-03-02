@@ -138,7 +138,7 @@ if __name__ == '__main__':
     invisibleFields = {}# {'description': True, 'state': True}
     
     templateViewObj.loadIds(objIds, startingFieldValues, readonlyFields, invisibleFields)
-    templateViewObj.setReadonly(True)
+    #templateViewObj.setReadonly(True)
     #dialog.setWindowFlags(QtCore.Qt.FramelessWindowHint)
     dialog.setLayout(qtInterface)
     dialog.setStyleSheet('background-color:#893b74;')

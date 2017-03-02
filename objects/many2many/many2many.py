@@ -38,6 +38,8 @@ class Many2many(OdooFieldTemplate):
         buttonsLay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum))
         self.widgetQtObj = QtGui.QTableWidget()
         self.widgetQtObj.setToolTip(self.tooltip)
+        self.widgetQtObj.setRowCount(2)
+        self.widgetQtObj.setColumnCount(2)
 
         mainLay.addLayout(buttonsLay)
         mainLay.addWidget(self.widgetQtObj)
