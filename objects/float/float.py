@@ -41,14 +41,14 @@ class Float(OdooFieldTemplate):
         self.widgetQtObj.setValue(newVal)
 
     def setReadonly(self, val=False):
+        super(Float, self).setReadonly(val)
         self.widgetQtObj.setEnabled(not val)
-        self.translateButton.setHidden(val)
         if val:
             self.widgetQtObj.setStyleSheet(constants.FLOAT_STYLE + constants.READONLY_STYLE)
         else:
             self.widgetQtObj.setStyleSheet(constants.FLOAT_STYLE)
 
     def setInvisible(self, val=False):
+        super(Float, self).setInvisible(val)
         self.labelQtObj.setHidden(val)
         self.widgetQtObj.setHidden(val)
-        self.translateButton.setHidden(val)

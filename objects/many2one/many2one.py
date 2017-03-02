@@ -84,7 +84,7 @@ class Many2one(OdooFieldTemplate):
         self.widgetQtObj2.setCurrentIndex(indexToSet)
 
     def setReadonly(self, val=False):
-        self.translateButton.setHidden(val)
+        super(Many2one, self).setReadonly(val)
         self.widgetQtObj2.setEnabled(not val)
         self.widgetQtObj2.setEditable(not val)
         self.widgetQtObj2.setDisabled(val)
@@ -99,7 +99,7 @@ class Many2one(OdooFieldTemplate):
             self.widgetQtObj2.setStyleSheet(constants.SELECTION_STYLE)
 
     def setInvisible(self, val=False):
-        self.translateButton.setHidden(val)
+        super(Many2one, self).setInvisible(val)
         self.labelQtObj.setHidden(val)
         if self.widgetQtObj2:
             self.widgetQtObj2.setHidden(val)
@@ -107,7 +107,7 @@ class Many2one(OdooFieldTemplate):
             self.editButton.setHidden(False)
         else:
             self.editButton.setHidden(True)
-        
+
     def editItem(self, res=False):
         if not self.currentValue:
             return

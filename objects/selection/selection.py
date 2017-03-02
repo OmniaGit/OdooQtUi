@@ -17,16 +17,17 @@ class Selection(OdooFieldTemplate):
         self.selectionMapping = {}
         self.selectionMappingReverse = {}
         self.labels = []
-        self.labelQtObj = QtGui.QLabel()
-        self.widgetQtObj = QtGui.QComboBox()
+        self.labelQtObj = False
+        self.widgetQtObj = False
         self.widget = self.fieldAttributes.get('widget', '')
         if self.widget == 'statusbar':
             self.statusbar_colors = json.loads(self.fieldAttributes.get('statusbar_colors', ''))
             self.statusbar_visible = self.fieldAttributes.get('statusbar_visible', '').split(',')
         self.getQtObject()
 
-        self.widgetQtObj.setDisabled(self.readonly)
-        self.widgetQtObj.setHidden(self.invisible)
+        if self.widgetQtObj:
+            self.widgetQtObj.setDisabled(self.readonly)
+            self.widgetQtObj.setHidden(self.invisible)
 
     def populateMapping(self, items):
         for odooName, interfaceName in items:
@@ -91,16 +92,19 @@ class Selection(OdooFieldTemplate):
             self.widgetQtObj.setCurrentIndex(newIndex)
 
     def setReadonly(self, val=False):
-        self.widgetQtObj.setEnabled(not val)
-        self.widgetQtObj.setEditable(not val)
-        self.widgetQtObj.setDisabled(val)
-        self.translateButton.setHidden(val)
-        if val:
-            self.widgetQtObj.setStyleSheet(constants.SELECTION_STYLE + constants.READONLY_STYLE)
-        else:
-            self.widgetQtObj.setStyleSheet(constants.SELECTION_STYLE)
+        super(Selection, self).setReadonly(val)
+        if self.widgetQtObj:
+            self.widgetQtObj.setEnabled(not val)
+            self.widgetQtObj.setEditable(not val)
+            self.widgetQtObj.setDisabled(val)
+            if val:
+                self.widgetQtObj.setStyleSheet(constants.SELECTION_STYLE + constants.READONLY_STYLE)
+            else:
+                self.widgetQtObj.setStyleSheet(constants.SELECTION_STYLE)
 
     def setInvisible(self, val=False):
-        self.translateButton.setHidden(val)
-        self.labelQtObj.setHidden(val)
-        self.widgetQtObj.setHidden(val)
+        super(Selection, self).setInvisible(val)
+        if self.labelQtObj:
+            self.labelQtObj.setHidden(val)
+        if self.widgetQtObj:
+            self.widgetQtObj.setHidden(val)

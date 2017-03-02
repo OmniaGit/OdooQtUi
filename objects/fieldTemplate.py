@@ -42,7 +42,7 @@ class OdooFieldTemplate(QtCore.QObject, object):
         self.currentValue = ''
         self.changed = False
         self.widgetLyQtObject = QtGui.QHBoxLayout()
-        self.translateButton = QtGui.QPushButton()
+        self.translateButton = False
         self.invisibleConditions, self.readonlyConditions = utils.evaluateModifiers(self.modifiers)
         return super(OdooFieldTemplate, self).__init__()
 
@@ -66,10 +66,14 @@ class OdooFieldTemplate(QtCore.QObject, object):
         utils.logMessage('warning', 'setValue not implemented for field: %r' % (self.fieldName), 'setValue')
 
     def setReadonly(self, val=False):
-        utils.logMessage('warning', 'setReadonly not implemented for field: %r' % (self.fieldName), 'setReadonly')
+        self.hideTranslateButton(val)
 
     def setInvisible(self, val=False):
-        utils.logMessage('warning', 'setInvisible not implemented for field: %r' % (self.fieldName), 'setInvisible')
+        self.hideTranslateButton(val)
+
+    def hideTranslateButton(self, val):
+        if self.translateButton:
+            self.translateButton.setHidden(val)
 
     def valueChanged(self):
         utils.logMessage('warning', 'valueChanged not implmented for field: %r' % (self.fieldName), 'valueChanged')
