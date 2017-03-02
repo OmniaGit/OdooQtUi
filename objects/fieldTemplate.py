@@ -5,6 +5,7 @@ Created on 02 feb 2017
 '''
 from PyQt4 import QtGui, QtCore
 from utils import utils
+from utils import constants
 import json
 
 
@@ -41,6 +42,7 @@ class OdooFieldTemplate(QtCore.QObject, object):
         self.currentValue = ''
         self.changed = False
         self.widgetLyQtObject = QtGui.QHBoxLayout()
+        self.translateButton = QtGui.QPushButton()
         self.invisibleConditions, self.readonlyConditions = utils.evaluateModifiers(self.modifiers)
         return super(OdooFieldTemplate, self).__init__()
 
@@ -54,6 +56,7 @@ class OdooFieldTemplate(QtCore.QObject, object):
 
     def connectTranslationButton(self):
         self.translateButton = QtGui.QPushButton('Translate')
+        self.translateButton.setStyleSheet(constants.BUTTON_STYLE)
         self.translateButton.clicked.connect(self.translateDialog)
 
     def valueTemplateChanged(self):

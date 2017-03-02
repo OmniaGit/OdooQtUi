@@ -41,6 +41,7 @@ class Date(OdooFieldTemplate):
 
     def setReadonly(self, val=False):
         self.widgetQtObj.setEnabled(not val)
+        self.translateButton.setHidden(val)
         if val:
             self.widgetQtObj.setStyleSheet(constants.DATE_STYLE + constants.READONLY_STYLE)
         else:
@@ -49,3 +50,4 @@ class Date(OdooFieldTemplate):
     def setInvisible(self, val=False):
         self.labelQtObj.setHidden(val)
         self.widgetQtObj.setHidden(val)
+        self.translateButton.setHidden(val)

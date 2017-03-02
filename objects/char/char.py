@@ -44,6 +44,7 @@ class Charachter(OdooFieldTemplate):
 
     def setReadonly(self, val=False):
         self.widgetQtObj.setEnabled(not val)
+        self.translateButton.setHidden(val)
         if val:
             self.widgetQtObj.setStyleSheet(constants.CHAR_STYLE + constants.READONLY_STYLE)
         else:
@@ -52,3 +53,4 @@ class Charachter(OdooFieldTemplate):
     def setInvisible(self, val=False):
         self.labelQtObj.setHidden(val)
         self.widgetQtObj.setHidden(val)
+        self.translateButton.setHidden(val)

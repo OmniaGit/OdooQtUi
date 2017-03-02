@@ -42,9 +42,10 @@ class Boolean(OdooFieldTemplate):
     def setValue(self, newVal):
         newVal = eval(unicode(newVal))
         self.widgetQtObj.setChecked(newVal)
-        
+
     def setReadonly(self, val=False):
         self.widgetQtObj.setEnabled(not val)
+        self.translateButton.setHidden(val)
         if val:
             self.widgetQtObj.setStyleSheet(constants.READONLY_STYLE)
         else:
@@ -53,3 +54,4 @@ class Boolean(OdooFieldTemplate):
     def setInvisible(self, val=False):
         self.labelQtObj.setHidden(val)
         self.widgetQtObj.setHidden(val)
+        self.translateButton.setHidden(val)
