@@ -8,6 +8,7 @@ from PyQt4 import QtGui
 from utils import utils
 from utils import constants
 from objects.fieldTemplate import OdooFieldTemplate
+import json
 
 
 class Many2many(OdooFieldTemplate):
@@ -15,6 +16,9 @@ class Many2many(OdooFieldTemplate):
         super(Many2many, self).__init__(xmlField, fieldsDefinition, rpc)
         self.labelQtObj = False
         self.widgetQtObj = False
+        self.relation = self.fieldDefinition.get('relation', '')
+        self.canCreate = json.loads(self.fieldAttributes.get('can_create', 'true'))
+        self.canWrite = json.loads(self.fieldAttributes.get('can_write', 'true'))
         self.getQtObject()
 
     def getQtObject(self):
@@ -38,9 +42,6 @@ class Many2many(OdooFieldTemplate):
         buttonsLay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum))
         self.widgetQtObj = QtGui.QTableWidget()
         self.widgetQtObj.setToolTip(self.tooltip)
-        self.widgetQtObj.setRowCount(2)
-        self.widgetQtObj.setColumnCount(2)
-
         mainLay.addLayout(buttonsLay)
         mainLay.addWidget(self.widgetQtObj)
         self.widgetLyQtObject.addLayout(mainLay)
@@ -50,8 +51,25 @@ class Many2many(OdooFieldTemplate):
             self.connectTranslationButton()
             self.widgetLyQtObject.addWidget(self.translateButton)
 
-    def setValue(self, newVal):
-        return
+    def setValue(self, relIds):
+        from start import MainConnector
+        conn = MainConnector()
+        viewObj = conn.initViewObj('tree_list', self.relation, rpcObj=self.rpc)
+        fieldsToReadOrdered = viewObj.treeObj.orderedFields
+        res = self.rpc.read(self.relation, fieldsToReadOrdered, relIds)
+        values = []
+        for recordDict in res:
+            recordValList = []
+            for fieldName in fieldsToReadOrdered:
+                val = recordDict.get(fieldName)
+                if isinstance(val, (list, tuple)):
+                    if len(val) < 1:
+                        val = ''
+                    val = val[1]
+                recordValList.append(unicode(val))
+            values.append(recordValList)
+        utils.commonPopulateTable(fieldsToReadOrdered, values, self.widgetQtObj)
+        self.widgetQtObj.resizeColumnsToContents()
 
     def valueChanged(self):
         self.valueTemplateChanged()

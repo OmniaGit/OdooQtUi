@@ -20,7 +20,6 @@ class Many2one(OdooFieldTemplate):
         self.itemToIdRel = {}
         self.canCreate = json.loads(self.fieldAttributes.get('can_create', 'true'))
         self.canWrite = json.loads(self.fieldAttributes.get('can_write', 'true'))
-        self.relation = self.fieldDefinition.get('relation', '')
         self.availableItems = self.getItems()
         self.getQtObject()
 

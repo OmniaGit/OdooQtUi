@@ -497,6 +497,7 @@ def commonPopulateTable(headers, values, tableWidget, flags={}):
         @flags: {'colIndex': flags}
         @values: [[val1, val2, ...], ...] or [obj1, obj2, ...]
     '''
+    tableWidget.clear()
     outDict = {}
     colCount = len(headers)
     colIndexList = range(0, colCount)

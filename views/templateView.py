@@ -4,6 +4,7 @@ Created on 3 Feb 2017
 @author: Daniel Smerghetto
 '''
 from form_view import FormView
+from tree_list import TreeViewList
 from utils import utils
 from PyQt4 import QtGui
 from PyQt4 import QtCore
@@ -26,47 +27,21 @@ class TemplateView(object):
         self.arch = ''  # xml view...
         self.model = ''     # 'product.product' / ...
         self.viewName = ''
-        self.field_parent = ''
-        self.viewtype = ''  # 'form' / 'search' / ...
-        self.readonlyFields = []     # ['field1', 'field2']
-        self.requiredFields = []    # ['field1', 'field2']
         self.fieldsNameTypeRel = {}
         self.fields = Objects()    # fields.fieldName
         self.buttons = Objects()    # buttons.fieldName
-        self.objectsInit = copy.deepcopy(self.fields)
-        self.fieldsChanged = {}     # {'fieldName' : fieldObj}
         self.mappingInterface = {}   # {'fieldName' : fieldObj}
-        self.fieldDefaultVals = {}  # {'fieldName' : fieldval}
-        self.skipOnChange = False
-        self.readonly = False
         self.layout = QtGui.QVBoxLayout()
-        self.activeIds = []
         self.activeLanguageCode = activeLanguageCode    # 'en_US'
         self.availableLanguages = availableLanguages    # {'en_US': 'English', ...}
 
     @utils.timeit
-    def initViewObj(self, odooObjectName, viewName='', view_id=False, viewType='form'):
-        if not viewType:
-            viewType = self.viewType
-        fieldsViewDefinition = self.rpcObject.fieldsViewGet(odooObjectName, view_id, viewType)
-        self.arch = fieldsViewDefinition.get('arch', '')
-        self.model = fieldsViewDefinition.get('model', '')
-        self.startingFieldValues = fieldsViewDefinition.get('fields', {})
-        self.viewName = fieldsViewDefinition.get('name', '')
-        self.field_parent = fieldsViewDefinition.get('field_parent', '')
+    def initViewObj(self, odooObjectName, viewName='', view_id=False):
+        self.fieldsViewDefinition = self.rpcObject.fieldsViewGet(odooObjectName, view_id, self.viewType)
+        self.arch = self.fieldsViewDefinition.get('arch', '')
+        self.model = self.fieldsViewDefinition.get('model', '')
+        self.viewName = self.fieldsViewDefinition.get('name', '')
         self.fieldsNameTypeRel = self.rpcObject.fieldsGet(self.model, [])
-        self.viewType = viewType
-        if viewType == 'form':
-            formObj = FormView(self.arch, self.fieldsNameTypeRel, self.rpcObject)
-            self.layout = formObj.computeArch()
-            self.mappingInterface = formObj.globalMapping
-        elif viewType == 'tree_tree':
-            pass
-        elif viewType == 'tree_list':
-            pass
-        elif viewType == 'search':
-            pass
-        self.addToObject()
 
     def addToObject(self):
         fieldIdentifier = 'field_'
@@ -81,12 +56,6 @@ class TemplateView(object):
                 newKey = key.replace(buttonIdentifier, '')
                 self.buttons.__dict__[newKey] = obj
         return True
-
-    @utils.timeit
-    def setDefaults(self):
-        self.fieldDefaultVals = self.rpcObject.defaultGet(self.model, self.interfaceFieldsDict.keys())
-        for fieldName, fieldVal in self.fieldDefaultVals.items():
-            self.setValueField(fieldName, fieldVal)
 
     def setValueField(self, fieldName, fieldVal):
         fieldObj = self.interfaceFieldsDict.get(fieldName, None)
@@ -295,6 +264,78 @@ class TemplateView(object):
                     self.rpcObject.write(translationObj, {'value': translated}, [elemId])
                     if lang == self.activeLanguageCode:
                         self.setValueField(fieldName, translated)
+
+
+class TemplateSearchView(TemplateView):
+
+    def __init__(self, rpcObject, activeLanguageCode='en_US', availableLanguages={'en_US': 'English'}):
+        super(TemplateSearchView, self).__init__(rpcObject, activeLanguageCode, availableLanguages)
+        self.viewType = 'search'
+        self.readonly = True
+
+    def initViewObj(self, odooObjectName, viewName, view_id):
+        super(TemplateSearchView, self).initViewObj(odooObjectName, viewName, view_id)
+        self.addToObject()
+
+
+class TemplateFormView(TemplateView):
+
+    def __init__(self, rpcObject, activeLanguageCode='en_US', availableLanguages={'en_US': 'English'}):
+        super(TemplateFormView, self).__init__(rpcObject, activeLanguageCode, availableLanguages)
+        self.requiredFields = []    # ['field1', 'field2']
+        self.readonlyFields = []     # ['field1', 'field2']
+        self.viewType = 'form'
+        self.objectsInit = copy.deepcopy(self.fields)
+        self.fieldsChanged = {}     # {'fieldName' : fieldObj}
+        self.fieldDefaultVals = {}  # {'fieldName' : fieldval}
+        self.skipOnChange = False
+        self.readonly = False
+        self.activeIds = []     # must be one
+
+    def initViewObj(self, odooObjectName, viewName, view_id):
+        super(TemplateFormView, self).initViewObj(odooObjectName, viewName, view_id)
+        self.startingFieldValues = self.fieldsViewDefinition.get('fields', {})
+        formObj = FormView(self.arch, self.fieldsNameTypeRel, self.rpcObject)
+        self.layout = formObj.computeArch()
+        self.mappingInterface = formObj.globalMapping
+        self.addToObject()
+
+    @utils.timeit
+    def setDefaults(self):
+        self.fieldDefaultVals = self.rpcObject.defaultGet(self.model, self.interfaceFieldsDict.keys())
+        for fieldName, fieldVal in self.fieldDefaultVals.items():
+            self.setValueField(fieldName, fieldVal)
+
+
+class TemplateTreeTreeView(TemplateView):
+
+    def __init__(self, rpcObject, activeLanguageCode='en_US', availableLanguages={'en_US': 'English'}):
+        super(TemplateTreeTreeView, self).__init__(rpcObject, activeLanguageCode, availableLanguages)
+        self.field_parent = ''
+        self.viewType = 'tree'
+        self.readonly = True
+        self.activeIds = []
+
+    def initViewObj(self, odooObjectName, viewName, view_id):
+        super(TemplateTreeTreeView, self).initViewObj(odooObjectName, viewName, view_id)
+        self.field_parent = self.fieldsViewDefinition.get('field_parent', '')
+        self.addToObject()
+
+
+class TemplateTreeListView(TemplateView):
+
+    def __init__(self, rpcObject, activeLanguageCode='en_US', availableLanguages={'en_US': 'English'}):
+        super(TemplateTreeListView, self).__init__(rpcObject, activeLanguageCode, availableLanguages)
+        self.viewType = 'tree'
+        self.readonly = True
+        self.activeIds = []
+
+    def initViewObj(self, odooObjectName, viewName, view_id):
+        super(TemplateTreeListView, self).initViewObj(odooObjectName, viewName, view_id)
+        self.treeObj = TreeViewList(self.arch, self.fieldsNameTypeRel, self.rpcObject)
+        self.layout = self.treeObj.computeArch()
+        self.mappingInterface = self.treeObj.globalMapping
+        self.addToObject()
 
 
 class Objects(object):

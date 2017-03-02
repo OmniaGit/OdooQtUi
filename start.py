@@ -9,6 +9,10 @@ from PyQt4 import QtGui
 from utils import utils
 from RPC.rpc import RpcConnection
 from views.templateView import TemplateView
+from views.templateView import TemplateSearchView
+from views.templateView import TemplateFormView
+from views.templateView import TemplateTreeTreeView
+from views.templateView import TemplateTreeListView
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
@@ -79,11 +83,19 @@ class MainConnector(object):
             activeLanguage = self.activeLanguage
         if not availableLanguages:
             availableLanguages = self.availableLanguages
-        if rpcObj:
-            templateViewObj = TemplateView(rpcObj, activeLanguage, availableLanguages)
+        if not rpcObj:
+            rpcObj = self.rpc
+        if viewType == 'form':
+            templateViewObj = TemplateFormView(rpcObj, activeLanguage, availableLanguages)
+        elif viewType == 'tree_tree':
+            templateViewObj = TemplateTreeTreeView(rpcObj, activeLanguage, availableLanguages)
+        elif viewType == 'tree_list':
+            templateViewObj = TemplateTreeListView(rpcObj, activeLanguage, availableLanguages)
+        elif viewType == 'search':
+            templateViewObj = TemplateSearchView(rpcObj, activeLanguage, availableLanguages)
         else:
-            templateViewObj = TemplateView(self.rpc, activeLanguage, availableLanguages)
-        templateViewObj.initViewObj(odooObjectName, viewName, view_id, viewType)
+            utils.logMessage('warning', 'View Type not supported: %r' % (viewType), 'initViewObj')
+        templateViewObj.initViewObj(odooObjectName, viewName, view_id)
         return templateViewObj
 
 if __name__ == '__main__':
@@ -116,22 +128,22 @@ if __name__ == '__main__':
     scheme = 'http'
     xmlrpcServerIP = '127.0.0.1'
     xmlrpcPort = 8069
-    user = 'daniel'
-    password = 'daniel'
+    user = 'admin'
+    password = 'admin'
     dbName = 'odoo-9-clean'
     loginType = 'xmlrpc'
 
     app = QtGui.QApplication(sys.argv)
-    
+
     connectorObj = MainConnector()
     connectorObj.loginWithUser(user, password, dbName, xmlrpcServerIP, xmlrpcPort, scheme, loginType)
-    
+
     #dialog = QtGui.QDialog(None, QtCore.Qt.WindowSystemMenuHint | QtCore.Qt.WindowTitleHint)
     dialog = QtGui.QDialog()
     templateViewObj = connectorObj.initViewObj('form', 'product.product', '', False)
     qtInterface = templateViewObj.QtInterface
     #objIds = [77540]
-    objIds = [31]
+    objIds = [1]
     #startingFieldValues = {'description': 'non-settare'}
     startingFieldValues = {}
     readonlyFields = {}# {'description': True}
