@@ -18,6 +18,7 @@ class Many2many(OdooFieldTemplate):
         self.getQtObject()
 
     def getQtObject(self):
+        mainLay = QtGui.QVBoxLayout()
         buttonsLay = QtGui.QHBoxLayout()
         self.labelQtObj = QtGui.QLabel(self.labelString)
         self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
@@ -37,13 +38,24 @@ class Many2many(OdooFieldTemplate):
         buttonsLay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum))
         self.widgetQtObj = QtGui.QTableWidget()
         self.widgetQtObj.setToolTip(self.tooltip)
+
+        mainLay.addLayout(buttonsLay)
+        mainLay.addWidget(self.widgetQtObj)
+        self.widgetLyQtObject.addLayout(mainLay)
         if self.required:
             utils.setRequiredBackground(self.widgetQtObj, '')
-        self.widgetLyQtObject.addWidget(self.widgetQtObj)
         if self.translatable:
             self.connectTranslationButton()
             self.widgetLyQtObject.addWidget(self.translateButton)
 
     def setValue(self, newVal):
         return
-        self.widgetQtObj.setText(newVal)
+
+    def valueChanged(self):
+        self.valueTemplateChanged()
+
+    def setReadonly(self, val=False):
+        super(Many2many, self).setReadonly(val)
+
+    def setInvisible(self, val=False):
+        super(Many2many, self).setInvisible(val)
