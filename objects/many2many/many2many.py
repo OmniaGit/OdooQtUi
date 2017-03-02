@@ -29,16 +29,10 @@ class Many2many(OdooFieldTemplate):
         buttonsLay.addWidget(self.labelQtObj)
         createButt = QtGui.QPushButton('Create')
         editButton = QtGui.QPushButton('Edit')
-        addButton = QtGui.QPushButton('Add')
-        removeButton = QtGui.QPushButton('Remove')
         createButt.setStyleSheet(constants.BUTTON_STYLE)
         editButton.setStyleSheet(constants.BUTTON_STYLE)
-        addButton.setStyleSheet(constants.BUTTON_STYLE)
-        removeButton.setStyleSheet(constants.BUTTON_STYLE)
         buttonsLay.addWidget(createButt)
         buttonsLay.addWidget(editButton)
-        buttonsLay.addWidget(addButton)
-        buttonsLay.addWidget(removeButton)
         buttonsLay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum))
         self.widgetQtObj = QtGui.QTableWidget()
         self.widgetQtObj.setToolTip(self.tooltip)
@@ -69,7 +63,28 @@ class Many2many(OdooFieldTemplate):
                 recordValList.append(unicode(val))
             values.append(recordValList)
         utils.commonPopulateTable(fieldsToReadOrdered, values, self.widgetQtObj)
+        rowCount = self.widgetQtObj.rowCount()
+        self.widgetQtObj.setRowCount(rowCount + 1)
+        btn = QtGui.QPushButton('Add an item')
+        btn.setStyleSheet(constants.BUTTON_ADD_AN_ITEM)
+        self.widgetQtObj.setCellWidget(rowCount, 0, btn)
+        btn.clicked.connect(self.addAnItem)
         self.widgetQtObj.resizeColumnsToContents()
+        self.widgetQtObj.setShowGrid(False)
+
+        colCount = self.widgetQtObj.columnCount()
+        self.widgetQtObj.setColumnCount(colCount + 1)
+        for rowCount in range(0, rowCount):
+            btn = QtGui.QPushButton('Remove')
+            btn.setStyleSheet(constants.BUTTON_ADD_AN_ITEM)
+            self.widgetQtObj.setCellWidget(rowCount, colCount, btn)
+            btn.clicked.connect(self.removeItem)
+
+    def removeItem(self):
+        pass
+
+    def addAnItem(self):
+        pass
 
     def valueChanged(self):
         self.valueTemplateChanged()

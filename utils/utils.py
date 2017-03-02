@@ -522,6 +522,7 @@ def commonPopulateTable(headers, values, tableWidget, flags={}):
         rowPosition = rowPosition + 1
     return outDict
 
+
 def evaluateBoolean(val):
     if isinstance(val, bool):
         return val
