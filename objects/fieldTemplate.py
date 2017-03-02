@@ -35,7 +35,7 @@ class OdooFieldTemplate(QtCore.QObject, object):
         self.company_dependent = utils.evaluateBoolean(self.fieldDefinition.get('company_dependent', False))
         self.sortable = utils.evaluateBoolean(self.fieldDefinition.get('sortable', True))
         self.store = utils.evaluateBoolean(self.fieldDefinition.get('store', True))
-        self.translatable = self.fieldDefinition.get('translate', self.fieldAttributes.get('translate', False))
+        self.translatable = self.fieldAttributes.get('translate', self.fieldDefinition.get('translate', False))
         self.labelQtObj = None
         self.widgetQtObj = None
         self.initVal = ''
@@ -76,7 +76,7 @@ class OdooFieldTemplate(QtCore.QObject, object):
             self.translateButton.setHidden(val)
 
     def valueChanged(self):
-        utils.logMessage('warning', 'valueChanged not implmented for field: %r' % (self.fieldName), 'valueChanged')
+        utils.logMessage('warning', 'valueChanged not implemented for field: %r' % (self.fieldName), 'valueChanged')
 
     def translateDialog(self):
         self.translation_clicked.emit(self.fieldName)

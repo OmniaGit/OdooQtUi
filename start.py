@@ -19,6 +19,7 @@ class MainConnector(object):
         self.rpc = False
         self.activeLanguage = 'en_US'
         self.availableLanguages = {'en_US': 'English'}
+        self.userGroups = []    # Not Used
         return object.__init__(self)
 
     def _getRpcInstance(self, loginType, user, password, dbName, xmlrpcPort, scheme, xmlrpcServerIP):
@@ -35,6 +36,8 @@ class MainConnector(object):
         if res:
             self.computeAvailableLanguages()
             self.computeUserLanguage()
+            # Enable if groups are needed
+            # self.computeUserGroups()
         return res
 
     def computeUserLanguage(self):
@@ -51,6 +54,13 @@ class MainConnector(object):
         res = self.rpc.readSearch('res.lang', ['name', 'code'], [])
         for codeDict in res:
             self.availableLanguages[codeDict.get('code', '')] = codeDict.get('name', '')
+
+    def computeUserGroups(self):
+        # Not Used
+        res = self.rpc.read('res.users', ['groups_id'], self.rpc.userId)
+        for userDict in res:
+            self.userGroups = userDict.get('groups_id', [])
+            break
 
     def setLogLevel(self, logInteger=logging.WARNING):
         logger = logging.getLogger()
@@ -77,7 +87,6 @@ class MainConnector(object):
         return templateViewObj
 
 if __name__ == '__main__':
-    import datetime
     import time
     ts = time.time()
     scheme = 'http'
@@ -104,13 +113,13 @@ if __name__ == '__main__':
     dbName = 'odoov9_0'
     loginType = 'xmlrpc'
 
-#     scheme = 'http'
-#     xmlrpcServerIP = '127.0.0.1'
-#     xmlrpcPort = 8069
-#     user = 'daniel'
-#     password = 'daniel'
-#     dbName = 'odoo-9-clean'
-#     loginType = 'xmlrpc'
+    scheme = 'http'
+    xmlrpcServerIP = '127.0.0.1'
+    xmlrpcPort = 8069
+    user = 'daniel'
+    password = 'daniel'
+    dbName = 'odoo-9-clean'
+    loginType = 'xmlrpc'
 
     app = QtGui.QApplication(sys.argv)
     
@@ -122,7 +131,7 @@ if __name__ == '__main__':
     templateViewObj = connectorObj.initViewObj('form', 'product.product', '', False)
     qtInterface = templateViewObj.QtInterface
     #objIds = [77540]
-    objIds = [208]
+    objIds = [31]
     #startingFieldValues = {'description': 'non-settare'}
     startingFieldValues = {}
     readonlyFields = {}# {'description': True}
