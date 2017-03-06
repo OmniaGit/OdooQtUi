@@ -41,7 +41,8 @@ class TemplateView(object):
         self.arch = self.fieldsViewDefinition.get('arch', '')
         self.model = self.fieldsViewDefinition.get('model', '')
         self.viewName = self.fieldsViewDefinition.get('name', '')
-        self.fieldsNameTypeRel = self.rpcObject.fieldsGet(self.model, [])
+        self.viewId = self.fieldsViewDefinition.get('view_id', '')
+        self.fieldsNameTypeRel = self.fieldsViewDefinition.get('fields', '')
 
     def addToObject(self):
         fieldIdentifier = 'field_'
