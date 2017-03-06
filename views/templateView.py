@@ -141,11 +141,9 @@ class TemplateView(object):
 
     def setReadonly(self, val=False):
         for fieldObj in self.interfaceFieldsDict.values():
-            if val:
-                fieldObj.setReadonly(True)
-            else:
-                # Abilitare solo quelli che erano abilitati dall'inizio
-                pass
+            fieldObj.setReadonly(val)
+        if not val:
+            self._setFieldModifiers()
 
     @property
     def QtInterface(self):

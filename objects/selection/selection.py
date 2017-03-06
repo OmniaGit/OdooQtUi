@@ -38,7 +38,6 @@ class Selection(OdooFieldTemplate):
 
     def statusBar(self):
         self.labels = []
-        self.widgetLyQtObject = QtGui.QHBoxLayout()
         for visibleText in self.statusbar_visible:
             labelQtObj = QtGui.QLabel(visibleText.title())
             labelQtObj.setStyleSheet(constants.LABEL_STYLE_STATUSBAR)

@@ -22,7 +22,7 @@ class Many2many(OdooFieldTemplate):
         self.getQtObject()
 
     def getQtObject(self):
-        mainLay = QtGui.QVBoxLayout()
+        self.mainLay = QtGui.QVBoxLayout()
         buttonsLay = QtGui.QHBoxLayout()
         self.labelQtObj = QtGui.QLabel(self.labelString)
         self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
@@ -35,9 +35,16 @@ class Many2many(OdooFieldTemplate):
         self.widgetQtObj.horizontalHeader().setStyleSheet(constants.MANY_2_MANY_H_HEADER)
         self.widgetQtObj.verticalHeader().setVisible(False)
         self.widgetQtObj.setToolTip(self.tooltip)
-        mainLay.addLayout(buttonsLay)
-        mainLay.addWidget(self.widgetQtObj)
-        self.widgetLyQtObject.addLayout(mainLay)
+        self.mainLay.addLayout(buttonsLay)
+        self.mainLay.addWidget(self.widgetQtObj)
+        self.btnAddAnItem = QtGui.QPushButton('Add an item')
+        self.btnAddAnItem.setStyleSheet(constants.BUTTON_ADD_AN_ITEM)
+        self.btnAddAnItem.clicked.connect(self.addAnItem)
+        addAnItemLay = QtGui.QHBoxLayout()
+        addAnItemLay.addWidget(self.btnAddAnItem)
+        addAnItemLay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum))
+        self.mainLay.addLayout(addAnItemLay)
+        self.widgetLyQtObject.addLayout(self.mainLay)
         if self.required:
             utils.setRequiredBackground(self.widgetQtObj, '')
         if self.translatable:
@@ -74,12 +81,6 @@ class Many2many(OdooFieldTemplate):
         labelsOrdered.append('')
         utils.commonPopulateTable(labelsOrdered, values, self.widgetQtObj, flags)
         rowCount = self.widgetQtObj.rowCount()
-        self.widgetQtObj.setRowCount(rowCount + 1)
-        btn = QtGui.QPushButton('Add an item')
-        btn.setStyleSheet(constants.BUTTON_ADD_AN_ITEM)
-        self.widgetQtObj.setCellWidget(rowCount, 0, btn)
-        btn.clicked.connect(self.addAnItem)
-
         colCount = self.widgetQtObj.columnCount()
         for rowCount in range(0, rowCount):
             btn = QtGui.QPushButton('Remove')
@@ -89,19 +90,24 @@ class Many2many(OdooFieldTemplate):
         self.widgetQtObj.resizeColumnsToContents()
         self.widgetQtObj.setShowGrid(False)
         self.widgetQtObj.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        self.widgetQtObj.setRowCount(rowCount + 1)
 
     def removeItem(self):
         pass
 
     def addAnItem(self):
-        
+        from start import MainConnector
+        conn = MainConnector()
+        viewObj = conn.initViewObj('tree_list', self.relation, rpcObj=self.rpc)
         pass
 
     def valueChanged(self):
         self.valueTemplateChanged()
 
     def setReadonly(self, val=False):
+        self.btnAddAnItem.setDisabled(val)
         super(Many2many, self).setReadonly(val)
 
     def setInvisible(self, val=False):
+        self.btnAddAnItem.setHidden(val)
         super(Many2many, self).setInvisible(val)
