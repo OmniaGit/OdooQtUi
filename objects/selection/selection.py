@@ -19,10 +19,10 @@ class Selection(OdooFieldTemplate):
         self.labels = []
         self.labelQtObj = False
         self.widgetQtObj = False
-        self.widget = self.fieldAttributes.get('widget', '')
+        self.widget = self.fieldXmlAttributes.get('widget', '')
         if self.widget == 'statusbar':
-            self.statusbar_colors = json.loads(self.fieldAttributes.get('statusbar_colors', ''))
-            self.statusbar_visible = self.fieldAttributes.get('statusbar_visible', '').split(',')
+            self.statusbar_colors = json.loads(self.fieldXmlAttributes.get('statusbar_colors', ''))
+            self.statusbar_visible = self.fieldXmlAttributes.get('statusbar_visible', '').split(',')
         self.getQtObject()
 
         if self.widgetQtObj:
@@ -56,7 +56,7 @@ class Selection(OdooFieldTemplate):
         self.widgetQtObj = QtGui.QComboBox()
         self.widgetQtObj.setStyleSheet(constants.SELECTION_STYLE)
         selectionVals = [('', '')]
-        selectionVals.extend(self.fieldDefinition.get('selection', []))
+        selectionVals.extend(self.fieldPyDefinition.get('selection', []))
         self.populateMapping(selectionVals)
         self.widgetQtObj.addItems(self.selectionMappingReverse.keys())
         self.widgetQtObj.setToolTip(self.tooltip)

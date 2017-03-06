@@ -4,7 +4,7 @@ Created on 7 Feb 2017
 @author: dsmerghetto
 '''
 
-from PyQt4 import QtGui
+from PyQt4 import QtGui, QtCore
 from utils import utils
 from utils import constants
 from objects.fieldTemplate import OdooFieldTemplate
@@ -16,9 +16,9 @@ class Many2many(OdooFieldTemplate):
         super(Many2many, self).__init__(xmlField, fieldsDefinition, rpc)
         self.labelQtObj = False
         self.widgetQtObj = False
-        self.relation = self.fieldDefinition.get('relation', '')
-        self.canCreate = json.loads(self.fieldAttributes.get('can_create', 'true'))
-        self.canWrite = json.loads(self.fieldAttributes.get('can_write', 'true'))
+        self.relation = self.fieldPyDefinition.get('relation', '')
+        self.canCreate = json.loads(self.fieldXmlAttributes.get('can_create', 'true'))
+        self.canWrite = json.loads(self.fieldXmlAttributes.get('can_write', 'true'))
         self.getQtObject()
 
     def getQtObject(self):
@@ -28,13 +28,12 @@ class Many2many(OdooFieldTemplate):
         self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
         buttonsLay.addWidget(self.labelQtObj)
         createButt = QtGui.QPushButton('Create')
-        editButton = QtGui.QPushButton('Edit')
         createButt.setStyleSheet(constants.BUTTON_STYLE)
-        editButton.setStyleSheet(constants.BUTTON_STYLE)
         buttonsLay.addWidget(createButt)
-        buttonsLay.addWidget(editButton)
         buttonsLay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum))
         self.widgetQtObj = QtGui.QTableWidget()
+        self.widgetQtObj.horizontalHeader().setStyleSheet(constants.MANY_2_MANY_H_HEADER)
+        self.widgetQtObj.verticalHeader().setVisible(False)
         self.widgetQtObj.setToolTip(self.tooltip)
         mainLay.addLayout(buttonsLay)
         mainLay.addWidget(self.widgetQtObj)
@@ -52,6 +51,7 @@ class Many2many(OdooFieldTemplate):
         fieldsToReadOrdered = viewObj.treeObj.orderedFields
         res = self.rpc.read(self.relation, fieldsToReadOrdered, relIds)
         values = []
+        flags = {}
         for recordDict in res:
             recordValList = []
             for fieldName in fieldsToReadOrdered:
@@ -61,29 +61,40 @@ class Many2many(OdooFieldTemplate):
                         val = ''
                     val = val[1]
                 recordValList.append(unicode(val))
+            recordValList.append('')
+            flags[res.index(recordDict)] = QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
             values.append(recordValList)
-        utils.commonPopulateTable(fieldsToReadOrdered, values, self.widgetQtObj)
+        labelsOrdered = []
+        for fieldName in fieldsToReadOrdered:
+            fieldObj = viewObj.fields.__dict__.get(fieldName, None)
+            if fieldObj:
+                labelsOrdered.append(fieldObj.labelString)
+            else:
+                labelsOrdered.append(fieldName)
+        labelsOrdered.append('')
+        utils.commonPopulateTable(labelsOrdered, values, self.widgetQtObj, flags)
         rowCount = self.widgetQtObj.rowCount()
         self.widgetQtObj.setRowCount(rowCount + 1)
         btn = QtGui.QPushButton('Add an item')
         btn.setStyleSheet(constants.BUTTON_ADD_AN_ITEM)
         self.widgetQtObj.setCellWidget(rowCount, 0, btn)
         btn.clicked.connect(self.addAnItem)
-        self.widgetQtObj.resizeColumnsToContents()
-        self.widgetQtObj.setShowGrid(False)
 
         colCount = self.widgetQtObj.columnCount()
-        self.widgetQtObj.setColumnCount(colCount + 1)
         for rowCount in range(0, rowCount):
             btn = QtGui.QPushButton('Remove')
             btn.setStyleSheet(constants.BUTTON_ADD_AN_ITEM)
-            self.widgetQtObj.setCellWidget(rowCount, colCount, btn)
+            self.widgetQtObj.setCellWidget(rowCount, colCount - 1, btn)
             btn.clicked.connect(self.removeItem)
+        self.widgetQtObj.resizeColumnsToContents()
+        self.widgetQtObj.setShowGrid(False)
+        self.widgetQtObj.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
 
     def removeItem(self):
         pass
 
     def addAnItem(self):
+        
         pass
 
     def valueChanged(self):

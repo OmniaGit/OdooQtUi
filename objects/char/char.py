@@ -15,7 +15,7 @@ class Charachter(OdooFieldTemplate):
         super(Charachter, self).__init__(xmlField, fieldsDefinition, rpc)
         self.labelQtObj = False
         self.widgetQtObj = False
-        self.translatable = utils.evaluateBoolean(self.fieldDefinition.get('translate', False))
+        self.translatable = utils.evaluateBoolean(self.fieldPyDefinition.get('translate', False))
         self.getQtObject()
 
     def getQtObject(self):

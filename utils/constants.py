@@ -14,6 +14,7 @@ LABEL_STYLE = 'margin-right: 0px;font-size: 12px;line-height: 1.42857143;font-we
 LABEL_STYLE_STATUSBAR = 'background-color: grey;color:white;max-width:100px;border: 0.1px solid white;border-bottom-right-radius: 10px;border-top-right-radius: 10px;'
 LABEL_STYLE_STATUSBAR_ACTIVE = LABEL_STYLE_STATUSBAR + 'background-color:blue;'
 LABEL_SEPARATOR = LABEL_STYLE + 'font-size:14px;font-weight: bold;'
+MANY_2_MANY_H_HEADER = 'font-weight: bold;vertical-align: middle;color:black;background-color:#dfdfdf;border: none;'
 CHAR_STYLE = 'border: 2px solid #cfcfcf;border-left-style: none;border-right-style: none;border-top-style: none;'
 TEXT_STYLE = 'border: 2px solid #cfcfcf;'
 FLOAT_STYLE = 'border: 2px solid #cfcfcf;border-left-style: none;border-right-style: none;border-top-style: none;'
