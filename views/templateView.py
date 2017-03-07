@@ -35,6 +35,7 @@ class TemplateView(object):
         self.layout = QtGui.QVBoxLayout()
         self.activeLanguageCode = activeLanguageCode    # 'en_US'
         self.availableLanguages = availableLanguages    # {'en_US': 'English', ...}
+        self.fieldsChanged = {}     # {'fieldName' : fieldObj}
 
     @utils.timeit
     def initViewObj(self, odooObjectName, viewName='', view_id=False):
@@ -286,7 +287,6 @@ class TemplateFormView(TemplateView):
         self.readonlyFields = []     # ['field1', 'field2']
         self.viewType = 'form'
         self.objectsInit = copy.deepcopy(self.fields)
-        self.fieldsChanged = {}     # {'fieldName' : fieldObj}
         self.fieldDefaultVals = {}  # {'fieldName' : fieldval}
         self.skipOnChange = False
         self.readonly = False
@@ -329,6 +329,7 @@ class TemplateTreeListView(TemplateView):
         self.viewType = 'tree'
         self.readonly = True
         self.activeIds = []
+        self.idValsRel = {}
 
     def initViewObj(self, odooObjectName, viewName, view_id, viewCheckBoxes=False):
         super(TemplateTreeListView, self).initViewObj(odooObjectName, viewName, view_id)
@@ -336,6 +337,20 @@ class TemplateTreeListView(TemplateView):
         self.layout = self.treeObj.computeArch()
         self.mappingInterface = self.treeObj.globalMapping
         self.addToObject()
+
+    def forceRecordVals(self, recordID, valuesDict={}):
+        if not valuesDict:
+            return
+        if recordID not in self.idValsRel:
+            utils.logMessage('warning', 'Record with ID %r not found in rel dict %r' % (recordID, self.idValsRel), 'forceRecordVals')
+            return
+        for fieldName in valuesDict:
+            fieldObj = self.fields.__dict__.get(fieldName, None)
+            if not fieldObj:
+                utils.logMessage('warning', 'Field object %r not found in fields' % (fieldName), 'forceRecordVals')
+                return
+            fieldObj.setValue(valuesDict.get(fieldName))
+        self.idValsRel[recordID] = self.idValsRel[recordID].update(valuesDict)
 
     @utils.timeit
     def loadIds(self, objIds=[], forceFieldValues={}, readonlyFields={}, invisibleFields={}, viewCheckBoxes=False):
@@ -345,8 +360,6 @@ class TemplateTreeListView(TemplateView):
         fields = self.treeObj.orderedFields
         records = self.rpcObject.read(self.model, fields, objIds, limit=80)
         flagsDict = {}
-        if viewCheckBoxes:
-            flagsDict = {0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled}
         valuesList = []
         labelsOrdered = []
         for fieldName in fields:
@@ -355,6 +368,8 @@ class TemplateTreeListView(TemplateView):
                 labelsOrdered.append(fieldObj.labelString)
             else:
                 labelsOrdered.append(fieldName)
+        if viewCheckBoxes:
+            flagsDict[0] = QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled
         for record in records:
             localList = []
             for fieldName in fields:
@@ -363,14 +378,24 @@ class TemplateTreeListView(TemplateView):
                     if len(val) < 1:
                         val = ''
                     val = val[1]
+                fieldObj = self.fields.__dict__.get(fieldName, None)
+                fieldObj.setValue(val)
+                record[fieldName] = val
                 localList.append(unicode(val))
             valuesList.append(localList)
+            recordId = record.get('id', False)
+            self.idValsRel[recordId] = record
         utils.commonPopulateTable(labelsOrdered, valuesList, self.treeObj.tableWidget, flagsDict)
         self.treeObj.tableWidget.resizeColumnsToContents()
         self.treeObj.tableWidget.setShowGrid(False)
         self.treeObj.tableWidget.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.treeObj.tableWidget.horizontalHeader().setStyleSheet(constants.MANY_2_MANY_H_HEADER)
         self.treeObj.tableWidget.verticalHeader().setVisible(False)
+
+    def _valueChanged(self, fieldName):
+        fieldName = unicode(fieldName)
+        fieldObj = self.interfaceFieldsDict.get(fieldName)
+        self.fieldsChanged[fieldName] = fieldObj
 
 
 class Objects(object):

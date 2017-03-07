@@ -52,6 +52,7 @@ class Many2many(OdooFieldTemplate):
             self.widgetLyQtObject.addWidget(self.translateButton)
 
     def setValue(self, relIds):
+        self.currentValue = relIds
         from start import MainConnector
         conn = MainConnector()
         viewObj = conn.initViewObj('tree_list', self.relation, rpcObj=self.rpc)
@@ -147,6 +148,12 @@ class Many2many(OdooFieldTemplate):
             utils.commonPopulateTable(self.labelsOrdered, values, self.widgetQtObj, flags, add=True)
             self.setRemoveButtons(self.widgetQtObj)
             self.setupTableWidgetLay(self.widgetQtObj)
+            for recordId, recordVals in viewObj.idValsRel.items():
+                for rowVals in rowsDict.values():
+                    localDict = recordVals.copy()
+                    del localDict['id']
+                    if localDict == rowVals:
+                        self.currentValue.append(recordId)
 
     def valueChanged(self):
         self.valueTemplateChanged()

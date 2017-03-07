@@ -434,6 +434,12 @@ def getRowsFromTableWidget(tableWidget, outType='list', fieldNames=[]):
         @outType: 'list' / 'dict'
         @outType: ['field1', 'field2', ...]
     '''
+    def evalValue(val):
+        val = unicode(val)
+        try:
+            return eval(val)
+        except:
+            return val
     rowCount = tableWidget.rowCount()
     columnCount = tableWidget.columnCount()
     if outType == 'list':
@@ -444,7 +450,7 @@ def getRowsFromTableWidget(tableWidget, outType='list', fieldNames=[]):
                 tableItem = tableWidget.item(rowIndex, colIndex)
                 cellValue = ''
                 if tableItem:
-                    cellValue = unicode(tableItem.text())
+                    cellValue = evalValue(tableItem.text())
                 rowList.append(cellValue)
             outList.append(rowList)
         return outList
@@ -456,7 +462,7 @@ def getRowsFromTableWidget(tableWidget, outType='list', fieldNames=[]):
                 tableItem = tableWidget.item(rowIndex, colIndex)
                 cellValue = ''
                 if tableItem:
-                    cellValue = unicode(tableItem.text())
+                    cellValue = evalValue(tableItem.text())
                     if rowIndex not in outDict:
                         outDict[rowIndex] = {colName: cellValue}
                     else:
@@ -517,8 +523,11 @@ def commonPopulateTable(headers, values, tableWidget, flags={}, add=False):
             rowDict[colName] = colVal
             twItem = QtGui.QTableWidgetItem(colVal)
             if colIndex in flags:
-                twItem.setFlags(flags[colIndex])
+                flagsToAdd = flags[colIndex]
+                twItem.setFlags(flagsToAdd)
                 twItem.setCheckState(QtCore.Qt.Unchecked)
+            else:
+                twItem.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
             tableWidget.setItem(rowPosition, colIndex, twItem)
         outDict[rowPosition] = rowDict
         rowPosition = rowPosition + 1
