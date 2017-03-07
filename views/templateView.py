@@ -6,6 +6,7 @@ Created on 3 Feb 2017
 from form_view import FormView
 from tree_list import TreeViewList
 from utils import utils
+from utils import constants
 from PyQt4 import QtGui
 from PyQt4 import QtCore
 import copy
@@ -329,12 +330,47 @@ class TemplateTreeListView(TemplateView):
         self.readonly = True
         self.activeIds = []
 
-    def initViewObj(self, odooObjectName, viewName, view_id):
+    def initViewObj(self, odooObjectName, viewName, view_id, viewCheckBoxes=False):
         super(TemplateTreeListView, self).initViewObj(odooObjectName, viewName, view_id)
-        self.treeObj = TreeViewList(self.arch, self.fieldsNameTypeRel, self.rpcObject)
+        self.treeObj = TreeViewList(self.arch, self.fieldsNameTypeRel, self.rpcObject, viewCheckBoxes)
         self.layout = self.treeObj.computeArch()
         self.mappingInterface = self.treeObj.globalMapping
         self.addToObject()
+
+    @utils.timeit
+    def loadIds(self, objIds=[], forceFieldValues={}, readonlyFields={}, invisibleFields={}, viewCheckBoxes=False):
+        if not objIds:
+            return
+        self.treeObj.tableWidget
+        fields = self.treeObj.orderedFields
+        records = self.rpcObject.read(self.model, fields, objIds, limit=80)
+        flagsDict = {}
+        if viewCheckBoxes:
+            flagsDict = {0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled}
+        valuesList = []
+        labelsOrdered = []
+        for fieldName in fields:
+            fieldObj = self.fields.__dict__.get(fieldName, None)
+            if fieldObj:
+                labelsOrdered.append(fieldObj.labelString)
+            else:
+                labelsOrdered.append(fieldName)
+        for record in records:
+            localList = []
+            for fieldName in fields:
+                val = record.get(fieldName, '')
+                if isinstance(val, (list, tuple)):
+                    if len(val) < 1:
+                        val = ''
+                    val = val[1]
+                localList.append(unicode(val))
+            valuesList.append(localList)
+        utils.commonPopulateTable(labelsOrdered, valuesList, self.treeObj.tableWidget, flagsDict)
+        self.treeObj.tableWidget.resizeColumnsToContents()
+        self.treeObj.tableWidget.setShowGrid(False)
+        self.treeObj.tableWidget.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        self.treeObj.tableWidget.horizontalHeader().setStyleSheet(constants.MANY_2_MANY_H_HEADER)
+        self.treeObj.tableWidget.verticalHeader().setVisible(False)
 
 
 class Objects(object):

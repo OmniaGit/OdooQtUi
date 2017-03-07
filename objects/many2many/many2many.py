@@ -55,13 +55,45 @@ class Many2many(OdooFieldTemplate):
         from start import MainConnector
         conn = MainConnector()
         viewObj = conn.initViewObj('tree_list', self.relation, rpcObj=self.rpc)
-        fieldsToReadOrdered = viewObj.treeObj.orderedFields
-        res = self.rpc.read(self.relation, fieldsToReadOrdered, relIds)
+        self.fieldsToReadOrdered = viewObj.treeObj.orderedFields
+        res = self.rpc.read(self.relation, self.fieldsToReadOrdered, relIds)
+        values, flags = self.convertDictToLists(res, self.fieldsToReadOrdered, checkBox=False)
+        self.labelsOrdered = self.getOrderedFieldsStrings(self.fieldsToReadOrdered, viewObj.fields.__dict__)
+        utils.commonPopulateTable(self.labelsOrdered, values, self.widgetQtObj, flags)
+        self.setRemoveButtons(self.widgetQtObj)
+        self.setupTableWidgetLay(self.widgetQtObj)
+
+    def setupTableWidgetLay(self, tableWidget):
+        tableWidget.resizeColumnsToContents()
+        tableWidget.setShowGrid(False)
+        tableWidget.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+
+    def setRemoveButtons(self, tableWidget):
+        rowCount = tableWidget.rowCount()
+        colCount = tableWidget.columnCount()
+        for rowCount in range(0, rowCount):
+            btn = QtGui.QPushButton('Remove')
+            btn.setStyleSheet(constants.BUTTON_ADD_AN_ITEM)
+            tableWidget.setCellWidget(rowCount, colCount - 1, btn)
+            btn.clicked.connect(self.removeItem)
+
+    def getOrderedFieldsStrings(self, orderedFields, fieldsDict):
+        labelsOrdered = []
+        for fieldName in orderedFields:
+            fieldObj = fieldsDict.get(fieldName, None)
+            if fieldObj:
+                labelsOrdered.append(fieldObj.labelString)
+            else:
+                labelsOrdered.append(fieldName)
+        labelsOrdered.append('')
+        return labelsOrdered
+
+    def convertDictToLists(self, readRes, orderedFields, checkBox=False):
         values = []
         flags = {}
-        for recordDict in res:
+        for recordDict in readRes:
             recordValList = []
-            for fieldName in fieldsToReadOrdered:
+            for fieldName in orderedFields:
                 val = recordDict.get(fieldName)
                 if isinstance(val, (list, tuple)):
                     if len(val) < 1:
@@ -69,37 +101,52 @@ class Many2many(OdooFieldTemplate):
                     val = val[1]
                 recordValList.append(unicode(val))
             recordValList.append('')
-            flags[res.index(recordDict)] = QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
             values.append(recordValList)
-        labelsOrdered = []
-        for fieldName in fieldsToReadOrdered:
-            fieldObj = viewObj.fields.__dict__.get(fieldName, None)
-            if fieldObj:
-                labelsOrdered.append(fieldObj.labelString)
-            else:
-                labelsOrdered.append(fieldName)
-        labelsOrdered.append('')
-        utils.commonPopulateTable(labelsOrdered, values, self.widgetQtObj, flags)
-        rowCount = self.widgetQtObj.rowCount()
-        colCount = self.widgetQtObj.columnCount()
-        for rowCount in range(0, rowCount):
-            btn = QtGui.QPushButton('Remove')
-            btn.setStyleSheet(constants.BUTTON_ADD_AN_ITEM)
-            self.widgetQtObj.setCellWidget(rowCount, colCount - 1, btn)
-            btn.clicked.connect(self.removeItem)
-        self.widgetQtObj.resizeColumnsToContents()
-        self.widgetQtObj.setShowGrid(False)
-        self.widgetQtObj.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-        self.widgetQtObj.setRowCount(rowCount + 1)
+        if checkBox:
+            flags[0] = QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
+        return values, flags
 
     def removeItem(self):
         pass
 
     def addAnItem(self):
+        def acceptDial():
+            dial.accept()
+
+        def rejectDial():
+            dial.reject()
+
         from start import MainConnector
         conn = MainConnector()
-        viewObj = conn.initViewObj('tree_list', self.relation, rpcObj=self.rpc)
-        pass
+        viewObj = conn.initTreeListViewObject(self.relation, rpcObj=self.rpc, viewCheckBoxes=True)
+        resIds = self.rpc.search(self.relation, [])
+        viewObj.loadIds(resIds, {}, {}, {}, viewCheckBoxes=True)
+        dial = QtGui.QDialog()
+        vlay = QtGui.QVBoxLayout()
+        layButt, okButt, cancelButt = utils.getButtonBox('right')
+        okButt.setStyleSheet(constants.BUTTON_STYLE_OK)
+        cancelButt.setStyleSheet(constants.BUTTON_STYLE_CANCEL)
+        okButt.clicked.connect(acceptDial)
+        cancelButt.clicked.connect(rejectDial)
+        vlay.addLayout(viewObj.layout)
+        vlay.addLayout(layButt)
+        dial.setLayout(vlay)
+        dial.setStyleSheet('background-color:#893b74;')
+        dial.resize(800, 500)
+        if dial.exec_() == QtGui.QDialog.Accepted:
+            checkedRows = []
+            table = viewObj.treeObj.tableWidget
+            for rowIndex in range(table.rowCount()):
+                if table.item(rowIndex, 0).checkState() == QtCore.Qt.Checked:
+                    checkedRows.append(rowIndex)
+            rowsDict = utils.getRowsFromTableWidget(table, 'dict', self.fieldsToReadOrdered)
+            valsToInsert = []
+            for checkedIndex in checkedRows:
+                valsToInsert.append(rowsDict.get(checkedIndex, {}))
+            values, flags = self.convertDictToLists(valsToInsert, self.fieldsToReadOrdered, checkBox=False)
+            utils.commonPopulateTable(self.labelsOrdered, values, self.widgetQtObj, flags, add=True)
+            self.setRemoveButtons(self.widgetQtObj)
+            self.setupTableWidgetLay(self.widgetQtObj)
 
     def valueChanged(self):
         self.valueTemplateChanged()

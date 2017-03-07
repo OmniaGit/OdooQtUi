@@ -5,6 +5,7 @@ Created on 3 Feb 2017
 '''
 import xml.etree.cElementTree as ElementTree
 from PyQt4 import QtGui
+from PyQt4 import QtCore
 from objects import button
 from utils import utils
 from objects.selection.selection import Selection
@@ -18,17 +19,17 @@ from objects.many2many.many2many import Many2many
 from objects.many2one.many2one import Many2one
 from objects.text.text import Text
 from utils import constants
-import json
 
 
 class TreeViewList(object):
 
-    def __init__(self, arch, fieldsNameTypeRel, rpc):
+    def __init__(self, arch, fieldsNameTypeRel, rpc, viewCheckBoxes=False):
         self.arch = arch
         self.fieldsNameTypeRel = fieldsNameTypeRel
         self.globalMapping = {}
         self.orderedFields = []
         self.tableWidget = False
+        self.viewCheckBoxes = viewCheckBoxes
         self.rpc = rpc
 
     def computeRecursion(self, parent):
@@ -41,7 +42,10 @@ class TreeViewList(object):
                     self.orderedFields.append(fieldObj.fieldName)
                     self.appendToglobalMapping('field_' + fieldObj.fieldName, fieldObj)
         self.tableWidget = QtGui.QTableWidget()
-        utils.commonPopulateTable(self.orderedFields, [], self.tableWidget)
+        flagsDict = {}
+        if self.viewCheckBoxes:
+            flagsDict = {0: QtCore.Qt.ItemIsUserCheckable}
+        utils.commonPopulateTable(self.orderedFields, [], self.tableWidget, flagsDict)
         mainVLay.addWidget(self.tableWidget)
         return mainVLay
 

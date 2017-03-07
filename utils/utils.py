@@ -3,7 +3,7 @@ Created on 20/set/2015
 
 @author: Daniel
 '''
-from PyQt4 import QtGui
+from PyQt4 import QtGui, QtCore
 import json
 import os
 import logging
@@ -491,19 +491,20 @@ def getSelectedRowsFromListWidget(listWidget):
 #     return outDict
 
 
-def commonPopulateTable(headers, values, tableWidget, flags={}):
+def commonPopulateTable(headers, values, tableWidget, flags={}, add=False):
     '''
         @headers: [header1, header2, ...]
         @flags: {'colIndex': flags}
         @values: [[val1, val2, ...], ...] or [obj1, obj2, ...]
     '''
-    tableWidget.clear()
+    if not add:
+        tableWidget.clear()
     outDict = {}
     colCount = len(headers)
     colIndexList = range(0, colCount)
     tableWidget.setColumnCount(colCount)
     tableWidget.setHorizontalHeaderLabels(headers)
-    rowPosition = 0
+    rowPosition = tableWidget.rowCount()
     for menuObj in values:
         tableWidget.setRowCount(rowPosition + 1)
         rowDict = {}
@@ -517,6 +518,7 @@ def commonPopulateTable(headers, values, tableWidget, flags={}):
             twItem = QtGui.QTableWidgetItem(colVal)
             if colIndex in flags:
                 twItem.setFlags(flags[colIndex])
+                twItem.setCheckState(QtCore.Qt.Unchecked)
             tableWidget.setItem(rowPosition, colIndex, twItem)
         outDict[rowPosition] = rowDict
         rowPosition = rowPosition + 1
@@ -627,15 +629,21 @@ def _evalSimple(conditions, operators):
                 lastCond = lastCond or cond
         count = count + 1
     return lastCond
-    
-def getButtonBox():
+
+
+def getButtonBox(spacer='right'):
     mainLay = QtGui.QHBoxLayout()
     okButt = QtGui.QPushButton('Ok')
     cancelButt = QtGui.QPushButton('Cancel')
+    if spacer == 'right':
+        mainLay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum))
     mainLay.addWidget(okButt)
     mainLay.addWidget(cancelButt)
+    if spacer == 'left':
+        mainLay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum))
     return mainLay, okButt, cancelButt
-    
+
+
 def timeit(method):
 
     def timed(*args, **kw):

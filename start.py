@@ -70,6 +70,21 @@ class MainConnector(object):
         logger = logging.getLogger()
         logger.setLevel(logInteger)
 
+    def evalLanguages(self, activeLanguage='', availableLanguages=[]):
+        if not activeLanguage:
+            activeLanguage = self.activeLanguage
+        if not availableLanguages:
+            availableLanguages = self.availableLanguages
+        return activeLanguage, availableLanguages
+
+    def initTreeListViewObject(self, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', availableLanguages=[], viewCheckBoxes=False):
+        activeLanguage, availableLanguages = self.evalLanguages(activeLanguage, availableLanguages)
+        if not rpcObj:
+            rpcObj = self.rpc
+        templateViewObj = TemplateTreeListView(rpcObj, activeLanguage, availableLanguages)
+        templateViewObj.initViewObj(odooObjectName, viewName, view_id, viewCheckBoxes)
+        return templateViewObj
+
     def initViewObj(self, viewType, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', availableLanguages=[]):
         '''
         @viewType: tree_tree, tree_list, form, search
@@ -79,10 +94,7 @@ class MainConnector(object):
 
         tree_list and tree_tree views are always read only
         '''
-        if not activeLanguage:
-            activeLanguage = self.activeLanguage
-        if not availableLanguages:
-            availableLanguages = self.availableLanguages
+        activeLanguage, availableLanguages = self.evalLanguages(activeLanguage, availableLanguages)
         if not rpcObj:
             rpcObj = self.rpc
         if viewType == 'form':

@@ -18,6 +18,7 @@ class Many2one(OdooFieldTemplate):
         self.widgetQtObj = False
         self.editButton = QtGui.QPushButton()
         self.itemToIdRel = {}
+        self.relation = self.fieldPyDefinition.get('relation', '')
         self.canCreate = json.loads(self.fieldXmlAttributes.get('can_create', 'true'))
         self.canWrite = json.loads(self.fieldXmlAttributes.get('can_write', 'true'))
         self.availableItems = self.getItems()
