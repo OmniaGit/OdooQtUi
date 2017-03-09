@@ -49,8 +49,12 @@ class XmlRpcConnection(object):
         utils.logMessage('info', 'Successfull connection to Odoo with user %r and database %r' % (self.userName, self.databaseName), 'loginNoUser')
         return True
 
-    def search(self, obj, filterList, kwargParameters={}):
+    def search(self, obj, filterList, limit=False, offset=False, kwargParameters={}):
         try:
+            if limit:
+                kwargParameters['limit'] = limit
+            if offset:
+                kwargParameters['offset'] = offset
             return self.callOdooFunction(obj, 'search', [filterList], kwargParameters)
         except Exception, ex:
             utils.logMessage('error', 'Error during search with values: object %r, filter %r, parameters %r. Error: %r' % (obj, filterList, kwargParameters, ex), 'search')
@@ -134,7 +138,6 @@ class XmlRpcConnection(object):
             utils.logMessage('error', 'Error during fields view get: %r' % (ex), 'fieldsViewGet')
         return {}
 
-    @utils.timeit
     def on_change(self, odooObj, activeIds, allVals, fieldName, allOnchanges, context):
         try:
             return self.callOdooFunction(odooObj, 'onchange', [activeIds, allVals, fieldName, allOnchanges, context])

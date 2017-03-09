@@ -23,3 +23,5 @@ SELECTION_STYLE = 'border: 2px solid #cfcfcf;border-left-style: none;border-righ
 DATE_STYLE = 'border: 2px solid #cfcfcf;border-left-style: none;border-right-style: none;border-top-style: none;'
 NOOTEBOOK_STYLE = 'border-left-style: none;border-right-style: none;border-bottom-style: none;border-top-style: none;'
 NOOTEBOOK_TABBAR_STYLE = 'QTabBar::tab:!selected {border: 3px solid grey;border-left-style: none;border-right-style: none;border-top-style: none;min-width:180px;} QTabBar::tab:selected {border: 3px solid #893b74;border-left-style: none;border-right-style: none;border-top-style: none;color: #893b74;font-size: 12px;min-width:150px} QTabBar::tab:hover {border: 3px solid #893b74;border-left-style: none;border-right-style: none;border-top-style: none;color: #893b74;font-size: 12px;font-weight: bold;min-width:150px}'
+TABLE_LIST_LIST = """QScrollBar {background-color:#893b74}"""
+

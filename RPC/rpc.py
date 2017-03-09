@@ -3,6 +3,7 @@ Created on 02 feb 2017
 
 @author: Daniel
 '''
+import logging
 from utils import utils
 from XmlRpc.xmlRpc import XmlRpcConnection
 
@@ -28,13 +29,25 @@ class RpcConnection(object):
     def loginNoUser(self):
         return self.sockInstance.loginNoUser()
 
+    @utils.timeit
     def loginWithUser(self):
         res = self.sockInstance.loginWithUser()
         self.userId = self.sockInstance.userId
+        self.computeUserLanguage()
         return res
 
-    def search(self, obj, filterList):
-        return self.sockInstance.search(obj, filterList)
+    def computeUserLanguage(self):
+        res = self.callCustomMethod('res.users', 'context_get')
+        if not res:
+            logging.warning('Unable to get user context.')
+            res = {}
+        self.contextUser = res
+
+    def callCustomMethod(self, odooObj, functionName, parameters=[], kwargParameters={}):
+        return self.sockInstance.callOdooFunction(odooObj, functionName, parameters, kwargParameters)
+
+    def search(self, obj, filterList, limit=False, offset=False):
+        return self.sockInstance.search(obj, filterList, limit, offset)
 
     def read(self, obj, fields, ids, context={}, limit=False):
         if isinstance(ids, int):
@@ -70,7 +83,6 @@ class RpcConnection(object):
         '''
         return self.sockInstance.fieldsGet(obj, attributesToRead)
 
-    @utils.timeit
     def defaultGet(self, obj, fieldsToRead=[]):
         '''
         @attributesToRead: ['string', 'help', 'type']
@@ -79,7 +91,7 @@ class RpcConnection(object):
 
     def fieldsViewGet(self, obj, view_id, view_type):
         return self.sockInstance.fieldsViewGet(obj, view_id, view_type)
-        
+
     def on_change(self, obj, activeIds, allVals, fieldName, allOnchanges, context={}):
         return self.sockInstance.on_change(obj, activeIds, allVals, fieldName, allOnchanges, context)
         

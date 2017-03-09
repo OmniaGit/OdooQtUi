@@ -429,22 +429,30 @@ def getRowsFromListWidget(listWidget):
     return outList
 
 
-def getRowsFromTableWidget(tableWidget, outType='list', fieldNames=[]):
+def evalValue(val):
+    val = unicode(val)
+    try:
+        return eval(val)
+    except:
+        return val
+
+
+def removeRowFromTableWidget(tableWidget, rowIndex):
+    tableWidget.model().removeRow(rowIndex)
+
+def getRowsFromTableWidget(tableWidget, outType='list', fieldNames=[], rowsIndexesToGet=[]):
     '''
         @outType: 'list' / 'dict'
         @outType: ['field1', 'field2', ...]
     '''
-    def evalValue(val):
-        val = unicode(val)
-        try:
-            return eval(val)
-        except:
-            return val
     rowCount = tableWidget.rowCount()
     columnCount = tableWidget.columnCount()
     if outType == 'list':
         outList = []
-        for rowIndex in range(0, rowCount):
+        rowIndexes = rowsIndexesToGet
+        if not rowIndexes:
+            rowIndexes = range(0, rowCount)
+        for rowIndex in rowIndexes:
             rowList = []
             for colIndex in range(0, columnCount):
                 tableItem = tableWidget.item(rowIndex, colIndex)
@@ -456,8 +464,13 @@ def getRowsFromTableWidget(tableWidget, outType='list', fieldNames=[]):
         return outList
     elif outType == 'dict' and fieldNames:
         outDict = {}
-        for rowIndex in range(0, rowCount):
+        rowIndexes = rowsIndexesToGet
+        if not rowIndexes:
+            rowIndexes = range(0, rowCount)
+        for rowIndex in rowIndexes:
             for colIndex in range(0, columnCount):
+                if colIndex >= len(fieldNames):
+                    continue
                 colName = fieldNames[colIndex]
                 tableItem = tableWidget.item(rowIndex, colIndex)
                 cellValue = ''
@@ -505,6 +518,7 @@ def commonPopulateTable(headers, values, tableWidget, flags={}, add=False):
     '''
     if not add:
         tableWidget.clear()
+        tableWidget.setRowCount(0)
     outDict = {}
     colCount = len(headers)
     colIndexList = range(0, colCount)

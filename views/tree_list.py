@@ -80,13 +80,13 @@ class TreeViewList(object):
             fieldObj = Boolean(xmlObj, self.fieldsNameTypeRel, self.rpc)
         return fieldObj
 
-    @utils.timeit
     def computeArchRecursion(self, parent):
         mainVLay = self.computeRecursion(parent)
         widgetContents = QtGui.QWidget()
         widgetContents.setStyleSheet('background-color:#ffffff;')
         widgetContents.setLayout(mainVLay)
         scroll = QtGui.QScrollArea()
+        scroll.setStyleSheet(constants.TABLE_LIST_LIST)
         scroll.setWidget(widgetContents)
         scroll.setWidgetResizable(True)
         outLay = QtGui.QVBoxLayout()

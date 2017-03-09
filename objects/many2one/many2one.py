@@ -5,6 +5,7 @@ Created on 7 Feb 2017
 '''
 
 from PyQt4 import QtGui
+from PyQt4 import QtCore
 from utils import utils
 from utils import constants
 from objects.fieldTemplate import OdooFieldTemplate
@@ -18,16 +19,17 @@ class Many2one(OdooFieldTemplate):
         self.widgetQtObj = False
         self.editButton = QtGui.QPushButton()
         self.itemToIdRel = {}
+        self.skipSearch = False
         self.relation = self.fieldPyDefinition.get('relation', '')
         self.canCreate = json.loads(self.fieldXmlAttributes.get('can_create', 'true'))
         self.canWrite = json.loads(self.fieldXmlAttributes.get('can_write', 'true'))
         self.availableItems = self.getItems()
         self.getQtObject()
 
-    def getItems(self):
+    def getItems(self, search=False):
         outVal = ['']
-        return outVal
-        if self.relation:
+        if self.relation and search:
+            print 'search for values'
             for singleDict in self.rpc.readSearch(self.relation, ['name']):
                 val = singleDict.get('name', '')
                 if val:
@@ -40,7 +42,7 @@ class Many2one(OdooFieldTemplate):
     def getQtObject(self):
         self.labelQtObj = QtGui.QLabel(self.labelString)
         self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
-        
+
         self.widgetQtObj = QtGui.QWidget()
         self.childLay = QtGui.QHBoxLayout()
         self.widgetQtObj2 = QtGui.QComboBox()
@@ -48,6 +50,8 @@ class Many2one(OdooFieldTemplate):
         self.widgetQtObj2.setStyleSheet(constants.SELECTION_STYLE)
         self.widgetQtObj2.addItems(self.availableItems)
         self.widgetQtObj2.setToolTip(self.tooltip)
+        self.widgetQtObj2.editTextChanged.connect(self.comboActivated)
+        self.widgetQtObj2.installEventFilter(self)
         if self.required:
             utils.setRequiredBackground(self.widgetQtObj2, constants.SELECTION_STYLE)
         self.childLay.addWidget(self.widgetQtObj2)
@@ -63,6 +67,15 @@ class Many2one(OdooFieldTemplate):
         if self.translatable:
             self.connectTranslationButton()
             self.widgetLyQtObject.addWidget(self.translateButton)
+
+    def comboActivated(self, val=False):
+        if not self.availableItems or len(self.availableItems) < 3 and not self.skipSearch:
+            print 'combo activated, %r, val %r' % (self.availableItems, val)
+            self.skipSearch = True
+            newItems = self.getItems(True)
+            self.widgetQtObj2.clear()
+            self.widgetQtObj2.addItems(newItems)
+            self.availableItems = newItems
 
     def setValue(self, val=False):
         newTextVal = ''
@@ -80,6 +93,11 @@ class Many2one(OdooFieldTemplate):
         elif isinstance(val, (unicode, str)):
             newTextVal = val
         if newTextVal in self.availableItems:
+            indexToSet = self.availableItems.index(newTextVal)
+        else:
+            self.availableItems.append(newTextVal)
+            self.widgetQtObj2.clear()
+            self.widgetQtObj2.addItems(self.availableItems)
             indexToSet = self.availableItems.index(newTextVal)
         self.widgetQtObj2.setCurrentIndex(indexToSet)
 
@@ -202,3 +220,8 @@ class Many2one(OdooFieldTemplate):
                 self.editButton.setHidden(True)
             self.valueTemplateChanged()
 
+    def eventFilter(self, object, event):
+        if event.type() == QtCore.QEvent.MouseButtonPress and not self.skipSearch:
+            print 'event filter'
+            self.comboActivated()
+        return super(Many2one, self).eventFilter(object, event)

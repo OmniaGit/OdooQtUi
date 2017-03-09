@@ -102,10 +102,9 @@ class FormView(object):
         mainVLay.setSpacing(3)
         return mainVLay
 
-    @utils.timeit
     def computeArchRecursion(self, parent):
-        mainVLay = self.computeRecursion(parent)
         widgetContents = QtGui.QWidget()
+        mainVLay = self.computeRecursion(parent)
         widgetContents.setStyleSheet('background-color:#ffffff;')
         widgetContents.setLayout(mainVLay)
         scroll = QtGui.QScrollArea()

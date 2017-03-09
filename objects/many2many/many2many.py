@@ -7,6 +7,7 @@ Created on 7 Feb 2017
 from PyQt4 import QtGui, QtCore
 from utils import utils
 from utils import constants
+from functools import partial
 from objects.fieldTemplate import OdooFieldTemplate
 import json
 
@@ -16,10 +17,12 @@ class Many2many(OdooFieldTemplate):
         super(Many2many, self).__init__(xmlField, fieldsDefinition, rpc)
         self.labelQtObj = False
         self.widgetQtObj = False
+        self.viewObj = False
         self.relation = self.fieldPyDefinition.get('relation', '')
         self.canCreate = json.loads(self.fieldXmlAttributes.get('can_create', 'true'))
         self.canWrite = json.loads(self.fieldXmlAttributes.get('can_write', 'true'))
         self.getQtObject()
+        self.evaluatedIds = {}
 
     def getQtObject(self):
         self.mainLay = QtGui.QVBoxLayout()
@@ -31,12 +34,22 @@ class Many2many(OdooFieldTemplate):
         createButt.setStyleSheet(constants.BUTTON_STYLE)
         buttonsLay.addWidget(createButt)
         buttonsLay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum))
-        self.widgetQtObj = QtGui.QTableWidget()
-        self.widgetQtObj.horizontalHeader().setStyleSheet(constants.MANY_2_MANY_H_HEADER)
-        self.widgetQtObj.verticalHeader().setVisible(False)
-        self.widgetQtObj.setToolTip(self.tooltip)
         self.mainLay.addLayout(buttonsLay)
-        self.mainLay.addWidget(self.widgetQtObj)
+
+    def setValue(self, relIds):
+        self.currentValue = relIds
+        from start import MainConnector
+        conn = MainConnector()
+        self.viewObj = conn.initViewObj('tree_list', self.relation, rpcObj=self.rpc)
+        self.viewObj.loadIds(relIds, {}, {}, {}, False)
+        self.widgetQtObj = self.viewObj.treeObj.tableWidget
+        self.fieldsToReadOrdered = self.viewObj.treeObj.orderedFields
+        insertedRowDict = utils.getRowsFromTableWidget(self.widgetQtObj, 'dict', self.fieldsToReadOrdered)
+        self.setRemoveButtons(self.widgetQtObj, insertedRowDict)
+        self.setupTableWidgetLay(self.widgetQtObj)
+        self.mainLay.addLayout(self.viewObj.layout)
+        if self.required:
+            utils.setRequiredBackground(self.widgetQtObj, '')
         self.btnAddAnItem = QtGui.QPushButton('Add an item')
         self.btnAddAnItem.setStyleSheet(constants.BUTTON_ADD_AN_ITEM)
         self.btnAddAnItem.clicked.connect(self.addAnItem)
@@ -45,38 +58,24 @@ class Many2many(OdooFieldTemplate):
         addAnItemLay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum))
         self.mainLay.addLayout(addAnItemLay)
         self.widgetLyQtObject.addLayout(self.mainLay)
-        if self.required:
-            utils.setRequiredBackground(self.widgetQtObj, '')
         if self.translatable:
             self.connectTranslationButton()
             self.widgetLyQtObject.addWidget(self.translateButton)
-
-    def setValue(self, relIds):
-        self.currentValue = relIds
-        from start import MainConnector
-        conn = MainConnector()
-        viewObj = conn.initViewObj('tree_list', self.relation, rpcObj=self.rpc)
-        self.fieldsToReadOrdered = viewObj.treeObj.orderedFields
-        res = self.rpc.read(self.relation, self.fieldsToReadOrdered, relIds)
-        values, flags = self.convertDictToLists(res, self.fieldsToReadOrdered, checkBox=False)
-        self.labelsOrdered = self.getOrderedFieldsStrings(self.fieldsToReadOrdered, viewObj.fields.__dict__)
-        utils.commonPopulateTable(self.labelsOrdered, values, self.widgetQtObj, flags)
-        self.setRemoveButtons(self.widgetQtObj)
-        self.setupTableWidgetLay(self.widgetQtObj)
 
     def setupTableWidgetLay(self, tableWidget):
         tableWidget.resizeColumnsToContents()
         tableWidget.setShowGrid(False)
         tableWidget.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
 
-    def setRemoveButtons(self, tableWidget):
+    def setRemoveButtons(self, tableWidget, insertedRowDict):
         rowCount = tableWidget.rowCount()
         colCount = tableWidget.columnCount()
         for rowCount in range(0, rowCount):
+            rowDict = insertedRowDict.get(rowCount, {})
             btn = QtGui.QPushButton('Remove')
             btn.setStyleSheet(constants.BUTTON_ADD_AN_ITEM)
             tableWidget.setCellWidget(rowCount, colCount - 1, btn)
-            btn.clicked.connect(self.removeItem)
+            btn.clicked.connect(partial(self.removeItem, rowDict))
 
     def getOrderedFieldsStrings(self, orderedFields, fieldsDict):
         labelsOrdered = []
@@ -107,8 +106,23 @@ class Many2many(OdooFieldTemplate):
             flags[0] = QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
         return values, flags
 
-    def removeItem(self):
-        pass
+    def removeItem(self, rowDictVals):
+        rowDictValsDict = utils.getRowsFromTableWidget(self.widgetQtObj, 'dict', self.fieldsToReadOrdered)
+        for recordId, recordVals in self.viewObj.idValsRel.items():
+            localDict = recordVals.copy()
+            if 'id' in localDict:
+                del localDict['id']
+            if rowDictVals == localDict:
+                if recordId in self.currentValue:
+                    self.currentValue.remove(recordId)
+                rowCount = False
+                for rowIndex, rowDict in rowDictValsDict.items():
+                    if rowDictVals == rowDict:
+                        rowCount = rowIndex
+                        break
+                if rowCount is not False:
+                    utils.removeRowFromTableWidget(self.widgetQtObj, rowCount)
+                return
 
     def addAnItem(self):
         def acceptDial():
@@ -117,10 +131,28 @@ class Many2many(OdooFieldTemplate):
         def rejectDial():
             dial.reject()
 
+        def commonMove():
+            currRange = viewObj.currentRange
+            currRangeTuple = tuple(currRange)
+            if currRangeTuple not in self.evaluatedIds.keys():
+                resIds = self.rpc.search(self.relation, [], limit=viewObj.passRange, offset=currRange[-1])
+                self.evaluatedIds[currRangeTuple] = resIds
+            else:
+                resIds = self.evaluatedIds[currRangeTuple]
+            viewObj.loadIds(resIds, {}, {}, {}, viewCheckBoxes=True)
+
+        def toLeft():
+            commonMove()
+
+        def toRight():
+            commonMove()
+
         from start import MainConnector
         conn = MainConnector()
         viewObj = conn.initTreeListViewObject(self.relation, rpcObj=self.rpc, viewCheckBoxes=True)
-        resIds = self.rpc.search(self.relation, [])
+        viewObj.buttToLeft.clicked.connect(toLeft)
+        viewObj.buttToRight.clicked.connect(toRight)
+        resIds = self.rpc.search(self.relation, [], limit=viewObj.currentRange[-1], offset=viewObj.passRange)
         viewObj.loadIds(resIds, {}, {}, {}, viewCheckBoxes=True)
         dial = QtGui.QDialog()
         vlay = QtGui.QVBoxLayout()
@@ -145,15 +177,18 @@ class Many2many(OdooFieldTemplate):
             for checkedIndex in checkedRows:
                 valsToInsert.append(rowsDict.get(checkedIndex, {}))
             values, flags = self.convertDictToLists(valsToInsert, self.fieldsToReadOrdered, checkBox=False)
-            utils.commonPopulateTable(self.labelsOrdered, values, self.widgetQtObj, flags, add=True)
-            self.setRemoveButtons(self.widgetQtObj)
+            utils.commonPopulateTable(self.viewObj.labelsOrdered, values, self.widgetQtObj, flags, add=True)
+            rowsDict = utils.getRowsFromTableWidget(self.widgetQtObj, 'dict', self.fieldsToReadOrdered)
+            self.setRemoveButtons(self.widgetQtObj, rowsDict)
             self.setupTableWidgetLay(self.widgetQtObj)
             for recordId, recordVals in viewObj.idValsRel.items():
-                for rowVals in rowsDict.values():
+                for rowVals in valsToInsert:
                     localDict = recordVals.copy()
-                    del localDict['id']
+                    if 'id' in localDict:
+                        del localDict['id']
                     if localDict == rowVals:
                         self.currentValue.append(recordId)
+                        self.viewObj.idValsRel[recordId] = rowVals
 
     def valueChanged(self):
         self.valueTemplateChanged()

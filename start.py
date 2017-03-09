@@ -22,7 +22,6 @@ class MainConnector(object):
     def __init__(self):
         self.rpc = False
         self.activeLanguage = 'en_US'
-        self.availableLanguages = {'en_US': 'English'}
         self.userGroups = []    # Not Used
         return object.__init__(self)
 
@@ -33,31 +32,11 @@ class MainConnector(object):
         self.rpc = self._getRpcInstance(loginType, user, password, dbName, xmlrpcPort, scheme, xmlrpcServerIP)
         return self.rpc.loginNoUser()
 
-    @utils.timeit
     def loginWithUser(self, user, password, dbName, xmlrpcServerIP='127.0.0.1', xmlrpcPort=8069, scheme='http', loginType='xmlrpc'):
         self.rpc = self._getRpcInstance(loginType, user, password, dbName, xmlrpcPort, scheme, xmlrpcServerIP)
         res = self.rpc.loginWithUser()
-        if res:
-            self.computeAvailableLanguages()
-            self.computeUserLanguage()
-            # Enable if groups are needed
-            # self.computeUserGroups()
+        self.activeLanguage = self.rpc.contextUser.get('lang', 'en_US')
         return res
-
-    def computeUserLanguage(self):
-        res = self.rpc.readSearch('res.users', ['lang'], [('id', '=', self.rpc.userId)])
-        if not res:
-            logging.warning('Unable to get active user language.')
-        for codeDict in res:
-            langCode = codeDict.get('lang', '')
-            self.activeLanguage = langCode
-            break
-
-    def computeAvailableLanguages(self):
-        self.availableLanguages = {}
-        res = self.rpc.readSearch('res.lang', ['name', 'code'], [])
-        for codeDict in res:
-            self.availableLanguages[codeDict.get('code', '')] = codeDict.get('name', '')
 
     def computeUserGroups(self):
         # Not Used
@@ -70,22 +49,17 @@ class MainConnector(object):
         logger = logging.getLogger()
         logger.setLevel(logInteger)
 
-    def evalLanguages(self, activeLanguage='', availableLanguages=[]):
-        if not activeLanguage:
-            activeLanguage = self.activeLanguage
-        if not availableLanguages:
-            availableLanguages = self.availableLanguages
-        return activeLanguage, availableLanguages
-
-    def initTreeListViewObject(self, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', availableLanguages=[], viewCheckBoxes=False):
-        activeLanguage, availableLanguages = self.evalLanguages(activeLanguage, availableLanguages)
+    def initTreeListViewObject(self, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', viewCheckBoxes=False):
+        localLang = self.activeLanguage
+        if activeLanguage:
+            localLang = activeLanguage
         if not rpcObj:
             rpcObj = self.rpc
-        templateViewObj = TemplateTreeListView(rpcObj, activeLanguage, availableLanguages)
+        templateViewObj = TemplateTreeListView(rpcObj, localLang)
         templateViewObj.initViewObj(odooObjectName, viewName, view_id, viewCheckBoxes)
         return templateViewObj
 
-    def initViewObj(self, viewType, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', availableLanguages=[]):
+    def initViewObj(self, viewType, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage=''):
         '''
         @viewType: tree_tree, tree_list, form, search
         @odooObjectName: product.product, mrp.bom, ...
@@ -94,17 +68,19 @@ class MainConnector(object):
 
         tree_list and tree_tree views are always read only
         '''
-        activeLanguage, availableLanguages = self.evalLanguages(activeLanguage, availableLanguages)
+        localLang = self.activeLanguage
+        if activeLanguage:
+            localLang = activeLanguage
         if not rpcObj:
             rpcObj = self.rpc
         if viewType == 'form':
-            templateViewObj = TemplateFormView(rpcObj, activeLanguage, availableLanguages)
+            templateViewObj = TemplateFormView(rpcObj, localLang)
         elif viewType == 'tree_tree':
-            templateViewObj = TemplateTreeTreeView(rpcObj, activeLanguage, availableLanguages)
+            templateViewObj = TemplateTreeTreeView(rpcObj, localLang)
         elif viewType == 'tree_list':
-            templateViewObj = TemplateTreeListView(rpcObj, activeLanguage, availableLanguages)
+            templateViewObj = TemplateTreeListView(rpcObj, localLang)
         elif viewType == 'search':
-            templateViewObj = TemplateSearchView(rpcObj, activeLanguage, availableLanguages)
+            templateViewObj = TemplateSearchView(rpcObj, localLang)
         else:
             utils.logMessage('warning', 'View Type not supported: %r' % (viewType), 'initViewObj')
         templateViewObj.initViewObj(odooObjectName, viewName, view_id)

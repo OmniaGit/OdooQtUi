@@ -23,7 +23,7 @@ import logging
 
 class TemplateView(object):
 
-    def __init__(self, rpcObject, activeLanguageCode='en_US', availableLanguages={'en_US': 'English'}):
+    def __init__(self, rpcObject, activeLanguageCode='en_US'):
         self.rpcObject = rpcObject
         self.arch = ''  # xml view...
         self.model = ''     # 'product.product' / ...
@@ -34,10 +34,8 @@ class TemplateView(object):
         self.mappingInterface = {}   # {'fieldName' : fieldObj}
         self.layout = QtGui.QVBoxLayout()
         self.activeLanguageCode = activeLanguageCode    # 'en_US'
-        self.availableLanguages = availableLanguages    # {'en_US': 'English', ...}
         self.fieldsChanged = {}     # {'fieldName' : fieldObj}
 
-    @utils.timeit
     def initViewObj(self, odooObjectName, viewName='', view_id=False):
         self.fieldsViewDefinition = self.rpcObject.fieldsViewGet(odooObjectName, view_id, self.viewType)
         self.arch = self.fieldsViewDefinition.get('arch', '')
@@ -199,15 +197,12 @@ class TemplateView(object):
         allOnchanges = self.getAllOnChange()
         return self.rpcObject.on_change(self.model, self.activeIds, allVals, fieldName, allOnchanges, {})
 
-    def setLanguage(self, langCode):
-        if langCode not in self.availableLanguages:
-            logging.warning('langCode %r not present in available languages.' % (langCode))
-            return
+    def setUserLanguage(self, langCode):
         self.activeLanguageCode = langCode
-        logging.info('Forced language as %r' % (self.availableLanguages.get(langCode, '')))
 
     def translationDial(self, fieldName):
         fieldName = unicode(fieldName)
+
         def acceptTransDial():
             translationDial.accept()
 
@@ -269,8 +264,8 @@ class TemplateView(object):
 
 class TemplateSearchView(TemplateView):
 
-    def __init__(self, rpcObject, activeLanguageCode='en_US', availableLanguages={'en_US': 'English'}):
-        super(TemplateSearchView, self).__init__(rpcObject, activeLanguageCode, availableLanguages)
+    def __init__(self, rpcObject, activeLanguageCode='en_US'):
+        super(TemplateSearchView, self).__init__(rpcObject, activeLanguageCode)
         self.viewType = 'search'
         self.readonly = True
 
@@ -281,8 +276,8 @@ class TemplateSearchView(TemplateView):
 
 class TemplateFormView(TemplateView):
 
-    def __init__(self, rpcObject, activeLanguageCode='en_US', availableLanguages={'en_US': 'English'}):
-        super(TemplateFormView, self).__init__(rpcObject, activeLanguageCode, availableLanguages)
+    def __init__(self, rpcObject, activeLanguageCode='en_US'):
+        super(TemplateFormView, self).__init__(rpcObject, activeLanguageCode)
         self.requiredFields = []    # ['field1', 'field2']
         self.readonlyFields = []     # ['field1', 'field2']
         self.viewType = 'form'
@@ -300,7 +295,6 @@ class TemplateFormView(TemplateView):
         self.mappingInterface = formObj.globalMapping
         self.addToObject()
 
-    @utils.timeit
     def setDefaults(self):
         self.fieldDefaultVals = self.rpcObject.defaultGet(self.model, self.interfaceFieldsDict.keys())
         for fieldName, fieldVal in self.fieldDefaultVals.items():
@@ -309,8 +303,8 @@ class TemplateFormView(TemplateView):
 
 class TemplateTreeTreeView(TemplateView):
 
-    def __init__(self, rpcObject, activeLanguageCode='en_US', availableLanguages={'en_US': 'English'}):
-        super(TemplateTreeTreeView, self).__init__(rpcObject, activeLanguageCode, availableLanguages)
+    def __init__(self, rpcObject, activeLanguageCode='en_US'):
+        super(TemplateTreeTreeView, self).__init__(rpcObject, activeLanguageCode)
         self.field_parent = ''
         self.viewType = 'tree'
         self.readonly = True
@@ -324,19 +318,38 @@ class TemplateTreeTreeView(TemplateView):
 
 class TemplateTreeListView(TemplateView):
 
-    def __init__(self, rpcObject, activeLanguageCode='en_US', availableLanguages={'en_US': 'English'}):
-        super(TemplateTreeListView, self).__init__(rpcObject, activeLanguageCode, availableLanguages)
+    def __init__(self, rpcObject, activeLanguageCode='en_US'):
+        super(TemplateTreeListView, self).__init__(rpcObject, activeLanguageCode)
         self.viewType = 'tree'
         self.readonly = True
         self.activeIds = []
         self.idValsRel = {}
+        self.currentRange = [0, 40]
+        self.passRange = 40
 
     def initViewObj(self, odooObjectName, viewName, view_id, viewCheckBoxes=False):
         super(TemplateTreeListView, self).initViewObj(odooObjectName, viewName, view_id)
         self.treeObj = TreeViewList(self.arch, self.fieldsNameTypeRel, self.rpcObject, viewCheckBoxes)
-        self.layout = self.treeObj.computeArch()
+        self.layout = QtGui.QVBoxLayout()
+        self.mainLay = self.treeObj.computeArch()
+        switchRecordsLay = QtGui.QHBoxLayout()
+        self.buttToLeft = QtGui.QPushButton('<')
+        self.buttToRight = QtGui.QPushButton('>')
+        switchRecordsLay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum))
+        switchRecordsLay.addWidget(self.buttToLeft)
+        switchRecordsLay.addWidget(self.buttToRight)
+        self.buttToLeft.setStyleSheet(constants.BUTTON_STYLE)
+        self.buttToRight.setStyleSheet(constants.BUTTON_STYLE)
+        self.buttToLeft.clicked.connect(self.switchToLeft)
+        self.buttToRight.clicked.connect(self.switchToRight)
+        self.layout.addLayout(switchRecordsLay, 0)
+        self.layout.addLayout(self.mainLay)
         self.mappingInterface = self.treeObj.globalMapping
         self.addToObject()
+        self.currentRange = [0, 40]
+        self.buttToLeft.setHidden(True)
+        self.treeObj.tableWidget.setStyleSheet(constants.TABLE_LIST_LIST)
+        self.treeObj.tableWidget.setMinimumHeight(200)
 
     def forceRecordVals(self, recordID, valuesDict={}):
         if not valuesDict:
@@ -358,16 +371,18 @@ class TemplateTreeListView(TemplateView):
             return
         self.treeObj.tableWidget
         fields = self.treeObj.orderedFields
-        records = self.rpcObject.read(self.model, fields, objIds, limit=80)
+        if len(objIds) < self.passRange:
+            self.buttToRight.setHidden(True)
+        records = self.rpcObject.read(self.model, fields, objIds)
         flagsDict = {}
         valuesList = []
-        labelsOrdered = []
+        self.labelsOrdered = []
         for fieldName in fields:
             fieldObj = self.fields.__dict__.get(fieldName, None)
             if fieldObj:
-                labelsOrdered.append(fieldObj.labelString)
+                self.labelsOrdered.append(fieldObj.labelString)
             else:
-                labelsOrdered.append(fieldName)
+                self.labelsOrdered.append(fieldName)
         if viewCheckBoxes:
             flagsDict[0] = QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled
         for record in records:
@@ -385,7 +400,7 @@ class TemplateTreeListView(TemplateView):
             valuesList.append(localList)
             recordId = record.get('id', False)
             self.idValsRel[recordId] = record
-        utils.commonPopulateTable(labelsOrdered, valuesList, self.treeObj.tableWidget, flagsDict)
+        utils.commonPopulateTable(self.labelsOrdered, valuesList, self.treeObj.tableWidget, flagsDict)
         self.treeObj.tableWidget.resizeColumnsToContents()
         self.treeObj.tableWidget.setShowGrid(False)
         self.treeObj.tableWidget.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
@@ -396,6 +411,18 @@ class TemplateTreeListView(TemplateView):
         fieldName = unicode(fieldName)
         fieldObj = self.interfaceFieldsDict.get(fieldName)
         self.fieldsChanged[fieldName] = fieldObj
+
+    def switchToRight(self):
+        _start, to = self.currentRange
+        self.currentRange = [to, to + self.passRange]
+        self.buttToLeft.setHidden(False)
+
+    def switchToLeft(self):
+        start, _to = self.currentRange
+        self.currentRange = [start - self.passRange, start]
+        if self.currentRange[0] == 0:
+            self.buttToLeft.setHidden(True)
+        self.buttToRight.setHidden(False)
 
 
 class Objects(object):
