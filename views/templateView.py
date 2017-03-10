@@ -12,14 +12,6 @@ from PyQt4 import QtCore
 import copy
 import logging
 
-# 
-# 
-# class Form(TemplateView):
-#     pass
-# 
-# class Tree(TemplateView):
-#     pass
-
 
 class TemplateView(object):
 
@@ -35,6 +27,7 @@ class TemplateView(object):
         self.layout = QtGui.QVBoxLayout()
         self.activeLanguageCode = activeLanguageCode    # 'en_US'
         self.fieldsChanged = {}     # {'fieldName' : fieldObj}
+        self.formVals = {}
 
     def initViewObj(self, odooObjectName, viewName='', view_id=False):
         self.fieldsViewDefinition = self.rpcObject.fieldsViewGet(odooObjectName, view_id, self.viewType)
@@ -122,8 +115,8 @@ class TemplateView(object):
                     self.skipOnChange = False
                 else:
                     self.skipOnChange = True
-                    formVals = formVals[0]
-                    for fieldName, fieldVal in formVals.items():
+                    self.formVals = formVals[0]
+                    for fieldName, fieldVal in self.formVals.items():
                         self.setValueField(fieldName, fieldVal)
                     self.skipOnChange = False
             for fieldName, fieldVal in forceFieldValues.items():
@@ -290,8 +283,14 @@ class TemplateFormView(TemplateView):
     def initViewObj(self, odooObjectName, viewName, view_id):
         super(TemplateFormView, self).initViewObj(odooObjectName, viewName, view_id)
         self.startingFieldValues = self.fieldsViewDefinition.get('fields', {})
-        formObj = FormView(self.arch, self.fieldsNameTypeRel, self.rpcObject)
-        self.layout = formObj.computeArch()
+        self.formObj = FormView(self.arch, self.fieldsNameTypeRel, self.rpcObject)
+        self.formObj.nootebook_changed_signal.connect(self.updateDataStructure)
+        self.layout = self.formObj.computeArch()
+        self.updateDataStructure(self.formObj)
+
+    def updateDataStructure(self, formObj=None):
+        if formObj is None:
+            formObj = self.formObj
         self.mappingInterface = formObj.globalMapping
         self.addToObject()
 

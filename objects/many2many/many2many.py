@@ -41,7 +41,7 @@ class Many2many(OdooFieldTemplate):
         from start import MainConnector
         conn = MainConnector()
         self.viewObj = conn.initViewObj('tree_list', self.relation, rpcObj=self.rpc)
-        self.viewObj.loadIds(relIds, {}, {}, {}, False)
+        self.viewObj.loadIds(relIds, {}, {}, {}, viewCheckBoxes=False)
         self.widgetQtObj = self.viewObj.treeObj.tableWidget
         self.fieldsToReadOrdered = self.viewObj.treeObj.orderedFields
         insertedRowDict = utils.getRowsFromTableWidget(self.widgetQtObj, 'dict', self.fieldsToReadOrdered)

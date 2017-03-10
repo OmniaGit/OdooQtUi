@@ -3,9 +3,9 @@ Created on 3 Feb 2017
 
 @author: Daniel Smerghetto
 '''
-#import xml.etree.ElementTree as ElementTree
 import xml.etree.cElementTree as ElementTree
 from PyQt4 import QtGui
+from PyQt4 import QtCore
 from objects import button
 from utils import utils
 from objects.selection.selection import Selection
@@ -22,13 +22,32 @@ from utils import constants
 import json
 
 
-class FormView(object):
+class FormView(QtCore.QObject, object):
+
+    nootebook_changed_signal = QtCore.pyqtSignal()
+
     def __init__(self, arch, fieldsNameTypeRel, rpc):
+        super(FormView, self).__init__()
         self.arch = arch
         self.fieldsNameTypeRel = fieldsNameTypeRel
         self.globalMapping = {}
         self.aloneLabels = {}
         self.rpc = rpc
+        self.notebookTabsNotComputed = {}
+
+    def computeNooteBookPage(self, pageIndex=False):
+        values = self.notebookTabsNotComputed.get(pageIndex, {})
+        if values:
+            page = values.get('xmlPage')
+            pageWidget = values.get('pageWidget')
+            childLay = self.computeRecursion(page)
+            lay = pageWidget.layout()
+            if lay is None:
+                pageWidget.setLayout(childLay)
+            else:
+                pageWidget.layout().addChildLayout(childLay)
+            del self.notebookTabsNotComputed[pageIndex]
+            self.nootebook_changed_signal.emit()
 
     def computeRecursion(self, parent):
         # TODO:    div name <div name="button_box" class="oe_button_box">
@@ -57,10 +76,11 @@ class FormView(object):
                 divVlay.addLayout(childLay)
                 mainVLay.addLayout(divVlay)
             elif childTag == 'notebook':
-                tabWidget = QtGui.QTabWidget()
-                tabWidget.setStyleSheet(constants.NOOTEBOOK_STYLE)
-                tabWidgetBar = tabWidget.tabBar()
-                tabWidgetBar.setStyleSheet(constants.NOOTEBOOK_TABBAR_STYLE)
+                self.tabWidget = QtGui.QTabWidget()
+                self.tabWidget.setStyleSheet(constants.NOOTEBOOK_STYLE)
+                self.tabWidgetBar = self.tabWidget.tabBar()
+                self.tabWidgetBar.setStyleSheet(constants.NOOTEBOOK_TABBAR_STYLE)
+                nootebookIndex = 0
                 for page in childElement.getchildren():
                     pageString = page.attrib.get('string', '')
                     invisible = page.attrib.get('invisible', False)
@@ -70,10 +90,16 @@ class FormView(object):
                     pageWidget = QtGui.QWidget()
                     if modifReadonly:
                         pageWidget.setDisabled(True)
-                    childLay = self.computeRecursion(page)
-                    pageWidget.setLayout(childLay)
-                    tabWidget.addTab(pageWidget, pageString)
-                mainVLay.addWidget(tabWidget)
+                    if nootebookIndex == 0:
+                        childLay = self.computeRecursion(page)
+                        pageWidget.setLayout(childLay)
+                    else:
+                        self.notebookTabsNotComputed[nootebookIndex] = {'xmlPage': page, 'pageWidget': pageWidget}
+                    self.tabWidget.addTab(pageWidget, pageString)
+                    nootebookIndex = nootebookIndex + 1
+                mainVLay.addWidget(self.tabWidget)
+                self.tabWidget.computeNooteBookPage = self.computeNooteBookPage
+                self.tabWidget.currentChanged.connect(self.computeNooteBookPage)
             elif childTag == 'group':
                 layout = self.computeGroup(childElement)
                 mainVLay.addLayout(layout)
