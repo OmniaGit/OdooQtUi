@@ -24,9 +24,9 @@ import json
 
 class FormView(QtCore.QObject, object):
 
-    nootebook_changed_signal = QtCore.pyqtSignal()
+    nootebook_changed_signal = QtCore.pyqtSignal(int)
 
-    def __init__(self, arch, fieldsNameTypeRel, rpc):
+    def __init__(self, arch, fieldsNameTypeRel, rpc, useHeader):
         super(FormView, self).__init__()
         self.arch = arch
         self.fieldsNameTypeRel = fieldsNameTypeRel
@@ -34,22 +34,24 @@ class FormView(QtCore.QObject, object):
         self.aloneLabels = {}
         self.rpc = rpc
         self.notebookTabsNotComputed = {}
+        self.nootebookFieldsToCompute = {}  # {nootebookIndex: {'fieldName': fieldObj}}
+        self.useHeader = useHeader
 
     def computeNooteBookPage(self, pageIndex=False):
         values = self.notebookTabsNotComputed.get(pageIndex, {})
         if values:
-            page = values.get('xmlPage')
-            pageWidget = values.get('pageWidget')
-            childLay = self.computeRecursion(page)
-            lay = pageWidget.layout()
-            if lay is None:
-                pageWidget.setLayout(childLay)
-            else:
-                pageWidget.layout().addChildLayout(childLay)
+#             page = values.get('xmlPage')
+#             pageWidget = values.get('pageWidget')
+#             childLay = self.computeRecursion(page)
+#             lay = pageWidget.layout()
+#             if lay is None:
+#                 pageWidget.setLayout(childLay)
+#             else:
+#                 pageWidget.layout().addChildLayout(childLay)
             del self.notebookTabsNotComputed[pageIndex]
-            self.nootebook_changed_signal.emit()
+            self.nootebook_changed_signal.emit(pageIndex)
 
-    def computeRecursion(self, parent):
+    def computeRecursion(self, parent, nootebookIndex=0):
         # TODO:    div name <div name="button_box" class="oe_button_box">
         mainVLay = QtGui.QVBoxLayout()
         for childElement in parent.getchildren():
@@ -61,6 +63,8 @@ class FormView(QtCore.QObject, object):
                     sheetLay.addLayout(layout)
                 mainVLay.addLayout(sheetLay)
             elif childTag == 'header':
+                if not self.useHeader:
+                    continue
                 mapping, layout = self.computeHeader(childElement)
                 if layout:
                     mainVLay.addLayout(layout)
@@ -90,18 +94,17 @@ class FormView(QtCore.QObject, object):
                     pageWidget = QtGui.QWidget()
                     if modifReadonly:
                         pageWidget.setDisabled(True)
-                    if nootebookIndex == 0:
-                        childLay = self.computeRecursion(page)
-                        pageWidget.setLayout(childLay)
-                    else:
+                    if nootebookIndex != 0:
                         self.notebookTabsNotComputed[nootebookIndex] = {'xmlPage': page, 'pageWidget': pageWidget}
+                    childLay = self.computeRecursion(page, nootebookIndex)
+                    pageWidget.setLayout(childLay)
                     self.tabWidget.addTab(pageWidget, pageString)
                     nootebookIndex = nootebookIndex + 1
                 mainVLay.addWidget(self.tabWidget)
                 self.tabWidget.computeNooteBookPage = self.computeNooteBookPage
                 self.tabWidget.currentChanged.connect(self.computeNooteBookPage)
             elif childTag == 'group':
-                layout = self.computeGroup(childElement)
+                layout = self.computeGroup(childElement, nootebookIndex)
                 mainVLay.addLayout(layout)
             elif childTag == 'button':
                 continue
@@ -140,7 +143,7 @@ class FormView(QtCore.QObject, object):
         outLay.addWidget(scroll)
         return outLay
 
-    def computeGroup(self, groupXmlObj):
+    def computeGroup(self, groupXmlObj, nootebookIndex=0):
         def computeCol(val):
             try:
                 if isinstance(val, (str, unicode)):
@@ -173,14 +176,14 @@ class FormView(QtCore.QObject, object):
                     label.setStyleSheet(constants.LABEL_SEPARATOR)
                     globalLay.addWidget(label, rowCount, colCount, 1, childColSpan)
                     rowCount = rowCount + 1
-                layout = self.computeGroup(childElement)
+                layout = self.computeGroup(childElement, nootebookIndex)
                 globalLay.addLayout(layout, rowCount, colCount, 1, childColSpan)
                 colCount = colCount + childColSpan
             elif childTag == 'newline':
                 colCount = 0
                 rowCount = rowCount + 1
             elif childTag == 'strong':
-                layout = self.computeGroup(childElement)
+                layout = self.computeGroup(childElement, nootebookIndex)
                 globalLay.addLayout(layout, rowCount, colCount, 1, childColSpan)
                 colCount = colCount + childColSpan
             elif childTag == 'field':
@@ -201,6 +204,10 @@ class FormView(QtCore.QObject, object):
                     globalLay.addLayout(fieldObj.widgetLyQtObject, rowCount, colCount, 1, childColSpan)
                     self.appendToglobalMapping('field_' + fieldObj.fieldName, fieldObj)
                     colCount = colCount + childColSpan
+                    if nootebookIndex > 0:
+                        if nootebookIndex not in self.nootebookFieldsToCompute.keys():
+                            self.nootebookFieldsToCompute[nootebookIndex] = {}
+                        self.nootebookFieldsToCompute[nootebookIndex][fieldObj.fieldName] = fieldObj
             elif childTag == 'separator':
                 separatorVal = childAttrs.get('string', '')
                 if separatorVal:

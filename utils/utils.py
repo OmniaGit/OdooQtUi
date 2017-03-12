@@ -362,61 +362,6 @@ def exceptionManagement(ex, message=''):
     launchMessage(message + ': %s \n %s' % (ex, traceBackMess))
 
 
-# def setTheme(obj):
-#     for elemObj in obj.__dict__.values():
-#         setSingleTheme(elemObj)
-#     obj.setStyleSheet(constants.BACKGROUND_BASE)
-#     iconsDir = getIconsDirectory()
-#     mainJpgPath = computePath(os.path.join(iconsDir, constants.ICON_MAIN))
-#     icon = QtGui.QIcon(mainJpgPath)
-#     obj.setWindowIcon(icon)
-# 
-# 
-# def setThemeInfo(objList):
-#     for elemObj in objList:
-#         elemObj.setStyleSheet(constants.STYLE_BUTTON_GREEN)
-#         if isinstance(elemObj, QtGui.QPushButton):
-#             elemObj.setFlat(constants.BUTTONS_FLAT)
-# 
-# 
-# def setSingleTheme(elemObj):
-#     if isinstance(elemObj, (QtGui.QPushButton, QtGui.QDialogButtonBox)):
-#         elemObj.setStyleSheet(constants.STYLE_BUTTON_GREEN)
-#         if isinstance(elemObj, QtGui.QPushButton):
-#             elemObj.setFlat(constants.BUTTONS_FLAT)
-#     if isinstance(elemObj, (QtGui.QTabWidget)):
-#         elemObj.setStyleSheet(constants.BACKGROUND_TABWIDGET)
-#     elif isinstance(elemObj, (QtGui.QTextEdit, QtGui.QTextBlock, QtGui.QTreeView, QtGui.QLineEdit, QtGui.QTableView, QtGui.QTableWidget, QtGui.QListView, QtGui.QListWidget, QtGui.QComboBox, QtGui.QSpinBox, QtGui.QDoubleSpinBox)):
-#         elemObj.setStyleSheet(constants.BACKGROUND_TABLES)
-#     elif isinstance(elemObj, (QtGui.QStatusBar, QtGui.QMenuBar)):
-#         elemObj.setStyleSheet('color: rgb(76, 255, 0); font-weight: 900; font: bold 14px;')
-#     elif isinstance(elemObj, (QtGui.QMenu)):
-#         elemObj.setStyleSheet(constants.BACKGROUND_MENU)
-# 
-# 
-# def translate(strToTranslate=''):
-#     try:
-#         DB_INST.connection.cursor()
-#         if DB_INST and strToTranslate:
-#             activeLang = DB_INST.getRowsTable(constants.TABLE_NAME_CONFIGURATIONS, [], [('config_name', '=', 'ACTIVE_LANGUAGE')])
-#             for langObj in activeLang:
-#                 languageCode = langObj.config_value.split(' - ')[0]
-#                 if '\n' in strToTranslate:
-#                     strToTranslate = strToTranslate.replace('\n', ' ')
-#                 transObj = DB_INST.getRowsTable(constants.TABLE_LANGUAGES, [], [('language_code', '=', languageCode),
-#                                                                       ('source', '=', strToTranslate)
-#                                                                       ])
-#                 if not transObj:
-#                     return strToTranslate
-#                 else:
-#                     return unicode(transObj[0].translated)
-#             return strToTranslate
-#         return strToTranslate
-#     except Exception, ex:
-#         logMessage('warning', ex, 'translate')
-#         return strToTranslate
-
-
 def getRowsFromListWidget(listWidget):
     outList = []
     linesCount = listWidget.count()

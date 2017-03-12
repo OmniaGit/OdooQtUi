@@ -8,7 +8,6 @@ import sys
 from PyQt4 import QtGui
 from utils import utils
 from RPC.rpc import RpcConnection
-from views.templateView import TemplateView
 from views.templateView import TemplateSearchView
 from views.templateView import TemplateFormView
 from views.templateView import TemplateTreeTreeView
@@ -59,7 +58,7 @@ class MainConnector(object):
         templateViewObj.initViewObj(odooObjectName, viewName, view_id, viewCheckBoxes)
         return templateViewObj
 
-    def initViewObj(self, viewType, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage=''):
+    def initViewObj(self, viewType, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', useHeader=True):
         '''
         @viewType: tree_tree, tree_list, form, search
         @odooObjectName: product.product, mrp.bom, ...
@@ -74,7 +73,7 @@ class MainConnector(object):
         if not rpcObj:
             rpcObj = self.rpc
         if viewType == 'form':
-            templateViewObj = TemplateFormView(rpcObj, localLang)
+            templateViewObj = TemplateFormView(rpcObj, localLang, useHeader)
         elif viewType == 'tree_tree':
             templateViewObj = TemplateTreeTreeView(rpcObj, localLang)
         elif viewType == 'tree_list':
@@ -126,36 +125,36 @@ if __name__ == '__main__':
     connectorObj = MainConnector()
     connectorObj.loginWithUser(user, password, dbName, xmlrpcServerIP, xmlrpcPort, scheme, loginType)
 
-    #dialog = QtGui.QDialog(None, QtCore.Qt.WindowSystemMenuHint | QtCore.Qt.WindowTitleHint)
+    # dialog = QtGui.QDialog(None, QtCore.Qt.WindowSystemMenuHint | QtCore.Qt.WindowTitleHint)
     dialog = QtGui.QDialog()
-    templateViewObj = connectorObj.initViewObj('form', 'product.product', '', False)
+    templateViewObj = connectorObj.initViewObj('form', 'product.product', '', False, useHeader=False)
     qtInterface = templateViewObj.QtInterface
-    #objIds = [77540]
+    # objIds = [77540]
     objIds = [127]
-    #startingFieldValues = {'description': 'non-settare'}
+    # startingFieldValues = {'description': 'non-settare'}
     startingFieldValues = {}
-    readonlyFields = {}# {'description': True}
-    invisibleFields = {}# {'description': True, 'state': True}
-    
+    readonlyFields = {}     # {'description': True}
+    invisibleFields = {}    # {'description': True, 'state': True}
+
     templateViewObj.loadIds(objIds, startingFieldValues, readonlyFields, invisibleFields)
-    #templateViewObj.setReadonly(True)
-    #dialog.setWindowFlags(QtCore.Qt.FramelessWindowHint)
+    # templateViewObj.setReadonly(True)
+    # dialog.setWindowFlags(QtCore.Qt.FramelessWindowHint)
     dialog.setLayout(qtInterface)
     dialog.setStyleSheet('background-color:#893b74;')
     dialog.resize(1200, 600)
     dialog.move(100, 100)
-    #dialog.adjustSize()
+    # dialog.adjustSize()
     dialog.show()
     te = time.time()
-    print 'TOTAL = %2.2f sec' % (te-ts)
+    print 'TOTAL = %2.2f sec' % (te - ts)
     dialog.exec_()
-    
+
     # Odoo calls
     usersObj = 'res.users'
     partnerObj = 'res.partner'
     prodProdObj = 'product.product'
 #     connectorObj.rpc.fieldsViewGet(prodProdObj, False, 'form')
-#     
+#
 #     print 'Search result: %r' % (connectorObj.rpc.search(usersObj, []))
 #     print 'Read result: %r' % (connectorObj.rpc.read(usersObj, [], [1]))
 #     print 'Read search result: %r' % (unicode(connectorObj.rpc.readSearch(usersObj, [], [])))

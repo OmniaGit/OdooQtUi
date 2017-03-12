@@ -197,7 +197,7 @@ class Many2one(OdooFieldTemplate):
             dialog.resize(800, dialog.height())
             if dialog.exec_() == QtGui.QDialog.Accepted:
                 valuesToCreate = {}
-                for fieldName, fieldObj in viewObj.fields.__dict__.items():
+                for fieldName, fieldObj in viewObj.interfaceFieldsDict:
                     valuesToCreate[fieldName] = fieldObj.value
                 res = self.rpc.create(self.relation, valuesToCreate)
                 if res:

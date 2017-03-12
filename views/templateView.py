@@ -97,36 +97,10 @@ class TemplateView(object):
                 buttonObj.setInvisible(utils.evaluateAttrs(fieldDict, invisibleModif))
 
     @utils.timeit
-    def loadIds(self, objIds=[], forceFieldValues={}, readonlyFields={}, invisibleFields={}):
+    def loadIds(self, objIds=[], forceFieldValues={}, readonlyFields={}, invisibleFields={}, fieldsToRead=[], skipRemoveNootebook=False):
         self.activeIds = objIds
-        if self.viewType in ['form', 'search'] and len(objIds) > 1:
-            utils.launchMessage('You cannot load multiple ids on form or search view!', 'warning')
-            return False
-        if self.viewType == 'form':
-            formId = False
-            if objIds:
-                formId = objIds[0]
-                formVals = self.rpcObject.read(self.model, self.interfaceFieldsDict.keys(), [formId], {'lang': self.activeLanguageCode})
-                if not formVals:
-                    utils.logMessage('warning', 'No values found for id %r and model %r' % (formId, self.model), 'loadIds')
-                    formId = False
-                    self.skipOnChange = True
-                    self.setDefaults()
-                    self.skipOnChange = False
-                else:
-                    self.skipOnChange = True
-                    self.formVals = formVals[0]
-                    for fieldName, fieldVal in self.formVals.items():
-                        self.setValueField(fieldName, fieldVal)
-                    self.skipOnChange = False
-            for fieldName, fieldVal in forceFieldValues.items():
-                self.setValueField(fieldName, fieldVal)
-            self._setFieldModifiers()
-            for readonlyField, fieldAttr in readonlyFields.items():
-                self.setReadonlyField(readonlyField, fieldAttr)
-            for invisibleField, fieldAttr in invisibleFields.items():
-                self.setInvisibleField(invisibleField, fieldAttr)
-            self._setButtonsModifiers()
+        if not fieldsToRead:
+            fieldsToRead = self.interfaceFieldsDict.keys()
         self.objectsInit = copy.copy(self.fields)
 
     def isReadonly(self):
@@ -269,7 +243,7 @@ class TemplateSearchView(TemplateView):
 
 class TemplateFormView(TemplateView):
 
-    def __init__(self, rpcObject, activeLanguageCode='en_US'):
+    def __init__(self, rpcObject, activeLanguageCode='en_US', useHeader=True):
         super(TemplateFormView, self).__init__(rpcObject, activeLanguageCode)
         self.requiredFields = []    # ['field1', 'field2']
         self.readonlyFields = []     # ['field1', 'field2']
@@ -279,25 +253,73 @@ class TemplateFormView(TemplateView):
         self.skipOnChange = False
         self.readonly = False
         self.activeIds = []     # must be one
+        self.useHeader = useHeader
 
     def initViewObj(self, odooObjectName, viewName, view_id):
         super(TemplateFormView, self).initViewObj(odooObjectName, viewName, view_id)
         self.startingFieldValues = self.fieldsViewDefinition.get('fields', {})
-        self.formObj = FormView(self.arch, self.fieldsNameTypeRel, self.rpcObject)
+        self.formObj = FormView(self.arch, self.fieldsNameTypeRel, self.rpcObject, self.useHeader)
         self.formObj.nootebook_changed_signal.connect(self.updateDataStructure)
         self.layout = self.formObj.computeArch()
-        self.updateDataStructure(self.formObj)
-
-    def updateDataStructure(self, formObj=None):
-        if formObj is None:
-            formObj = self.formObj
-        self.mappingInterface = formObj.globalMapping
+        self.mappingInterface = self.formObj.globalMapping
         self.addToObject()
+
+    def updateDataStructure(self, pageIndex=0):
+        print 'compute Nootebook fields: %r' % (pageIndex)
+        if pageIndex > 0 and pageIndex in self.formObj.nootebookFieldsToCompute:
+            dictFieldsToUpdate = self.formObj.nootebookFieldsToCompute[pageIndex]
+            fieldNamesToUpdate = dictFieldsToUpdate.keys()
+            self.loadIds(self.activeIds, {}, {}, {}, fieldNamesToUpdate, True)
 
     def setDefaults(self):
         self.fieldDefaultVals = self.rpcObject.defaultGet(self.model, self.interfaceFieldsDict.keys())
         for fieldName, fieldVal in self.fieldDefaultVals.items():
             self.setValueField(fieldName, fieldVal)
+
+    def removeNootebookFields(self, fieldsToRead):
+        mainDict = {}
+        for fieldsDict in self.formObj.nootebookFieldsToCompute.values():
+            mainDict.update(fieldsDict)
+        for fieldName in mainDict.keys():
+            if fieldName in fieldsToRead:
+                fieldsToRead.remove(fieldName)
+        return fieldsToRead
+
+    @utils.timeit
+    def loadIds(self, objIds=[], forceFieldValues={}, readonlyFields={}, invisibleFields={}, fieldsToRead=[], skipRemoveNootebook=False):
+        self.activeIds = objIds
+        if not fieldsToRead:
+            fieldsToRead = self.interfaceFieldsDict.keys()
+        if not skipRemoveNootebook:
+            fieldsToRead = self.removeNootebookFields(fieldsToRead)
+        if len(objIds) > 1:
+            utils.launchMessage('You cannot load multiple ids on form or search view!', 'warning')
+            return False
+        formId = False
+        if objIds:
+            formId = objIds[0]
+            formVals = self.rpcObject.read(self.model, fieldsToRead, [formId], {'lang': self.activeLanguageCode})
+            if not formVals:
+                utils.logMessage('warning', 'No values found for id %r and model %r' % (formId, self.model), 'loadIds')
+                formId = False
+                self.skipOnChange = True
+                self.setDefaults()
+                self.skipOnChange = False
+            else:
+                self.skipOnChange = True
+                self.formVals = formVals[0]
+                for fieldName, fieldVal in self.formVals.items():
+                    self.setValueField(fieldName, fieldVal)
+                self.skipOnChange = False
+        for fieldName, fieldVal in forceFieldValues.items():
+            self.setValueField(fieldName, fieldVal)
+        self._setFieldModifiers()
+        for readonlyField, fieldAttr in readonlyFields.items():
+            self.setReadonlyField(readonlyField, fieldAttr)
+        for invisibleField, fieldAttr in invisibleFields.items():
+            self.setInvisibleField(invisibleField, fieldAttr)
+        self._setButtonsModifiers()
+        self.objectsInit = copy.copy(self.fields)
 
 
 class TemplateTreeTreeView(TemplateView):
@@ -357,7 +379,7 @@ class TemplateTreeListView(TemplateView):
             utils.logMessage('warning', 'Record with ID %r not found in rel dict %r' % (recordID, self.idValsRel), 'forceRecordVals')
             return
         for fieldName in valuesDict:
-            fieldObj = self.fields.__dict__.get(fieldName, None)
+            fieldObj = self.interfaceFieldsDict.get(fieldName, None)
             if not fieldObj:
                 utils.logMessage('warning', 'Field object %r not found in fields' % (fieldName), 'forceRecordVals')
                 return
@@ -377,7 +399,7 @@ class TemplateTreeListView(TemplateView):
         valuesList = []
         self.labelsOrdered = []
         for fieldName in fields:
-            fieldObj = self.fields.__dict__.get(fieldName, None)
+            fieldObj = self.interfaceFieldsDict.get(fieldName, None)
             if fieldObj:
                 self.labelsOrdered.append(fieldObj.labelString)
             else:
@@ -392,7 +414,7 @@ class TemplateTreeListView(TemplateView):
                     if len(val) < 1:
                         val = ''
                     val = val[1]
-                fieldObj = self.fields.__dict__.get(fieldName, None)
+                fieldObj = self.interfaceFieldsDict.get(fieldName, None)
                 fieldObj.setValue(val)
                 record[fieldName] = val
                 localList.append(unicode(val))
