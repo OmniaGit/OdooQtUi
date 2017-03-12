@@ -204,7 +204,7 @@ class FormView(QtCore.QObject, object):
                     globalLay.addLayout(fieldObj.widgetLyQtObject, rowCount, colCount, 1, childColSpan)
                     self.appendToglobalMapping('field_' + fieldObj.fieldName, fieldObj)
                     colCount = colCount + childColSpan
-                    if nootebookIndex > 0 and fieldObj.fieldType in ['many2many', 'many2one']:
+                    if nootebookIndex > 0 and fieldObj.fieldType in ['many2many', 'one2many']:
                         if nootebookIndex not in self.nootebookFieldsToCompute.keys():
                             self.nootebookFieldsToCompute[nootebookIndex] = {}
                         self.nootebookFieldsToCompute[nootebookIndex][fieldObj.fieldName] = fieldObj
