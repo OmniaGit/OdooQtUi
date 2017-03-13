@@ -85,7 +85,6 @@ class TreeViewList(object):
         self.widgetContents = QtGui.QWidget()
         self.widgetContents.setStyleSheet('background-color:#ffffff;')
         self.widgetContents.setLayout(mainVLay)
-        self.scroll = QtGui.QScrollArea()
         outLay = QtGui.QVBoxLayout()
         outLay.addWidget(self.widgetContents)
         return outLay
