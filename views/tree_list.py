@@ -82,15 +82,12 @@ class TreeViewList(object):
 
     def computeArchRecursion(self, parent):
         mainVLay = self.computeRecursion(parent)
-        widgetContents = QtGui.QWidget()
-        widgetContents.setStyleSheet('background-color:#ffffff;')
-        widgetContents.setLayout(mainVLay)
-        scroll = QtGui.QScrollArea()
-        scroll.setStyleSheet(constants.TABLE_LIST_LIST)
-        scroll.setWidget(widgetContents)
-        scroll.setWidgetResizable(True)
+        self.widgetContents = QtGui.QWidget()
+        self.widgetContents.setStyleSheet('background-color:#ffffff;')
+        self.widgetContents.setLayout(mainVLay)
+        self.scroll = QtGui.QScrollArea()
         outLay = QtGui.QVBoxLayout()
-        outLay.addWidget(scroll)
+        outLay.addWidget(self.widgetContents)
         return outLay
 
     def computeArch(self):

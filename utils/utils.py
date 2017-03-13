@@ -501,6 +501,12 @@ def evaluateBoolean(val):
         if invisible:
             return True
         return False
+    elif isinstance(val, (int)):
+        if val == 0:
+            return False
+        else:
+            return True
+
 
 def evaluateModifiers(modifiers):
     if isinstance(modifiers, (unicode, str)):

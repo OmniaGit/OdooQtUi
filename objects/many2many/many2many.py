@@ -30,9 +30,9 @@ class Many2many(OdooFieldTemplate):
         self.labelQtObj = QtGui.QLabel(self.labelString)
         self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
         buttonsLay.addWidget(self.labelQtObj)
-        createButt = QtGui.QPushButton('Create')
-        createButt.setStyleSheet(constants.BUTTON_STYLE)
-        buttonsLay.addWidget(createButt)
+        self.createButt = QtGui.QPushButton('Create')
+        self.createButt.setStyleSheet(constants.BUTTON_STYLE)
+        buttonsLay.addWidget(self.createButt)
         buttonsLay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum))
         self.mainLay.addLayout(buttonsLay)
 
@@ -195,8 +195,23 @@ class Many2many(OdooFieldTemplate):
 
     def setReadonly(self, val=False):
         self.btnAddAnItem.setDisabled(val)
+        self.widgetQtObj.setDisabled(val)
+        self.viewObj.treeObj.tableWidget.setDisabled(val)
+        self.viewObj.buttToLeft.setDisabled(val)
+        self.viewObj.buttToRight.setDisabled(val)
+        self.viewObj.treeObj.widgetContents.setDisabled(val)
+        self.viewObj.treeObj.scroll.setDisabled(val)
+        self.createButt.setDisabled(val)
         super(Many2many, self).setReadonly(val)
 
     def setInvisible(self, val=False):
         self.btnAddAnItem.setHidden(val)
+        self.labelQtObj.setHidden(val)
+        self.widgetQtObj.setHidden(val)
+        self.viewObj.buttToLeft.setHidden(val)
+        self.viewObj.buttToRight.setHidden(val)
+        self.viewObj.treeObj.tableWidget.setHidden(val)
+        self.viewObj.treeObj.widgetContents.setHidden(val)
+        self.viewObj.treeObj.scroll.setHidden(val)
+        self.createButt.setHidden(val)
         super(Many2many, self).setInvisible(val)

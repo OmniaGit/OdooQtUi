@@ -101,16 +101,16 @@ if __name__ == '__main__':
     xmlrpcPort = 8069
     user = 'admin'
     password = 'admin'
-    dbName = 'Maus_1'
+    dbName = 'all_v9_2'
     loginType = 'xmlrpc'
 
-    scheme = 'http'
-    xmlrpcServerIP = 'www.odooplm.cloud'
-    xmlrpcPort = 8066
-    user = 'odooplm'
-    password = 'odooplm'
-    dbName = 'odoov9_0'
-    loginType = 'xmlrpc'
+#     scheme = 'http'
+#     xmlrpcServerIP = 'www.odooplm.cloud'
+#     xmlrpcPort = 8066
+#     user = 'odooplm'
+#     password = 'odooplm'
+#     dbName = 'odoov9_0'
+#     loginType = 'xmlrpc'
 
 #     scheme = 'http'
 #     xmlrpcServerIP = '127.0.0.1'
@@ -127,10 +127,10 @@ if __name__ == '__main__':
 
     # dialog = QtGui.QDialog(None, QtCore.Qt.WindowSystemMenuHint | QtCore.Qt.WindowTitleHint)
     dialog = QtGui.QDialog()
-    templateViewObj = connectorObj.initViewObj('search', 'product.product', '', False, useHeader=False)
+    templateViewObj = connectorObj.initViewObj('form', 'sale.order', '', False, useHeader=False)
     qtInterface = templateViewObj.QtInterface
     # objIds = [77540]
-    objIds = [127]
+    objIds = [1]
     # startingFieldValues = {'description': 'non-settare'}
     startingFieldValues = {}
     readonlyFields = {}     # {'description': True}
