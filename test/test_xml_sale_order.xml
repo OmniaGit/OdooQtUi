@@ -1,0 +1,90 @@
+<form string="Sales Order">
+                <header>
+                    <button name="374" string="Create Invoice" type="action" class="btn-primary" attrs="{'invisible': [('invoice_status', '!=', 'to invoice')]}" modifiers="{&quot;invisible&quot;: [[&quot;invoice_status&quot;, &quot;!=&quot;, &quot;to invoice&quot;]]}"/>
+                    <button name="374" string="Create Invoice" type="action" context="{'default_advance_payment_method': 'percentage'}" attrs="{'invisible': ['|',('invoice_status', '!=', 'no'), ('state', '!=', 'sale')]}" modifiers="{&quot;invisible&quot;: [&quot;|&quot;, [&quot;invoice_status&quot;, &quot;!=&quot;, &quot;no&quot;], [&quot;state&quot;, &quot;!=&quot;, &quot;sale&quot;]]}"/>
+                    <button name="action_quotation_send" string="Send by Email" type="object" states="draft" class="btn-primary" modifiers="{&quot;invisible&quot;: [[&quot;state&quot;, &quot;not in&quot;, [&quot;draft&quot;]]]}"/>
+                    <button name="action_quotation_send" string="Send by Email" type="object" states="sent,sale" modifiers="{&quot;invisible&quot;: [[&quot;state&quot;, &quot;not in&quot;, [&quot;sent&quot;, &quot;sale&quot;]]]}"/>
+                    <button name="print_quotation" string="Print" type="object" states="draft" class="btn-primary" modifiers="{&quot;invisible&quot;: [[&quot;state&quot;, &quot;not in&quot;, [&quot;draft&quot;]]]}"/>
+                    <button name="print_quotation" string="Print" type="object" states="sent,sale" modifiers="{&quot;invisible&quot;: [[&quot;state&quot;, &quot;not in&quot;, [&quot;sent&quot;, &quot;sale&quot;]]]}"/>
+                    <button name="action_confirm" states="sent" string="Confirm Sale" class="btn-primary" type="object" context="{'show_sale': True}" modifiers="{&quot;invisible&quot;: [[&quot;state&quot;, &quot;not in&quot;, [&quot;sent&quot;]]]}"/>
+                    <button name="action_confirm" states="draft" string="Confirm Sale" type="object" context="{'show_sale': True}" modifiers="{&quot;invisible&quot;: [[&quot;state&quot;, &quot;not in&quot;, [&quot;draft&quot;]]]}"/>
+                    <button name="action_cancel" states="draft,sent,sale" type="object" string="Cancel" modifiers="{&quot;invisible&quot;: [[&quot;state&quot;, &quot;not in&quot;, [&quot;draft&quot;, &quot;sent&quot;, &quot;sale&quot;]]]}"/>
+                    <button name="action_draft" states="cancel" type="object" string="Set to Quotation" modifiers="{&quot;invisible&quot;: [[&quot;state&quot;, &quot;not in&quot;, [&quot;cancel&quot;]]]}"/>
+                    <button name="action_done" type="object" string="Set to Done" states="sale" help="If a sale order is done, you cannot modify it manually anymore. However, you will still be able to invoice or deliver. This is used to freeze the sale order." modifiers="{&quot;invisible&quot;: [[&quot;state&quot;, &quot;not in&quot;, [&quot;sale&quot;]]]}"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,sent,sale,done" on_change="1" modifiers="{&quot;readonly&quot;: true}"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <field name="picking_ids" invisible="1" can_create="true" can_write="true" modifiers="{&quot;invisible&quot;: true, &quot;readonly&quot;: true}"/>
+                       <button type="object" name="action_view_delivery" class="oe_stat_button" icon="fa-truck" attrs="{'invisible': [('delivery_count', '=', 0)]}" modifiers="{&quot;invisible&quot;: [[&quot;delivery_count&quot;, &quot;=&quot;, 0]]}">
+                           <field name="delivery_count" widget="statinfo" string="Delivery" modifiers="{&quot;readonly&quot;: true}"/>
+                       </button>
+                    <button name="action_view_invoice" type="object" class="oe_stat_button" icon="fa-pencil-square-o" attrs="{'invisible': [('invoice_count', '=', 0)]}" modifiers="{&quot;invisible&quot;: [[&quot;invoice_count&quot;, &quot;=&quot;, 0]]}">
+                            <field name="invoice_count" widget="statinfo" string="Invoices" modifiers="{&quot;readonly&quot;: true}"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1" modifiers="{&quot;readonly&quot;: true, &quot;required&quot;: true}"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="partner_id" domain="[('customer','=',True)]" context="{'search_default_customer':1, 'show_address': 1}" options="{&quot;always_reload&quot;: True}" on_change="1" can_create="true" can_write="true" modifiers="{&quot;readonly&quot;: [[&quot;state&quot;, &quot;not in&quot;, [&quot;draft&quot;, &quot;sent&quot;]]], &quot;required&quot;: true}"/>
+                            <field name="partner_invoice_id" context="{'default_type':'invoice'}" can_create="true" can_write="true" invisible="1" modifiers="{&quot;invisible&quot;: true, &quot;readonly&quot;: [[&quot;state&quot;, &quot;not in&quot;, [&quot;draft&quot;, &quot;sent&quot;]]], &quot;required&quot;: true}"/>
+                            <field name="partner_shipping_id" context="{'default_type':'delivery'}" on_change="1" can_create="true" can_write="true" invisible="1" modifiers="{&quot;invisible&quot;: true, &quot;readonly&quot;: [[&quot;state&quot;, &quot;not in&quot;, [&quot;draft&quot;, &quot;sent&quot;]]], &quot;required&quot;: true}"/>
+                            <field name="project_id" context="{'default_partner_id':partner_invoice_id, 'default_name':name}" can_create="true" can_write="true" invisible="1" modifiers="{&quot;invisible&quot;: true, &quot;readonly&quot;: [[&quot;state&quot;, &quot;not in&quot;, [&quot;draft&quot;, &quot;sent&quot;]]]}"/>
+                        </group>
+                        <group>
+                            <field name="date_order" invisible="1" modifiers="{&quot;invisible&quot;: true, &quot;readonly&quot;: [[&quot;state&quot;, &quot;not in&quot;, [&quot;draft&quot;, &quot;sent&quot;]]], &quot;required&quot;: true}"/>
+                            <field name="pricelist_id" on_change="1" can_create="true" can_write="true" invisible="1" modifiers="{&quot;invisible&quot;: true, &quot;readonly&quot;: [[&quot;state&quot;, &quot;not in&quot;, [&quot;draft&quot;, &quot;sent&quot;]]], &quot;required&quot;: true}"/>
+                            <field name="currency_id" invisible="1" can_create="true" can_write="true" modifiers="{&quot;invisible&quot;: true, &quot;readonly&quot;: true, &quot;required&quot;: true}"/>
+                            <field name="validity_date" modifiers="{&quot;readonly&quot;: [[&quot;state&quot;, &quot;not in&quot;, [&quot;draft&quot;, &quot;sent&quot;]]]}"/>
+                            <field name="payment_term_id" options="{'no_create': True}" can_create="true" can_write="true" modifiers="{}"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Order Lines">
+                            <field name="order_line" mode="tree,kanban" attrs="{'readonly': [('state', 'in', ('done','cancel'))]}" on_change="1" modifiers="{&quot;readonly&quot;: [[&quot;state&quot;, &quot;in&quot;, [&quot;done&quot;, &quot;cancel&quot;]]]}">
+                                </field>
+                            <group class="oe_subtotal_footer oe_right" colspan="2" name="sale_total">
+                                <field name="amount_untaxed" widget="monetary" options="{'currency_field': 'currency_id'}" modifiers="{&quot;readonly&quot;: true}"/>
+                                <field name="amount_tax" widget="monetary" options="{'currency_field': 'currency_id'}" modifiers="{&quot;readonly&quot;: true}"/>
+                                <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                    <label for="amount_total"/>
+                                    <button name="button_dummy" states="draft,sent" string="(update)" type="object" class="oe_edit_only oe_link" modifiers="{&quot;invisible&quot;: [[&quot;state&quot;, &quot;not in&quot;, [&quot;draft&quot;, &quot;sent&quot;]]]}"/>
+                                </div>
+                                <field name="amount_total" nolabel="1" class="oe_subtotal_footer_separator" widget="monetary" options="{'currency_field': 'currency_id'}" modifiers="{&quot;readonly&quot;: true}"/>
+                            </group>
+                            <field name="note" class="oe_inline" placeholder="Setup default terms and conditions in your company settings." modifiers="{}"/>
+                            <div class="oe_clear"/>
+                        </page>
+                        <page string="Other Information">
+                            <group>
+                                <group string="Shipping Information" name="sale_shipping">
+                            <field name="warehouse_id" options="{'no_create': True}" on_change="1" can_create="true" can_write="true" modifiers="{&quot;readonly&quot;: [[&quot;state&quot;, &quot;not in&quot;, [&quot;draft&quot;, &quot;sent&quot;]]], &quot;required&quot;: true}"/>
+                            <field name="incoterm" widget="selection" can_create="true" can_write="true" modifiers="{}"/>
+                            <field name="picking_policy" required="True" modifiers="{&quot;readonly&quot;: [[&quot;state&quot;, &quot;not in&quot;, [&quot;draft&quot;, &quot;sent&quot;]]], &quot;required&quot;: true}"/>
+                        </group>
+                    <group string="Sales Information" name="sales_person">
+                                    <field name="user_id" context="{'default_groups_ref': ['base.group_user', 'base.group_partner_manager', 'account.group_account_invoice', 'base.group_sale_salesman_all_leads']}" can_create="true" can_write="true" modifiers="{}"/>
+                                    <field name="team_id" options="{'no_create': True}" can_create="true" can_write="true" modifiers="{}"/>
+                                    <field name="client_order_ref" modifiers="{}"/>
+                                    <field name="company_id" options="{'no_create': True}" can_create="true" can_write="true" invisible="1" modifiers="{&quot;invisible&quot;: true}"/>
+                                </group>
+                                <group name="sale_pay" string="Invoicing">
+                                    <field name="fiscal_position_id" options="{'no_create': True}" on_change="1" can_create="true" can_write="true" modifiers="{}"/>
+                                    <field name="invoice_status" attrs="{'invisible': [('state', 'not in', ('sale','done'))]}" modifiers="{&quot;invisible&quot;: [[&quot;state&quot;, &quot;not in&quot;, [&quot;sale&quot;, &quot;done&quot;]]], &quot;readonly&quot;: true}"/>
+                                </group>
+                                <group string="Reporting" name="technical" invisible="1" modifiers="{&quot;invisible&quot;: true}">
+                                    <field name="origin" invisible="1" modifiers="{&quot;invisible&quot;: true}"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers" modifiers="{}"/>
+                    <field name="message_ids" widget="mail_thread" modifiers="{}" options="{'display_log_button': True, 'emoji_list': [{'source': u':)', 'substitution': u&quot;&lt;img src='/mail/static/src/img/smiley/smile.png'/&gt;&quot;, 'id': 1, 'description': u'Emoji Smile'}, {'source': u':(', 'substitution': u&quot;&lt;img src='/mail/static/src/img/smiley/sad.png'/&gt;&quot;, 'id': 2, 'description': u'Emoji Sad'}, {'source': u':D', 'substitution': u&quot;&lt;img src='/mail/static/src/img/smiley/laugh.png'/&gt;&quot;, 'id': 3, 'description': u'Emoji Laugh'}, {'source': u';)', 'substitution': u&quot;&lt;img src='/mail/static/src/img/smiley/wink.png'/&gt;&quot;, 'id': 4, 'description': u'Emoji Wink'}, {'source': u'O_0', 'substitution': u&quot;&lt;img src='/mail/static/src/img/smiley/stuck_out_tongue.png'/&gt;&quot;, 'id': 5, 'description': u'Emoji Stuck Out Tongue Winking Eye'}, {'source': u':@', 'substitution': u&quot;&lt;img src='/mail/static/src/img/smiley/scream.png'/&gt;&quot;, 'id': 6, 'description': u'Emoji Scream'}, {'source': u':|', 'substitution': u&quot;&lt;img src='/mail/static/src/img/smiley/neutral.png'/&gt;&quot;, 'id': 7, 'description': u'Emoji Speechless/Neutral face'}, {'source': u':p', 'substitution': u&quot;&lt;img src='/mail/static/src/img/smiley/yum.png'/&gt;&quot;, 'id': 8, 'description': u'Emoji Cheeky'}, {'source': u':/', 'substitution': u&quot;&lt;img src='/mail/static/src/img/smiley/confused.png'/&gt;&quot;, 'id': 9, 'description': u'Emoji Confused'}, {'source': u':O', 'substitution': u&quot;&lt;img src='/mail/static/src/img/smiley/open_mouth.png'/&gt;&quot;, 'id': 10, 'description': u'Emoji Open Mouth'}, {'source': u'&lt;3', 'substitution': u&quot;&lt;img src='/mail/static/src/img/smiley/heart.png'/&gt;&quot;, 'id': 11, 'description': u'Emoji Heart'}, {'source': u':+1', 'substitution': u&quot;&lt;img src='/mail/static/src/img/smiley/thumbsup.png'/&gt;&quot;, 'id': 12, 'description': u'Emoji Thumbs Up'}, {'source': u':-1', 'substitution': u&quot;&lt;img src='/mail/static/src/img/smiley/thumbsdown.png'/&gt;&quot;, 'id': 13, 'description': u'Emoji Thumbs Down'}, {'source': u':kitten', 'substitution': u&quot;&lt;img src='/mail/static/src/img/smiley/cat.png'/&gt;&quot;, 'id': 14, 'description': u'Emoji Kitten'}, {'source': u':pinky', 'substitution': u&quot;&lt;img src='/mail/static/src/img/smiley/pinky.png'/&gt;&quot;, 'id': 15, 'description': u'Emoji Pinky'}, {'source': u':musti', 'substitution': u&quot;&lt;img src='/mail/static/src/img/smiley/musti.png'/&gt;&quot;, 'id': 16, 'description': u'Emoji Musti'}, {'source': u':turban', 'substitution': u&quot;&lt;img src='/mail/static/src/img/smiley/man_with_turban.png'/&gt;&quot;, 'id': 17, 'description': u'Emoji Man With Turban'}, {'source': u':troll', 'substitution': u&quot;&lt;img src='/mail/static/src/img/smiley/trollface.png'/&gt;&quot;, 'id': 18, 'description': u'Emoji Troll Face'}, {'source': u':boar', 'substitution': u&quot;&lt;img src='/mail/static/src/img/smiley/boar.png'/&gt;&quot;, 'id': 19, 'description': u'Emoji Boar'}, {'source': u':poop', 'substitution': u&quot;&lt;img src='/mail/static/src/img/smiley/poop.png'/&gt;&quot;, 'id': 20, 'description': u'Emoji Poop'}, {'source': u':cookie', 'substitution': u&quot;&lt;img src='/mail/static/src/img/smiley/cookie.png'/&gt;&quot;, 'id': 21, 'description': u'Emoji Cookie'}, {'source': u':postal_horn', 'substitution': u&quot;&lt;img src='/mail/static/src/img/smiley/postal_horn.png'/&gt;&quot;, 'id': 22, 'description': u'Emoji Postal Horn'}, {'source': u':ghost', 'substitution': u&quot;&lt;img src='/mail/static/src/img/smiley/ghost.png'/&gt;&quot;, 'id': 23, 'description': u'Emoji Ghost'}, {'source': u':beer', 'substitution': u&quot;&lt;img src='/mail/static/src/img/smiley/beer.png'/&gt;&quot;, 'id': 24, 'description': u'Emoji Beer'}, {'source': u':man', 'substitution': u&quot;&lt;img src='/mail/static/src/img/smiley/man.png'/&gt;&quot;, 'id': 25, 'description': u'Emoji Man'}], 'internal_subtypes': [{'description': False, 'sequence': 100, 'id': 2, 'name': u'Note'}]}"/>
+                </div>
+                </form>

@@ -130,6 +130,9 @@ class FormView(QtCore.QObject, object):
                     elif isinstance(fieldQt, QtGui.QWidget):
                         mainVLay.addWidget(fieldQt)
                     self.appendToglobalMapping('field_' + fieldObj.fieldName, fieldObj)
+            elif childTag == 'h1':
+                layout = self.computeGroup(childElement, nootebookIndex)
+                mainVLay.addLayout(layout)
             else:
                 logging.warning('Tag %r not supported and not evaluated' % (childElement))
         mainVLay.setSpacing(3)
@@ -173,7 +176,7 @@ class FormView(QtCore.QObject, object):
             childTag = childElement.tag
             childAttrs = childElement.attrib
             childColSpan = int(childAttrs.get('colspan', 2))
-            if childTag == 'group':
+            if childTag == 'group' or childTag == 'h1':
                 groupString = childAttrs.get('string', '')
                 if groupString:
                     label = QtGui.QLabel(groupString)
