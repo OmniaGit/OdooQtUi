@@ -100,9 +100,19 @@ class One2many(OdooFieldTemplate):
 
     def setReadonly(self, val=False):
         self.widgetQtObj.setDisabled(val)
+        self.viewObj.treeObj.tableWidget.setDisabled(val)
+        self.viewObj.buttToLeft.setDisabled(val)
+        self.viewObj.buttToRight.setDisabled(val)
+        self.viewObj.treeObj.widgetContents.setDisabled(val)
+        self.createButt.setDisabled(val)
         super(One2many, self).setReadonly(val)
 
     def setInvisible(self, val=False):
         self.labelQtObj.setHidden(val)
         self.widgetQtObj.setHidden(val)
+        self.viewObj.buttToLeft.setHidden(val)
+        self.viewObj.buttToRight.setHidden(val)
+        self.viewObj.treeObj.tableWidget.setHidden(val)
+        self.viewObj.treeObj.widgetContents.setHidden(val)
+        self.createButt.setHidden(val)
         super(One2many, self).setInvisible(val)
