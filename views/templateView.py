@@ -5,6 +5,7 @@ Created on 3 Feb 2017
 '''
 from form_view import FormView
 from tree_list import TreeViewList
+from search_view import SearchView
 from utils import utils
 from utils import constants
 from PyQt4 import QtGui
@@ -235,9 +236,19 @@ class TemplateSearchView(TemplateView):
         super(TemplateSearchView, self).__init__(rpcObject, activeLanguageCode)
         self.viewType = 'search'
         self.readonly = True
+        self.odooObjectName = ''
+        self.viewName = ''
+        self.viewId = False
+        self.searchObj = None
 
     def initViewObj(self, odooObjectName, viewName, view_id):
+        self.odooObjectName = odooObjectName
+        self.viewName = viewName
+        self.viewId = view_id
         super(TemplateSearchView, self).initViewObj(odooObjectName, viewName, view_id)
+        self.fieldsViewDefinition
+        self.searchObj = SearchView(self.arch, self.fieldsNameTypeRel)
+        self.layout = self.searchObj.computeArch()
         self.addToObject()
 
 

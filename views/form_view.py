@@ -20,6 +20,7 @@ from objects.many2one.many2one import Many2one
 from objects.text.text import Text
 from utils import constants
 import json
+import logging
 
 
 class FormView(QtCore.QObject, object):
@@ -128,6 +129,8 @@ class FormView(QtCore.QObject, object):
                     elif isinstance(fieldQt, QtGui.QWidget):
                         mainVLay.addWidget(fieldQt)
                     self.appendToglobalMapping('field_' + fieldObj.fieldName, fieldObj)
+            else:
+                logging.warning('Tag %r not supported and not evaluated' % (childElement))
         mainVLay.setSpacing(3)
         return mainVLay
 

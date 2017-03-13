@@ -127,7 +127,7 @@ if __name__ == '__main__':
 
     # dialog = QtGui.QDialog(None, QtCore.Qt.WindowSystemMenuHint | QtCore.Qt.WindowTitleHint)
     dialog = QtGui.QDialog()
-    templateViewObj = connectorObj.initViewObj('form', 'product.product', '', False, useHeader=False)
+    templateViewObj = connectorObj.initViewObj('search', 'product.product', '', False, useHeader=False)
     qtInterface = templateViewObj.QtInterface
     # objIds = [77540]
     objIds = [127]
