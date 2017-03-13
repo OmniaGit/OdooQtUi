@@ -42,6 +42,7 @@ class TreeViewList(object):
                     self.orderedFields.append(fieldObj.fieldName)
                     self.appendToglobalMapping('field_' + fieldObj.fieldName, fieldObj)
         self.tableWidget = QtGui.QTableWidget()
+        self.tableWidget.horizontalHeader().setStretchLastSection(True)
         flagsDict = {}
         if self.viewCheckBoxes:
             flagsDict = {0: QtCore.Qt.ItemIsUserCheckable}

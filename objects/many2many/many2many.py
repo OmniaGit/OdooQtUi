@@ -32,9 +32,13 @@ class Many2many(OdooFieldTemplate):
         buttonsLay.addWidget(self.labelQtObj)
         self.createButt = QtGui.QPushButton('Create')
         self.createButt.setStyleSheet(constants.BUTTON_STYLE)
+        self.createButt.clicked.connect(self.createAndAdd)
         buttonsLay.addWidget(self.createButt)
         buttonsLay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum))
         self.mainLay.addLayout(buttonsLay)
+
+    def createAndAdd(self):
+        pass
 
     def setValue(self, relIds):
         self.currentValue = relIds
