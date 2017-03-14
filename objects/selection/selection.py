@@ -19,6 +19,7 @@ class Selection(OdooFieldTemplate):
         self.labels = []
         self.labelQtObj = False
         self.widgetQtObj = False
+        self.currentValue = ''
         self.widget = self.fieldXmlAttributes.get('widget', '')
         if self.widget == 'statusbar':
             self.statusbar_colors = json.loads(self.fieldXmlAttributes.get('statusbar_colors', ''))

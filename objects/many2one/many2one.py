@@ -20,6 +20,7 @@ class Many2one(OdooFieldTemplate):
         self.editButton = QtGui.QPushButton()
         self.itemToIdRel = {}
         self.skipSearch = False
+        self.currentValue = False
         self.relation = self.fieldPyDefinition.get('relation', '')
         self.canCreate = json.loads(self.fieldXmlAttributes.get('can_create', 'true'))
         self.canWrite = json.loads(self.fieldXmlAttributes.get('can_write', 'true'))
@@ -69,7 +70,7 @@ class Many2one(OdooFieldTemplate):
             self.widgetLyQtObject.addWidget(self.translateButton)
 
     def comboActivated(self, val=False):
-        if not self.availableItems or len(self.availableItems) < 3 and not self.skipSearch:
+        if not self.skipSearch:
             print 'combo activated, %r, val %r' % (self.availableItems, val)
             self.skipSearch = True
             newItems = self.getItems(True)
@@ -81,7 +82,8 @@ class Many2one(OdooFieldTemplate):
         newTextVal = ''
         indexToSet = 0
         if isinstance(val, (list, tuple)):
-            _objId, newTextVal = val
+            objId, newTextVal = val
+            self.itemToIdRel[newTextVal] = objId
         elif isinstance(val, bool):
             self.widgetQtObj2.setCurrentIndex(0)
             newTextVal = ''
@@ -140,8 +142,8 @@ class Many2one(OdooFieldTemplate):
         from start import MainConnector
         conn = MainConnector()
         viewObj = conn.initViewObj('form', self.relation, rpcObj=self.rpc)
-        objIds = [self.itemToIdRel.get(self.currentValue)]
-        viewObj.loadIds(objIds)
+        # objIds = [self.itemToIdRel.get(self.currentValue)]
+        viewObj.loadIds([self.currentValue])
         mainLay = viewObj.QtInterface
         lay, okButt, cancelButt = utils.getButtonBox()
         okButt.clicked.connect(accept)
@@ -157,26 +159,31 @@ class Many2one(OdooFieldTemplate):
             valuesToUpdate = {}
             for fieldName, fieldObj in viewObj.fieldsChanged.items():
                 valuesToUpdate[fieldName] = fieldObj.value
-            self.rpc.write(self.relation, valuesToUpdate, objIds)
+            self.rpc.write(self.relation, valuesToUpdate, self.currentValue)
             if 'name' in valuesToUpdate:
-                indexToReplace = self.availableItems.index(self.currentValue)
+                oldName = ''
+                for val, objId in self.itemToIdRel.items():
+                    if objId == self.currentValue:
+                        oldName = val
+                        break
+                indexToReplace = self.availableItems.index(oldName)
                 valToUpdate = unicode(valuesToUpdate['name'])
                 self.availableItems[indexToReplace] = valToUpdate
-                del self.itemToIdRel[self.currentValue]
-                self.itemToIdRel[valToUpdate] = objIds[0]
-                self.currentValue = valToUpdate
+                del self.itemToIdRel[oldName]
+                self.itemToIdRel[valToUpdate] = self.currentValue
                 self.widgetQtObj2.clear()
                 self.widgetQtObj2.addItems(self.availableItems)
                 self.widgetQtObj2.setCurrentIndex(indexToReplace)
                 self.valueTemplateChanged()
-        
+
     def indexChanged(self, res=False):
         currText = unicode(self.widgetQtObj2.currentText())
         if currText == 'Create and Edit...':
             dialog = QtGui.QDialog()
+
             def accept():
                 dialog.accept()
-    
+
             def reject():
                 dialog.reject()
 
@@ -197,23 +204,27 @@ class Many2one(OdooFieldTemplate):
             dialog.resize(800, dialog.height())
             if dialog.exec_() == QtGui.QDialog.Accepted:
                 valuesToCreate = {}
-                for fieldName, fieldObj in viewObj.interfaceFieldsDict:
+                for fieldName, fieldObj in viewObj.interfaceFieldsDict.items():
                     valuesToCreate[fieldName] = fieldObj.value
                 res = self.rpc.create(self.relation, valuesToCreate)
                 if res:
                     name = unicode(valuesToCreate.get('name', ''))
                     self.itemToIdRel[name] = res
-                    self.availableItems = self.getItems()
+                    self.availableItems = self.getItems(search=True)
                     self.widgetQtObj2.clear()
                     self.widgetQtObj2.addItems(self.availableItems)
-                    currentIndex = self.availableItems.index(name)
-                    self.widgetQtObj2.setCurrentIndex(currentIndex)
-                    self.currentValue = name
+                    if name in self.availableItems:
+                        currentIndex = self.availableItems.index(name)
+                        self.widgetQtObj2.setCurrentIndex(currentIndex)
+                    self.currentValue = self.itemToIdRel.get(name, False)
                     self.valueTemplateChanged()
             else:
                 self.widgetQtObj2.setCurrentIndex(0)
+        elif not currText:
+            self.widgetQtObj2.setCurrentIndex(0)
+            self.currentValue = False
         else:
-            self.currentValue = currText
+            self.currentValue = self.itemToIdRel.get(currText, False)
             if self.currentValue and self.editButton:
                 self.editButton.setHidden(False)
             elif self.editButton:

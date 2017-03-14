@@ -254,7 +254,7 @@ class TemplateSearchView(TemplateView):
 
 class TemplateFormView(TemplateView):
 
-    def __init__(self, rpcObject, activeLanguageCode='en_US', useHeader=True):
+    def __init__(self, rpcObject, activeLanguageCode='en_US', useHeader=False, useChatter=False):
         super(TemplateFormView, self).__init__(rpcObject, activeLanguageCode)
         self.requiredFields = []    # ['field1', 'field2']
         self.readonlyFields = []     # ['field1', 'field2']
@@ -265,11 +265,12 @@ class TemplateFormView(TemplateView):
         self.readonly = False
         self.activeIds = []     # must be one
         self.useHeader = useHeader
+        self.useChatter = useChatter
 
     def initViewObj(self, odooObjectName, viewName, view_id):
         super(TemplateFormView, self).initViewObj(odooObjectName, viewName, view_id)
         self.startingFieldValues = self.fieldsViewDefinition.get('fields', {})
-        self.formObj = FormView(self.arch, self.fieldsNameTypeRel, self.rpcObject, self.useHeader)
+        self.formObj = FormView(self.arch, self.fieldsNameTypeRel, self.rpcObject, self.useHeader, self.useChatter)
         self.formObj.nootebook_changed_signal.connect(self.updateDataStructure)
         self.layout = self.formObj.computeArch()
         self.mappingInterface = self.formObj.globalMapping
@@ -421,10 +422,10 @@ class TemplateTreeListView(TemplateView):
             localList = []
             for fieldName in fields:
                 val = record.get(fieldName, '')
-                if isinstance(val, (list, tuple)):
-                    if len(val) < 1:
-                        val = ''
-                    val = val[1]
+#                 if isinstance(val, (list, tuple)):
+#                     if len(val) < 1:
+#                         val = ''
+#                     val = val[1]
                 fieldObj = self.interfaceFieldsDict.get(fieldName, None)
                 fieldObj.setValue(val)
                 record[fieldName] = val

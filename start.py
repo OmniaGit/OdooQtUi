@@ -58,7 +58,7 @@ class MainConnector(object):
         templateViewObj.initViewObj(odooObjectName, viewName, view_id, viewCheckBoxes)
         return templateViewObj
 
-    def initViewObj(self, viewType, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', useHeader=True):
+    def initViewObj(self, viewType, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', useHeader=False, useChatter=False):
         '''
         @viewType: tree_tree, tree_list, form, search
         @odooObjectName: product.product, mrp.bom, ...
@@ -73,7 +73,7 @@ class MainConnector(object):
         if not rpcObj:
             rpcObj = self.rpc
         if viewType == 'form':
-            templateViewObj = TemplateFormView(rpcObj, localLang, useHeader)
+            templateViewObj = TemplateFormView(rpcObj, localLang, useHeader, useChatter)
         elif viewType == 'tree_tree':
             templateViewObj = TemplateTreeTreeView(rpcObj, localLang)
         elif viewType == 'tree_list':
@@ -93,17 +93,17 @@ if __name__ == '__main__':
     xmlrpcPort = 8069
     user = 'admin'
     password = 'admin'
-    dbName = 'plm-9-enterprise'
+    dbName = 'odoo-9-clean'
     loginType = 'xmlrpc'
 
-    scheme = 'http'
-    xmlrpcServerIP = '192.168.1.16'
-    xmlrpcPort = 8069
-    user = 'admin'
-    password = 'admin'
-    dbName = 'all_v9_2'
-    loginType = 'xmlrpc'
-
+#     scheme = 'http'
+#     xmlrpcServerIP = '192.168.1.16'
+#     xmlrpcPort = 8069
+#     user = 'admin'
+#     password = 'admin'
+#     dbName = 'all_v9_2'
+#     loginType = 'xmlrpc'
+# 
     scheme = 'http'
     xmlrpcServerIP = 'www.odooplm.cloud'
     xmlrpcPort = 8066
@@ -112,13 +112,13 @@ if __name__ == '__main__':
     dbName = 'odoov9_0'
     loginType = 'xmlrpc'
 
-#     scheme = 'http'
-#     xmlrpcServerIP = '127.0.0.1'
-#     xmlrpcPort = 8069
-#     user = 'admin'
-#     password = 'admin'
-#     dbName = 'odoo-9-clean'
-#     loginType = 'xmlrpc'
+    scheme = 'http'
+    xmlrpcServerIP = '127.0.0.1'
+    xmlrpcPort = 8069
+    user = 'admin'
+    password = 'admin'
+    dbName = 'odoo-9-clean'
+    loginType = 'xmlrpc'
 
     app = QtGui.QApplication(sys.argv)
 
@@ -127,10 +127,11 @@ if __name__ == '__main__':
 
     # dialog = QtGui.QDialog(None, QtCore.Qt.WindowSystemMenuHint | QtCore.Qt.WindowTitleHint)
     dialog = QtGui.QDialog()
-    templateViewObj = connectorObj.initViewObj('form', 'product.product', '', False, useHeader=False)
+    templateViewObj = connectorObj.initViewObj('form', 'sale.order', '', False, useHeader=False)
     qtInterface = templateViewObj.QtInterface
     # objIds = [77540]
     objIds = [127]
+    objIds = [1]
     # startingFieldValues = {'description': 'non-settare'}
     startingFieldValues = {}
     readonlyFields = {}     # {'description': True}

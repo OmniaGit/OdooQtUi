@@ -10,6 +10,7 @@ class Datetime(OdooFieldTemplate):
         super(Datetime, self).__init__(xmlField, fieldsDefinition, rpc)
         self.labelQtObj = False
         self.widgetQtObj = False
+        self.currentValue = ''
         self.getQtObject()
 
     def getQtObject(self):

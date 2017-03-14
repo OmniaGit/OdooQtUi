@@ -28,7 +28,7 @@ class FormView(QtCore.QObject, object):
 
     nootebook_changed_signal = QtCore.pyqtSignal(int)
 
-    def __init__(self, arch, fieldsNameTypeRel, rpc, useHeader):
+    def __init__(self, arch, fieldsNameTypeRel, rpc, useHeader=False, useChatter=False):
         super(FormView, self).__init__()
         self.arch = arch
         self.fieldsNameTypeRel = fieldsNameTypeRel
@@ -38,18 +38,11 @@ class FormView(QtCore.QObject, object):
         self.notebookTabsNotComputed = {}
         self.nootebookFieldsToCompute = {}  # {nootebookIndex: {'fieldName': fieldObj}}
         self.useHeader = useHeader
+        self.useChatter = useChatter
 
     def computeNooteBookPage(self, pageIndex=False):
         values = self.notebookTabsNotComputed.get(pageIndex, {})
         if values:
-#             page = values.get('xmlPage')
-#             pageWidget = values.get('pageWidget')
-#             childLay = self.computeRecursion(page)
-#             lay = pageWidget.layout()
-#             if lay is None:
-#                 pageWidget.setLayout(childLay)
-#             else:
-#                 pageWidget.layout().addChildLayout(childLay)
             del self.notebookTabsNotComputed[pageIndex]
             self.nootebook_changed_signal.emit(pageIndex)
 
@@ -74,6 +67,10 @@ class FormView(QtCore.QObject, object):
                     self.globalMapping.update(mapping)
             elif childTag == 'div':
                 divVlay = QtGui.QVBoxLayout()
+                divAttrib = childElement.attrib
+                divClass = divAttrib.get('class', '')
+                if divClass == 'oe_chatter' and not self.useChatter:
+                    continue
                 if childElement.text:
                     label = QtGui.QLabel(childElement.text)
                     label.setStyleSheet(constants.LABEL_SEPARATOR)

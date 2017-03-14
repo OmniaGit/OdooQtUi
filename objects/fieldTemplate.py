@@ -39,7 +39,6 @@ class OdooFieldTemplate(QtCore.QObject, object):
         self.labelQtObj = None
         self.widgetQtObj = None
         self.initVal = ''
-        self.currentValue = ''
         self.changed = False
         self.widgetLyQtObject = QtGui.QHBoxLayout()
         self.translateButton = False

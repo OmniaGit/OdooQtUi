@@ -18,6 +18,7 @@ class Many2many(OdooFieldTemplate):
         self.labelQtObj = False
         self.widgetQtObj = False
         self.viewObj = False
+        self.currentValue = []
         self.relation = self.fieldPyDefinition.get('relation', '')
         self.canCreate = json.loads(self.fieldXmlAttributes.get('can_create', 'true'))
         self.canWrite = json.loads(self.fieldXmlAttributes.get('can_write', 'true'))
