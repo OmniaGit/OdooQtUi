@@ -49,10 +49,6 @@ class OdooFieldTemplate(QtCore.QObject, object):
     def qtObject(self):
         return self.widgetLyQtObject
 
-    @property
-    def value(self):
-        return self.currentValue
-
     def connectTranslationButton(self):
         self.translateButton = QtGui.QPushButton('Translate')
         self.translateButton.setStyleSheet(constants.BUTTON_STYLE)

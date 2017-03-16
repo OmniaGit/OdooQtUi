@@ -218,3 +218,11 @@ class Many2many(OdooFieldTemplate):
         self.viewObj.treeObj.widgetContents.setHidden(val)
         self.createButt.setHidden(val)
         super(Many2many, self).setInvisible(val)
+
+    @property
+    def value(self):
+        return self.currentValue
+
+    @property
+    def valueInterface(self):
+        return self.currentValue

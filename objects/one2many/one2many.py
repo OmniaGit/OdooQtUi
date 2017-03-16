@@ -17,7 +17,7 @@ class One2many(OdooFieldTemplate):
         super(One2many, self).__init__(xmlField, fieldsDefinition, rpc)
         self.labelQtObj = False
         self.widgetQtObj = False
-        self.viewObj = False
+        self.treeViewObj = False
         self.relation = self.fieldPyDefinition.get('relation', '')
         self.canCreate = json.loads(self.fieldXmlAttributes.get('can_create', 'true'))
         self.canWrite = json.loads(self.fieldXmlAttributes.get('can_write', 'true'))
@@ -39,60 +39,75 @@ class One2many(OdooFieldTemplate):
         self.mainLay.addLayout(buttonsLay)
 
     def createAndAdd(self):
-
-        def acceptDial():
-            dialog.accept()
-
-        def rejectDial():
-            dialog.reject()
-
-        dialog = QtGui.QDialog()
-        mainLay = QtGui.QVBoxLayout()
-        from start import MainConnector
-        conn = MainConnector()
-        viewObjForm = conn.initViewObj('form', self.relation, rpcObj=self.rpc)
-        mainLay.addLayout(viewObjForm.layout)
-        dialog.setStyleSheet('background-color:#893b74;')
-        dialog.resize(1200, 600)
-        dialog.move(100, 100)
-        buttLay, okButt, cancelButt = utils.getButtonBox('right')
-        mainLay.addLayout(buttLay)
-        dialog.setLayout(mainLay)
-        okButt.clicked.connect(acceptDial)
-        cancelButt.clicked.connect(rejectDial)
-        okButt.setStyleSheet(constants.BUTTON_STYLE_OK)
-        cancelButt.setStyleSheet(constants.BUTTON_STYLE_CANCEL)
-        if dialog.exec_() == QtGui.QDialog.Accepted:
-            fieldVals = viewObjForm.getAllFieldsValues()
-            res = self.rpc.create(self.relation, fieldVals)
-            if res:
-                rowCount = self.widgetQtObj.rowCount()
-                orderedFields = self.viewObj.treeObj.orderedFields
-                orderedFields.append('')
-                for fieldName in orderedFields:
+        try:
+            def acceptDial():
+                dialog.accept()
+    
+            def rejectDial():
+                dialog.reject()
+    
+            dialog = QtGui.QDialog()
+            mainLay = QtGui.QVBoxLayout()
+            from start import MainConnector
+            conn = MainConnector()
+            viewObjForm = conn.initViewObj('form', self.relation, rpcObj=self.rpc)
+            mainLay.addLayout(viewObjForm.layout)
+            dialog.setStyleSheet('background-color:#893b74;')
+            dialog.resize(1200, 600)
+            dialog.move(100, 100)
+            buttLay, okButt, cancelButt = utils.getButtonBox('right')
+            mainLay.addLayout(buttLay)
+            dialog.setLayout(mainLay)
+            okButt.clicked.connect(acceptDial)
+            cancelButt.clicked.connect(rejectDial)
+            okButt.setStyleSheet(constants.BUTTON_STYLE_OK)
+            cancelButt.setStyleSheet(constants.BUTTON_STYLE_CANCEL)
+            if dialog.exec_() == QtGui.QDialog.Accepted:
+                fieldVals = viewObjForm.getAllFieldsValues()
+                objId = self.rpc.create(self.relation, fieldVals)
+                if objId:
+                    rowCount = self.widgetQtObj.rowCount()
+                    orderedFields = self.treeViewObj.treeObj.orderedFields
+                    orderedFields.append('')
                     self.widgetQtObj.setRowCount(rowCount + 1)
-                    colIndex = orderedFields.index(fieldName)
-                    twItem = QtGui.QTableWidgetItem(fieldVals.get(fieldName, ''))
-                    self.widgetQtObj.setItem(rowCount, colIndex, twItem)
-                rowCount = rowCount + 1
-                insertedRowDict = utils.getRowsFromTableWidget(self.widgetQtObj, 'dict', orderedFields)
-                self.setRemoveButtons(self.widgetQtObj, insertedRowDict)
+                    for fieldName in orderedFields:
+                        if not fieldName:
+                            continue
+                        colIndex = orderedFields.index(fieldName)
+                        fieldVal = viewObjForm.fields.getFieldObj(fieldName).valueInterface
+                        twItem = QtGui.QTableWidgetItem(fieldVal)
+                        self.widgetQtObj.setItem(rowCount, colIndex, twItem)
+                    self.treeViewObj.idLineRel[rowCount] = objId
+                    rowCount = rowCount + 1
+                    self.setRemoveButtons(self.widgetQtObj)
+        except Exception, ex:
+            utils.logMessage('error', '%r' % (ex), 'createAndAdd')
+
+    def computeFieldVal(self, val):
+        outStrVal = ''
+        if isinstance(val, (list, tuple)):
+            _objId, outStrVal = val
+        elif isinstance(val, bool):
+            outStrVal = ''
+        elif isinstance(val, int):
+            outStrVal = ''
+        elif isinstance(val, (str, unicode, QtCore.QString)):
+            outStrVal = unicode(val)
+        return outStrVal
 
     def setValue(self, relIds):
         self.currentValue = relIds
         from start import MainConnector
         conn = MainConnector()
-        self.viewObj = conn.initViewObj('tree_list', self.relation, rpcObj=self.rpc)
-        self.viewObj.loadIds(relIds, {}, {}, {}, viewCheckBoxes=False)
-        self.widgetQtObj = self.viewObj.treeObj.tableWidget
+        self.treeViewObj = conn.initViewObj('tree_list', self.relation, rpcObj=self.rpc)
+        self.treeViewObj.loadIds(relIds, {}, {}, {}, viewCheckBoxes=False)
+        self.widgetQtObj = self.treeViewObj.treeObj.tableWidget
         self.widgetQtObj.setColumnCount(self.widgetQtObj.columnCount() + 1)
-        fieldsToReadOrdered = self.viewObj.treeObj.orderedFields
+        fieldsToReadOrdered = self.treeViewObj.treeObj.orderedFields
         self.fieldsToReadOrdered = fieldsToReadOrdered
-        fieldsToReadOrdered.append('')
-        insertedRowDict = utils.getRowsFromTableWidget(self.widgetQtObj, 'dict', fieldsToReadOrdered)
-        self.setRemoveButtons(self.widgetQtObj, insertedRowDict)
+        self.setRemoveButtons(self.widgetQtObj)
         self.setupTableWidgetLay(self.widgetQtObj)
-        self.mainLay.addLayout(self.viewObj.layout)
+        self.mainLay.addLayout(self.treeViewObj.layout)
         if self.required:
             utils.setRequiredBackground(self.widgetQtObj, '')
         addAnItemLay = QtGui.QHBoxLayout()
@@ -110,33 +125,31 @@ class One2many(OdooFieldTemplate):
         tableWidget.setShowGrid(False)
         tableWidget.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
 
-    def setRemoveButtons(self, tableWidget, insertedRowDict):
+    def setRemoveButtons(self, tableWidget):
         rowCount = tableWidget.rowCount()
         colCount = tableWidget.columnCount()
         for rowCount in range(0, rowCount):
-            rowDict = insertedRowDict.get(rowCount, {})
             btn = QtGui.QPushButton('Remove')
             btn.setStyleSheet(constants.BUTTON_ADD_AN_ITEM)
             tableWidget.setCellWidget(rowCount, colCount - 1, btn)
-            btn.clicked.connect(partial(self.removeItem, rowDict))
+            btn.clicked.connect(partial(self.removeItem, rowCount))
 
-    def removeItem(self, rowDictVals):
-        rowDictValsDict = utils.getRowsFromTableWidget(self.widgetQtObj, 'dict', self.fieldsToReadOrdered)
-        for recordId, recordVals in self.viewObj.idValsRel.items():
-            localDict = recordVals.copy()
-            if 'id' in localDict:
-                del localDict['id']
-            if rowDictVals == localDict:
-                if recordId in self.currentValue:
-                    self.currentValue.remove(recordId)
-                rowCount = False
-                for rowIndex, rowDict in rowDictValsDict.items():
-                    if rowDictVals == rowDict:
-                        rowCount = rowIndex
-                        break
-                if rowCount is not False:
-                    utils.removeRowFromTableWidget(self.widgetQtObj, rowCount)
-                return
+    def removeItem(self, rowIndex):
+        found = False
+        rowIndexes = self.treeViewObj.idLineRel.keys()
+        for rowInd in rowIndexes:
+            objId = self.treeViewObj.idLineRel[rowInd]
+            if rowInd == rowIndex:
+                if objId in self.currentValue:
+                    self.currentValue.remove(objId)
+                    utils.removeRowFromTableWidget(self.widgetQtObj, rowIndex)
+                    self.setRemoveButtons(self.widgetQtObj)
+                    del self.treeViewObj.idLineRel[rowInd]
+                    found = True
+            elif found:
+                del self.treeViewObj.idLineRel[rowInd]
+                self.treeViewObj.idLineRel[rowInd - 1] = objId
+        print self.treeViewObj.idLineRel
 
     def valueChanged(self):
         self.valueTemplateChanged()
@@ -144,22 +157,30 @@ class One2many(OdooFieldTemplate):
     def setReadonly(self, val=False):
         if self.widgetQtObj:
             self.widgetQtObj.setDisabled(val)
-        if self.viewObj:
-            self.viewObj.treeObj.tableWidget.setDisabled(val)
-            self.viewObj.buttToLeft.setDisabled(val)
-            self.viewObj.buttToRight.setDisabled(val)
-            self.viewObj.treeObj.widgetContents.setDisabled(val)
+        if self.treeViewObj:
+            self.treeViewObj.treeObj.tableWidget.setDisabled(val)
+            self.treeViewObj.buttToLeft.setDisabled(val)
+            self.treeViewObj.buttToRight.setDisabled(val)
+            self.treeViewObj.treeObj.widgetContents.setDisabled(val)
         self.createButt.setDisabled(val)
         super(One2many, self).setReadonly(val)
 
     def setInvisible(self, val=False):
         if self.widgetQtObj:
             self.widgetQtObj.setHidden(val)
-        if self.viewObj:
-            self.viewObj.buttToLeft.setHidden(val)
-            self.viewObj.buttToRight.setHidden(val)
-            self.viewObj.treeObj.tableWidget.setHidden(val)
-            self.viewObj.treeObj.widgetContents.setHidden(val)
+        if self.treeViewObj:
+            self.treeViewObj.buttToLeft.setHidden(val)
+            self.treeViewObj.buttToRight.setHidden(val)
+            self.treeViewObj.treeObj.tableWidget.setHidden(val)
+            self.treeViewObj.treeObj.widgetContents.setHidden(val)
         self.labelQtObj.setHidden(val)
         self.createButt.setHidden(val)
         super(One2many, self).setInvisible(val)
+
+    @property
+    def value(self):
+        return self.currentValue
+
+    @property
+    def valueInterface(self):
+        return self.currentValue

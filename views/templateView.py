@@ -124,7 +124,7 @@ class TemplateView(object):
     def getAllFieldsValues(self):
         outDict = {}
         for fieldName, fieldObject in self.interfaceFieldsDict.items():
-            outDict[fieldName] = fieldObject.currentValue
+            outDict[fieldName] = fieldObject.value
         return outDict
 
     def getAllOnChange(self):
@@ -357,6 +357,8 @@ class TemplateTreeListView(TemplateView):
         self.readonly = True
         self.activeIds = []
         self.idValsRel = {}
+        self.idLineRel = {}
+        self.labelsOrdered = []
         self.currentRange = [0, 40]
         self.passRange = 40
 
@@ -402,7 +404,6 @@ class TemplateTreeListView(TemplateView):
     def loadIds(self, objIds=[], forceFieldValues={}, readonlyFields={}, invisibleFields={}, viewCheckBoxes=False):
         if not objIds:
             return
-        self.treeObj.tableWidget
         fields = self.treeObj.orderedFields
         if len(objIds) < self.passRange:
             self.buttToRight.setHidden(True)
@@ -422,17 +423,19 @@ class TemplateTreeListView(TemplateView):
             localList = []
             for fieldName in fields:
                 val = record.get(fieldName, '')
-#                 if isinstance(val, (list, tuple)):
-#                     if len(val) < 1:
-#                         val = ''
-#                     val = val[1]
                 fieldObj = self.interfaceFieldsDict.get(fieldName, None)
                 fieldObj.setValue(val)
                 record[fieldName] = val
+                if fieldObj.fieldType == 'many2one':
+                    if isinstance(val, bool):
+                        val = ''
+                    else:
+                        val = val[1]
                 localList.append(unicode(val))
             valuesList.append(localList)
             recordId = record.get('id', False)
             self.idValsRel[recordId] = record
+            self.idLineRel[records.index(record)] = recordId
         utils.commonPopulateTable(self.labelsOrdered, valuesList, self.treeObj.tableWidget, flagsDict)
         self.treeObj.tableWidget.resizeColumnsToContents()
         self.treeObj.tableWidget.setShowGrid(False)
@@ -461,3 +464,6 @@ class TemplateTreeListView(TemplateView):
 class Objects(object):
     def __init__(self):
         return super(Objects, self).__init__()
+
+    def getFieldObj(self, fieldName):
+        return self.__dict__.get(fieldName)

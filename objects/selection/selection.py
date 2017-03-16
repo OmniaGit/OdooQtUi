@@ -108,3 +108,11 @@ class Selection(OdooFieldTemplate):
             self.labelQtObj.setHidden(val)
         if self.widgetQtObj:
             self.widgetQtObj.setHidden(val)
+
+    @property
+    def value(self):
+        return self.currentValue
+
+    @property
+    def valueInterface(self):
+        return self.currentValue

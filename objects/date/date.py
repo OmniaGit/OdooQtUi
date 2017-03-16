@@ -52,3 +52,11 @@ class Date(OdooFieldTemplate):
         super(Date, self).setInvisible(val)
         self.labelQtObj.setHidden(val)
         self.widgetQtObj.setHidden(val)
+
+    @property
+    def value(self):
+        return self.currentValue
+
+    @property
+    def valueInterface(self):
+        return self.currentValue

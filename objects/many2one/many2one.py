@@ -79,6 +79,7 @@ class Many2one(OdooFieldTemplate):
             self.availableItems = newItems
 
     def setValue(self, val=False):
+        self.currentValue = val
         newTextVal = ''
         indexToSet = 0
         if isinstance(val, (list, tuple)):
@@ -142,8 +143,7 @@ class Many2one(OdooFieldTemplate):
         from start import MainConnector
         conn = MainConnector()
         viewObj = conn.initViewObj('form', self.relation, rpcObj=self.rpc)
-        # objIds = [self.itemToIdRel.get(self.currentValue)]
-        viewObj.loadIds([self.currentValue])
+        viewObj.loadIds([self.currentValue[0]])
         mainLay = viewObj.QtInterface
         lay, okButt, cancelButt = utils.getButtonBox()
         okButt.clicked.connect(accept)
@@ -159,18 +159,18 @@ class Many2one(OdooFieldTemplate):
             valuesToUpdate = {}
             for fieldName, fieldObj in viewObj.fieldsChanged.items():
                 valuesToUpdate[fieldName] = fieldObj.value
-            self.rpc.write(self.relation, valuesToUpdate, self.currentValue)
+            self.rpc.write(self.relation, valuesToUpdate, self.currentValue[0])
             if 'name' in valuesToUpdate:
                 oldName = ''
                 for val, objId in self.itemToIdRel.items():
-                    if objId == self.currentValue:
+                    if objId == self.currentValue[0]:
                         oldName = val
                         break
                 indexToReplace = self.availableItems.index(oldName)
                 valToUpdate = unicode(valuesToUpdate['name'])
                 self.availableItems[indexToReplace] = valToUpdate
                 del self.itemToIdRel[oldName]
-                self.itemToIdRel[valToUpdate] = self.currentValue
+                self.itemToIdRel[valToUpdate] = self.currentValue[0]
                 self.widgetQtObj2.clear()
                 self.widgetQtObj2.addItems(self.availableItems)
                 self.widgetQtObj2.setCurrentIndex(indexToReplace)
@@ -216,7 +216,7 @@ class Many2one(OdooFieldTemplate):
                     if name in self.availableItems:
                         currentIndex = self.availableItems.index(name)
                         self.widgetQtObj2.setCurrentIndex(currentIndex)
-                    self.currentValue = self.itemToIdRel.get(name, False)
+                    self.currentValue = [self.itemToIdRel.get(name, False), currText]
                     self.valueTemplateChanged()
             else:
                 self.widgetQtObj2.setCurrentIndex(0)
@@ -224,7 +224,7 @@ class Many2one(OdooFieldTemplate):
             self.widgetQtObj2.setCurrentIndex(0)
             self.currentValue = False
         else:
-            self.currentValue = self.itemToIdRel.get(currText, False)
+            self.currentValue = [self.itemToIdRel.get(currText, False), currText]
             if self.currentValue and self.editButton:
                 self.editButton.setHidden(False)
             elif self.editButton:
@@ -236,3 +236,15 @@ class Many2one(OdooFieldTemplate):
             print 'event filter'
             self.comboActivated()
         return super(Many2one, self).eventFilter(object, event)
+
+    @property
+    def value(self):
+        if self.currentValue:
+            return self.currentValue[0]
+        return self.currentValue
+
+    @property
+    def valueInterface(self):
+        if self.currentValue:
+            return self.currentValue[1]
+        return ''
