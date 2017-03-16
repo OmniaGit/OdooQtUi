@@ -12,7 +12,7 @@ from objects.selection.selection import Selection
 from objects.boolean.boolean import Boolean
 from objects.char.char import Charachter
 from objects.date.date import Date
-from objects.datetime.datetime import Datetime
+from objects.datetimee.datetimee import Datetime
 from objects.float.float import Float
 from objects.integer.integer import Integer
 from objects.many2many.many2many import Many2many
@@ -58,10 +58,8 @@ class FormView(QtCore.QObject, object):
                     sheetLay.addLayout(layout)
                 mainVLay.addLayout(sheetLay)
             elif childTag == 'header':
-                if not self.useHeader:
-                    continue
                 mapping, layout = self.computeHeader(childElement)
-                if layout:
+                if layout and self.useHeader:
                     mainVLay.addLayout(layout)
                 if mapping:
                     self.globalMapping.update(mapping)

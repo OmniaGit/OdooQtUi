@@ -112,14 +112,6 @@ if __name__ == '__main__':
     dbName = 'odoov9_0'
     loginType = 'xmlrpc'
 
-    scheme = 'http'
-    xmlrpcServerIP = '127.0.0.1'
-    xmlrpcPort = 8069
-    user = 'admin'
-    password = 'admin'
-    dbName = 'odoo-9-clean'
-    loginType = 'xmlrpc'
-
     app = QtGui.QApplication(sys.argv)
 
     connectorObj = MainConnector()
@@ -127,11 +119,11 @@ if __name__ == '__main__':
 
     # dialog = QtGui.QDialog(None, QtCore.Qt.WindowSystemMenuHint | QtCore.Qt.WindowTitleHint)
     dialog = QtGui.QDialog()
-    templateViewObj = connectorObj.initViewObj('form', 'sale.order', '', False, useHeader=False)
+    templateViewObj = connectorObj.initViewObj('form', 'product.product', '', False, useHeader=False)
     qtInterface = templateViewObj.QtInterface
     # objIds = [77540]
     objIds = [127]
-    objIds = [1]
+    #objIds = [2]
     # startingFieldValues = {'description': 'non-settare'}
     startingFieldValues = {}
     readonlyFields = {}     # {'description': True}
