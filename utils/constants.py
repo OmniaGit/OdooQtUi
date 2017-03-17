@@ -14,7 +14,7 @@ LABEL_STYLE = 'margin-right: 0px;font-size: 12px;line-height: 1.42857143;font-we
 LABEL_STYLE_STATUSBAR = 'background-color: grey;color:white;max-width:100px;border: 0.1px solid white;border-bottom-right-radius: 10px;border-top-right-radius: 10px;'
 LABEL_STYLE_STATUSBAR_ACTIVE = LABEL_STYLE_STATUSBAR + 'background-color:blue;'
 LABEL_SEPARATOR = LABEL_STYLE + 'font-size:14px;font-weight: bold;'
-MANY_2_MANY_H_HEADER = 'font-weight: bold;vertical-align: middle;color:black;background-color:#dfdfdf;border: none;'
+MANY_2_MANY_H_HEADER = 'font-weight: bold;vertical-align: middle;color:black;background-color:#dfdfdf;'
 CHAR_STYLE = 'border: 2px solid #cfcfcf;border-left-style: none;border-right-style: none;border-top-style: none;'
 TEXT_STYLE = 'border: 2px solid #cfcfcf;'
 FLOAT_STYLE = 'border: 2px solid #cfcfcf;border-left-style: none;border-right-style: none;border-top-style: none;'
@@ -23,5 +23,5 @@ SELECTION_STYLE = 'border: 2px solid #cfcfcf;border-left-style: none;border-righ
 DATE_STYLE = 'border: 2px solid #cfcfcf;border-left-style: none;border-right-style: none;border-top-style: none;'
 NOOTEBOOK_STYLE = 'border-left-style: none;border-right-style: none;border-bottom-style: none;border-top-style: none;'
 NOOTEBOOK_TABBAR_STYLE = 'QTabBar::tab:!selected {border: 3px solid grey;border-left-style: none;border-right-style: none;border-top-style: none;min-width:180px;} QTabBar::tab:selected {border: 3px solid #893b74;border-left-style: none;border-right-style: none;border-top-style: none;color: #893b74;font-size: 12px;min-width:150px} QTabBar::tab:hover {border: 3px solid #893b74;border-left-style: none;border-right-style: none;border-top-style: none;color: #893b74;font-size: 12px;font-weight: bold;min-width:150px}'
-TABLE_LIST_LIST = """QScrollBar {background-color:#893b74} QTableWidget {border-left: 3px solid #893b74; border-right: 3px solid #893b74; border-bottom: 3px solid #893b74}"""
-
+TABLE_LIST_LIST = """QScrollBar {background-color:#893b74} QTableWidget {border-left: 3px solid #893b74; border-right: 3px solid #893b74; border-bottom: 3px solid #893b74;}"""
+FONT_SIZE_LIST_WIDGET = 8

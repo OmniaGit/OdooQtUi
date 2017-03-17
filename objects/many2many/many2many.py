@@ -235,6 +235,9 @@ class Many2many(OdooFieldTemplate):
                     colIndex = self.fieldsToReadOrdered.index(fieldName)
                     colVal = valsToInsert.get(fieldName, '')
                     twItem = QtGui.QTableWidgetItem(colVal)
+                    font = QtGui.QFont()
+                    font.setPointSize(constants.FONT_SIZE_LIST_WIDGET)
+                    twItem.setFont(font)
                     self.widgetQtObj.setItem(rowPosition, colIndex, twItem)
                 self.treeViewObj.idLineRel[rowPosition] = localIndexId[checkedIndex]
                 rowPosition = rowPosition + 1

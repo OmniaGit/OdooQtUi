@@ -455,7 +455,7 @@ def getSelectedRowsFromListWidget(listWidget):
 #     return outDict
 
 
-def commonPopulateTable(headers, values, tableWidget, flags={}, add=False):
+def commonPopulateTable(headers, values, tableWidget, flags={}, add=False, fontSize=False):
     '''
         @headers: [header1, header2, ...]
         @flags: {'colIndex': flags}
@@ -481,6 +481,10 @@ def commonPopulateTable(headers, values, tableWidget, flags={}, add=False):
                 colVal = menuObj.__dict__.get(colName, '')
             rowDict[colName] = colVal
             twItem = QtGui.QTableWidgetItem(colVal)
+            if fontSize:
+                font = QtGui.QFont()
+                font.setPointSize(fontSize)
+                twItem.setFont(font)
             if colIndex in flags:
                 flagsToAdd = flags[colIndex]
                 twItem.setFlags(flagsToAdd)

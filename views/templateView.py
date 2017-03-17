@@ -436,7 +436,7 @@ class TemplateTreeListView(TemplateView):
             recordId = record.get('id', False)
             self.idValsRel[recordId] = record
             self.idLineRel[records.index(record)] = recordId
-        utils.commonPopulateTable(self.labelsOrdered, valuesList, self.treeObj.tableWidget, flagsDict)
+        utils.commonPopulateTable(self.labelsOrdered, valuesList, self.treeObj.tableWidget, flagsDict, fontSize=constants.FONT_SIZE_LIST_WIDGET)
         self.treeObj.tableWidget.resizeColumnsToContents()
         self.treeObj.tableWidget.setShowGrid(False)
         self.treeObj.tableWidget.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
