@@ -39,6 +39,7 @@ class Date(OdooFieldTemplate):
     def setValue(self, newVal):
         # To Be Implemented
         self.widgetQtObj
+        self.currentValue = newVal
 
     def setReadonly(self, val=False):
         super(Date, self).setReadonly(val)

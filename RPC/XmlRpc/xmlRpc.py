@@ -51,11 +51,11 @@ class XmlRpcConnection(object):
 
     def search(self, obj, filterList, limit=False, offset=False, context={}):
         try:
-            if limit:
-                context['limit'] = limit
-            if offset:
-                context['offset'] = offset
             kargs = {'context': context}
+            if limit:
+                kargs['limit'] = limit
+            if offset:
+                kargs['offset'] = offset
             return self.callOdooFunction(obj, 'search', [filterList], kargs)
         except Exception, ex:
             utils.logMessage('error', 'Error during search with values: object %r, filter %r, parameters %r. Error: %r' % (obj, filterList, kargs, ex), 'search')

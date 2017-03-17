@@ -43,6 +43,7 @@ class Boolean(OdooFieldTemplate):
     def setValue(self, newVal):
         newVal = eval(unicode(newVal))
         self.widgetQtObj.setChecked(newVal)
+        self.currentValue = newVal
 
     def setReadonly(self, val=False):
         super(Boolean, self).setReadonly(val)

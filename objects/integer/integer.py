@@ -39,6 +39,7 @@ class Integer(OdooFieldTemplate):
     def setValue(self, newVal):
         newVal = int(unicode(newVal))
         self.widgetQtObj.setValue(newVal)
+        self.currentValue = newVal
 
     def setReadonly(self, val=False):
         super(Integer, self).setReadonly(val)

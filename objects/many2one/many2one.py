@@ -223,6 +223,7 @@ class Many2one(OdooFieldTemplate):
         elif not currText:
             self.widgetQtObj2.setCurrentIndex(0)
             self.currentValue = False
+            self.valueTemplateChanged()
         else:
             self.currentValue = [self.itemToIdRel.get(currText, False), currText]
             if self.currentValue and self.editButton:

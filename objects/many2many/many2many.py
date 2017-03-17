@@ -187,6 +187,7 @@ class Many2many(OdooFieldTemplate):
                 self.evaluatedIds[currRangeTuple] = resIds
             else:
                 resIds = self.evaluatedIds[currRangeTuple]
+            viewObj.treeObj.tableWidget.clear()
             viewObj.loadIds(resIds, {}, {}, {}, viewCheckBoxes=True)
 
         def toLeft():

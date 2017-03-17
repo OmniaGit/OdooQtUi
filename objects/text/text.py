@@ -41,6 +41,7 @@ class Text(OdooFieldTemplate):
             utils.logMessage('warning', 'Boolean value %r is passed to char field %r, check better' % (newVal, self.fieldName), 'setValue')
             newVal = ''
         self.widgetQtObj.setText(newVal)
+        self.currentValue = newVal
 
     def setReadonly(self, val=False):
         super(Text, self).setReadonly(val)
