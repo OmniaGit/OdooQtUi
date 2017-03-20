@@ -18,6 +18,7 @@ class Many2many(OdooFieldTemplate):
         self.labelQtObj = False
         self.widgetQtObj = False
         self.treeViewObj = False
+        self.btnAddAnItem = None
         self.currentValue = []
         self.relation = self.fieldPyDefinition.get('relation', '')
         self.canCreate = json.loads(self.fieldXmlAttributes.get('can_create', 'true'))
@@ -249,23 +250,29 @@ class Many2many(OdooFieldTemplate):
         self.valueTemplateChanged()
 
     def setReadonly(self, val=False):
-        self.btnAddAnItem.setDisabled(val)
-        self.widgetQtObj.setDisabled(val)
-        self.treeViewObj.treeObj.tableWidget.setDisabled(val)
-        self.treeViewObj.buttToLeft.setDisabled(val)
-        self.treeViewObj.buttToRight.setDisabled(val)
-        self.treeViewObj.treeObj.widgetContents.setDisabled(val)
+        if self.btnAddAnItem:
+            self.btnAddAnItem.setDisabled(val)
+        if self.widgetQtObj:
+            self.widgetQtObj.setDisabled(val)
+        if self.treeViewObj:
+            self.treeViewObj.treeObj.tableWidget.setDisabled(val)
+            self.treeViewObj.buttToLeft.setDisabled(val)
+            self.treeViewObj.buttToRight.setDisabled(val)
+            self.treeViewObj.treeObj.widgetContents.setDisabled(val)
         self.createButt.setDisabled(val)
         super(Many2many, self).setReadonly(val)
 
     def setInvisible(self, val=False):
-        self.btnAddAnItem.setHidden(val)
+        if self.btnAddAnItem:
+            self.btnAddAnItem.setHidden(val)
+        if self.widgetQtObj:
+            self.widgetQtObj.setHidden(val)
+        if self.treeViewObj:
+            self.treeViewObj.buttToLeft.setHidden(val)
+            self.treeViewObj.buttToRight.setHidden(val)
+            self.treeViewObj.treeObj.tableWidget.setHidden(val)
+            self.treeViewObj.treeObj.widgetContents.setHidden(val)
         self.labelQtObj.setHidden(val)
-        self.widgetQtObj.setHidden(val)
-        self.treeViewObj.buttToLeft.setHidden(val)
-        self.treeViewObj.buttToRight.setHidden(val)
-        self.treeViewObj.treeObj.tableWidget.setHidden(val)
-        self.treeViewObj.treeObj.widgetContents.setHidden(val)
         self.createButt.setHidden(val)
         super(Many2many, self).setInvisible(val)
 

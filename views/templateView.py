@@ -256,8 +256,9 @@ class TemplateFormView(TemplateView):
 
     def __init__(self, rpcObject, activeLanguageCode='en_US', useHeader=False, useChatter=False):
         super(TemplateFormView, self).__init__(rpcObject, activeLanguageCode)
-        self.requiredFields = []    # ['field1', 'field2']
-        self.readonlyFields = []     # ['field1', 'field2']
+        self.requiredFields = {}
+        self.readonlyFields = {}
+        self.invisibleFields = {}
         self.viewType = 'form'
         self.objectsInit = copy.deepcopy(self.fields)
         self.fieldDefaultVals = {}  # {'fieldName' : fieldval}
@@ -275,6 +276,7 @@ class TemplateFormView(TemplateView):
         self.layout = self.formObj.computeArch()
         self.mappingInterface = self.formObj.globalMapping
         self.addToObject()
+        self._setFieldModifiers()
 
     def updateDataStructure(self, pageIndex=0):
         print 'compute Nootebook fields: %r' % (pageIndex)
@@ -332,6 +334,22 @@ class TemplateFormView(TemplateView):
             self.setInvisibleField(invisibleField, fieldAttr)
         self._setButtonsModifiers()
         self.objectsInit = copy.copy(self.fields)
+
+    def _setFieldModifiers(self):
+        fieldDict = self.interfaceFieldsDict
+        for fieldObj in fieldDict.values():
+            readonlyModif = fieldObj.modifiers.get('readonly', {})
+            invisibleModif = fieldObj.modifiers.get('invisible', {})
+            if readonlyModif:
+                val = utils.evaluateAttrs(fieldDict, readonlyModif)
+                fieldObj.setReadonly(val)
+                self.readonlyFields[fieldObj.fieldName] = fieldObj
+            if invisibleModif:
+                val = utils.evaluateAttrs(fieldDict, invisibleModif)
+                fieldObj.setInvisible(val)
+                self.invisibleFields[fieldObj.fieldName] = fieldObj
+            if fieldObj.required:
+                self.requiredFields[fieldObj.fieldName] = fieldObj
 
 
 class TemplateTreeTreeView(TemplateView):
