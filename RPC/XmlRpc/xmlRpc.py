@@ -52,9 +52,9 @@ class XmlRpcConnection(object):
     def search(self, obj, filterList, limit=False, offset=False, context={}):
         try:
             kargs = {'context': context}
-            if limit:
+            if limit or limit == 0:
                 kargs['limit'] = limit
-            if offset:
+            if offset or offset == 0:
                 kargs['offset'] = offset
             return self.callOdooFunction(obj, 'search', [filterList], kargs)
         except Exception, ex:

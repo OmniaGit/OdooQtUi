@@ -17,7 +17,7 @@ class Many2one(OdooFieldTemplate):
         super(Many2one, self).__init__(xmlField, fieldsDefinition, rpc)
         self.labelQtObj = False
         self.widgetQtObj = False
-        self.editButton = QtGui.QPushButton()
+        self.editButton = False
         self.itemToIdRel = {}
         self.skipSearch = False
         self.currentValue = False
@@ -110,13 +110,16 @@ class Many2one(OdooFieldTemplate):
         self.widgetQtObj2.setEditable(not val)
         self.widgetQtObj2.setDisabled(val)
         if val:
-            self.editButton.setHidden(True)
+            if self.editButton:
+                self.editButton.setHidden(True)
             self.widgetQtObj2.setStyleSheet(constants.SELECTION_STYLE + constants.READONLY_STYLE)
         else:
             if self.currentValue:
-                self.editButton.setHidden(False)
+                if self.editButton:
+                    self.editButton.setHidden(False)
             else:
-                self.editButton.setHidden(True)
+                if self.editButton:
+                    self.editButton.setHidden(True)
             self.widgetQtObj2.setStyleSheet(constants.SELECTION_STYLE)
 
     def setInvisible(self, val=False):
@@ -125,9 +128,11 @@ class Many2one(OdooFieldTemplate):
         if self.widgetQtObj2:
             self.widgetQtObj2.setHidden(val)
         if self.currentValue and not val:
-            self.editButton.setHidden(False)
+            if self.editButton:
+                self.editButton.show()
         else:
-            self.editButton.setHidden(True)
+            if self.editButton:
+                self.editButton.hide()
 
     def editItem(self, res=False):
         if not self.currentValue:

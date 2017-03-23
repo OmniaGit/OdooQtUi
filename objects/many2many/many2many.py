@@ -39,32 +39,39 @@ class Many2many(OdooFieldTemplate):
         buttonsLay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum))
         self.mainLay.addLayout(buttonsLay)
 
+    def acceptFormDial(self):
+        fieldVals = self.tmpviewObjForm.getAllFieldsValues()
+        for requiredFieldStr, requiredFieldObj in self.tmpviewObjForm.requiredFields.items():
+            fieldVal = fieldVals.get(requiredFieldStr, '')
+            if not fieldVal and not isinstance(fieldVal, (int, float)):
+                utils.launchMessage('Field %r need a value' % (requiredFieldObj.labelString), 'error')
+                return
+        self.formdialog.accept()
+
+    def rejectFormDial(self):
+        self.formdialog.reject()
+
     def createAndAdd(self):
         try:
-            def acceptDial():
-                dialog.accept()
-
-            def rejectDial():
-                dialog.reject()
-
-            dialog = QtGui.QDialog()
-            mainLay = QtGui.QVBoxLayout()
             from start import MainConnector
             conn = MainConnector()
-            viewObjForm = conn.initViewObj('form', self.relation, rpcObj=self.rpc)
-            mainLay.addLayout(viewObjForm.layout)
-            dialog.setStyleSheet('background-color:#893b74;')
-            dialog.resize(1200, 600)
-            dialog.move(100, 100)
+            self.tmpviewObjForm = conn.initViewObj('form', self.relation, rpcObj=self.rpc)
+
+            self.formdialog = QtGui.QDialog()
+            mainLay = QtGui.QVBoxLayout()
+            mainLay.addLayout(self.tmpviewObjForm.layout)
+            self.formdialog.setStyleSheet('background-color:#893b74;')
+            self.formdialog.resize(1200, 600)
+            self.formdialog.move(100, 100)
             buttLay, okButt, cancelButt = utils.getButtonBox('right')
             mainLay.addLayout(buttLay)
-            dialog.setLayout(mainLay)
-            okButt.clicked.connect(acceptDial)
-            cancelButt.clicked.connect(rejectDial)
+            self.formdialog.setLayout(mainLay)
+            okButt.clicked.connect(self.acceptFormDial)
+            cancelButt.clicked.connect(self.rejectFormDial)
             okButt.setStyleSheet(constants.BUTTON_STYLE_OK)
             cancelButt.setStyleSheet(constants.BUTTON_STYLE_CANCEL)
-            if dialog.exec_() == QtGui.QDialog.Accepted:
-                fieldVals = viewObjForm.getAllFieldsValues()
+            if self.formdialog.exec_() == QtGui.QDialog.Accepted:
+                fieldVals = self.tmpviewObjForm.getAllFieldsValues()
                 objId = self.rpc.create(self.relation, fieldVals)
                 if objId:
                     rowCount = self.widgetQtObj.rowCount()
@@ -75,7 +82,7 @@ class Many2many(OdooFieldTemplate):
                         if not fieldName:
                             continue
                         colIndex = orderedFields.index(fieldName)
-                        fieldObj = viewObjForm.fields.getFieldObj(fieldName)
+                        fieldObj = self.tmpviewObjForm.fields.getFieldObj(fieldName)
                         fieldVal = ''
                         if fieldObj:
                             fieldVal = fieldObj.valueInterface
@@ -202,7 +209,7 @@ class Many2many(OdooFieldTemplate):
         viewObj = conn.initTreeListViewObject(self.relation, rpcObj=self.rpc, viewCheckBoxes=True)
         viewObj.buttToLeft.clicked.connect(toLeft)
         viewObj.buttToRight.clicked.connect(toRight)
-        resIds = self.rpc.search(self.relation, [], limit=viewObj.currentRange[-1], offset=viewObj.passRange)
+        resIds = self.rpc.search(self.relation, [], limit=viewObj.currentRange[-1], offset=viewObj.currentRange[0])
         viewObj.loadIds(resIds, {}, {}, {}, viewCheckBoxes=True)
         dial = QtGui.QDialog()
         vlay = QtGui.QVBoxLayout()
@@ -264,16 +271,26 @@ class Many2many(OdooFieldTemplate):
 
     def setInvisible(self, val=False):
         if self.btnAddAnItem:
-            self.btnAddAnItem.setHidden(val)
+            if val:
+                self.btnAddAnItem.hide()
+            else:
+                self.btnAddAnItem.show()
         if self.widgetQtObj:
             self.widgetQtObj.setHidden(val)
         if self.treeViewObj:
-            self.treeViewObj.buttToLeft.setHidden(val)
-            self.treeViewObj.buttToRight.setHidden(val)
+            if val:
+                self.treeViewObj.buttToLeft.hide()
+                self.treeViewObj.buttToRight.hide()
+            else:
+                self.treeViewObj.buttToLeft.show()
+                self.treeViewObj.buttToRight.show()
             self.treeViewObj.treeObj.tableWidget.setHidden(val)
             self.treeViewObj.treeObj.widgetContents.setHidden(val)
         self.labelQtObj.setHidden(val)
-        self.createButt.setHidden(val)
+        if val:
+            self.createButt.hide()
+        else:
+            self.createButt.show()
         super(Many2many, self).setInvisible(val)
 
     @property

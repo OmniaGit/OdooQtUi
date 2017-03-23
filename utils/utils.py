@@ -488,7 +488,8 @@ def commonPopulateTable(headers, values, tableWidget, flags={}, add=False, fontS
             if colIndex in flags:
                 flagsToAdd = flags[colIndex]
                 twItem.setFlags(flagsToAdd)
-                twItem.setCheckState(QtCore.Qt.Unchecked)
+                if flagsToAdd == QtCore.Qt.ItemIsUserCheckable:
+                    twItem.setCheckState(QtCore.Qt.Unchecked)
             else:
                 twItem.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
             tableWidget.setItem(rowPosition, colIndex, twItem)

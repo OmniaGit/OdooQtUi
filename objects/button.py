@@ -10,7 +10,7 @@ import json
 
 
 class Button(object):
-    def __init__(self, xmlObject):
+    def __init__(self, xmlObject, forceHidden=False):
         self.xmlObject = xmlObject
         self.buttonAttribs = self.xmlObject.attrib
         self.buttonString = self.buttonAttribs.get('string', '')
@@ -21,7 +21,13 @@ class Button(object):
         self.invisible = utils.evaluateBoolean(self.buttonAttribs.get('invisible', False))
         self.readonly = utils.evaluateBoolean(self.buttonAttribs.get('readonly', False))
         self.buttonObj.setDisabled(self.readonly)
-        self.buttonObj.setHidden(self.invisible)
+        if forceHidden:
+            self.buttonObj.hide()
+        else:
+            if self.invisible:
+                self.buttonObj.hide()
+            else:
+                self.buttonObj.show()
         self.invisibleConditions, self.readonlyConditions = utils.evaluateModifiers(self.modifiers)
         self.buttonObj.setStyleSheet(constants.BUTTON_STYLE)
         return super(Button, self).__init__()
@@ -39,4 +45,7 @@ class Button(object):
         self.buttonObj.setDisabled(val)
 
     def setInvisible(self, val=False):
-        self.buttonObj.setHidden(val)
+        if val:
+            self.buttonObj.hide()
+        else:
+            self.buttonObj.show()

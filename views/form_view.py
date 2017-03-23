@@ -58,9 +58,14 @@ class FormView(QtCore.QObject, object):
                     sheetLay.addLayout(layout)
                 mainVLay.addLayout(sheetLay)
             elif childTag == 'header':
-                mapping, layout = self.computeHeader(childElement)
-                if layout and self.useHeader:
-                    mainVLay.addLayout(layout)
+                logging.warning('Header not implemented')
+                continue
+                mapping, layout = self.computeHeader(childElement, self.useHeader)
+                if layout:
+                    if self.useHeader:
+                        mainVLay.addLayout(layout)
+                    else:
+                        layout.deleteLater()
                 if mapping:
                     self.globalMapping.update(mapping)
             elif childTag == 'div':
@@ -68,6 +73,7 @@ class FormView(QtCore.QObject, object):
                 divAttrib = childElement.attrib
                 divClass = divAttrib.get('class', '')
                 if divClass == 'oe_chatter' and not self.useChatter:
+                    logging.warning('Chatter not implemented')
                     continue
                 if childElement.text:
                     label = QtGui.QLabel(childElement.text)
@@ -104,11 +110,15 @@ class FormView(QtCore.QObject, object):
                 layout = self.computeGroup(childElement, nootebookIndex)
                 mainVLay.addLayout(layout)
             elif childTag == 'button':
+                logging.warning('Buttons not implemented at first level of form')
                 continue
                 buttonObj = button.Button(childElement)
-                mainVLay.addWidget(buttonObj.qtObject)
                 key = 'button_' + unicode(buttonObj.buttonString).replace(' ', '_')
                 self.appendToglobalMapping(key, buttonObj)
+                mainVLay.addWidget(buttonObj.qtObject)
+                divClass = parent.attrib.get('class', '')
+                if divClass == 'oe_button_box':
+                    buttonObj.qtObject.setHidden(True)
             elif childTag == 'separator':
                 childAttrs = childElement.attrib
                 separatorVal = childAttrs.get('string', '')
@@ -266,7 +276,7 @@ class FormView(QtCore.QObject, object):
             fieldObj = One2many(xmlObj, self.fieldsNameTypeRel, self.rpc)
         return fieldObj
 
-    def computeHeader(self, archHeader):
+    def computeHeader(self, archHeader, useHeader=False):
         mapping = {}
 
         def commonAppend(key, vals):
@@ -280,6 +290,7 @@ class FormView(QtCore.QObject, object):
             if xmlObj.tag == 'button':
                 buttonObj = button.Button(xmlObj)
                 headerLayout.addWidget(buttonObj.qtObject)
+                # buttonObj.qtObject.setHidden(not useHeader)
                 commonAppend('button_header_' + unicode(buttonObj.buttonString).replace(' ', '_'), buttonObj)
             elif xmlObj.tag == 'field':
                 fieldObj = self.computeField(xmlObj)
