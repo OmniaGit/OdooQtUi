@@ -8,10 +8,10 @@ import sys
 from PyQt4 import QtGui
 from utils import utils
 from RPC.rpc import RpcConnection
-from views.templateView import TemplateSearchView
-from views.templateView import TemplateFormView
-from views.templateView import TemplateTreeTreeView
-from views.templateView import TemplateTreeListView
+from views.search_obj import TemplateSearchView
+from views.form_obj import TemplateFormView
+from views.tree_tree_obj import TemplateTreeTreeView
+from views.tree_list_obj import TemplateTreeListView
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
@@ -103,14 +103,14 @@ if __name__ == '__main__':
     password = 'admin'
     dbName = 'odoo-9-clean'
     loginType = 'xmlrpc'
-# 
-#     scheme = 'http'
-#     xmlrpcServerIP = 'www.odooplm.cloud'
-#     xmlrpcPort = 8066
-#     user = 'odooplm'
-#     password = 'odooplm'
-#     dbName = 'odoov9_0'
-#     loginType = 'xmlrpc'
+
+    scheme = 'http'
+    xmlrpcServerIP = 'www.odooplm.cloud'
+    xmlrpcPort = 8066
+    user = 'odooplm'
+    password = 'odooplm'
+    dbName = 'odoov9_0'
+    loginType = 'xmlrpc'
 
     app = QtGui.QApplication(sys.argv)
 
@@ -122,9 +122,9 @@ if __name__ == '__main__':
     templateViewObj = connectorObj.initViewObj('form', 'product.product', '', False, useHeader=False)
     qtInterface = templateViewObj.QtInterface
     # objIds = [77540]
-    objIds = [32]
-    #objIds = []
-    #objIds = [2]
+    objIds = [257]
+    # objIds = []
+    # objIds = [2]
     # startingFieldValues = {'description': 'non-settare'}
     startingFieldValues = {}
     readonlyFields = {}     # {'description': True}
