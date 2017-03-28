@@ -6,6 +6,7 @@ Created on Mar 28, 2017
 import os
 from ui.ui_login import Ui_dialog_login
 from PyQt4 import QtGui
+from PyQt4 import QtCore
 from utils import utils
 import json
 
@@ -24,8 +25,15 @@ class LoginDial(QtGui.QDialog, Ui_dialog_login):
         self.logged = self.loginWithUserDial()
         if self.logged:
             self.stackedWidget.setCurrentIndex(1)
+            self.pushButton_back.setHidden(False)
+            self.pushButton_ok.setHidden(False)
+            self.pushButton_next.setHidden(True)
         else:
             self.stackedWidget.setCurrentIndex(0)
+            self.pushButton_back.setHidden(True)
+            self.pushButton_next.setHidden(False)
+            self.pushButton_ok.setHidden(True)
+        self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
 
     def setEvents(self):
         self.pushButton_cancel.clicked.connect(self.cancelDial)
@@ -41,10 +49,13 @@ class LoginDial(QtGui.QDialog, Ui_dialog_login):
         self.serverPort = int(unicode(self.lineEdit_port.text()))
         self.scheme = unicode(self.lineEdit_scheme.text())
         self.connType = unicode(self.comboBox_conn_type.currentText())
+        self.writeToFile()
         self.logged = self.loginWithUserDial()
         if self.logged:
-            self.writeToFile()
-        self.accept()
+            utils.launchMessage('Logged in successfully.', 'info')
+            self.accept()
+        else:
+            utils.launchMessage('Bad Login Infos! Check Better.', 'warning')
 
     def loginWithUserDial(self):
         return self.parent.loginWithUser(self.username,
@@ -148,6 +159,7 @@ class LoginDial(QtGui.QDialog, Ui_dialog_login):
             self.comboBox_conn_type.setCurrentIndex(typeIndex)
         dbItems = ['']
         dbItems.extend(self.dbList)
+        self.comboBox_database.addItems(dbItems)
         if self.dbName in dbItems:
             typeIndex2 = dbItems.index(self.dbName)
             self.comboBox_database.setCurrentIndex(typeIndex2)

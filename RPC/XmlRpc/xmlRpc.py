@@ -39,6 +39,8 @@ class XmlRpcConnection(object):
             self.loginNoUser()
         try:
             self.userId = self.socketNoLogin.login(self.databaseName, self.userName, self.userPassword)
+            if not self.userId:
+                return False
         except Exception, ex:
             utils.logMessage('error', 'Error during login with user: %r' % (ex), 'loginWithUser')
             return False

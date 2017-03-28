@@ -44,6 +44,8 @@ class RpcConnection(object):
         return self.sockInstance.listDb()
 
     def computeUserLanguage(self):
+        if not self.userId:
+            return False
         res = self.callCustomMethod('res.users', 'context_get')
         if not res:
             logging.warning('Unable to get user context.')
