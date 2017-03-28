@@ -12,6 +12,7 @@ from views.search_obj import TemplateSearchView
 from views.form_obj import TemplateFormView
 from views.tree_tree_obj import TemplateTreeTreeView
 from views.tree_list_obj import TemplateTreeListView
+from interface.login import LoginDial
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
@@ -37,6 +38,19 @@ class MainConnector(object):
         self.activeLanguage = self.rpc.contextUser.get('lang', 'en_US')
         return res
 
+    def loginWithDial(self):
+        loginDialInst = LoginDial()
+        serverPort = int(unicode(loginDialInst.lineEdit_port))
+        if loginDialInst.exec_() == QtGui.QDialog.Accepted:
+            dbName = unicode(loginDialInst.comboBox_database.currentText())
+            return self.loginWithUser(unicode(loginDialInst.lineEdit_username),
+                                      unicode(loginDialInst.lineEdit_password),
+                                      dbName,
+                                      unicode(loginDialInst.lineEdit_server),
+                                      ,
+                                      unicode(loginDialInst.lineEdit_scheme),
+                                      unicode(loginDialInst.comboBox_conn_type))
+        
     def computeUserGroups(self):
         # Not Used
         res = self.rpc.read('res.users', ['groups_id'], self.rpc.userId)
@@ -115,6 +129,10 @@ if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
 
     connectorObj = MainConnector()
+    connectorObj.loginWithDial()
+    
+    
+    
     connectorObj.loginWithUser(user, password, dbName, xmlrpcServerIP, xmlrpcPort, scheme, loginType)
 
     # dialog = QtGui.QDialog(None, QtCore.Qt.WindowSystemMenuHint | QtCore.Qt.WindowTitleHint)
