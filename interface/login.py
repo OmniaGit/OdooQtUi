@@ -45,6 +45,8 @@ class LoginDial(QtGui.QDialog, Ui_dialog_login):
     def initFields(self):
         self.pushButton_ok.setHidden(True)
         self.pushButton_back.setHidden(True)
+        self.comboBox_conn_type.setEditable(True)
+        self.comboBox_database.setEditable(True)
         
     def setStyleWidgets(self):
         lineditStyle = 'height: 25px;padding: 6px 12px;font-size: 14px;border: 1px solid #ccc;border-radius: 4px;background-color: rgb(250, 255, 189);color: rgb(0, 0, 0);'

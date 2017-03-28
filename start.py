@@ -40,14 +40,13 @@ class MainConnector(object):
 
     def loginWithDial(self):
         loginDialInst = LoginDial()
-        serverPort = int(unicode(loginDialInst.lineEdit_port))
         if loginDialInst.exec_() == QtGui.QDialog.Accepted:
             dbName = unicode(loginDialInst.comboBox_database.currentText())
             return self.loginWithUser(unicode(loginDialInst.lineEdit_username),
                                       unicode(loginDialInst.lineEdit_password),
                                       dbName,
                                       unicode(loginDialInst.lineEdit_server),
-                                      ,
+                                      int(unicode(loginDialInst.lineEdit_port)),
                                       unicode(loginDialInst.lineEdit_scheme),
                                       unicode(loginDialInst.comboBox_conn_type))
         
