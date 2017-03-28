@@ -636,6 +636,16 @@ def timeit(method):
 
     return timed
 
+
+def getUserHomeDir():
+    return os.path.expanduser("~")
+
+
+def getLoginFile():
+    home = getUserHomeDir()
+    return os.path.join(home, '.trayUserLogin')
+
+
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
     # aaa = getExeFromPath('/home/daniel/eclipse/committers-neon/eclipse/')

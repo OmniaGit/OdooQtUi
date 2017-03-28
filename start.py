@@ -28,8 +28,8 @@ class MainConnector(object):
     def _getRpcInstance(self, loginType, user, password, dbName, xmlrpcPort, scheme, xmlrpcServerIP):
         return RpcConnection(loginType, user, password, dbName, xmlrpcPort, scheme, xmlrpcServerIP)
 
-    def loginNoUser(self, user, password, dbName, xmlrpcServerIP='127.0.0.1', xmlrpcPort=8069, scheme='http', loginType='xmlrpc'):
-        self.rpc = self._getRpcInstance(loginType, user, password, dbName, xmlrpcPort, scheme, xmlrpcServerIP)
+    def loginNoUser(self, xmlrpcServerIP='127.0.0.1', xmlrpcPort=8069, scheme='http', loginType='xmlrpc'):
+        self.rpc = self._getRpcInstance(loginType, '', '', '', xmlrpcPort, scheme, xmlrpcServerIP)
         return self.rpc.loginNoUser()
 
     def loginWithUser(self, user, password, dbName, xmlrpcServerIP='127.0.0.1', xmlrpcPort=8069, scheme='http', loginType='xmlrpc'):
@@ -39,17 +39,10 @@ class MainConnector(object):
         return res
 
     def loginWithDial(self):
-        loginDialInst = LoginDial()
-        if loginDialInst.exec_() == QtGui.QDialog.Accepted:
-            dbName = unicode(loginDialInst.comboBox_database.currentText())
-            return self.loginWithUser(unicode(loginDialInst.lineEdit_username),
-                                      unicode(loginDialInst.lineEdit_password),
-                                      dbName,
-                                      unicode(loginDialInst.lineEdit_server),
-                                      int(unicode(loginDialInst.lineEdit_port)),
-                                      unicode(loginDialInst.lineEdit_scheme),
-                                      unicode(loginDialInst.comboBox_conn_type))
-        
+        loginDialInst = LoginDial(parent=self)
+        loginDialInst.exec_()
+        return loginDialInst.logged
+
     def computeUserGroups(self):
         # Not Used
         res = self.rpc.read('res.users', ['groups_id'], self.rpc.userId)

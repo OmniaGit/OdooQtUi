@@ -19,6 +19,7 @@ class XmlRpcConnection(object):
         self.xmlrpcServerIP = xmlrpcServerIP
         self.urlCommon = self.scheme + '://' + str(self.xmlrpcServerIP) + ':' + str(self.xmlrpcPort) + '/xmlrpc/'
         self.urlNoLogin = self.urlCommon + 'common'
+        self.urlListDB = self.urlCommon + 'db'
         self.urlYesLogin = self.urlCommon + 'object'
         self.socketNoLogin = False
         self.socketYesLogin = False
@@ -48,6 +49,9 @@ class XmlRpcConnection(object):
             return False
         utils.logMessage('info', 'Successfull connection to Odoo with user %r and database %r' % (self.userName, self.databaseName), 'loginNoUser')
         return True
+
+    def listDb(self):
+        return xmlrpclib.ServerProxy(self.urlListDB).list()
 
     def search(self, obj, filterList, limit=False, offset=False, context={}):
         try:

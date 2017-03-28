@@ -21,6 +21,7 @@ class RpcConnection(object):
         self.socketYesLogin = False
         self.userId = False
         self.connectionType = connectionType
+        self.availableConnTypes = ['xmlrpc']
         self.sockInstance = False
         self.contextUser = {}
         if connectionType == 'xmlrpc':
@@ -32,10 +33,15 @@ class RpcConnection(object):
 
     @utils.timeit
     def loginWithUser(self):
+        if not self.sockInstance:
+            return False
         res = self.sockInstance.loginWithUser()
         self.userId = self.sockInstance.userId
         self.computeUserLanguage()
         return res
+
+    def listDb(self):
+        return self.sockInstance.listDb()
 
     def computeUserLanguage(self):
         res = self.callCustomMethod('res.users', 'context_get')

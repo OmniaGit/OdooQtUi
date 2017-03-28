@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/srv/workspace/tray_odoo_connector/interface/ui/login.ui'
 #
-# Created: Tue Mar 28 14:09:46 2017
+# Created: Tue Mar 28 20:14:44 2017
 #      by: PyQt4 UI code generator 4.11.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,7 +26,7 @@ except AttributeError:
 class Ui_dialog_login(object):
     def setupUi(self, dialog_login):
         dialog_login.setObjectName(_fromUtf8("dialog_login"))
-        dialog_login.resize(404, 223)
+        dialog_login.resize(434, 244)
         self.gridLayout = QtGui.QGridLayout(dialog_login)
         self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
         self.stackedWidget = QtGui.QStackedWidget(dialog_login)
@@ -86,14 +86,14 @@ class Ui_dialog_login(object):
         self.gridLayout.addWidget(self.stackedWidget, 0, 0, 1, 1)
         self.horizontalLayout = QtGui.QHBoxLayout()
         self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
-        spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout.addItem(spacerItem)
         self.pushButton_back = QtGui.QPushButton(dialog_login)
         self.pushButton_back.setObjectName(_fromUtf8("pushButton_back"))
         self.horizontalLayout.addWidget(self.pushButton_back)
         self.pushButton_next = QtGui.QPushButton(dialog_login)
         self.pushButton_next.setObjectName(_fromUtf8("pushButton_next"))
         self.horizontalLayout.addWidget(self.pushButton_next)
+        spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.horizontalLayout.addItem(spacerItem)
         self.pushButton_ok = QtGui.QPushButton(dialog_login)
         self.pushButton_ok.setObjectName(_fromUtf8("pushButton_ok"))
         self.horizontalLayout.addWidget(self.pushButton_ok)
@@ -118,6 +118,6 @@ class Ui_dialog_login(object):
         self.label_password.setText(_translate("dialog_login", "Password", None))
         self.pushButton_back.setText(_translate("dialog_login", "Back", None))
         self.pushButton_next.setText(_translate("dialog_login", "Next", None))
-        self.pushButton_ok.setText(_translate("dialog_login", "Ok", None))
+        self.pushButton_ok.setText(_translate("dialog_login", "Login", None))
         self.pushButton_cancel.setText(_translate("dialog_login", "Cancel", None))
 
