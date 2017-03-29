@@ -5,6 +5,7 @@ Created on 02 feb 2017
 '''
 import logging
 import sys
+import copy
 from PyQt4 import QtGui
 from utils_odoo_conn import utils
 from RPC.rpc import RpcConnection
@@ -129,6 +130,7 @@ if __name__ == '__main__':
     dialog = QtGui.QDialog()
     templateViewObj = connectorObj.initViewObj('form', 'product.product', '', False, useHeader=False)
     qtInterface = templateViewObj.QtInterface
+    qtInterface2 = copy.deepcopy(qtInterface)
     objIds = [257]
     startingFieldValues = {}
     readonlyFields = {}     # {'description': True}
@@ -138,11 +140,20 @@ if __name__ == '__main__':
     dialog.setStyleSheet('background-color:#893b74;')
     dialog.resize(1200, 600)
     dialog.move(100, 100)
-    dialog.show()
     te = time.time()
     print 'TOTAL = %2.2f sec' % (te - ts)
     dialog.exec_()
-
+    
+    t1 = time.time()
+    templateViewObj.loadIds(objIds, startingFieldValues, readonlyFields, invisibleFields)
+    dialog2 = QtGui.QDialog()
+    dialog2.setLayout(qtInterface)
+    dialog2.setStyleSheet('background-color:#893b74;')
+    dialog2.resize(1200, 600)
+    dialog2.move(100, 100)
+    print 'TOTAL = %2.2f sec' % (time.time() - t1)
+    dialog2.exec_()
+    
     # Odoo calls
     usersObj = 'res.users'
     partnerObj = 'res.partner'
