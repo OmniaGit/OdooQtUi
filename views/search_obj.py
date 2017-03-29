@@ -5,8 +5,8 @@ Created on 24 Mar 2017
 '''
 from parser.search_view import SearchView
 from templateView import TemplateView
-from utils import utils
-from utils import constants
+from utils_odoo_conn import utils
+from utils_odoo_conn import constants
 from PyQt4 import QtGui
 from PyQt4 import QtCore
 

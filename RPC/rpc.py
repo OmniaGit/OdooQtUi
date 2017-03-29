@@ -4,7 +4,7 @@ Created on 02 feb 2017
 @author: Daniel
 '''
 import logging
-from utils import utils
+from utils_odoo_conn import utils
 from XmlRpc.xmlRpc import XmlRpcConnection
 
 

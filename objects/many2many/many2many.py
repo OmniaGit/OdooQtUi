@@ -5,8 +5,8 @@ Created on 7 Feb 2017
 '''
 
 from PyQt4 import QtGui, QtCore
-from utils import utils
-from utils import constants
+from utils_odoo_conn import utils
+from utils_odoo_conn import constants
 from functools import partial
 from objects.fieldTemplate import OdooFieldTemplate
 import json

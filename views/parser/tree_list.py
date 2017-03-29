@@ -7,7 +7,7 @@ import xml.etree.cElementTree as ElementTree
 from PyQt4 import QtGui
 from PyQt4 import QtCore
 from objects import button
-from utils import utils
+from utils_odoo_conn import utils
 from objects.selection.selection import Selection
 from objects.boolean.boolean import Boolean
 from objects.char.char import Charachter
@@ -18,7 +18,7 @@ from objects.integer.integer import Integer
 from objects.many2many.many2many import Many2many
 from objects.many2one.many2one import Many2one
 from objects.text.text import Text
-from utils import constants
+from utils_odoo_conn import constants
 
 
 class TreeViewList(object):

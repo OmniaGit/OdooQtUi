@@ -4,8 +4,8 @@ Created on 06 feb 2017
 @author: Daniel
 '''
 from PyQt4 import QtGui
-from utils import utils
-from utils import constants
+from utils_odoo_conn import utils
+from utils_odoo_conn import constants
 import json
 
 

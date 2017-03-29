@@ -1,7 +1,7 @@
 from PyQt4 import QtCore
 from PyQt4 import QtGui
-from utils import utils
-from utils import constants
+from utils_odoo_conn import utils
+from utils_odoo_conn import constants
 from objects.fieldTemplate import OdooFieldTemplate
 from datetime import datetime
 

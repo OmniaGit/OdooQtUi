@@ -7,7 +7,7 @@ import os
 from ui.ui_login import Ui_dialog_login
 from PyQt4 import QtGui
 from PyQt4 import QtCore
-from utils import utils
+from utils_odoo_conn import utils
 import json
 
 

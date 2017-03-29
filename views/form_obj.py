@@ -5,8 +5,8 @@ Created on 24 Mar 2017
 '''
 
 from parser.form_view import FormView
-from utils import utils
-from utils import constants
+from utils_odoo_conn import utils
+from utils_odoo_conn import constants
 from PyQt4 import QtGui
 from PyQt4 import QtCore
 from templateView import TemplateView

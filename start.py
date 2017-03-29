@@ -6,7 +6,7 @@ Created on 02 feb 2017
 import logging
 import sys
 from PyQt4 import QtGui
-from utils import utils
+from utils_odoo_conn import utils
 from RPC.rpc import RpcConnection
 from views.search_obj import TemplateSearchView
 from views.form_obj import TemplateFormView

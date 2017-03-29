@@ -4,7 +4,7 @@ Created on 3 Feb 2017
 @author: Daniel Smerghetto
 '''
 
-from utils import utils
+from utils_odoo_conn import utils
 import xmlrpclib
 
 
