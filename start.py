@@ -121,27 +121,27 @@ if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
 
     connectorObj = MainConnector()
-    connectorObj.loginWithDial()
+#     connectorObj.loginWithDial()
+# 
+#     connectorObj.loginWithDial()
 
-    connectorObj.loginWithDial()
-
-#     connectorObj.loginWithUser(user, password, dbName, xmlrpcServerIP, xmlrpcPort, scheme, loginType)
-#     dialog = QtGui.QDialog()
-#     templateViewObj = connectorObj.initViewObj('form', 'product.product', '', False, useHeader=False)
-#     qtInterface = templateViewObj.QtInterface
-#     objIds = [257]
-#     startingFieldValues = {}
-#     readonlyFields = {}     # {'description': True}
-#     invisibleFields = {}    # {'description': True, 'state': True}
-#     templateViewObj.loadIds(objIds, startingFieldValues, readonlyFields, invisibleFields)
-#     dialog.setLayout(qtInterface)
-#     dialog.setStyleSheet('background-color:#893b74;')
-#     dialog.resize(1200, 600)
-#     dialog.move(100, 100)
-#     dialog.show()
-#     te = time.time()
-#     print 'TOTAL = %2.2f sec' % (te - ts)
-#     dialog.exec_()
+    connectorObj.loginWithUser(user, password, dbName, xmlrpcServerIP, xmlrpcPort, scheme, loginType)
+    dialog = QtGui.QDialog()
+    templateViewObj = connectorObj.initViewObj('form', 'product.product', '', False, useHeader=False)
+    qtInterface = templateViewObj.QtInterface
+    objIds = [257]
+    startingFieldValues = {}
+    readonlyFields = {}     # {'description': True}
+    invisibleFields = {}    # {'description': True, 'state': True}
+    templateViewObj.loadIds(objIds, startingFieldValues, readonlyFields, invisibleFields)
+    dialog.setLayout(qtInterface)
+    dialog.setStyleSheet('background-color:#893b74;')
+    dialog.resize(1200, 600)
+    dialog.move(100, 100)
+    dialog.show()
+    te = time.time()
+    print 'TOTAL = %2.2f sec' % (te - ts)
+    dialog.exec_()
 
     # Odoo calls
     usersObj = 'res.users'

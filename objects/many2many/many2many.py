@@ -246,6 +246,7 @@ class Many2many(OdooFieldTemplate):
                     font = QtGui.QFont()
                     font.setPointSize(constants.FONT_SIZE_LIST_WIDGET)
                     twItem.setFont(font)
+                    twItem.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
                     self.widgetQtObj.setItem(rowPosition, colIndex, twItem)
                 self.treeViewObj.idLineRel[rowPosition] = localIndexId[checkedIndex]
                 rowPosition = rowPosition + 1
