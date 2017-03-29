@@ -24,6 +24,7 @@ class RpcConnection(object):
         self.availableConnTypes = ['xmlrpc']
         self.sockInstance = False
         self.contextUser = {}
+        self.userLogged = False
         if connectionType == 'xmlrpc':
             self.sockInstance = XmlRpcConnection(userName, userPassword, databaseName, xmlrpcPort, scheme, xmlrpcServerIP)
         return super(RpcConnection, self).__init__()
@@ -37,6 +38,8 @@ class RpcConnection(object):
             return False
         res = self.sockInstance.loginWithUser()
         self.userId = self.sockInstance.userId
+        if self.userId:
+            self.userLogged = True
         self.computeUserLanguage()
         return res
 

@@ -122,56 +122,29 @@ if __name__ == '__main__':
 
     connectorObj = MainConnector()
     connectorObj.loginWithDial()
-    
-    
-    
-    connectorObj.loginWithUser(user, password, dbName, xmlrpcServerIP, xmlrpcPort, scheme, loginType)
 
-    # dialog = QtGui.QDialog(None, QtCore.Qt.WindowSystemMenuHint | QtCore.Qt.WindowTitleHint)
-    dialog = QtGui.QDialog()
-    templateViewObj = connectorObj.initViewObj('form', 'product.product', '', False, useHeader=False)
-    qtInterface = templateViewObj.QtInterface
-    # objIds = [77540]
-    objIds = [257]
-    # objIds = []
-    # objIds = [2]
-    # startingFieldValues = {'description': 'non-settare'}
-    startingFieldValues = {}
-    readonlyFields = {}     # {'description': True}
-    invisibleFields = {}    # {'description': True, 'state': True}
+    connectorObj.loginWithDial()
 
-    templateViewObj.loadIds(objIds, startingFieldValues, readonlyFields, invisibleFields)
-    # templateViewObj.setReadonly(True)
-    # dialog.setWindowFlags(QtCore.Qt.FramelessWindowHint)
-    dialog.setLayout(qtInterface)
-    dialog.setStyleSheet('background-color:#893b74;')
-    dialog.resize(1200, 600)
-    dialog.move(100, 100)
-    # dialog.adjustSize()
-    dialog.show()
-    te = time.time()
-    print 'TOTAL = %2.2f sec' % (te - ts)
-    dialog.exec_()
+#     connectorObj.loginWithUser(user, password, dbName, xmlrpcServerIP, xmlrpcPort, scheme, loginType)
+#     dialog = QtGui.QDialog()
+#     templateViewObj = connectorObj.initViewObj('form', 'product.product', '', False, useHeader=False)
+#     qtInterface = templateViewObj.QtInterface
+#     objIds = [257]
+#     startingFieldValues = {}
+#     readonlyFields = {}     # {'description': True}
+#     invisibleFields = {}    # {'description': True, 'state': True}
+#     templateViewObj.loadIds(objIds, startingFieldValues, readonlyFields, invisibleFields)
+#     dialog.setLayout(qtInterface)
+#     dialog.setStyleSheet('background-color:#893b74;')
+#     dialog.resize(1200, 600)
+#     dialog.move(100, 100)
+#     dialog.show()
+#     te = time.time()
+#     print 'TOTAL = %2.2f sec' % (te - ts)
+#     dialog.exec_()
 
     # Odoo calls
     usersObj = 'res.users'
     partnerObj = 'res.partner'
     prodProdObj = 'product.product'
-#     connectorObj.rpc.fieldsViewGet(prodProdObj, False, 'form')
-#
-#     print 'Search result: %r' % (connectorObj.rpc.search(usersObj, []))
-#     print 'Read result: %r' % (connectorObj.rpc.read(usersObj, [], [1]))
-#     print 'Read search result: %r' % (unicode(connectorObj.rpc.readSearch(usersObj, [], [])))
-#     print ''
-#     print 'Write result %r' % (connectorObj.rpc.write(prodProdObj, {'description': 'ciaooo'}, [69, 70]))
-#     print 'Search Write result %r' % (connectorObj.rpc.writeSearch(prodProdObj, {'description': 'ciao2'}, [('id', 'in', [69, 70])]))
-#     print 'Fields get result: %r' % (connectorObj.rpc.fieldsGet(usersObj, []))
-#     newId = connectorObj.rpc.create(partnerObj, {'name': 'Daniel'})
-#     print 'Create result: %r' % (newId)
-#     print 'Delete resut: %r' % (connectorObj.rpc.delete(prodProdObj, [newId]))
-#     newId1 = connectorObj.rpc.create(partnerObj, {'name': 'Daniel_1'})
-#     newId2 = connectorObj.rpc.create(partnerObj, {'name': 'Daniel_2'})
-#     print 'Search Delete resut: %r' % (connectorObj.rpc.deleteSearch(partnerObj, [('id', 'in', [newId1, newId2])]))
-#     print 'Search count res: %r' % (connectorObj.rpc.searchCount(partnerObj, [('name', 'ilike', 'daniel')]))
-#     print 'Fields get res: %r' % (connectorObj.rpc.fieldsGet(partnerObj, []))
     app.exec_()

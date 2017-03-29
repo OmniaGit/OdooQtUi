@@ -22,7 +22,10 @@ class LoginDial(QtGui.QDialog, Ui_dialog_login):
         self.parent.loginNoUser()
         self.rpc = self.parent.rpc
         self.initFields()
-        self.logged = self.loginWithUserDial()
+        if self.rpc.userLogged:
+            self.logged = True
+        else:
+            self.logged = self.loginWithUserDial()
         if self.logged:
             self.stackedWidget.setCurrentIndex(1)
             self.pushButton_back.setHidden(False)
