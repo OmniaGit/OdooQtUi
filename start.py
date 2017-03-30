@@ -142,9 +142,5 @@ if __name__ == '__main__':
 #     te = time.time()
 #     print 'TOTAL = %2.2f sec' % (te - ts)
 #     dialog.exec_()
-# 
-#     # Odoo calls
-#     usersObj = 'res.users'
-#     partnerObj = 'res.partner'
-#     prodProdObj = 'product.product'
+
     app.exec_()
