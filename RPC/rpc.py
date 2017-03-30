@@ -17,8 +17,6 @@ class RpcConnection(object):
         self.xmlrpcPort = xmlrpcPort
         self.scheme = scheme
         self.xmlrpcServerIP = xmlrpcServerIP
-        self.socketNoLogin = False
-        self.socketYesLogin = False
         self.userId = False
         self.connectionType = connectionType
         self.availableConnTypes = ['xmlrpc']
@@ -28,6 +26,10 @@ class RpcConnection(object):
         if connectionType == 'xmlrpc':
             self.sockInstance = XmlRpcConnection(userName, userPassword, databaseName, xmlrpcPort, scheme, xmlrpcServerIP)
         return super(RpcConnection, self).__init__()
+
+    @property
+    def url(self):
+        return self.sockInstance.urlYesLogin
 
     def loginNoUser(self):
         return self.sockInstance.loginNoUser()

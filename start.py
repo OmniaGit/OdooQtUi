@@ -12,7 +12,7 @@ from views.search_obj import TemplateSearchView
 from views.form_obj import TemplateFormView
 from views.tree_tree_obj import TemplateTreeTreeView
 from views.tree_list_obj import TemplateTreeListView
-from interface.login import LoginDial
+from interface.login import LoginDialComplete
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
@@ -39,8 +39,8 @@ class MainConnector(object):
         return res
 
     def loginWithDial(self):
-        loginDialInst = LoginDial(parent=self)
-        loginDialInst.exec_()
+        loginDialInst = LoginDialComplete(parent=self)
+        loginDialInst.interfaceDial.exec_()
         return loginDialInst.logged
 
     def computeUserGroups(self):
@@ -121,30 +121,30 @@ if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
 
     connectorObj = MainConnector()
-#     connectorObj.loginWithDial()
+    connectorObj.loginWithDial()
+ 
+    connectorObj.loginWithDial()
+
+#     connectorObj.loginWithUser(user, password, dbName, xmlrpcServerIP, xmlrpcPort, scheme, loginType)
+#     dialog = QtGui.QDialog()
+#     templateViewObj = connectorObj.initViewObj('form', 'product.product', '', False, useHeader=False)
+#     qtInterface = templateViewObj.QtInterface
+#     objIds = [257]
+#     startingFieldValues = {}
+#     readonlyFields = {}     # {'description': True}
+#     invisibleFields = {}    # {'description': True, 'state': True}
+#     templateViewObj.loadIds(objIds, startingFieldValues, readonlyFields, invisibleFields)
+#     dialog.setLayout(qtInterface)
+#     dialog.setStyleSheet('background-color:#893b74;')
+#     dialog.resize(1200, 600)
+#     dialog.move(100, 100)
+#     dialog.show()
+#     te = time.time()
+#     print 'TOTAL = %2.2f sec' % (te - ts)
+#     dialog.exec_()
 # 
-#     connectorObj.loginWithDial()
-
-    connectorObj.loginWithUser(user, password, dbName, xmlrpcServerIP, xmlrpcPort, scheme, loginType)
-    dialog = QtGui.QDialog()
-    templateViewObj = connectorObj.initViewObj('form', 'product.product', '', False, useHeader=False)
-    qtInterface = templateViewObj.QtInterface
-    objIds = [257]
-    startingFieldValues = {}
-    readonlyFields = {}     # {'description': True}
-    invisibleFields = {}    # {'description': True, 'state': True}
-    templateViewObj.loadIds(objIds, startingFieldValues, readonlyFields, invisibleFields)
-    dialog.setLayout(qtInterface)
-    dialog.setStyleSheet('background-color:#893b74;')
-    dialog.resize(1200, 600)
-    dialog.move(100, 100)
-    dialog.show()
-    te = time.time()
-    print 'TOTAL = %2.2f sec' % (te - ts)
-    dialog.exec_()
-
-    # Odoo calls
-    usersObj = 'res.users'
-    partnerObj = 'res.partner'
-    prodProdObj = 'product.product'
+#     # Odoo calls
+#     usersObj = 'res.users'
+#     partnerObj = 'res.partner'
+#     prodProdObj = 'product.product'
     app.exec_()
