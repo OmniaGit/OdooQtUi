@@ -150,6 +150,19 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>lineEdit_scheme</tabstop>
+  <tabstop>lineEdit_server</tabstop>
+  <tabstop>lineEdit_port</tabstop>
+  <tabstop>comboBox_conn_type</tabstop>
+  <tabstop>pushButton_ok</tabstop>
+  <tabstop>pushButton_cancel</tabstop>
+  <tabstop>pushButton_back</tabstop>
+  <tabstop>pushButton_next</tabstop>
+  <tabstop>lineEdit_password</tabstop>
+  <tabstop>lineEdit_username</tabstop>
+  <tabstop>comboBox_database</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
