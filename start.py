@@ -142,9 +142,20 @@ if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
 
     connectorObj = MainConnector()
-    connectorObj.loginWithDial()
- 
-    connectorObj.loginWithDial()
+    
+    
+    connectorObj.loginWithUser(user, password, dbName, xmlrpcServerIP, xmlrpcPort, scheme, loginType)
+    tmplViewObj = connectorObj.initSearchViewObj('product.product')
+    dialog = QtGui.QDialog()
+    dialog.setLayout(tmplViewObj.QtInterface)
+    dialog.setStyleSheet('background-color:#893b74;')
+    dialog.resize(1200, 600)
+    dialog.move(100, 100)
+    dialog.show()
+    dialog.exec_()
+#     connectorObj.loginWithDial()
+#  
+#     connectorObj.loginWithDial()
 
 #     connectorObj.loginWithUser(user, password, dbName, xmlrpcServerIP, xmlrpcPort, scheme, loginType)
 #     dialog = QtGui.QDialog()
