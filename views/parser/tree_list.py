@@ -23,7 +23,7 @@ from utils_odoo_conn import constants
 
 class TreeViewList(object):
 
-    def __init__(self, arch, fieldsNameTypeRel, rpc, viewCheckBoxes=False):
+    def __init__(self, arch, fieldsNameTypeRel, rpc, viewCheckBoxes={}):
         self.arch = arch
         self.fieldsNameTypeRel = fieldsNameTypeRel
         self.globalMapping = {}
@@ -45,7 +45,7 @@ class TreeViewList(object):
         self.tableWidget.horizontalHeader().setStretchLastSection(True)
         flagsDict = {}
         if self.viewCheckBoxes:
-            flagsDict = {0: QtCore.Qt.ItemIsUserCheckable}
+            flagsDict = self.viewCheckBoxes
         utils.commonPopulateTable(self.orderedFields, [], self.tableWidget, flagsDict)
         mainVLay.addWidget(self.tableWidget)
         return mainVLay

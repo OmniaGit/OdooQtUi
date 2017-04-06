@@ -99,8 +99,8 @@ class One2many(OdooFieldTemplate):
         self.currentValue = relIds
         from start import MainConnector
         conn = MainConnector()
-        self.treeViewObj = conn.initViewObj('tree_list', self.relation, rpcObj=self.rpc)
-        self.treeViewObj.loadIds(relIds, {}, {}, {}, viewCheckBoxes=False)
+        self.treeViewObj = conn.initViewObj('tree_list', self.relation, rpcObj=self.rpc, viewCheckBoxes={})
+        self.treeViewObj.loadIds(relIds, {}, {}, {})
         self.widgetQtObj = self.treeViewObj.treeObj.tableWidget
         self.widgetQtObj.setColumnCount(self.widgetQtObj.columnCount() + 1)
         fieldsToReadOrdered = self.treeViewObj.treeObj.orderedFields

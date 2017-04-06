@@ -99,8 +99,8 @@ class Many2many(OdooFieldTemplate):
         self.currentValue = relIds
         from start import MainConnector
         conn = MainConnector()
-        self.treeViewObj = conn.initViewObj('tree_list', self.relation, rpcObj=self.rpc)
-        self.treeViewObj.loadIds(relIds, {}, {}, {}, viewCheckBoxes=False)
+        self.treeViewObj = conn.initViewObj('tree_list', self.relation, rpcObj=self.rpc, viewCheckBoxes={0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled})
+        self.treeViewObj.loadIds(relIds, {}, {}, {})
         self.widgetQtObj = self.treeViewObj.treeObj.tableWidget
         self.fieldsToReadOrdered = self.treeViewObj.treeObj.orderedFields
         self.setRemoveButtons(self.widgetQtObj)
@@ -196,7 +196,7 @@ class Many2many(OdooFieldTemplate):
             else:
                 resIds = self.evaluatedIds[currRangeTuple]
             viewObj.treeObj.tableWidget.clear()
-            viewObj.loadIds(resIds, {}, {}, {}, viewCheckBoxes=True)
+            viewObj.loadIds(resIds, {}, {}, {})
 
         def toLeft():
             commonMove()
@@ -206,11 +206,11 @@ class Many2many(OdooFieldTemplate):
 
         from start import MainConnector
         conn = MainConnector()
-        viewObj = conn.initTreeListViewObject(self.relation, rpcObj=self.rpc, viewCheckBoxes=True)
+        viewObj = conn.initTreeListViewObject(self.relation, rpcObj=self.rpc, viewCheckBoxes={0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled})
         viewObj.buttToLeft.clicked.connect(toLeft)
         viewObj.buttToRight.clicked.connect(toRight)
         resIds = self.rpc.search(self.relation, [], limit=viewObj.currentRange[-1], offset=viewObj.currentRange[0])
-        viewObj.loadIds(resIds, {}, {}, {}, viewCheckBoxes=True)
+        viewObj.loadIds(resIds, {}, {}, {})
         dial = QtGui.QDialog()
         vlay = QtGui.QVBoxLayout()
         layButt, okButt, cancelButt = utils.getButtonBox('right')

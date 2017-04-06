@@ -6,6 +6,7 @@ Created on 02 feb 2017
 import logging
 import sys
 from PyQt4 import QtGui
+from PyQt4 import QtCore
 from utils_odoo_conn import utils
 from RPC.rpc import connectionObj
 from views.search_obj import TemplateSearchView
@@ -57,7 +58,7 @@ class MainConnector(object):
             rpcObj = connectionObj
         return activeLanguage, rpcObj
         
-    def initTreeListViewObject(self, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', viewCheckBoxes=False):
+    def initTreeListViewObject(self, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', viewCheckBoxes={}):
         localLang, rpcObj = self._getCommonLangAndRpc(activeLanguage, rpcObj)
         templateViewObj = TemplateTreeListView(rpcObj, localLang)
         templateViewObj.initViewObj(odooObjectName, viewName, view_id, viewCheckBoxes)
@@ -81,7 +82,7 @@ class MainConnector(object):
         templateViewObj.initViewObj(odooObjectName, viewName, view_id)
         return templateViewObj
 
-    def initViewObj(self, viewType, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', useHeader=False, useChatter=False):
+    def initViewObj(self, viewType, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', useHeader=False, useChatter=False, viewCheckBoxes={}):
         '''
         @viewType: tree_tree, tree_list, form, search
         @odooObjectName: product.product, mrp.bom, ...
@@ -97,27 +98,23 @@ class MainConnector(object):
             rpcObj = connectionObj
         if viewType == 'form':
             templateViewObj = TemplateFormView(rpcObj, localLang, useHeader, useChatter)
+            templateViewObj.initViewObj(odooObjectName, viewName, view_id)
         elif viewType == 'tree_tree':
             templateViewObj = TemplateTreeTreeView(rpcObj, localLang)
+            templateViewObj.initViewObj(odooObjectName, viewName, view_id)
         elif viewType == 'tree_list':
             templateViewObj = TemplateTreeListView(rpcObj, localLang)
+            templateViewObj.initViewObj(odooObjectName, viewName, view_id, viewCheckBoxes={})
         elif viewType == 'search':
             templateViewObj = TemplateSearchView(rpcObj, localLang)
+            templateViewObj.initViewObj(odooObjectName, viewName, view_id)
         else:
             utils.logMessage('warning', 'View Type not supported: %r' % (viewType), 'initViewObj')
-        templateViewObj.initViewObj(odooObjectName, viewName, view_id)
         return templateViewObj
 
 if __name__ == '__main__':
     import time
     ts = time.time()
-    scheme = 'http'
-    xmlrpcServerIP = '127.0.0.1'
-    xmlrpcPort = 8069
-    user = 'admin'
-    password = 'admin'
-    dbName = 'odoo-9-clean'
-    loginType = 'xmlrpc'
 
     scheme = 'http'
     xmlrpcServerIP = '127.0.0.1'
@@ -136,14 +133,15 @@ if __name__ == '__main__':
     loginType = 'xmlrpc'
 
     app = QtGui.QApplication(sys.argv)
-
     connectorObj = MainConnector()
-    
-    connectorObj.loginWithDial()
-  
-    connectorObj.loginWithDial()
+#     connectorObj.loginWithDial()
+#     connectorObj.loginWithDial()
     connectorObj.loginWithUser(user, password, dbName, xmlrpcServerIP, xmlrpcPort, scheme, loginType)
-    tmplViewObj = connectorObj.initSearchViewObj('product.product')
+    #tmplViewObj = connectorObj.initSearchViewObj('product.product')
+    tmplViewObj = connectorObj.initFormViewObj('product.product')
+#     viewCheckBoxes = {0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled}
+#     tmplViewObj = connectorObj.initTreeListViewObject('product.product', viewCheckBoxes=viewCheckBoxes)
+    tmplViewObj.loadIds([249])
     dialog = QtGui.QDialog()
     dialog.setLayout(tmplViewObj.QtInterface)
     dialog.setStyleSheet('background-color:#893b74;')
@@ -151,24 +149,5 @@ if __name__ == '__main__':
     dialog.move(100, 100)
     dialog.show()
     dialog.exec_()
-
-
-#     connectorObj.loginWithUser(user, password, dbName, xmlrpcServerIP, xmlrpcPort, scheme, loginType)
-#     dialog = QtGui.QDialog()
-#     templateViewObj = connectorObj.initViewObj('form', 'product.product', '', False, useHeader=False)
-#     qtInterface = templateViewObj.QtInterface
-#     objIds = [257]
-#     startingFieldValues = {}
-#     readonlyFields = {}     # {'description': True}
-#     invisibleFields = {}    # {'description': True, 'state': True}
-#     templateViewObj.loadIds(objIds, startingFieldValues, readonlyFields, invisibleFields)
-#     dialog.setLayout(qtInterface)
-#     dialog.setStyleSheet('background-color:#893b74;')
-#     dialog.resize(1200, 600)
-#     dialog.move(100, 100)
-#     dialog.show()
-#     te = time.time()
-#     print 'TOTAL = %2.2f sec' % (te - ts)
-#     dialog.exec_()
 
     app.exec_()

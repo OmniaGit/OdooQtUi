@@ -24,8 +24,9 @@ class TemplateTreeListView(TemplateView):
         self.currentRange = [0, 40]
         self.passRange = 40
 
-    def initViewObj(self, odooObjectName, viewName, view_id, viewCheckBoxes=False):
+    def initViewObj(self, odooObjectName, viewName, view_id, viewCheckBoxes={}):
         super(TemplateTreeListView, self).initViewObj(odooObjectName, viewName, view_id)
+        self.viewCheckBoxes = viewCheckBoxes
         self.treeObj = TreeViewList(self.arch, self.fieldsNameTypeRel, self.rpcObject, viewCheckBoxes)
         self.layout = QtGui.QVBoxLayout()
         self.mainLay = self.treeObj.computeArch()
@@ -63,7 +64,7 @@ class TemplateTreeListView(TemplateView):
         self.idValsRel[recordID] = self.idValsRel[recordID].update(valuesDict)
 
     @utils.timeit
-    def loadIds(self, objIds=[], forceFieldValues={}, readonlyFields={}, invisibleFields={}, viewCheckBoxes=False):
+    def loadIds(self, objIds=[], forceFieldValues={}, readonlyFields={}, invisibleFields={}):
         if not objIds:
             return
         fields = self.treeObj.orderedFields
@@ -79,8 +80,8 @@ class TemplateTreeListView(TemplateView):
                 self.labelsOrdered.append(fieldObj.labelString)
             else:
                 self.labelsOrdered.append(fieldName)
-        if viewCheckBoxes:
-            flagsDict[0] = QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled
+        if self.viewCheckBoxes:
+            flagsDict = self.viewCheckBoxes
         for record in records:
             localList = []
             for fieldName in fields:
