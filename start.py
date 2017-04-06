@@ -139,7 +139,9 @@ if __name__ == '__main__':
 
     connectorObj = MainConnector()
     
-    
+    connectorObj.loginWithDial()
+  
+    connectorObj.loginWithDial()
     connectorObj.loginWithUser(user, password, dbName, xmlrpcServerIP, xmlrpcPort, scheme, loginType)
     tmplViewObj = connectorObj.initSearchViewObj('product.product')
     dialog = QtGui.QDialog()
@@ -149,9 +151,7 @@ if __name__ == '__main__':
     dialog.move(100, 100)
     dialog.show()
     dialog.exec_()
-#     connectorObj.loginWithDial()
-#  
-#     connectorObj.loginWithDial()
+
 
 #     connectorObj.loginWithUser(user, password, dbName, xmlrpcServerIP, xmlrpcPort, scheme, loginType)
 #     dialog = QtGui.QDialog()

@@ -59,10 +59,11 @@ class RpcConnection(object):
             res = {}
         self.contextUser = res
 
-    def callCustomMethod(self, odooObj, functionName, parameters=[], context={}):
+    def callCustomMethod(self, odooObj, functionName, parameters=[], kwargParameters={}, context={}):
         localContext = self.contextUser
         localContext.update(context)
-        return self.sockInstance.callOdooFunction(odooObj, functionName, parameters, kwargParameters=localContext)
+        kwargParameters['context'] = localContext
+        return self.sockInstance.callOdooFunction(odooObj, functionName, parameters, kwargParameters)
 
     def search(self, obj, filterList, limit=False, offset=False, context={}):
         localContext = self.contextUser
