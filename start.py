@@ -50,14 +50,35 @@ class MainConnector(object):
         logger = logging.getLogger()
         logger.setLevel(logInteger)
 
-    def initTreeListViewObject(self, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', viewCheckBoxes=False):
-        localLang = self.activeLanguage
-        if activeLanguage:
-            localLang = activeLanguage
+    def _getCommonLangAndRpc(self, activeLanguage='', rpcObj=None):
+        if not activeLanguage:
+            activeLanguage = self.activeLanguage
         if not rpcObj:
             rpcObj = connectionObj
+        return activeLanguage, rpcObj
+        
+    def initTreeListViewObject(self, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', viewCheckBoxes=False):
+        localLang, rpcObj = self._getCommonLangAndRpc(activeLanguage, rpcObj)
         templateViewObj = TemplateTreeListView(rpcObj, localLang)
         templateViewObj.initViewObj(odooObjectName, viewName, view_id, viewCheckBoxes)
+        return templateViewObj
+
+    def initTreeTreeViewObj(self, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage=''):
+        localLang, rpcObj = self._getCommonLangAndRpc(activeLanguage, rpcObj)
+        templateViewObj = TemplateTreeTreeView(rpcObj, localLang)
+        templateViewObj.initViewObj(odooObjectName, viewName, view_id)
+        return templateViewObj
+
+    def initFormViewObj(self, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', useHeader=False, useChatter=False):
+        localLang, rpcObj = self._getCommonLangAndRpc(activeLanguage, rpcObj)
+        templateViewObj = TemplateFormView(rpcObj, localLang, useHeader, useChatter)
+        templateViewObj.initViewObj(odooObjectName, viewName, view_id)
+        return templateViewObj
+
+    def initSearchViewObj(self, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage=''):
+        localLang, rpcObj = self._getCommonLangAndRpc(activeLanguage, rpcObj)
+        templateViewObj = TemplateSearchView(rpcObj, localLang)
+        templateViewObj.initViewObj(odooObjectName, viewName, view_id)
         return templateViewObj
 
     def initViewObj(self, viewType, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', useHeader=False, useChatter=False):
@@ -117,11 +138,22 @@ if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
 
     connectorObj = MainConnector()
-    connectorObj.loginWithDial()
-  
-    connectorObj.loginWithDial()
+    
+    
+    connectorObj.loginWithUser(user, password, dbName, xmlrpcServerIP, xmlrpcPort, scheme, loginType)
+    tmplViewObj = connectorObj.initSearchViewObj('product.product')
+    dialog = QtGui.QDialog()
+    dialog.setLayout(tmplViewObj.QtInterface)
+    dialog.setStyleSheet('background-color:#893b74;')
+    dialog.resize(1200, 600)
+    dialog.move(100, 100)
+    dialog.show()
+    dialog.exec_()
+#     connectorObj.loginWithDial()
+#  
+#     connectorObj.loginWithDial()
 
-    #connectorObj.loginWithUser(user, password, dbName, xmlrpcServerIP, xmlrpcPort, scheme, loginType)
+#     connectorObj.loginWithUser(user, password, dbName, xmlrpcServerIP, xmlrpcPort, scheme, loginType)
 #     dialog = QtGui.QDialog()
 #     templateViewObj = connectorObj.initViewObj('form', 'product.product', '', False, useHeader=False)
 #     qtInterface = templateViewObj.QtInterface

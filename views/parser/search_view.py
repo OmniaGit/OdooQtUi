@@ -52,6 +52,7 @@ class SearchView(object):
         return mainVLay
 
     def populateCombo(self, fieldsSearch=[], filters=[], currentVal=''):
+        print 'fieldsSearch: %r, filters: %r, currentVal: %r' % (fieldsSearch, filters, currentVal)
         stringList = []
         if not fieldsSearch:
             fieldsSearch = self.fieldsSearch
@@ -75,7 +76,6 @@ class SearchView(object):
 
     def textChangedEvent(self, newText=''):
         newText = unicode(newText)
-        print newText
         if newText and (not newText.startswith('Search ') or not newText.startswith('Filter for: ')):
             self.populateCombo(currentVal=unicode(newText))
 
@@ -121,9 +121,8 @@ class CustomQCompleter(QtGui.QCompleter):
             def filterAcceptsRow(self, sourceRow, sourceParent):
                 index0 = self.sourceModel().index(sourceRow, 0, sourceParent)
                 searchStr = local_completion_prefix.lower()
-                print searchStr
-                modelStr = self.sourceModel().data(index0, QtCore.Qt.DisplayRole).toString().toLower()
-                print modelStr
+                modelStr = unicode(self.sourceModel().data(index0, QtCore.Qt.DisplayRole).toString().toLower())
+                print 'searchStr: %r, modelStr: %r' % (searchStr, modelStr)
                 return searchStr in modelStr
 
         proxy_model = InnerProxyModel()

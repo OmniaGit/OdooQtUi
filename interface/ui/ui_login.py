@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/srv/workspace/tray_odoo_connector/interface/ui/login.ui'
 #
-# Created: Tue Mar 28 20:14:44 2017
+# Created: Wed Apr  5 13:59:24 2017
 #      by: PyQt4 UI code generator 4.11.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -105,6 +105,16 @@ class Ui_dialog_login(object):
         self.retranslateUi(dialog_login)
         self.stackedWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(dialog_login)
+        dialog_login.setTabOrder(self.lineEdit_scheme, self.lineEdit_server)
+        dialog_login.setTabOrder(self.lineEdit_server, self.lineEdit_port)
+        dialog_login.setTabOrder(self.lineEdit_port, self.comboBox_conn_type)
+        dialog_login.setTabOrder(self.comboBox_conn_type, self.pushButton_next)
+        dialog_login.setTabOrder(self.pushButton_next, self.comboBox_database)
+        dialog_login.setTabOrder(self.comboBox_database, self.lineEdit_username)
+        dialog_login.setTabOrder(self.lineEdit_username, self.lineEdit_password)
+        dialog_login.setTabOrder(self.lineEdit_password, self.pushButton_ok)
+        dialog_login.setTabOrder(self.pushButton_ok, self.pushButton_cancel)
+        dialog_login.setTabOrder(self.pushButton_cancel, self.pushButton_back)
 
     def retranslateUi(self, dialog_login):
         dialog_login.setWindowTitle(_translate("dialog_login", "Dialog", None))
@@ -113,6 +123,7 @@ class Ui_dialog_login(object):
         self.label_port.setText(_translate("dialog_login", "Port", None))
         self.label_scheme.setText(_translate("dialog_login", "Scheme", None))
         self.lineEdit_scheme.setText(_translate("dialog_login", "http", None))
+        self.lineEdit_scheme.setPlaceholderText(_translate("dialog_login", "http", None))
         self.label_username.setText(_translate("dialog_login", "Username", None))
         self.label_database.setText(_translate("dialog_login", "Database", None))
         self.label_password.setText(_translate("dialog_login", "Password", None))
