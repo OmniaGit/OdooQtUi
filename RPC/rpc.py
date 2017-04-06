@@ -10,22 +10,24 @@ from XmlRpc.xmlRpc import XmlRpcConnection
 
 class RpcConnection(object):
 
-    def __init__(self, connectionType, userName, userPassword, databaseName, xmlrpcPort=8069, scheme='http', xmlrpcServerIP='127.0.0.1'):
+    def __init__(self):
+        self.userId = False
+        self.availableConnTypes = ['xmlrpc']
+        self.sockInstance = False
+        self.contextUser = {}
+        self.userLogged = False
+        return super(RpcConnection, self).__init__()
+
+    def initConnection(self, connectionType, userName, userPassword, databaseName, xmlrpcPort=8069, scheme='http', xmlrpcServerIP='127.0.0.1'):
         self.userName = userName
         self.userPassword = userPassword
         self.databaseName = databaseName
         self.xmlrpcPort = xmlrpcPort
         self.scheme = scheme
         self.xmlrpcServerIP = xmlrpcServerIP
-        self.userId = False
         self.connectionType = connectionType
-        self.availableConnTypes = ['xmlrpc']
-        self.sockInstance = False
-        self.contextUser = {}
-        self.userLogged = False
         if connectionType == 'xmlrpc':
             self.sockInstance = XmlRpcConnection(userName, userPassword, databaseName, xmlrpcPort, scheme, xmlrpcServerIP)
-        return super(RpcConnection, self).__init__()
 
     @property
     def url(self):
@@ -136,3 +138,5 @@ class RpcConnection(object):
         localContext = self.contextUser
         localContext.update(context)
         return self.sockInstance.on_change(obj, activeIds, allVals, fieldName, allOnchanges, context=localContext)
+
+connectionObj = RpcConnection()

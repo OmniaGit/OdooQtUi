@@ -4,6 +4,7 @@ Created on Mar 28, 2017
 @author: daniel
 '''
 import os
+from RPC.rpc import connectionObj
 from ui.ui_login import Ui_dialog_login
 from PyQt4 import QtGui
 from PyQt4 import QtCore
@@ -132,15 +133,20 @@ class LoginDial(QtGui.QDialog, Ui_dialog_login):
 class LoginDialComplete(object):
     
     def __init__(self, parent=None, connType='xmlrpc'):
-        self.parent = parent
         self.connType = connType
-        self.parent.loginNoUser()
-        self.rpc = self.parent.rpc
-        self.availableConnTypes = self.rpc.availableConnTypes
+        self.loadFromFile()
+        connectionObj.initConnection(self.connType,
+                                     '',
+                                     '',
+                                     '',
+                                     self.serverPort,
+                                     self.scheme,
+                                     self.serverIp)
+        self.availableConnTypes = connectionObj.availableConnTypes
         self.interfaceDial = LoginDial(self.connType, self.availableConnTypes)
         self.setEvents()
-        self.loadFromFile()
-        if self.rpc.userLogged:
+        
+        if connectionObj.userLogged:
             self.logged = True
         else:
             self.logged = self.loginWithUserDial()
@@ -192,22 +198,28 @@ class LoginDialComplete(object):
         xmlrpcPort = unicode(self.interfaceDial.lineEdit_port.text())
         scheme = unicode(self.interfaceDial.lineEdit_scheme.text())
         loginType = unicode(self.interfaceDial.comboBox_conn_type.currentText())
-        self.parent.loginNoUser(xmlrpcServerIP, xmlrpcPort, scheme, loginType)
-        self.rpc = self.parent.rpc
+        connectionObj.initConnection(loginType,
+                                     '',
+                                     '',
+                                     '',
+                                     xmlrpcPort,
+                                     scheme,
+                                     xmlrpcServerIP)
 
-        self.dbList = self.rpc.listDb()
+        self.dbList = connectionObj.listDb()
         self.interfaceDial.comboBox_database.clear()
         self.interfaceDial.comboBox_database.addItems(self.dbList)
         self.interfaceDial.nextPage()
 
     def loginWithUserDial(self):
-        return self.parent.loginWithUser(self.username,
-                                         self.userpass,
-                                         self.dbName,
-                                         self.serverIp,
-                                         self.serverPort,
-                                         self.scheme,
-                                         self.connType)
+        connectionObj.initConnection(self.connType,
+                                     self.username,
+                                     self.userpass,
+                                     self.dbName,
+                                     self.serverPort,
+                                     self.scheme,
+                                     self.serverIp)
+        return connectionObj.loginWithUser()
 
     def writeToFile(self):
         toWriteDict = {
@@ -251,16 +263,4 @@ class LoginDialComplete(object):
                 self.scheme = fileDict.get('scheme', '')
                 self.connType = fileDict.get('conn_type', '')
                 self.dbList = fileDict.get('db_list', [])
-#         items = ['']
-#         items.extend(self.availableConnTypes)
-#         self.comboBox_conn_type.addItems(items)
-#         if self.connType in items:
-#             typeIndex = items.index(self.connType)
-#             self.comboBox_conn_type.setCurrentIndex(typeIndex)
-#         dbItems = ['']
-#         dbItems.extend(self.dbList)
-#         self.comboBox_database.addItems(dbItems)
-#         if self.dbName in dbItems:
-#             typeIndex2 = dbItems.index(self.dbName)
-#             self.comboBox_database.setCurrentIndex(typeIndex2)
 

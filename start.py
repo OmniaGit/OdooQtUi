@@ -7,7 +7,7 @@ import logging
 import sys
 from PyQt4 import QtGui
 from utils_odoo_conn import utils
-from RPC.rpc import RpcConnection
+from RPC.rpc import connectionObj
 from views.search_obj import TemplateSearchView
 from views.form_obj import TemplateFormView
 from views.tree_tree_obj import TemplateTreeTreeView
@@ -20,32 +20,28 @@ logger.setLevel(logging.DEBUG)
 class MainConnector(object):
 
     def __init__(self):
-        self.rpc = False
         self.activeLanguage = 'en_US'
         self.userGroups = []    # Not Used
         return object.__init__(self)
 
-    def _getRpcInstance(self, loginType, user, password, dbName, xmlrpcPort, scheme, xmlrpcServerIP):
-        return RpcConnection(loginType, user, password, dbName, xmlrpcPort, scheme, xmlrpcServerIP)
-
     def loginNoUser(self, xmlrpcServerIP='127.0.0.1', xmlrpcPort=8069, scheme='http', loginType='xmlrpc'):
-        self.rpc = self._getRpcInstance(loginType, '', '', '', xmlrpcPort, scheme, xmlrpcServerIP)
-        return self.rpc.loginNoUser()
+        connectionObj.initConnection(loginType, '', '', '', xmlrpcPort, scheme, xmlrpcServerIP)
+        return connectionObj.loginNoUser()
 
     def loginWithUser(self, user, password, dbName, xmlrpcServerIP='127.0.0.1', xmlrpcPort=8069, scheme='http', loginType='xmlrpc'):
-        self.rpc = self._getRpcInstance(loginType, user, password, dbName, xmlrpcPort, scheme, xmlrpcServerIP)
-        res = self.rpc.loginWithUser()
-        self.activeLanguage = self.rpc.contextUser.get('lang', 'en_US')
+        connectionObj.initConnection(loginType, user, password, dbName, xmlrpcPort, scheme, xmlrpcServerIP)
+        res = connectionObj.loginWithUser()
+        self.activeLanguage = connectionObj.contextUser.get('lang', 'en_US')
         return res
 
     def loginWithDial(self):
-        loginDialInst = LoginDialComplete(parent=self)
+        loginDialInst = LoginDialComplete()
         loginDialInst.interfaceDial.exec_()
         return loginDialInst.logged
 
     def computeUserGroups(self):
         # Not Used
-        res = self.rpc.read('res.users', ['groups_id'], self.rpc.userId)
+        res = connectionObj.read('res.users', ['groups_id'], connectionObj.userId)
         for userDict in res:
             self.userGroups = userDict.get('groups_id', [])
             break
@@ -59,7 +55,7 @@ class MainConnector(object):
         if activeLanguage:
             localLang = activeLanguage
         if not rpcObj:
-            rpcObj = self.rpc
+            rpcObj = connectionObj
         templateViewObj = TemplateTreeListView(rpcObj, localLang)
         templateViewObj.initViewObj(odooObjectName, viewName, view_id, viewCheckBoxes)
         return templateViewObj
@@ -77,7 +73,7 @@ class MainConnector(object):
         if activeLanguage:
             localLang = activeLanguage
         if not rpcObj:
-            rpcObj = self.rpc
+            rpcObj = connectionObj
         if viewType == 'form':
             templateViewObj = TemplateFormView(rpcObj, localLang, useHeader, useChatter)
         elif viewType == 'tree_tree':
@@ -122,10 +118,10 @@ if __name__ == '__main__':
 
     connectorObj = MainConnector()
     connectorObj.loginWithDial()
- 
+  
     connectorObj.loginWithDial()
 
-#     connectorObj.loginWithUser(user, password, dbName, xmlrpcServerIP, xmlrpcPort, scheme, loginType)
+    #connectorObj.loginWithUser(user, password, dbName, xmlrpcServerIP, xmlrpcPort, scheme, loginType)
 #     dialog = QtGui.QDialog()
 #     templateViewObj = connectorObj.initViewObj('form', 'product.product', '', False, useHeader=False)
 #     qtInterface = templateViewObj.QtInterface
