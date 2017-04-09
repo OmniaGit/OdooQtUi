@@ -132,7 +132,7 @@ class LoginDial(QtGui.QDialog, Ui_dialog_login):
 
 class LoginDialComplete(object):
     
-    def __init__(self, parent=None, connType='xmlrpc'):
+    def __init__(self, connType='xmlrpc'):
         self.connType = connType
         self.loadFromFile()
         connectionObj.initConnection(self.connType,
@@ -187,7 +187,6 @@ class LoginDialComplete(object):
         self.writeToFile()
         self.logged = self.loginWithUserDial()
         if self.logged:
-            utils.launchMessage('Logged in successfully.', 'info')
             self.interfaceDial.accept()
         else:
             utils.launchMessage('Bad Login Infos! Check Better.', 'warning')
