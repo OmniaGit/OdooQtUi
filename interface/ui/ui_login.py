@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/srv/workspace/tray_odoo_connector/interface/ui/login.ui'
+# Form implementation generated from reading ui file 'C:\workspace\tray_odoo_connector\interface\ui\login.ui'
 #
-# Created: Wed Apr  5 13:59:24 2017
-#      by: PyQt4 UI code generator 4.11.2
+# Created by: PyQt4 UI code generator 4.11.4
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -26,7 +25,7 @@ except AttributeError:
 class Ui_dialog_login(object):
     def setupUi(self, dialog_login):
         dialog_login.setObjectName(_fromUtf8("dialog_login"))
-        dialog_login.resize(434, 244)
+        dialog_login.resize(424, 190)
         self.gridLayout = QtGui.QGridLayout(dialog_login)
         self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
         self.stackedWidget = QtGui.QStackedWidget(dialog_login)
@@ -64,24 +63,32 @@ class Ui_dialog_login(object):
         self.page_2.setObjectName(_fromUtf8("page_2"))
         self.gridLayout_3 = QtGui.QGridLayout(self.page_2)
         self.gridLayout_3.setObjectName(_fromUtf8("gridLayout_3"))
-        self.label_username = QtGui.QLabel(self.page_2)
-        self.label_username.setObjectName(_fromUtf8("label_username"))
-        self.gridLayout_3.addWidget(self.label_username, 1, 0, 1, 1)
-        self.comboBox_database = QtGui.QComboBox(self.page_2)
-        self.comboBox_database.setObjectName(_fromUtf8("comboBox_database"))
-        self.gridLayout_3.addWidget(self.comboBox_database, 0, 1, 1, 1)
         self.label_database = QtGui.QLabel(self.page_2)
         self.label_database.setObjectName(_fromUtf8("label_database"))
-        self.gridLayout_3.addWidget(self.label_database, 0, 0, 1, 1)
-        self.label_password = QtGui.QLabel(self.page_2)
-        self.label_password.setObjectName(_fromUtf8("label_password"))
-        self.gridLayout_3.addWidget(self.label_password, 2, 0, 1, 1)
-        self.lineEdit_username = QtGui.QLineEdit(self.page_2)
-        self.lineEdit_username.setObjectName(_fromUtf8("lineEdit_username"))
-        self.gridLayout_3.addWidget(self.lineEdit_username, 1, 1, 1, 1)
+        self.gridLayout_3.addWidget(self.label_database, 1, 0, 1, 1)
         self.lineEdit_password = QtGui.QLineEdit(self.page_2)
         self.lineEdit_password.setObjectName(_fromUtf8("lineEdit_password"))
-        self.gridLayout_3.addWidget(self.lineEdit_password, 2, 1, 1, 1)
+        self.gridLayout_3.addWidget(self.lineEdit_password, 3, 1, 1, 1)
+        self.comboBox_database = QtGui.QComboBox(self.page_2)
+        self.comboBox_database.setObjectName(_fromUtf8("comboBox_database"))
+        self.gridLayout_3.addWidget(self.comboBox_database, 1, 1, 1, 1)
+        self.label_username = QtGui.QLabel(self.page_2)
+        self.label_username.setObjectName(_fromUtf8("label_username"))
+        self.gridLayout_3.addWidget(self.label_username, 2, 0, 1, 1)
+        self.label_password = QtGui.QLabel(self.page_2)
+        self.label_password.setObjectName(_fromUtf8("label_password"))
+        self.gridLayout_3.addWidget(self.label_password, 3, 0, 1, 1)
+        self.lineEdit_username = QtGui.QLineEdit(self.page_2)
+        self.lineEdit_username.setObjectName(_fromUtf8("lineEdit_username"))
+        self.gridLayout_3.addWidget(self.lineEdit_username, 2, 1, 1, 1)
+        self.label_status = QtGui.QLabel(self.page_2)
+        font = QtGui.QFont()
+        font.setBold(True)
+        font.setWeight(75)
+        self.label_status.setFont(font)
+        self.label_status.setText(_fromUtf8(""))
+        self.label_status.setObjectName(_fromUtf8("label_status"))
+        self.gridLayout_3.addWidget(self.label_status, 0, 1, 1, 1)
         self.stackedWidget.addWidget(self.page_2)
         self.gridLayout.addWidget(self.stackedWidget, 0, 0, 1, 1)
         self.horizontalLayout = QtGui.QHBoxLayout()
@@ -103,7 +110,7 @@ class Ui_dialog_login(object):
         self.gridLayout.addLayout(self.horizontalLayout, 1, 0, 1, 1)
 
         self.retranslateUi(dialog_login)
-        self.stackedWidget.setCurrentIndex(0)
+        self.stackedWidget.setCurrentIndex(1)
         QtCore.QMetaObject.connectSlotsByName(dialog_login)
         dialog_login.setTabOrder(self.lineEdit_scheme, self.lineEdit_server)
         dialog_login.setTabOrder(self.lineEdit_server, self.lineEdit_port)
@@ -124,8 +131,8 @@ class Ui_dialog_login(object):
         self.label_scheme.setText(_translate("dialog_login", "Scheme", None))
         self.lineEdit_scheme.setText(_translate("dialog_login", "http", None))
         self.lineEdit_scheme.setPlaceholderText(_translate("dialog_login", "http", None))
-        self.label_username.setText(_translate("dialog_login", "Username", None))
         self.label_database.setText(_translate("dialog_login", "Database", None))
+        self.label_username.setText(_translate("dialog_login", "Username", None))
         self.label_password.setText(_translate("dialog_login", "Password", None))
         self.pushButton_back.setText(_translate("dialog_login", "Back", None))
         self.pushButton_next.setText(_translate("dialog_login", "Next", None))

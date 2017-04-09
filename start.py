@@ -121,33 +121,38 @@ if __name__ == '__main__':
     xmlrpcPort = 8069
     user = 'admin'
     password = 'admin'
-    dbName = 'odoo-9-clean'
+    dbName = 'odoo_9_comm'
     loginType = 'xmlrpc'
 
-    scheme = 'http'
-    xmlrpcServerIP = 'www.odooplm.cloud'
-    xmlrpcPort = 8066
-    user = 'odooplm'
-    password = 'odooplm'
-    dbName = 'odoov9_0'
-    loginType = 'xmlrpc'
+#     scheme = 'http'
+#     xmlrpcServerIP = 'www.odooplm.cloud'
+#     xmlrpcPort = 8066
+#     user = 'odooplm'
+#     password = 'odooplm'
+#     dbName = 'odoov9_0'
+#     loginType = 'xmlrpc'
 
     app = QtGui.QApplication(sys.argv)
-    connectorObj = MainConnector()
-#     connectorObj.loginWithDial()
-#     connectorObj.loginWithDial()
-    connectorObj.loginWithUser(user, password, dbName, xmlrpcServerIP, xmlrpcPort, scheme, loginType)
-    #tmplViewObj = connectorObj.initSearchViewObj('product.product')
-    tmplViewObj = connectorObj.initFormViewObj('product.product')
-#     viewCheckBoxes = {0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled}
-#     tmplViewObj = connectorObj.initTreeListViewObject('product.product', viewCheckBoxes=viewCheckBoxes)
-    tmplViewObj.loadIds([249])
-    dialog = QtGui.QDialog()
-    dialog.setLayout(tmplViewObj.QtInterface)
-    dialog.setStyleSheet('background-color:#893b74;')
-    dialog.resize(1200, 600)
-    dialog.move(100, 100)
-    dialog.show()
-    dialog.exec_()
+
+    @utils.timeit
+    def do_test():
+        connectorObj = MainConnector()
+    #     connectorObj.loginWithDial()
+    #     connectorObj.loginWithDial()
+        connectorObj.loginWithUser(user, password, dbName, xmlrpcServerIP, xmlrpcPort, scheme, loginType)
+        #tmplViewObj = connectorObj.initSearchViewObj('product.product')
+        tmplViewObj = connectorObj.initFormViewObj('product.product')
+    #     viewCheckBoxes = {0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled}
+    #     tmplViewObj = connectorObj.initTreeListViewObject('product.product', viewCheckBoxes=viewCheckBoxes)
+        tmplViewObj.loadIds([249])
+        dialog = QtGui.QDialog()
+        dialog.setLayout(tmplViewObj.QtInterface)
+        dialog.setStyleSheet('background-color:#893b74;')
+        dialog.resize(1200, 600)
+        dialog.move(100, 100)
+        dialog.show()
+        dialog.exec_()
+        
+    do_test()
 
     app.exec_()

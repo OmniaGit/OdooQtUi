@@ -150,12 +150,15 @@ class LoginDialComplete(object):
             self.logged = True
         else:
             self.logged = self.loginWithUserDial()
+        self.interfaceDial.label_status.setText('User Already Logged!')
         if self.logged:
             self.interfaceDial.stackedWidget.setCurrentIndex(1)
             self.interfaceDial.pushButton_back.setHidden(False)
             self.interfaceDial.pushButton_ok.setHidden(False)
             self.interfaceDial.pushButton_next.setHidden(True)
+            self.interfaceDial.label_status.setHidden(False)
         else:
+            self.interfaceDial.label_status.setHidden(True)
             self.interfaceDial.stackedWidget.setCurrentIndex(0)
             self.interfaceDial.pushButton_back.setHidden(True)
             self.interfaceDial.pushButton_next.setHidden(False)
