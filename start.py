@@ -124,13 +124,13 @@ if __name__ == '__main__':
     dbName = 'odoo_9_comm'
     loginType = 'xmlrpc'
 
-#     scheme = 'http'
-#     xmlrpcServerIP = 'www.odooplm.cloud'
-#     xmlrpcPort = 8066
-#     user = 'odooplm'
-#     password = 'odooplm'
-#     dbName = 'odoov9_0'
-#     loginType = 'xmlrpc'
+    scheme = 'http'
+    xmlrpcServerIP = 'www.odooplm.cloud'
+    xmlrpcPort = 8066
+    user = 'odooplm'
+    password = 'odooplm'
+    dbName = 'odoov9_0'
+    loginType = 'xmlrpc'
 
     app = QtGui.QApplication(sys.argv)
 
@@ -140,11 +140,11 @@ if __name__ == '__main__':
     #     connectorObj.loginWithDial()
     #     connectorObj.loginWithDial()
         connectorObj.loginWithUser(user, password, dbName, xmlrpcServerIP, xmlrpcPort, scheme, loginType)
-        #tmplViewObj = connectorObj.initSearchViewObj('product.product')
-        tmplViewObj = connectorObj.initFormViewObj('product.product')
+        tmplViewObj = connectorObj.initSearchViewObj('product.product')
+        #tmplViewObj = connectorObj.initFormViewObj('product.product')
     #     viewCheckBoxes = {0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled}
     #     tmplViewObj = connectorObj.initTreeListViewObject('product.product', viewCheckBoxes=viewCheckBoxes)
-        tmplViewObj.loadIds([249])
+        #tmplViewObj.loadIds([249])
         dialog = QtGui.QDialog()
         dialog.setLayout(tmplViewObj.QtInterface)
         dialog.setStyleSheet('background-color:#893b74;')

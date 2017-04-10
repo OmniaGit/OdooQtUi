@@ -21,15 +21,19 @@ class SearchView(object):
 
     def computeArchRecursion(self, xmlElementParent):
         widgetContents = QtGui.QWidget()
-        mainVLay = self.computeRecursion(xmlElementParent)
+        mainLay = QtGui.QVBoxLayout()
+        filterListLay = QtGui.QHBoxLayout()
+        mainHLay = self.computeRecursion(xmlElementParent)
         widgetContents.setStyleSheet('background-color:#ffffff;')
-        widgetContents.setLayout(mainVLay)
+        mainLay.addLayout(mainHLay)
+        mainLay.addLayout(filterListLay)
+        widgetContents.setLayout(mainLay)
         outLay = QtGui.QVBoxLayout()
         outLay.addWidget(widgetContents)
         return outLay
 
     def computeRecursion(self, xmlElementParent):
-        mainVLay = QtGui.QHBoxLayout()
+        mainHLay = QtGui.QHBoxLayout()
         for childElement in xmlElementParent.getchildren():
             childTag = childElement.tag
             if childTag == 'filter':
@@ -47,9 +51,12 @@ class SearchView(object):
         self.populateCombo()
         self.completer.setModel(self.filterListModel)
         self.linedit.setCompleter(self.completer)
-        mainVLay.addWidget(self.linedit)
-        mainVLay.setSpacing(3)
-        return mainVLay
+        
+        self.searchButton = QtGui.QPushButton('Search')
+        mainHLay.addWidget(self.linedit)
+        mainHLay.addWidget(self.searchButton)
+        mainHLay.setSpacing(3)
+        return mainHLay
 
     def populateCombo(self, fieldsSearch=[], filters=[], currentVal=''):
         print 'fieldsSearch: %r, filters: %r, currentVal: %r' % (fieldsSearch, filters, currentVal)
