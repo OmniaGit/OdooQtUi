@@ -9,8 +9,17 @@ from ui.ui_login import Ui_dialog_login
 from PyQt4 import QtGui
 from PyQt4 import QtCore
 from utils_odoo_conn import utils
+from utils_odoo_conn import constants
 import json
 
+lineditStyle = 'min-width:200px;height: 16px;padding: 6px 12px;font-size: 14px;border: 1px solid #ccc;border-radius: 4px;background-color: rgb(250, 255, 189);color: rgb(0, 0, 0);'
+comboStyle = 'min-width:200px;height: 16px;padding: 6px 12px;font-size: 14px;border: 1px solid #ccc;border-radius: 4px;background-color: #eee;color: rgb(0, 0, 0);'
+acceptButtonStyle = 'border-radius: 4px;color: white;background-color: #337ab7;border: 2px solid black;padding: 5px 10px;font-size: 12px;'
+goodButtonStyle = acceptButtonStyle + 'background-color: #59be50;'
+cancelButtonStyle = acceptButtonStyle + 'background-color: #f05050;'
+labelStyle = 'font-weight: bold;'
+mainStyle = 'background-color:#893b74;'
+stackedStyle = 'background-color:white;'
 
 class LoginDial(QtGui.QDialog, Ui_dialog_login):
 
@@ -30,15 +39,6 @@ class LoginDial(QtGui.QDialog, Ui_dialog_login):
         self.pushButton_back.clicked.connect(self.previousPage)
 
     def setStyleWidgets(self):
-        lineditStyle = 'min-width:200px;height: 16px;padding: 6px 12px;font-size: 14px;border: 1px solid #ccc;border-radius: 4px;background-color: rgb(250, 255, 189);color: rgb(0, 0, 0);'
-        comboStyle = 'min-width:200px;height: 16px;padding: 6px 12px;font-size: 14px;border: 1px solid #ccc;border-radius: 4px;background-color: #eee;color: rgb(0, 0, 0);'
-        acceptButtonStyle = 'border-radius: 4px;color: white;background-color: #337ab7;border: 2px solid black;padding: 5px 10px;font-size: 12px;'
-        goodButtonStyle = acceptButtonStyle + 'background-color: #59be50;'
-        cancelButtonStyle = acceptButtonStyle + 'background-color: #f05050;'
-        labelStyle = 'font-weight: bold;'
-        mainStyle = 'background-color:#893b74;'
-        stackedStyle = 'background-color:white;'
-
         self.label_conn_type.setStyleSheet(labelStyle)
         self.label_database.setStyleSheet(labelStyle)
         self.label_password.setStyleSheet(labelStyle)
@@ -127,6 +127,8 @@ class LoginDial(QtGui.QDialog, Ui_dialog_login):
         self.serverPort = int(unicode(self.lineEdit_port.text()))
         self.scheme = unicode(self.lineEdit_scheme.text())
         self.connType = unicode(self.comboBox_conn_type.currentText())
+        
+    def acceptDialForce(self):
         self.accept()
 
 
@@ -190,10 +192,14 @@ class LoginDialComplete(object):
         self.writeToFile()
         self.logged = self.loginWithUserDial()
         if self.logged:
+            self.interfaceDial.acceptDial()
             self.interfaceDial.accept()
         else:
-            utils.launchMessage('Bad Login Infos! Check Better.', 'warning')
-        self.interfaceDial.acceptDial()
+            self.interfaceDial.lineEdit_username.setStyleSheet(lineditStyle + constants.BACKGROUND_RED)
+            self.interfaceDial.lineEdit_password.setStyleSheet(lineditStyle + constants.BACKGROUND_RED)
+            self.interfaceDial.label_status.setText('Bad Username or Password!')
+            self.interfaceDial.label_status.setHidden(False)
+            self.interfaceDial.label_status.setStyleSheet('color: red;')
 
     def nextPage(self):
         xmlrpcServerIP = unicode(self.interfaceDial.lineEdit_server.text())

@@ -122,3 +122,6 @@ class TemplateTreeListView(TemplateView):
         if self.currentRange[0] == 0:
             self.buttToLeft.setHidden(True)
         self.buttToRight.setHidden(False)
+
+    def sortResults(self, fieldName='', filterMode='DESC'):
+        utils.logMessage('warning', 'Sorting not implemented in tree list view', 'sortResults')

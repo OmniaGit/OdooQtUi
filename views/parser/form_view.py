@@ -147,6 +147,7 @@ class FormView(QtCore.QObject, object):
         widgetContents = QtGui.QWidget()
         mainVLay = self.computeRecursion(parent)
         widgetContents.setStyleSheet('background-color:#ffffff;')
+        mainVLay.setMargin(40)
         widgetContents.setLayout(mainVLay)
         scroll = QtGui.QScrollArea()
         scroll.setWidget(widgetContents)
@@ -172,6 +173,7 @@ class FormView(QtCore.QObject, object):
         childColCount = computeCol(groupXmlObj.attrib.get('col', 2))
         childColCount = childColCount * 2
         globalLay = QtGui.QGridLayout()
+        globalLay.setHorizontalSpacing(40)
         colCount = 0
         rowCount = 0
         for childElement in groupXmlObj.getchildren():

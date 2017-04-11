@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'C:\workspace\tray_odoo_connector\interface\ui\login.ui'
+# Form implementation generated from reading ui file '/srv/workspace/tray_odoo_connector/interface/ui/login.ui'
 #
-# Created by: PyQt4 UI code generator 4.11.4
+# Created: Tue Apr 11 11:57:01 2017
+#      by: PyQt4 UI code generator 4.11.2
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -62,6 +63,7 @@ class Ui_dialog_login(object):
         self.page_2 = QtGui.QWidget()
         self.page_2.setObjectName(_fromUtf8("page_2"))
         self.gridLayout_3 = QtGui.QGridLayout(self.page_2)
+        self.gridLayout_3.setHorizontalSpacing(9)
         self.gridLayout_3.setObjectName(_fromUtf8("gridLayout_3"))
         self.label_database = QtGui.QLabel(self.page_2)
         self.label_database.setObjectName(_fromUtf8("label_database"))

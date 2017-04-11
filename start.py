@@ -137,15 +137,17 @@ if __name__ == '__main__':
     @utils.timeit
     def do_test():
         connectorObj = MainConnector()
-    #     connectorObj.loginWithDial()
-    #     connectorObj.loginWithDial()
+        #connectorObj.loginWithDial()
+        #connectorObj.loginWithDial()
         connectorObj.loginWithUser(user, password, dbName, xmlrpcServerIP, xmlrpcPort, scheme, loginType)
-        tmplViewObj = connectorObj.initSearchViewObj('product.product')
+        #tmplViewObj = connectorObj.initSearchViewObj('product.product')
         #tmplViewObj = connectorObj.initFormViewObj('product.product')
-    #     viewCheckBoxes = {0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled}
-    #     tmplViewObj = connectorObj.initTreeListViewObject('product.product', viewCheckBoxes=viewCheckBoxes)
-        #tmplViewObj.loadIds([249])
+        viewCheckBoxes = {0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled}
+        tmplViewObj = connectorObj.initTreeListViewObject('product.product', viewCheckBoxes=viewCheckBoxes)
+        tmplViewObj.loadIds([249])
+        tmplViewObj.sortResults('fieldName', 'filterMode')
         dialog = QtGui.QDialog()
+        #tmplViewObj.QtInterface.setMargin(20)
         dialog.setLayout(tmplViewObj.QtInterface)
         dialog.setStyleSheet('background-color:#893b74;')
         dialog.resize(1200, 600)
