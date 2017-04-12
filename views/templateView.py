@@ -5,6 +5,7 @@ Created on 3 Feb 2017
 '''
 from utils_odoo_conn import utils
 from utils_odoo_conn import constants
+from RPC.rpc import connectionObj
 from PyQt4 import QtGui
 import copy
 
@@ -25,7 +26,15 @@ class TemplateView(object):
         self.fieldsChanged = {}     # {'fieldName' : fieldObj}
         self.formVals = {}
 
+    def searchForView(self, model, viewName):
+        viewIds = connectionObj.search(model, [('name', '=', viewName), ('model', '=', model), ('type', '=', self.viewType)])
+        if viewIds:
+            return viewIds[0]
+        return False
+
     def initViewObj(self, odooObjectName, viewName='', view_id=False):
+        if not view_id and viewName:
+            view_id = self.searchForView(odooObjectName, viewName)
         self.fieldsViewDefinition = self.rpcObject.fieldsViewGet(odooObjectName, view_id, self.viewType)
         self.arch = self.fieldsViewDefinition.get('arch', '')
         self.model = self.fieldsViewDefinition.get('model', '')
