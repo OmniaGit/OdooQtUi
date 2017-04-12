@@ -27,9 +27,10 @@ class TemplateView(object):
         self.formVals = {}
 
     def searchForView(self, model, viewName):
-        viewIds = connectionObj.search(model, [('name', '=', viewName), ('model', '=', model), ('type', '=', self.viewType)])
+        viewIds = connectionObj.search('ir.ui.view', [('name', '=', viewName), ('model', '=', model), ('type', '=', self.viewType)])
         if viewIds:
             return viewIds[0]
+        utils.logMessage('warning', 'View with name %r and model %r nor found' % (viewName, model), 'searchForView')
         return False
 
     def initViewObj(self, odooObjectName, viewName='', view_id=False):
