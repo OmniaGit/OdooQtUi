@@ -28,7 +28,8 @@ class Selection(OdooFieldTemplate):
 
         if self.widgetQtObj:
             self.widgetQtObj.setDisabled(self.readonly)
-            self.widgetQtObj.setHidden(self.invisible)
+            if self.invisible:
+                self.widgetQtObj.hide()
 
     def populateMapping(self, items):
         for odooName, interfaceName in items:

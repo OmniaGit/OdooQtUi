@@ -58,9 +58,9 @@ class MainConnector(object):
             rpcObj = connectionObj
         return activeLanguage, rpcObj
         
-    def initTreeListViewObject(self, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', viewCheckBoxes={}):
+    def initTreeListViewObject(self, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', viewCheckBoxes={}, viewFilter=False):
         localLang, rpcObj = self._getCommonLangAndRpc(activeLanguage, rpcObj)
-        templateViewObj = TemplateTreeListView(rpcObj, localLang)
+        templateViewObj = TemplateTreeListView(rpcObj, localLang, viewFilter)
         templateViewObj.initViewObj(odooObjectName, viewName, view_id, viewCheckBoxes)
         return templateViewObj
 
@@ -132,6 +132,14 @@ if __name__ == '__main__':
     dbName = 'odoov9_0'
     loginType = 'xmlrpc'
 
+    scheme = 'http'
+    xmlrpcServerIP = '192.168.1.7'
+    xmlrpcPort = 8069
+    user = 'admin'
+    password = 'admin'
+    dbName = 'all_v10'
+    loginType = 'xmlrpc'
+
     app = QtGui.QApplication(sys.argv)
 
     @utils.timeit
@@ -143,8 +151,8 @@ if __name__ == '__main__':
         #tmplViewObj = connectorObj.initSearchViewObj('product.product')
         #tmplViewObj = connectorObj.initFormViewObj('product.product')
         viewCheckBoxes = {0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled}
-        tmplViewObj = connectorObj.initTreeListViewObject('product.product', viewCheckBoxes=viewCheckBoxes)
-        tmplViewObj.loadIds([249])
+        tmplViewObj = connectorObj.initTreeListViewObject('product.product', viewCheckBoxes=viewCheckBoxes, viewFilter=True)
+        tmplViewObj.loadIds([])
         tmplViewObj.sortResults('fieldName', 'filterMode')
         dialog = QtGui.QDialog()
         #tmplViewObj.QtInterface.setMargin(20)
