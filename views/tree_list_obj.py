@@ -73,7 +73,7 @@ class TemplateTreeListView(TemplateView):
     @utils.timeit
     def loadIds(self, objIds=[], forceFieldValues={}, readonlyFields={}, invisibleFields={}):
         if not objIds:
-            objIds = connectionObj.search(self.model, [], 40)
+            objIds = connectionObj.search(self.model, []) # to check with many records if 40 stop will work, 40)
         fields = self.treeObj.orderedFields
         if len(objIds) < self.passRange:
             self.buttToRight.setHidden(True)
