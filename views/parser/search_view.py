@@ -6,6 +6,7 @@ Created on 3 Feb 2017
 import xml.etree.cElementTree as ElementTree
 from PyQt4 import QtGui
 from PyQt4 import QtCore
+from functools import partial
 import logging
 
 
@@ -18,6 +19,7 @@ class SearchView(object):
         self.fieldsSearch = []
         self.fieldStringNameRel = {}
         self.fieldsNameTypeRel = fieldsNameTypeRel
+        self.changingCurrentText = ''
 
     def computeArchRecursion(self, xmlElementParent):
         widgetContents = QtGui.QWidget()
@@ -33,6 +35,7 @@ class SearchView(object):
         return outLay
 
     def computeRecursion(self, xmlElementParent):
+        self.mainVLay = QtGui.QVBoxLayout()
         mainHLay = QtGui.QHBoxLayout()
         for childElement in xmlElementParent.getchildren():
             childTag = childElement.tag
@@ -44,6 +47,7 @@ class SearchView(object):
                 logging.warning('Tag %r not supported and not evaluated' % (childElement))
         self.linedit = QtGui.QLineEdit()
         self.linedit.textChanged.connect(self.textChangedEvent)
+        # self.linedit.returnPressed.connect(self.returnPressedLocal)
         self.completer = CustomQCompleter()
         self.completer.setCaseSensitivity(QtCore.Qt.CaseInsensitive)
         self.completer.setWrapAround(True)
@@ -53,10 +57,37 @@ class SearchView(object):
         self.linedit.setCompleter(self.completer)
         
         self.searchButton = QtGui.QPushButton('Search')
+        self.searchButton.clicked.connect(self.searchButtClicked)
         mainHLay.addWidget(self.linedit)
         mainHLay.addWidget(self.searchButton)
         mainHLay.setSpacing(3)
-        return mainHLay
+        
+        self.mainVLay.addLayout(mainHLay)
+        return self.mainVLay
+
+    def addFilter(self, filterString):
+        label = QtGui.QLabel(filterString)
+        removeButton = QtGui.QPushButton('X')
+        removeButton.clicked.connect(partial(self.removeFilter, filterString, label, removeButton))
+        
+        hlay = QtGui.QHBoxLayout()
+        hlay.addWidget(label)
+        hlay.addWidget(removeButton)
+        
+        self.mainVLay.addLayout(hlay)
+
+    def searchButtClicked(self):
+        self.addFilter(unicode(self.linedit.text()))
+        self.linedit.setText('')
+
+    def removeFilter(self, filterString, label, removeButton):
+        label.hide()
+        removeButton.hide()
+
+#     def returnPressedLocal(self, eee=False):
+#         filterText = unicode(self.linedit.completer().currentCompletion())
+#         self.addFilter(filterText)
+#         self.linedit.setText('')
 
     def populateCombo(self, fieldsSearch=[], filters=[], currentVal=''):
         print 'fieldsSearch: %r, filters: %r, currentVal: %r' % (fieldsSearch, filters, currentVal)
@@ -85,6 +116,7 @@ class SearchView(object):
         newText = unicode(newText)
         if newText and (not newText.startswith('Search ') or not newText.startswith('Filter for: ')):
             self.populateCombo(currentVal=unicode(newText))
+        print 'Completer index %r' % (self.completer.currentRow())
 
     def computeFilter(self, elemXml):
         fieldAttributes = elemXml.attrib
@@ -129,7 +161,7 @@ class CustomQCompleter(QtGui.QCompleter):
                 index0 = self.sourceModel().index(sourceRow, 0, sourceParent)
                 searchStr = local_completion_prefix.lower()
                 modelStr = unicode(self.sourceModel().data(index0, QtCore.Qt.DisplayRole).toString().toLower())
-                print 'searchStr: %r, modelStr: %r' % (searchStr, modelStr)
+                # print 'searchStr: %r, modelStr: %r' % (searchStr, modelStr)
                 return searchStr in modelStr
 
         proxy_model = InnerProxyModel()

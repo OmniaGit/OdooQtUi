@@ -5,15 +5,17 @@ Created on 24 Mar 2017
 '''
 from parser.tree_list import TreeViewList
 from templateView import TemplateView
+from views.search_obj import TemplateSearchView
 from utils_odoo_conn import utils
 from utils_odoo_conn import constants
+from RPC.rpc import connectionObj
 from PyQt4 import QtGui
 from PyQt4 import QtCore
 
 
 class TemplateTreeListView(TemplateView):
 
-    def __init__(self, rpcObject, activeLanguageCode='en_US'):
+    def __init__(self, rpcObject, activeLanguageCode='en_US', viewFilter=False):
         super(TemplateTreeListView, self).__init__(rpcObject, activeLanguageCode)
         self.viewType = 'tree'
         self.readonly = True
@@ -23,12 +25,17 @@ class TemplateTreeListView(TemplateView):
         self.labelsOrdered = []
         self.currentRange = [0, 40]
         self.passRange = 40
+        self.viewFilter = viewFilter
 
-    def initViewObj(self, odooObjectName, viewName, view_id, viewCheckBoxes={}):
+    def initViewObj(self, odooObjectName, viewName='', view_id=False, viewCheckBoxes={}):
         super(TemplateTreeListView, self).initViewObj(odooObjectName, viewName, view_id)
         self.viewCheckBoxes = viewCheckBoxes
-        self.treeObj = TreeViewList(self.arch, self.fieldsNameTypeRel, self.rpcObject, viewCheckBoxes)
         self.layout = QtGui.QVBoxLayout()
+        if self.viewFilter:
+            self.searchObj = TemplateSearchView(self.rpcObject, self.activeLanguageCode)
+            self.searchObj.initViewObj(odooObjectName)
+            self.layout.addLayout(self.searchObj.layout)
+        self.treeObj = TreeViewList(self.arch, self.fieldsNameTypeRel, self.rpcObject, viewCheckBoxes)
         self.mainLay = self.treeObj.computeArch()
         switchRecordsLay = QtGui.QHBoxLayout()
         self.buttToLeft = QtGui.QPushButton('<')
@@ -66,7 +73,7 @@ class TemplateTreeListView(TemplateView):
     @utils.timeit
     def loadIds(self, objIds=[], forceFieldValues={}, readonlyFields={}, invisibleFields={}):
         if not objIds:
-            return
+            objIds = connectionObj.search(self.model, []) # to check with many records if 40 stop will work, 40)
         fields = self.treeObj.orderedFields
         if len(objIds) < self.passRange:
             self.buttToRight.setHidden(True)
@@ -74,12 +81,17 @@ class TemplateTreeListView(TemplateView):
         flagsDict = {}
         valuesList = []
         self.labelsOrdered = []
+        fieldsToRemove = []
         for fieldName in fields:
             fieldObj = self.interfaceFieldsDict.get(fieldName, None)
             if fieldObj:
+                if fieldObj.fieldType in ['many2many', 'one2many']:
+                    fieldsToRemove.append(fieldName)
+                    continue
                 self.labelsOrdered.append(fieldObj.labelString)
             else:
                 self.labelsOrdered.append(fieldName)
+        fields = [item for item in fields if item not in fieldsToRemove]
         if self.viewCheckBoxes:
             flagsDict = self.viewCheckBoxes
         for record in records:

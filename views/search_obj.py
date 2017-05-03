@@ -22,7 +22,7 @@ class TemplateSearchView(TemplateView):
         self.viewId = False
         self.searchObj = None
 
-    def initViewObj(self, odooObjectName, viewName, view_id):
+    def initViewObj(self, odooObjectName, viewName='', view_id=False):
         self.odooObjectName = odooObjectName
         self.viewName = viewName
         self.viewId = view_id
