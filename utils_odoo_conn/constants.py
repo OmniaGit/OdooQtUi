@@ -26,4 +26,7 @@ NOOTEBOOK_TABBAR_STYLE = 'QTabBar::tab:!selected {border: 3px solid grey;border-
 TABLE_LIST_LIST = """QScrollBar {background-color:#893b74} QTableWidget {border-left: 3px solid #893b74; border-right: 3px solid #893b74; border-bottom: 3px solid #893b74;}"""
 FONT_SIZE_LIST_WIDGET = 8
 
+TAG_TEXT_STYLE = 'background-color: white;color: black;padding: 0 5px;font-size: large;max-width: 300px;border: 1px solid black;'
+TAG_BUTTON_STYLE = 'color: black;display: flex;padding: 0 5px;font-weight: bold;font-size: large;background-color:#3eb2df'
+
 BACKGROUND_RED = 'background-color:#f7a5a5;'

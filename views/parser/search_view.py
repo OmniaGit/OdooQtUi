@@ -7,6 +7,7 @@ import xml.etree.cElementTree as ElementTree
 from PyQt4 import QtGui
 from PyQt4 import QtCore
 from functools import partial
+from utils_odoo_conn import constants
 import logging
 
 
@@ -17,6 +18,7 @@ class SearchView(object):
         super(SearchView, self).__init__()
         self.filters = []
         self.fieldsSearch = []
+        self.timers = []
         self.fieldStringNameRel = {}
         self.fieldsNameTypeRel = fieldsNameTypeRel
         self.changingCurrentText = ''
@@ -45,9 +47,10 @@ class SearchView(object):
                 self.computeField(childElement)
             else:
                 logging.warning('Tag %r not supported and not evaluated' % (childElement))
+        self.gridLay = QtGui.QGridLayout()
         self.linedit = QtGui.QLineEdit()
         self.linedit.textChanged.connect(self.textChangedEvent)
-        # self.linedit.returnPressed.connect(self.returnPressedLocal)
+        self.linedit.returnPressed.connect(self.returnPressedLocal)
         self.completer = CustomQCompleter()
         self.completer.setCaseSensitivity(QtCore.Qt.CaseInsensitive)
         self.completer.setWrapAround(True)
@@ -63,18 +66,31 @@ class SearchView(object):
         mainHLay.setSpacing(3)
         
         self.mainVLay.addLayout(mainHLay)
+        self.mainVLay.addLayout(self.gridLay)
         return self.mainVLay
 
     def addFilter(self, filterString):
+        if not filterString:
+            return 
         label = QtGui.QLabel(filterString)
+        label.setStyleSheet(constants.TAG_TEXT_STYLE)
         removeButton = QtGui.QPushButton('X')
+        removeButton.setStyleSheet(constants.TAG_BUTTON_STYLE)
+        removeButton.setMaximumWidth(30)
         removeButton.clicked.connect(partial(self.removeFilter, filterString, label, removeButton))
         
         hlay = QtGui.QHBoxLayout()
+        hlay.setSpacing(0)
         hlay.addWidget(label)
         hlay.addWidget(removeButton)
         
-        self.mainVLay.addLayout(hlay)
+        maxFiltersInLine = 4
+        lastRowIndex = self.gridLay.rowCount() - 1
+        childrenLenght = len(self.gridLay.children())
+        lastColIndex = childrenLenght % maxFiltersInLine
+        if lastColIndex == 0 and childrenLenght > 0:
+            lastRowIndex = lastRowIndex + 1
+        self.gridLay.addLayout(hlay, lastRowIndex, lastColIndex, 1, 1)
 
     def searchButtClicked(self):
         self.addFilter(unicode(self.linedit.text()))
@@ -84,10 +100,18 @@ class SearchView(object):
         label.hide()
         removeButton.hide()
 
-#     def returnPressedLocal(self, eee=False):
-#         filterText = unicode(self.linedit.completer().currentCompletion())
-#         self.addFilter(filterText)
-#         self.linedit.setText('')
+    def returnPressedLocal(self):
+        timer = QtCore.QTimer()
+        self.timers.append(timer)
+        timer.timeout.connect(self.delayedAddFilter)
+        timer.start(500)
+
+    def delayedAddFilter(self):
+        filterText = unicode(self.linedit.text())
+        self.addFilter(filterText)
+        self.linedit.setText('')
+        for timer in self.timers:
+            timer.stop()
 
     def populateCombo(self, fieldsSearch=[], filters=[], currentVal=''):
         print 'fieldsSearch: %r, filters: %r, currentVal: %r' % (fieldsSearch, filters, currentVal)
