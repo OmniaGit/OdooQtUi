@@ -132,13 +132,13 @@ if __name__ == '__main__':
     dbName = 'odoov9_0'
     loginType = 'xmlrpc'
 
-    scheme = 'http'
-    xmlrpcServerIP = '192.168.1.7'
-    xmlrpcPort = 8069
-    user = 'admin'
-    password = 'admin'
-    dbName = 'all_v10'
-    loginType = 'xmlrpc'
+#     scheme = 'http'
+#     xmlrpcServerIP = '192.168.1.7'
+#     xmlrpcPort = 8069
+#     user = 'admin'
+#     password = 'admin'
+#     dbName = 'all_v10'
+#     loginType = 'xmlrpc'
 
     app = QtGui.QApplication(sys.argv)
 

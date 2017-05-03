@@ -60,6 +60,7 @@ class SearchView(object):
         self.linedit.setCompleter(self.completer)
         
         self.searchButton = QtGui.QPushButton('Search')
+        self.searchButton.setStyleSheet(constants.BUTTON_STYLE)
         self.searchButton.clicked.connect(self.searchButtClicked)
         mainHLay.addWidget(self.linedit)
         mainHLay.addWidget(self.searchButton)
@@ -72,14 +73,16 @@ class SearchView(object):
     def addFilter(self, filterString):
         if not filterString:
             return 
+        hlay = QtGui.QHBoxLayout()
+        filterString = filterString.replace('Search ', '').replace(' for: ', ' is ')
         label = QtGui.QLabel(filterString)
         label.setStyleSheet(constants.TAG_TEXT_STYLE)
         removeButton = QtGui.QPushButton('X')
-        removeButton.setStyleSheet(constants.TAG_BUTTON_STYLE)
+        # removeButton.setStyleSheet(constants.TAG_BUTTON_STYLE)
+        removeButton.setStyleSheet(constants.BUTTON_STYLE)
         removeButton.setMaximumWidth(30)
         removeButton.clicked.connect(partial(self.removeFilter, filterString, label, removeButton))
         
-        hlay = QtGui.QHBoxLayout()
         hlay.setSpacing(0)
         hlay.addWidget(label)
         hlay.addWidget(removeButton)
@@ -123,17 +126,18 @@ class SearchView(object):
         for fieldString in fieldsSearch:
             strToAppend = fieldString
             if currentVal:
-                strToAppend = 'Search %r for: %r' % (strToAppend, currentVal)
+                strToAppend = 'Search %s for: "' % (strToAppend) + currentVal + '"'
             else:
-                strToAppend = 'Search for: %r' % (strToAppend)
+                strToAppend = 'Search for: %s' % (strToAppend)
             stringList.append(strToAppend)
-        for filterStr in filters:
-            strToAppend2 = filterStr
-            if currentVal:
-                strToAppend2 = 'Filter for: %r, %r' % (strToAppend2, currentVal)
-            else:
-                strToAppend2 = 'Filter for: %r' % (strToAppend2)
-            stringList.append(strToAppend2)
+        # Commented to work only with search fields
+#         for filterStr in filters:
+#             strToAppend2 = filterStr
+#             if currentVal:
+#                 strToAppend2 = 'Filter for: %r, %r' % (strToAppend2, currentVal)
+#             else:
+#                 strToAppend2 = 'Filter for: %r' % (strToAppend2)
+#             stringList.append(strToAppend2)
         self.filterListModel.setStringList(stringList)
 
     def textChangedEvent(self, newText=''):
