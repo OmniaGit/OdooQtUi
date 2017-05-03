@@ -132,20 +132,28 @@ if __name__ == '__main__':
     dbName = 'odoov9_0'
     loginType = 'xmlrpc'
 
+    scheme = 'http'
+    xmlrpcServerIP = '192.168.1.16'
+    xmlrpcPort = 8069
+    user = 'admin'
+    password = 'admin'
+    dbName = 'db_technical_clean'
+    loginType = 'xmlrpc'
+
     app = QtGui.QApplication(sys.argv)
 
     @utils.timeit
     def do_test():
         connectorObj = MainConnector()
-        #connectorObj.loginWithDial()
-        #connectorObj.loginWithDial()
+        connectorObj.loginWithDial()
+        connectorObj.loginWithDial()
         connectorObj.loginWithUser(user, password, dbName, xmlrpcServerIP, xmlrpcPort, scheme, loginType)
         #tmplViewObj = connectorObj.initSearchViewObj('product.product')
-        #tmplViewObj = connectorObj.initFormViewObj('product.product')
-        viewCheckBoxes = {0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled}
-        tmplViewObj = connectorObj.initTreeListViewObject('product.product', viewCheckBoxes=viewCheckBoxes)
-        tmplViewObj.loadIds([249])
-        tmplViewObj.sortResults('fieldName', 'filterMode')
+        tmplViewObj = connectorObj.initFormViewObj('product.product', viewName='plm.base.component')
+        #viewCheckBoxes = {0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled}
+        #tmplViewObj = connectorObj.initTreeListViewObject('product.product', viewCheckBoxes=viewCheckBoxes)
+        #tmplViewObj.loadIds([249])
+        #tmplViewObj.sortResults('fieldName', 'filterMode')
         dialog = QtGui.QDialog()
         #tmplViewObj.QtInterface.setMargin(20)
         dialog.setLayout(tmplViewObj.QtInterface)

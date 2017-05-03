@@ -86,7 +86,11 @@
         <widget class="QLineEdit" name="lineEdit_password"/>
        </item>
        <item row="1" column="1">
-        <widget class="QComboBox" name="comboBox_database"/>
+        <widget class="QComboBox" name="comboBox_database">
+         <property name="maxVisibleItems">
+          <number>10</number>
+         </property>
+        </widget>
        </item>
        <item row="2" column="0">
         <widget class="QLabel" name="label_username">

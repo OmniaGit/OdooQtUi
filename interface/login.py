@@ -13,7 +13,7 @@ from utils_odoo_conn import constants
 import json
 
 lineditStyle = 'min-width:200px;height: 16px;padding: 6px 12px;font-size: 14px;border: 1px solid #ccc;border-radius: 4px;background-color: rgb(250, 255, 189);color: rgb(0, 0, 0);'
-comboStyle = 'min-width:200px;height: 16px;padding: 6px 12px;font-size: 14px;border: 1px solid #ccc;border-radius: 4px;background-color: #eee;color: rgb(0, 0, 0);'
+comboStyle = 'QComboBox {background-color: #eee;color: rgb(0, 0, 0);height: 16px;padding: 6px 12px;font-size: 14px;border-radius: 4px;border: 1px solid #ccc;} QScrollBar {background-color:#893b74} '
 acceptButtonStyle = 'border-radius: 4px;color: white;background-color: #337ab7;border: 2px solid black;padding: 5px 10px;font-size: 12px;'
 goodButtonStyle = acceptButtonStyle + 'background-color: #59be50;'
 cancelButtonStyle = acceptButtonStyle + 'background-color: #f05050;'

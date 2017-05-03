@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/srv/workspace/tray_odoo_connector/interface/ui/login.ui'
 #
-# Created: Tue Apr 11 11:57:01 2017
+# Created: Thu Apr 13 13:06:04 2017
 #      by: PyQt4 UI code generator 4.11.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -72,6 +72,7 @@ class Ui_dialog_login(object):
         self.lineEdit_password.setObjectName(_fromUtf8("lineEdit_password"))
         self.gridLayout_3.addWidget(self.lineEdit_password, 3, 1, 1, 1)
         self.comboBox_database = QtGui.QComboBox(self.page_2)
+        self.comboBox_database.setMaxVisibleItems(10)
         self.comboBox_database.setObjectName(_fromUtf8("comboBox_database"))
         self.gridLayout_3.addWidget(self.comboBox_database, 1, 1, 1, 1)
         self.label_username = QtGui.QLabel(self.page_2)
