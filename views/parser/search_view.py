@@ -47,7 +47,7 @@ class SearchView(object):
                 self.computeField(childElement)
             else:
                 logging.warning('Tag %r not supported and not evaluated' % (childElement))
-        self.gridLay = QtGui.QGridLayout()
+        self.tagsLay = QtGui.QVBoxLayout()
         self.linedit = QtGui.QLineEdit()
         self.linedit.textChanged.connect(self.textChangedEvent)
         self.linedit.returnPressed.connect(self.returnPressedLocal)
@@ -59,49 +59,79 @@ class SearchView(object):
         self.completer.setModel(self.filterListModel)
         self.linedit.setCompleter(self.completer)
         
-        self.searchButton = QtGui.QPushButton('Search')
+        self.searchButton = QtGui.QPushButton('Or')
         self.searchButton.setStyleSheet(constants.BUTTON_STYLE)
-        self.searchButton.clicked.connect(self.searchButtClicked)
+        self.searchButton.clicked.connect(self.orCondition)
         mainHLay.addWidget(self.linedit)
         mainHLay.addWidget(self.searchButton)
         mainHLay.setSpacing(3)
         
         self.mainVLay.addLayout(mainHLay)
-        self.mainVLay.addLayout(self.gridLay)
+        self.mainVLay.addLayout(self.tagsLay)
         return self.mainVLay
 
-    def addFilter(self, filterString):
+    def addFilter(self, filterString, operator='And'):
         if not filterString:
             return 
         hlay = QtGui.QHBoxLayout()
-        filterString = filterString.replace('Search ', '').replace(' for: ', ' is ')
+        if 'Search ' not in filterString:
+            filterString = 'Name for ' + filterString
+        else:
+            filterString = filterString.replace('Search ', '').replace(' for: ', ' is ')
+        
         label = QtGui.QLabel(filterString)
         label.setStyleSheet(constants.TAG_TEXT_STYLE)
+        
         removeButton = QtGui.QPushButton('X')
-        # removeButton.setStyleSheet(constants.TAG_BUTTON_STYLE)
         removeButton.setStyleSheet(constants.BUTTON_STYLE)
         removeButton.setMaximumWidth(30)
-        removeButton.clicked.connect(partial(self.removeFilter, filterString, label, removeButton))
+        
         
         hlay.setSpacing(0)
         hlay.addWidget(label)
         hlay.addWidget(removeButton)
         
         maxFiltersInLine = 4
-        lastRowIndex = self.gridLay.rowCount() - 1
-        childrenLenght = len(self.gridLay.children())
-        lastColIndex = childrenLenght % maxFiltersInLine
-        if lastColIndex == 0 and childrenLenght > 0:
-            lastRowIndex = lastRowIndex + 1
-        self.gridLay.addLayout(hlay, lastRowIndex, lastColIndex, 1, 1)
+        
+        childrenWidgetsCount = self.tagsLay.count()
+        if childrenWidgetsCount == 0:
+            hlayRow = QtGui.QHBoxLayout()
+#             labelOperator = QtGui.QLabel('')
+#             labelOperator.setMaximumWidth(50)
+#             labelOperator.setAlignment(QtCore.Qt.AlignHCenter)
+#             hlayRow.addWidget(labelOperator)
+            hlayRow.addLayout(hlay)
+            self.tagsLay.addLayout(hlayRow)
+            removeButton.clicked.connect(partial(self.removeFilter, filterString, label, removeButton, False))
+        else:
+            rowLay = self.tagsLay.children()[-1]
+            rowTagsCount = rowLay.count()
+            if rowTagsCount <= maxFiltersInLine:
+                labelOperator = QtGui.QLabel(operator)
+                labelOperator.setMaximumWidth(50)
+                labelOperator.setAlignment(QtCore.Qt.AlignHCenter)
+                rowLay.addWidget(labelOperator)
+                rowLay.addLayout(hlay)
+                removeButton.clicked.connect(partial(self.removeFilter, filterString, label, removeButton, labelOperator))
+            else:
+                hlayRow = QtGui.QHBoxLayout()
+                labelOperator = QtGui.QLabel(operator)
+                labelOperator.setMaximumWidth(50)
+                labelOperator.setAlignment(QtCore.Qt.AlignHCenter)
+                rowLay.addWidget(labelOperator)
+                hlayRow.addLayout(hlay)
+                self.tagsLay.addLayout(hlayRow)
+                removeButton.clicked.connect(partial(self.removeFilter, filterString, label, removeButton))
 
-    def searchButtClicked(self):
-        self.addFilter(unicode(self.linedit.text()))
+    def orCondition(self):
+        self.addFilter(unicode(self.linedit.text()), 'Or')
         self.linedit.setText('')
 
-    def removeFilter(self, filterString, label, removeButton):
+    def removeFilter(self, filterString, label, removeButton, labelOperator=False):
         label.hide()
         removeButton.hide()
+        if labelOperator:
+            labelOperator.hide()
 
     def returnPressedLocal(self):
         timer = QtCore.QTimer()
