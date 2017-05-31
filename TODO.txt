@@ -6,3 +6,4 @@ Dividere loadIds tra form e tree
 Implementare campo one2many
 Implementare widget radio buttons
 Implementare widget many2many_tags
+Mettere timeout sul login perchè si blocca
