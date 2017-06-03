@@ -18,7 +18,7 @@ class TemplateSearchView(TemplateView, QObject):
     filter_changed_signal = QtCore.pyqtSignal(list)         # Used by "SearchView" to return current filter
     out_filter_change_signal = QtCore.pyqtSignal(list)      # Used by parent view to get the current odoo list filter
 
-    def __init__(self, rpcObject, activeLanguageCode='en_US'):
+    def __init__(self, rpcObject, activeLanguageCode='en_US', searchMode='ilike'):
         super(TemplateSearchView, self).__init__(rpcObject, activeLanguageCode)
         self.viewType = 'search'
         self.readonly = True
@@ -26,6 +26,7 @@ class TemplateSearchView(TemplateView, QObject):
         self.viewName = ''
         self.viewId = False
         self.searchObj = None
+        self.searchMode = searchMode
         self.currentFilterList = []
         self.filter_changed_signal.connect(self._filterChanged)
 
@@ -47,7 +48,7 @@ class TemplateSearchView(TemplateView, QObject):
             if isinstance(filterObj, (str, unicode)):
                 operatorsOrdered.append(filterObj)
             else:
-                condition = (filterObj.name, 'ilike', filterObj.value)
+                condition = (filterObj.name, self.searchMode, filterObj.value)
                 currentFilterList.append(condition)
         self.currentFilterList.extend(operatorsOrdered)
         self.currentFilterList.extend(currentFilterList)
