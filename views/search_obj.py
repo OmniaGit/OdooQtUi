@@ -9,9 +9,13 @@ from utils_odoo_conn import utils
 from utils_odoo_conn import constants
 from PyQt4 import QtGui
 from PyQt4 import QtCore
+from PyQt4.QtCore import QObject
+import json
 
 
-class TemplateSearchView(TemplateView):
+class TemplateSearchView(TemplateView, QObject):
+
+    filter_changed_signal = QtCore.pyqtSignal(list)
 
     def __init__(self, rpcObject, activeLanguageCode='en_US'):
         super(TemplateSearchView, self).__init__(rpcObject, activeLanguageCode)
@@ -21,6 +25,7 @@ class TemplateSearchView(TemplateView):
         self.viewName = ''
         self.viewId = False
         self.searchObj = None
+        self.filter_changed_signal.connect(self._filterChanged)
 
     def initViewObj(self, odooObjectName, viewName='', view_id=False):
         self.odooObjectName = odooObjectName
@@ -28,6 +33,16 @@ class TemplateSearchView(TemplateView):
         self.viewId = view_id
         super(TemplateSearchView, self).initViewObj(odooObjectName, viewName, view_id)
         self.fieldsViewDefinition
-        self.searchObj = SearchView(self.arch, self.fieldsNameTypeRel)
+        self.searchObj = SearchView(self.arch, self.fieldsNameTypeRel, parent=self)
         self.layout = self.searchObj.computeArch()
         self.addToObject()
+
+    def _filterChanged(self, filterList):
+        outFilterString = ''
+        for filterObj in filterList:
+            if isinstance(filterObj, (str, unicode)):
+                outFilterString = outFilterString + ' ' + filterObj + ' '
+            else:
+                condition = '%r like %r' % (filterObj.name, filterObj.value)
+                outFilterString = outFilterString + condition
+        print outFilterString

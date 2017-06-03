@@ -127,6 +127,8 @@ class TemplateTreeListView(TemplateView):
         _start, to = self.currentRange
         self.currentRange = [to, to + self.passRange]
         self.buttToLeft.setHidden(False)
+        objIds = connectionObj.search(self.model, [], limit=self.passRange, offset=self.currentRange[0])
+        self.loadIds(objIds)
 
     def switchToLeft(self):
         start, _to = self.currentRange
@@ -134,6 +136,8 @@ class TemplateTreeListView(TemplateView):
         if self.currentRange[0] == 0:
             self.buttToLeft.setHidden(True)
         self.buttToRight.setHidden(False)
+        objIds = connectionObj.search(self.model, [], limit=self.passRange, offset=self.currentRange[0])
+        self.loadIds(objIds)
 
     def sortResults(self, fieldName='', filterMode='DESC'):
         utils.logMessage('warning', 'Sorting not implemented in tree list view', 'sortResults')

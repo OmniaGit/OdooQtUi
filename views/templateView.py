@@ -8,11 +8,13 @@ from utils_odoo_conn import constants
 from RPC.rpc import connectionObj
 from PyQt4 import QtGui
 import copy
+from PyQt4.QtCore import QObject
 
 
-class TemplateView(object):
+class TemplateView(QObject):
 
     def __init__(self, rpcObject, activeLanguageCode='en_US'):
+        super(TemplateView, self).__init__()
         self.rpcObject = rpcObject
         self.arch = ''  # xml view...
         self.model = ''     # 'product.product' / ...

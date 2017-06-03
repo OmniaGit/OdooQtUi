@@ -38,7 +38,10 @@ class MainConnector(object):
     def loginWithDial(self):
         loginDialInst = LoginDialComplete()
         loginDialInst.interfaceDial.exec_()
-        return loginDialInst.logged
+        if loginDialInst.logged:
+            self.activeLanguage = connectionObj.contextUser.get('lang', 'en_US')
+            return True
+        return False
 
     def computeUserGroups(self):
         # Not Used
@@ -124,13 +127,13 @@ if __name__ == '__main__':
     dbName = 'odoo_9_comm'
     loginType = 'xmlrpc'
 
-    scheme = 'http'
-    xmlrpcServerIP = 'www.odooplm.cloud'
-    xmlrpcPort = 8066
-    user = 'odooplm'
-    password = 'odooplm'
-    dbName = 'odoov9_0'
-    loginType = 'xmlrpc'
+#     scheme = 'http'
+#     xmlrpcServerIP = 'www.odooplm.cloud'
+#     xmlrpcPort = 8066
+#     user = 'odooplm'
+#     password = 'odooplm'
+#     dbName = 'odoov9_0'
+#     loginType = 'xmlrpc'
 
 #     scheme = 'http'
 #     xmlrpcServerIP = '192.168.1.7'
@@ -146,8 +149,8 @@ if __name__ == '__main__':
     def do_test():
         connectorObj = MainConnector()
         #connectorObj.loginWithDial()
-        #connectorObj.loginWithDial()
-        connectorObj.loginWithUser(user, password, dbName, xmlrpcServerIP, xmlrpcPort, scheme, loginType)
+        connectorObj.loginWithDial()
+        #connectorObj.loginWithUser(user, password, dbName, xmlrpcServerIP, xmlrpcPort, scheme, loginType)
         #tmplViewObj = connectorObj.initSearchViewObj('product.product')
 
         #tmplViewObj = connectorObj.initFormViewObj('product.product', viewName='plm.base.component')
