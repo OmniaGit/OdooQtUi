@@ -39,8 +39,11 @@ class Charachter(OdooFieldTemplate):
 
     def setValue(self, newVal):
         if isinstance(newVal, bool):
-            utils.logMessage('warning', 'Boolean value %r is passed to char field %r, check better' % (newVal, self.fieldName), 'setValue')
-            newVal = ''
+            if not newVal:
+                newVal = ''
+            else:
+                newVal = ''
+                utils.logMessage('warning', 'Boolean value %r is passed to char field %r, check better' % (newVal, self.fieldName), 'setValue')
         self.widgetQtObj.setText(newVal)
         self.currentValue = newVal
 

@@ -105,13 +105,13 @@ class TemplateTreeListView(TemplateView):
                 val = record.get(fieldName, '')
                 fieldObj = self.interfaceFieldsDict.get(fieldName, None)
                 fieldObj.setValue(val)
-                record[fieldName] = val
+                record[fieldName] = fieldObj.currentValue
                 if fieldObj.fieldType == 'many2one':
                     if isinstance(val, bool):
                         val = ''
                     else:
                         val = val[1]
-                localList.append(unicode(val))
+                localList.append(unicode(fieldObj.currentValue))
             valuesList.append(localList)
             recordId = record.get('id', False)
             self.idValsRel[recordId] = record

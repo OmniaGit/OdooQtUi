@@ -225,7 +225,6 @@ class SearchView(object):
             else: # Case of first time, user don't have already digited any key, so no choice is available
                 continue
             fieldObj.interfaceString = strToAppend
-            print fieldObj.interfaceString
             stringList.append(strToAppend)
         # Commented to work only with search fields
 #         for filterStr in filters:
