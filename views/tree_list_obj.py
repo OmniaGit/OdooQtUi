@@ -33,6 +33,7 @@ class TemplateTreeListView(TemplateView):
         self.layout = QtGui.QVBoxLayout()
         if self.viewFilter:
             self.searchObj = TemplateSearchView(self.rpcObject, self.activeLanguageCode)
+            self.searchObj.out_filter_change_signal.connect(self.filterChanged)
             self.searchObj.initViewObj(odooObjectName)
             self.layout.addLayout(self.searchObj.layout)
         self.treeObj = TreeViewList(self.arch, self.fieldsNameTypeRel, self.rpcObject, viewCheckBoxes)
@@ -55,6 +56,10 @@ class TemplateTreeListView(TemplateView):
         self.buttToLeft.setHidden(True)
         self.treeObj.tableWidget.setStyleSheet(constants.TABLE_LIST_LIST)
         self.treeObj.tableWidget.setMinimumHeight(200)
+
+    def filterChanged(self, newFilter):
+        objIds = connectionObj.search(self.model, newFilter, limit=self.passRange, offset=self.currentRange[0])
+        self.loadIds(objIds)
 
     def forceRecordVals(self, recordID, valuesDict={}):
         if not valuesDict:

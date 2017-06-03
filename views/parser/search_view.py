@@ -189,6 +189,7 @@ class SearchView(object):
                 index = self.currentFilters.index(objRel)
                 del self.currentFilters[index - 1]   # Remove operator
                 del self.currentFilters[index - 1]   # Remove filter
+        self.launchFilterChanged()
 
     def returnPressedLocal(self):
         timer = QtCore.QTimer()
