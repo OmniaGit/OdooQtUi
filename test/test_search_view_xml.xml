@@ -1,0 +1,28 @@
+'<search string="Parts">\n               
+
+<filter string="Latest 2 Weeks" separator="1" domain="[(\'create_date\',\'&lt;=\', (datetime.date.today()).strftime(\'%Y-%m-%d\')),(\'create_date\',\'&gt;=\',(datetime.date.today()-datetime.timedelta(weeks=2)).strftime(\'%Y-%m-%d\'))]" help="Created latest 2 Weeks"/>\n    
+           
+<filter string="Latest 7 Days" separator="1" domain="[(\'create_date\',\'&lt;=\', (datetime.date.today()).strftime(\'%Y-%m-%d\')),(\'create_date\',\'&gt;=\',(datetime.date.today()-datetime.timedelta(weeks=1)).strftime(\'%Y-%m-%d\'))]" help="Created latest 7 Days"/>\n   
+          
+<filter string="Yesterday" separator="1" domain="[(\'create_date\',\'&lt;=\', (datetime.date.today()-datetime.timedelta(days=1)).strftime(\'%Y-%m-%d\')),(\'create_date\',\'&gt;=\',(datetime.date.today()-datetime.timedelta(days=1)).strftime(\'%Y-%m-%d\'))]" help="Created yesterday"/>\n   
+         
+<filter string="Today" separator="1" domain="[(\'create_date\',\'&lt;=\', (datetime.date.today()).strftime(\'%Y-%m-%d\')),(\'create_date\',\'&gt;=\',(datetime.date.today()).strftime(\'%Y-%m-%d\'))]" help="Created today"/>\n               <separator orientation="vertical"/>\n        
+    
+<field name="engineering_code" modifiers="{}"/>\n      
+      
+<field name="description" modifiers="{}"/>\n      
+      
+<field name="name" on_change="1" modifiers="{&quot;required&quot;: true}"/>\n   
+           
+<separator orientation="vertical"/>\n               
+
+<filter string="Confirmed" domain="[(\'state\', \'=\', \'confirmed\')]"/>\n 
+              
+<filter string="Released" domain="[(\'state\', \'in\', [\'released\',\'undermodify\'])]"/>\n  
+             
+<filter string="Obsoleted" domain="[(\'state\', \'=\', \'obsoleted\')]"/>\n         
+      
+<filter string="Latest" domain="[(\'state\', \'not in\', [\'obsoleted\',\'undermodify\'])]"/>\n     
+   
+</search>'
+
