@@ -36,7 +36,7 @@ class TemplateSearchView(TemplateView, QObject):
         self.viewId = view_id
         super(TemplateSearchView, self).initViewObj(odooObjectName, viewName, view_id)
         self.fieldsViewDefinition
-        self.searchObj = SearchView(self.arch, self.fieldsNameTypeRel, parent=self)
+        self.searchObj = SearchView(self.arch, self.fieldsNameTypeRel, parent=self, searchMode=self.searchMode)
         self.layout = self.searchObj.computeArch()
         self.addToObject()
 
@@ -44,12 +44,12 @@ class TemplateSearchView(TemplateView, QObject):
         self.currentFilterList = []
         currentFilterList = []
         operatorsOrdered = []
-        for filterObj in filterList:
-            if isinstance(filterObj, (str, unicode)):
-                operatorsOrdered.append(filterObj)
+        for conditionTuple in filterList:
+            if isinstance(conditionTuple, (str, unicode)):
+                operatorsOrdered.append(conditionTuple)
             else:
-                condition = (filterObj.name, self.searchMode, filterObj.value)
-                currentFilterList.append(condition)
+                currentFilterList.append(conditionTuple)
         self.currentFilterList.extend(operatorsOrdered)
         self.currentFilterList.extend(currentFilterList)
         self.out_filter_change_signal.emit(self.currentFilterList)
+

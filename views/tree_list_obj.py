@@ -59,7 +59,7 @@ class TemplateTreeListView(TemplateView):
 
     def filterChanged(self, newFilter):
         objIds = connectionObj.search(self.model, newFilter, limit=self.passRange, offset=self.currentRange[0])
-        self.loadIds(objIds)
+        self.loadIdsForceEmpty(objIds)
 
     def forceRecordVals(self, recordID, valuesDict={}):
         if not valuesDict:
@@ -79,6 +79,9 @@ class TemplateTreeListView(TemplateView):
     def loadIds(self, objIds=[], forceFieldValues={}, readonlyFields={}, invisibleFields={}):
         if not objIds:
             objIds = connectionObj.search(self.model, [], self.passRange) # to check with many records if 40 stop will work, 40)
+        return self.loadIdsForceEmpty(objIds, forceFieldValues, readonlyFields, invisibleFields)
+    
+    def loadIdsForceEmpty(self, objIds=[], forceFieldValues={}, readonlyFields={}, invisibleFields={}):
         fields = self.treeObj.orderedFields
         if len(objIds) < self.passRange:
             self.buttToRight.setHidden(True)

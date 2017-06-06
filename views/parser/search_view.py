@@ -10,21 +10,26 @@ from functools import partial
 from utils_odoo_conn import constants
 import logging
 import copy
+import json
+import datetime
+from dateutil.relativedelta import relativedelta
 
 
 class SearchView(object):
 
-    def __init__(self, arch='', fieldsNameTypeRel={}, parent=False):
+    def __init__(self, arch='', fieldsNameTypeRel={}, parent=False, searchMode='ilike'):
+        self.searchMode = searchMode
         self.arch = arch
         self.parent = parent
         super(SearchView, self).__init__()
-        self.filters = []
-        self.fieldsSearch = []
-        self.timers = []
-        self.fieldStringNameRel = {}
-        self.fieldsNameTypeRel = fieldsNameTypeRel
-        self.changingCurrentText = ''
-        self.currentFilters = []
+        self.filters = []   # list of objects "Filter" to filter in the tool button choice
+        # self.fieldsSearch = []  # list of objects "Field" to filter in the line edit
+        self.fieldsSearchTemplate = []  # Template fields
+        self.timers = []    # timers to add filters in delayed mode
+        self.fieldsNameTypeRel = fieldsNameTypeRel  # fields definition of the parent view
+        self.fieldFilters = []    # filters to be returned (came from fields)
+        self.conditionFilters = [] # filters came from tool button (came from filters)
+        # When signal of filter changed is emitted condition filter are appended to field filters and return the result
 
     def computeArchRecursion(self, xmlElementParent):
         widgetContents = QtGui.QWidget()
@@ -42,14 +47,26 @@ class SearchView(object):
     def computeRecursion(self, xmlElementParent):
         self.mainVLay = QtGui.QVBoxLayout()
         mainHLay = QtGui.QHBoxLayout()
+        self.buttonFilters = QtGui.QToolButton()
+        self.buttonFilters.setText('Filters')
+        self.buttonFilters.setStyleSheet(constants.SEARCH_FILTER_TOOLBUTTON)
+        self.toolmenu = QtGui.QMenu()
         for childElement in xmlElementParent.getchildren():
             childTag = childElement.tag
             if childTag == 'filter':
-                self.computeFilter(childElement)
+                filterObj = self.computeFilter(childElement)
+                action = self.toolmenu.addAction(filterObj.string)
+                action.setCheckable(True)
+                action.toggled.connect(partial(self.actionSelectionChanged, action))
             elif childTag == 'field':
                 self.computeField(childElement)
+            elif childTag == 'separator':
+                self.toolmenu.addSeparator()
             else:
                 logging.warning('Tag %r not supported and not evaluated' % (childElement))
+        self.buttonFilters.setMenu(self.toolmenu)
+        self.buttonFilters.setPopupMode(QtGui.QToolButton.InstantPopup)
+        self.buttonFilters.setHidden(True)
         self.tagsLay = QtGui.QVBoxLayout()
         self.linedit = QtGui.QLineEdit()
         self.linedit.textChanged.connect(self.textChangedEvent)
@@ -65,27 +82,78 @@ class SearchView(object):
         self.searchButton = QtGui.QPushButton('Or')
         self.searchButton.setStyleSheet(constants.BUTTON_STYLE)
         self.searchButton.clicked.connect(self.orCondition)
+
+        self.buttonAdvancedFilter = QtGui.QPushButton('+')
+        self.buttonAdvancedFilter.setStyleSheet(constants.SEARCH_ADVANCED_BUTTON)
+        self.buttonAdvancedFilter.clicked.connect(self.advancedFilter)
+
         mainHLay.addWidget(self.linedit)
         mainHLay.addWidget(self.searchButton)
+        mainHLay.addWidget(self.buttonAdvancedFilter)
         mainHLay.setSpacing(3)
         
         self.mainVLay.addLayout(mainHLay)
+        
+        self.filtersGroupsLay = QtGui.QHBoxLayout()
+        self.mainVLay.addLayout(self.filtersGroupsLay)
+        self.filtersGroupsLay.addWidget(self.buttonFilters)
         self.mainVLay.addLayout(self.tagsLay)
         return self.mainVLay
 
+    def actionSelectionChanged(self, actionChange=False, newVal=False):
+        if not actionChange:
+            logging.warning('Action not found')
+            return
+        stringOption = unicode(actionChange.iconText())
+        filterObj = self.checkFilter(stringOption)
+        if filterObj:
+            if not newVal:  # Uncheck the filter
+                lenFilters = len(self.conditionFilters)
+                filterIndex = self.conditionFilters.index(filterObj)
+                if filterIndex == 0:    # Remove the first filter
+                    if lenFilters == 1:
+                        del self.conditionFilters[0]
+                    else:
+                        del self.conditionFilters[1]    # Remove operator
+                        del self.conditionFilters[0]    # Remove filterObject
+                else:   # Remove any other filter
+                    del self.conditionFilters[filterIndex]    # Remove operator
+                    del self.conditionFilters[filterIndex - 1]    # Remove filterObject
+            else:   # Check the filter
+                if not self.conditionFilters:
+                    self.conditionFilters = [filterObj]
+                else:
+                    self.conditionFilters.append('|')
+                    self.conditionFilters.append(filterObj)
+            self.launchFilterChanged()
+        else:
+            logging.warning('Unable to find filter for string %r' % (stringOption))
+        
+    def advancedFilter(self):
+        if self.buttonFilters.isHidden():
+            self.buttonFilters.setHidden(False)
+        else:
+            self.buttonFilters.setHidden(True)
+
     def checkField(self, val):
-        for fieldObj in self.fieldsSearch:
+        for fieldObj in self.fieldFilters:
             if fieldObj.interfaceString == val:
                 return fieldObj
         return False
-    
+
+    def checkFieldTemplate(self, val):
+        for fieldObj in self.fieldsSearchTemplate:
+            if fieldObj.interfaceString == val:
+                return fieldObj
+        return False
+
     def checkFilter(self, val):
         for filterObj in self.filters:
-            if filterObj.interfaceString == val:
+            if unicode(filterObj.string.strip()) == unicode(val):
                 return filterObj
         return False
 
-    def addFilter(self, filterString, operator='And'):
+    def addFieldFilter(self, filterString, operator='And'):
 
         def computeOperatorForFilter(op):
             if op.upper() == 'AND':
@@ -93,27 +161,14 @@ class SearchView(object):
             elif op.upper() == 'OR':
                 return '|'
 
-        newFilter = []
         if not filterString:
             return 
         hlay = QtGui.QHBoxLayout()
-        self.fieldsSearch
-        objRel = self.checkField(filterString)
-        if not objRel:
-            objRel = self.checkFilter(filterString)
+        objRel = self.checkFieldTemplate(filterString)
         if not objRel:
             logging.warning('Unable to find filter for string %r' % (filterString))
             return
-        objRel = copy.deepcopy(objRel)  # Copied new filter because if you select the same filter again tha value will be overwritten
-#         if 'Search ' not in filterString:
-#             filterString = 'Name is ' + filterString
-#             newFilter = [newFilter, computeOperatorForFilter(operator), ['name', '=', unicode(filterString)]]
-#         else:
-#             filterString = filterString.replace('Search ', '').replace(' for: ', ' is ')
-#             values = filterString.split('"')
-#             value = values[-2]
-#             fieldName = self.fieldStringNameRel.get(values[1])
-#             newFilter = [newFilter, computeOperatorForFilter(operator), [fieldName, '=', unicode(value)]]
+        objRel = copy.deepcopy(objRel)  # Copied new filter because if you select the same filter again the value will be overwritten
         
         label = QtGui.QLabel(filterString)
         label.setStyleSheet(constants.TAG_TEXT_STYLE)
@@ -134,7 +189,7 @@ class SearchView(object):
             hlayRow = QtGui.QHBoxLayout()
             hlayRow.addLayout(hlay)
             self.tagsLay.addLayout(hlayRow)
-            removeButton.clicked.connect(partial(self.removeFilter, filterString, label, removeButton, False, objRel))
+            removeButton.clicked.connect(partial(self.removeFieldFilter, filterString, label, removeButton, False, objRel))
         else:
             rowLay = self.tagsLay.children()[-1]
             rowTagsCount = rowLay.count()
@@ -144,7 +199,7 @@ class SearchView(object):
                 labelOperator.setAlignment(QtCore.Qt.AlignHCenter)
                 rowLay.addWidget(labelOperator)
                 rowLay.addLayout(hlay)
-                removeButton.clicked.connect(partial(self.removeFilter, filterString, label, removeButton, labelOperator, objRel))
+                removeButton.clicked.connect(partial(self.removeFieldFilter, filterString, label, removeButton, labelOperator, objRel))
             else:
                 hlayRow = QtGui.QHBoxLayout()
                 labelOperator = QtGui.QLabel(operator)
@@ -153,24 +208,44 @@ class SearchView(object):
                 rowLay.addWidget(labelOperator)
                 hlayRow.addLayout(hlay)
                 self.tagsLay.addLayout(hlayRow)
-                removeButton.clicked.connect(partial(self.removeFilter, filterString, label, removeButton, labelOperator, objRel))
+                removeButton.clicked.connect(partial(self.removeFieldFilter, filterString, label, removeButton, labelOperator, objRel))
         
-        if not self.currentFilters:
-            self.currentFilters.append(objRel)
+        tupleCondition = (objRel.name, self.searchMode, objRel.value)
+        objRel.conditionComputedFilter = tupleCondition
+        if not self.fieldFilters:
+            self.fieldFilters.append(objRel)
         else:
-            self.currentFilters.append(computeOperatorForFilter(operator))
-            self.currentFilters.append(objRel)
+            self.fieldFilters.append(computeOperatorForFilter(operator))
+            self.fieldFilters.append(objRel)
         self.launchFilterChanged()
     
     def launchFilterChanged(self):
+        outFilters = []
+        for elem1 in self.fieldFilters:
+            if isinstance(elem1, (str, unicode)):
+                outFilters.append(elem1)
+            elif isinstance(elem1, FieldObj):
+                outFilters.extend([elem1.conditionComputedFilter])
+            else:
+                logging.warning('[launchFilterChanged] Cannot evaluate element %r' % (elem1))
+        if self.conditionFilters:
+            if outFilters:
+                outFilters.append('&')
+            for elem in self.conditionFilters:
+                if isinstance(elem, (str, unicode)):
+                    outFilters.append(elem)
+                elif isinstance(elem, FilterObj):
+                    outFilters.extend(elem.domain)
+                else:
+                    logging.warning('[launchFilterChanged] Cannot evaluate element %r' % (elem))
         if self.parent:
-            self.parent.filter_changed_signal.emit(self.currentFilters)
+            self.parent.filter_changed_signal.emit(outFilters)
 
     def orCondition(self):
-        self.addFilter(unicode(self.linedit.text()), 'Or')
+        self.addFieldFilter(unicode(self.linedit.text()), 'Or')
         self.linedit.setText('')
 
-    def removeFilter(self, filterString, label, removeButton, labelOperator=False, objRel=False):
+    def removeFieldFilter(self, filterString, label, removeButton, labelOperator=False, objRel=False):
         if not objRel:
             logging.warning('Unable to remove filter %r because obj not found' % (filterString))
             return
@@ -178,62 +253,57 @@ class SearchView(object):
         removeButton.hide()
         if labelOperator:
             labelOperator.hide()
-        if objRel in self.fieldsSearch:
-            self.fieldsSearch.remove(objRel)
-        elif objRel in self.filters:
-            self.filters.remove(objRel)
-        if objRel in self.currentFilters:
-            if self.currentFilters[0] == objRel:
-                self.currentFilters = self.currentFilters[2:]
+            
+        lenFilters = len(self.fieldFilters)
+        filterIndex = self.fieldFilters.index(objRel)
+        if filterIndex == 0:    # Remove the first filter
+            if lenFilters == 1:
+                del self.fieldFilters[0]
             else:
-                index = self.currentFilters.index(objRel)
-                del self.currentFilters[index - 1]   # Remove operator
-                del self.currentFilters[index - 1]   # Remove filter
+                del self.fieldFilters[1]    # Remove operator
+                del self.fieldFilters[0]    # Remove filterObject
+        else:   # Remove any other filter
+            del self.fieldFilters[filterIndex]    # Remove operator
+            del self.fieldFilters[filterIndex - 1]    # Remove filterObject
         self.launchFilterChanged()
 
     def returnPressedLocal(self):
         timer = QtCore.QTimer()
         self.timers.append(timer)
-        timer.timeout.connect(self.delayedAddFilter)
+        timer.timeout.connect(self.delayedAddFieldFilter)
         timer.start(500)
 
-    def delayedAddFilter(self):
+    def delayedAddFieldFilter(self):
         filterText = unicode(self.linedit.text())
-        self.addFilter(filterText)
+        self.addFieldFilter(filterText)
         self.linedit.setText('')
         for timer in self.timers:
             timer.stop()
 
-    def populateCombo(self, fieldsSearch=[], filters=[], currentVal=''):
+    def populateCombo(self, fieldsSearchTemplate=[], filters=[], currentVal=''):
+        '''
+            Populate runtime the QCompleter values for line edit
+            @currentVal: Current value digited by user
+            @fieldsSearchTemplate: List of field objects
+            @filters: List of filter objects
+        '''
         stringList = []
-        if not fieldsSearch:
-            fieldsSearch = self.fieldsSearch
+        if not fieldsSearchTemplate:
+            fieldsSearch = self.fieldsSearchTemplate
         if not filters:
             filters = self.filters
         for fieldObj in fieldsSearch:
             strToAppend = fieldObj.string
-            if currentVal:
-                fieldObjRel = self.checkField(currentVal)
+            if currentVal:  # User have digited something
+                fieldObjRel = self.checkFieldTemplate(currentVal)
                 if fieldObjRel:
-                    currentVal = fieldObjRel.value
-                else:
-                    filterObjRel = self.checkFilter(currentVal)
-                    if filterObjRel:
-                        currentVal = filterObjRel.value
+                    currentVal = fieldObjRel.value  # Take clean field name from field object
                 strToAppend = 'Search "%s" for: "' % (strToAppend) + currentVal + '"'
                 fieldObj.value = currentVal
             else: # Case of first time, user don't have already digited any key, so no choice is available
                 continue
             fieldObj.interfaceString = strToAppend
             stringList.append(strToAppend)
-        # Commented to work only with search fields
-#         for filterStr in filters:
-#             strToAppend2 = filterStr
-#             if currentVal:
-#                 strToAppend2 = 'Filter for: %r, %r' % (strToAppend2, currentVal)
-#             else:
-#                 strToAppend2 = 'Filter for: %r' % (strToAppend2)
-#             stringList.append(strToAppend2)
         self.filterListModel.setStringList(stringList)
 
     def textChangedEvent(self, newText=''):
@@ -241,14 +311,41 @@ class SearchView(object):
         if newText:
             self.populateCombo(currentVal=unicode(newText))
 
+    def evaluateCondition(self, conditions):
+        outFilter = []
+        operators = []
+        for elem in conditions:
+            if isinstance(elem, (str, unicode)):
+                if not operators:
+                    operators.append(elem)
+            elif isinstance(elem, (tuple, list)):
+                if not operators:
+                    if outFilter and not isinstance(outFilter[-1], (str, unicode)):
+                        outFilter.append('&')
+                    outFilter.append(elem)
+                else:
+                    outFilter.append(elem)
+                    outFilter.append(operators[0])
+                    del operators[0]
+            else:
+                logging.warning('[evaluateCondition] Cannot evaluate element %r' % (elem))
+        return outFilter
+        
     def computeFilter(self, elemXml):
         fieldAttributes = elemXml.attrib
         filterObj = FilterObj()
-        filterObj.domain = fieldAttributes.get('domain', '')
+        evalDomain = []
+        try:
+            evalDomain = eval(fieldAttributes.get('domain', ''))
+            evalDomain = self.evaluateCondition(evalDomain)
+        except Exception, ex:
+            logging.error('Unable to compute domain %r. EX: %r' % (fieldAttributes.get('domain', ''), ex))
+        filterObj.domain = evalDomain
         filterObj.string = fieldAttributes.get('string', '')
         filterObj.help = fieldAttributes.get('help', '')
         if filterObj.string:
             self.filters.append(filterObj)
+        return filterObj
 
     def computeField(self, elemXml):
         fieldAttributes = elemXml.attrib
@@ -258,8 +355,8 @@ class SearchView(object):
         fieldObj.fieldDefinition = self.fieldsNameTypeRel.get(fieldObj.name, {})
         if not fieldObj.string:
             fieldObj.string = fieldObj.fieldDefinition.get('string', '')
-        self.fieldsSearch.append(fieldObj)
-        # self.fieldStringNameRel[fieldString] = fieldName
+        self.fieldsSearchTemplate.append(fieldObj)
+        return fieldObj
 
     def computeArch(self):
         if self.arch:
@@ -304,6 +401,7 @@ class FilterObj(object):
         self.help = ''
         self.interfaceString = ''
         self.value = ''
+        self.conditionComputedFilter = []
 
 class FieldObj(object):
     def __init__(self):

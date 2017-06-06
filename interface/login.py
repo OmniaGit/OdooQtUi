@@ -12,14 +12,6 @@ from utils_odoo_conn import utils
 from utils_odoo_conn import constants
 import json
 
-lineditStyle = 'min-width:200px;height: 16px;padding: 6px 12px;font-size: 14px;border: 1px solid #ccc;border-radius: 4px;background-color: rgb(250, 255, 189);color: rgb(0, 0, 0);'
-comboStyle = 'QComboBox {background-color: #eee;color: rgb(0, 0, 0);height: 16px;padding: 6px 12px;font-size: 14px;border-radius: 4px;border: 1px solid #ccc;} QScrollBar {background-color:#893b74} '
-acceptButtonStyle = 'border-radius: 4px;color: white;background-color: #337ab7;border: 2px solid black;padding: 5px 10px;font-size: 12px;'
-goodButtonStyle = acceptButtonStyle + 'background-color: #59be50;'
-cancelButtonStyle = acceptButtonStyle + 'background-color: #f05050;'
-labelStyle = 'font-weight: bold;'
-mainStyle = 'background-color:#893b74;'
-stackedStyle = 'background-color:white;'
 
 class LoginDial(QtGui.QDialog, Ui_dialog_login):
 
@@ -39,31 +31,31 @@ class LoginDial(QtGui.QDialog, Ui_dialog_login):
         self.pushButton_back.clicked.connect(self.previousPage)
 
     def setStyleWidgets(self):
-        self.label_conn_type.setStyleSheet(labelStyle)
-        self.label_database.setStyleSheet(labelStyle)
-        self.label_password.setStyleSheet(labelStyle)
-        self.label_port.setStyleSheet(labelStyle)
-        self.label_server.setStyleSheet(labelStyle)
-        self.label_username.setStyleSheet(labelStyle)
-        self.label_scheme.setStyleSheet(labelStyle)
+        self.label_conn_type.setStyleSheet(constants.LOGIN_LABEL)
+        self.label_database.setStyleSheet(constants.LOGIN_LABEL)
+        self.label_password.setStyleSheet(constants.LOGIN_LABEL)
+        self.label_port.setStyleSheet(constants.LOGIN_LABEL)
+        self.label_server.setStyleSheet(constants.LOGIN_LABEL)
+        self.label_username.setStyleSheet(constants.LOGIN_LABEL)
+        self.label_scheme.setStyleSheet(constants.LOGIN_LABEL)
 
-        self.lineEdit_password.setStyleSheet(lineditStyle)
-        self.lineEdit_port.setStyleSheet(lineditStyle)
-        self.lineEdit_scheme.setStyleSheet(lineditStyle)
-        self.lineEdit_server.setStyleSheet(lineditStyle)
-        self.lineEdit_username.setStyleSheet(lineditStyle)
+        self.lineEdit_password.setStyleSheet(constants.LOGIN_LINEEDIT_STYLE)
+        self.lineEdit_port.setStyleSheet(constants.LOGIN_LINEEDIT_STYLE)
+        self.lineEdit_scheme.setStyleSheet(constants.LOGIN_LINEEDIT_STYLE)
+        self.lineEdit_server.setStyleSheet(constants.LOGIN_LINEEDIT_STYLE)
+        self.lineEdit_username.setStyleSheet(constants.LOGIN_LINEEDIT_STYLE)
 
-        self.comboBox_conn_type.setStyleSheet(comboStyle)
-        self.comboBox_database.setStyleSheet(comboStyle)
+        self.comboBox_conn_type.setStyleSheet(constants.LOGIN_COMBO_STYLE)
+        self.comboBox_database.setStyleSheet(constants.LOGIN_COMBO_STYLE)
 
-        self.stackedWidget.setStyleSheet(stackedStyle)
+        self.stackedWidget.setStyleSheet(constants.LOGIN_STACKED_WIDGET)
 
-        self.pushButton_ok.setStyleSheet(acceptButtonStyle)
-        self.pushButton_next.setStyleSheet(goodButtonStyle)
-        self.pushButton_back.setStyleSheet(goodButtonStyle)
-        self.pushButton_cancel.setStyleSheet(cancelButtonStyle)
+        self.pushButton_ok.setStyleSheet(constants.LOGIN_ACCEPT_BUTTON)
+        self.pushButton_next.setStyleSheet(constants.LOGIN_NEXT_BACK_BUTTONS)
+        self.pushButton_back.setStyleSheet(constants.LOGIN_NEXT_BACK_BUTTONS)
+        self.pushButton_cancel.setStyleSheet(constants.LOGIN_CANCEL_BUTTON)
 
-        self.setStyleSheet(mainStyle)
+        self.setStyleSheet(constants.LOGIN_MAIN)
 
     def initFields(self, userLogged, userpass, serverPort, scheme, serverIp, username, dbName, dbList):
         self.lineEdit_password.setEchoMode(QtGui.QLineEdit.Password)
@@ -195,8 +187,8 @@ class LoginDialComplete(object):
             self.interfaceDial.acceptDial()
             self.interfaceDial.accept()
         else:
-            self.interfaceDial.lineEdit_username.setStyleSheet(lineditStyle + constants.BACKGROUND_RED)
-            self.interfaceDial.lineEdit_password.setStyleSheet(lineditStyle + constants.BACKGROUND_RED)
+            self.interfaceDial.lineEdit_username.setStyleSheet(constants.LOGIN_LINEEDIT_STYLE + constants.BACKGROUND_RED)
+            self.interfaceDial.lineEdit_password.setStyleSheet(constants.LOGIN_LINEEDIT_STYLE + constants.BACKGROUND_RED)
             self.interfaceDial.label_status.setText('Bad Username or Password!')
             self.interfaceDial.label_status.setHidden(False)
             self.interfaceDial.label_status.setStyleSheet('color: red;')
