@@ -10,14 +10,11 @@ from functools import partial
 from utils_odoo_conn import constants
 import logging
 import copy
-import json
-import datetime
-from dateutil.relativedelta import relativedelta
 
 
 class SearchView(object):
 
-    def __init__(self, arch='', fieldsNameTypeRel={}, parent=False, searchMode='ilike'):
+    def __init__(self, arch='', fieldsNameTypeRel={}, parent=False, searchMode='ilike', advancedFilterFields={}):
         self.searchMode = searchMode
         self.arch = arch
         self.parent = parent
@@ -30,6 +27,7 @@ class SearchView(object):
         self.fieldFilters = []    # filters to be returned (came from fields)
         self.conditionFilters = [] # filters came from tool button (came from filters)
         # When signal of filter changed is emitted condition filter are appended to field filters and return the result
+        self.advancedFilterFields = advancedFilterFields
 
     def computeArchRecursion(self, xmlElementParent):
         widgetContents = QtGui.QWidget()
@@ -47,9 +45,26 @@ class SearchView(object):
     def computeRecursion(self, xmlElementParent):
         self.mainVLay = QtGui.QVBoxLayout()
         mainHLay = QtGui.QHBoxLayout()
+        customFiltersLay = QtGui.QHBoxLayout()
+        self.tagsLay = QtGui.QVBoxLayout()
+        self.customFiltersTagsLay = QtGui.QVBoxLayout()
+
         self.buttonFilters = QtGui.QToolButton()
         self.buttonFilters.setText('Filters')
         self.buttonFilters.setStyleSheet(constants.SEARCH_FILTER_TOOLBUTTON)
+
+        self.buttonCustomFilters = QtGui.QPushButton()
+        self.buttonCustomFilters.setText('Advanced Filter')
+        self.buttonCustomFilters.setStyleSheet(constants.SEARCH_FILTER_TOOLBUTTON)
+        self.buttonCustomFilters.setHidden(True)
+        self.buttonCustomFilters.clicked.connect(self.customAdvancedFilter)
+        
+        customFiltersLay.addLayout(self.customFiltersTagsLay)
+        spacer = QtGui.QSpacerItem(0, 0, QtGui.QSizePolicy.MinimumExpanding)
+        customFiltersLay.addSpacerItem(spacer)
+        customFiltersLay.addWidget(self.buttonFilters)
+        customFiltersLay.addWidget(self.buttonCustomFilters)
+
         self.toolmenu = QtGui.QMenu()
         for childElement in xmlElementParent.getchildren():
             childTag = childElement.tag
@@ -67,7 +82,6 @@ class SearchView(object):
         self.buttonFilters.setMenu(self.toolmenu)
         self.buttonFilters.setPopupMode(QtGui.QToolButton.InstantPopup)
         self.buttonFilters.setHidden(True)
-        self.tagsLay = QtGui.QVBoxLayout()
         self.linedit = QtGui.QLineEdit()
         self.linedit.textChanged.connect(self.textChangedEvent)
         self.linedit.returnPressed.connect(self.returnPressedLocal)
@@ -96,9 +110,46 @@ class SearchView(object):
         
         self.filtersGroupsLay = QtGui.QHBoxLayout()
         self.mainVLay.addLayout(self.filtersGroupsLay)
-        self.filtersGroupsLay.addWidget(self.buttonFilters)
+        self.filtersGroupsLay.addLayout(customFiltersLay)
         self.mainVLay.addLayout(self.tagsLay)
         return self.mainVLay
+
+    def customAdvancedFilter(self):
+        dial = QtGui.QDialog()
+        mainLay = QtGui.QVBoxLayout()
+
+        def acceptDial():
+            dial.accept()
+            
+        def rejectDial():
+            dial.reject()
+        
+        okButton = QtGui.QPushButton('Save')
+        okButton.clicked.connect(acceptDial)
+        cancelButt = QtGui.QPushButton('Cancel')
+        cancelButt.clicked.connect(rejectDial)
+        okCancelLay = QtGui.QHBoxLayout()
+        okCancelLay.addWidget(cancelButt)
+        spacer = QtGui.QSpacerItem(0, 0, QtGui.QSizePolicy.MinimumExpanding)
+        okCancelLay.addSpacerItem(spacer)
+        okCancelLay.addWidget(okButton)
+        
+        comboAvailableFields = QtGui.QComboBox()
+        fields = self.advancedFilterFields.keys()
+        fieldStringRel = {}
+        for fieldName, fieldDefinition in self.advancedFilterFields.items():
+            fieldString = fieldDefinition.get('string', '')
+            fieldStringRel[fieldString] = fieldName
+        fieldNames = fieldStringRel.keys()
+        comboAvailableFields.addItems(fieldNames)
+        
+        self.advancedFilterFields
+        self.customFiltersTagsLay
+        
+        mainLay.addLayout(okCancelLay)
+        dial.setLayout(mainLay)
+        if dial.exec_() == QtGui.QDialog.Accepted:
+            pass
 
     def actionSelectionChanged(self, actionChange=False, newVal=False):
         if not actionChange:
@@ -132,8 +183,11 @@ class SearchView(object):
     def advancedFilter(self):
         if self.buttonFilters.isHidden():
             self.buttonFilters.setHidden(False)
+            if self.advancedFilterFields:
+                self.buttonCustomFilters.setHidden(False)
         else:
             self.buttonFilters.setHidden(True)
+            self.buttonCustomFilters.setHidden(True)
 
     def checkField(self, val):
         for fieldObj in self.fieldFilters:

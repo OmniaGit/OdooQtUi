@@ -30,13 +30,13 @@ class TemplateSearchView(TemplateView, QObject):
         self.currentFilterList = []
         self.filter_changed_signal.connect(self._filterChanged)
 
-    def initViewObj(self, odooObjectName, viewName='', view_id=False):
+    def initViewObj(self, odooObjectName, viewName='', view_id=False, allFieldsDef={}):
         self.odooObjectName = odooObjectName
         self.viewName = viewName
         self.viewId = view_id
         super(TemplateSearchView, self).initViewObj(odooObjectName, viewName, view_id)
-        self.fieldsViewDefinition
-        self.searchObj = SearchView(self.arch, self.fieldsNameTypeRel, parent=self, searchMode=self.searchMode)
+        self.allFieldsDef = allFieldsDef
+        self.searchObj = SearchView(self.arch, self.fieldsNameTypeRel, parent=self, searchMode=self.searchMode, advancedFilterFields=allFieldsDef)
         self.layout = self.searchObj.computeArch()
         self.addToObject()
 

@@ -32,9 +32,10 @@ class TemplateTreeListView(TemplateView):
         self.viewCheckBoxes = viewCheckBoxes
         self.layout = QtGui.QVBoxLayout()
         if self.viewFilter:
+            allFieldsDef = connectionObj.fieldsGet(self.model)
             self.searchObj = TemplateSearchView(self.rpcObject, self.activeLanguageCode)
             self.searchObj.out_filter_change_signal.connect(self.filterChanged)
-            self.searchObj.initViewObj(odooObjectName)
+            self.searchObj.initViewObj(odooObjectName, allFieldsDef=allFieldsDef)
             self.layout.addLayout(self.searchObj.layout)
         self.treeObj = TreeViewList(self.arch, self.fieldsNameTypeRel, self.rpcObject, viewCheckBoxes)
         self.mainLay = self.treeObj.computeArch()
