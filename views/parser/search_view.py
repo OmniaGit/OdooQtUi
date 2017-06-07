@@ -135,13 +135,12 @@ class SearchView(object):
         okCancelLay.addWidget(okButton)
         
         comboAvailableFields = QtGui.QComboBox()
-        fields = self.advancedFilterFields.keys()
-        fieldStringRel = {}
-        for fieldName, fieldDefinition in self.advancedFilterFields.items():
+        fields = self.advancedFilterFields.keys()   # To have order because when index is changed I'm sure to take the correct field
+        fields.sort()
+        for fieldName in fields:
+            fieldDefinition = self.advancedFilterFields.get(fieldName)
             fieldString = fieldDefinition.get('string', '')
-            fieldStringRel[fieldString] = fieldName
-        fieldNames = fieldStringRel.keys()
-        comboAvailableFields.addItems(fieldNames)
+            comboAvailableFields.addItem(fieldString)
         
         self.advancedFilterFields
         self.customFiltersTagsLay
