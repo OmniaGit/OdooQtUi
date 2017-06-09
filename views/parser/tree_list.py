@@ -84,7 +84,7 @@ class TreeViewList(object):
     def computeArchRecursion(self, parent):
         mainVLay = self.computeRecursion(parent)
         self.widgetContents = QtGui.QWidget()
-        self.widgetContents.setStyleSheet('background-color:#ffffff;')
+        self.widgetContents.setStyleSheet(constants.TREE_LIST_BACKGROUND_COLOR)
         self.widgetContents.setLayout(mainVLay)
         outLay = QtGui.QVBoxLayout()
         outLay.addWidget(self.widgetContents)

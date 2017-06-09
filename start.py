@@ -135,13 +135,13 @@ if __name__ == '__main__':
     dbName = 'odoov9_0'
     loginType = 'xmlrpc'
 
-    scheme = 'http'
-    xmlrpcServerIP = '192.168.99.16'
-    xmlrpcPort = 8069
-    user = 'admin'
-    password = 'admin'
-    dbName = 'Maus_2'
-    loginType = 'xmlrpc'
+#     scheme = 'http'
+#     xmlrpcServerIP = '192.168.99.16'
+#     xmlrpcPort = 8069
+#     user = 'admin'
+#     password = 'admin'
+#     dbName = 'Maus_2'
+#     loginType = 'xmlrpc'
 
     app = QtGui.QApplication(sys.argv)
 
@@ -153,7 +153,7 @@ if __name__ == '__main__':
         connectorObj.loginWithUser(user, password, dbName, xmlrpcServerIP, xmlrpcPort, scheme, loginType)
         #tmplViewObj = connectorObj.initSearchViewObj('product.product')
 
-        tmplViewObj = connectorObj.initFormViewObj('product.product', viewName='plm.base.component')
+        #tmplViewObj = connectorObj.initFormViewObj('product.product', viewName='plm.base.component')
         #viewCheckBoxes = {0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled}
         #tmplViewObj = connectorObj.initTreeListViewObject('product.product', viewCheckBoxes=viewCheckBoxes)
         #tmplViewObj.loadIds([249])
@@ -161,16 +161,17 @@ if __name__ == '__main__':
 
         #tmplViewObj = connectorObj.initFormViewObj('product.product')
 
-        #viewCheckBoxes = {0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled}
-        #tmplViewObj = connectorObj.initTreeListViewObject('product.product', viewCheckBoxes=viewCheckBoxes, viewFilter=False)
-        #tmplViewObj.loadIdsForceEmpty([])
+        viewCheckBoxes = {0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled}
+        tmplViewObj = connectorObj.initTreeListViewObject('product.product', viewCheckBoxes=viewCheckBoxes, viewFilter=True)
+        tmplViewObj.loadIdsForceEmpty([])
         #tmplViewObj.loadIds([])
 
         #tmplViewObj.sortResults('fieldName', 'filterMode')
 
         dialog = QtGui.QDialog()
         #tmplViewObj.QtInterface.setMargin(20)
-        dialog.setLayout(tmplViewObj.QtInterface)
+        interf = tmplViewObj.QtInterface
+        dialog.setLayout(interf)
         dialog.setStyleSheet('background-color:#893b74;')
         dialog.resize(1200, 600)
         dialog.move(100, 100)

@@ -45,4 +45,6 @@ LOGIN_LABEL = 'font-weight: bold;'
 LOGIN_MAIN = 'background-color:#893b74;'
 LOGIN_STACKED_WIDGET = 'background-color:white;'
 
+TREE_LIST_BACKGROUND_COLOR = 'background-color:#ffffff;'
+
 
