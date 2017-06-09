@@ -10,6 +10,9 @@ from functools import partial
 from utils_odoo_conn import constants
 import logging
 import copy
+# Do not delete these, are necessary to compute filters coming from server
+import datetime                                 
+from dateutil.relativedelta import relativedelta
 
 
 class SearchView(object):
@@ -184,9 +187,11 @@ class SearchView(object):
             self.buttonFilters.setHidden(False)
             if self.advancedFilterFields:
                 self.buttonCustomFilters.setHidden(False)
+            self.buttonAdvancedFilter.setText('-')
         else:
             self.buttonFilters.setHidden(True)
             self.buttonCustomFilters.setHidden(True)
+            self.buttonAdvancedFilter.setText('+')
 
     def checkField(self, val):
         for fieldObj in self.fieldFilters:
