@@ -127,13 +127,13 @@ if __name__ == '__main__':
     dbName = 'odoo_9_comm'
     loginType = 'xmlrpc'
 
-    scheme = 'http'
-    xmlrpcServerIP = 'www.odooplm.cloud'
-    xmlrpcPort = 8066
-    user = 'odooplm'
-    password = 'odooplm'
-    dbName = 'odoov9_0'
-    loginType = 'xmlrpc'
+#     scheme = 'http'
+#     xmlrpcServerIP = 'www.odooplm.cloud'
+#     xmlrpcPort = 8066
+#     user = 'odooplm'
+#     password = 'odooplm'
+#     dbName = 'odoov9_0'
+#     loginType = 'xmlrpc'
 
 #     scheme = 'http'
 #     xmlrpcServerIP = '192.168.99.16'
@@ -142,6 +142,14 @@ if __name__ == '__main__':
 #     password = 'admin'
 #     dbName = 'Maus_2'
 #     loginType = 'xmlrpc'
+ 
+    scheme = 'http'
+    xmlrpcServerIP = '127.0.0.1'
+    xmlrpcPort = 8069
+    user = 'admin'
+    password = 'admin'
+    dbName = 'all_v10'
+    loginType = 'xmlrpc'
 
     app = QtGui.QApplication(sys.argv)
 

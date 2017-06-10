@@ -120,6 +120,16 @@ class SearchView(object):
     def customAdvancedFilter(self):
         dial = QtGui.QDialog()
         mainLay = QtGui.QVBoxLayout()
+        comboCharOperator = QtGui.QComboBox()
+        comboBoolOperator = QtGui.QComboBox()
+        comboDatetimeOperator = QtGui.QComboBox()
+        comboFloatOperator = QtGui.QComboBox()
+        dateOperator = QtGui.QDateEdit()
+        datetimeOperator = QtGui.QDateTimeEdit()
+        integerSpinbox = QtGui.QSpinBox()
+        mainLineEdit = QtGui.QLineEdit()
+        fields = self.advancedFilterFields.keys()   # To have order because when index is changed I'm sure to take the correct field
+        fields.sort()
 
         def acceptDial():
             dial.accept()
@@ -127,27 +137,107 @@ class SearchView(object):
         def rejectDial():
             dial.reject()
         
+        def hideAll():
+            comboCharOperator.setHidden(True)
+            mainLineEdit.setHidden(True)
+            comboBoolOperator.setHidden(True)
+            comboFloatOperator.setHidden(True)
+            integerSpinbox.setHidden(True)
+            dateOperator.setHidden(True)
+            comboDatetimeOperator.setHidden(True)
+            datetimeOperator.setHidden(True)
+            mainLineEdit.setText('')
+
+        def fieldsCustomComboChanged(newIndex):
+            fieldName = fields[newIndex]
+            fieldDefinition = self.advancedFilterFields[fieldName]
+            fieldType = fieldDefinition.get('type', '')
+            hideAll()
+            if fieldType in ['char', 'many2one', 'text', 'one2many', 'many2many']:
+                comboCharOperator.setHidden(False)
+                mainLineEdit.setHidden(False)
+            elif fieldType == 'boolean':
+                comboBoolOperator.setHidden(False)
+            elif fieldType == 'float':
+                comboFloatOperator.setHidden(False)
+                mainLineEdit.setHidden(False)
+            elif fieldType == 'date':
+                dateOperator.setHidden(False)
+            elif fieldType == 'datetime':
+                datetimeOperator.setHidden(False)
+                comboDatetimeOperator.setHidden(False)
+            elif fieldType == 'integer':
+                comboFloatOperator.setHidden(False)
+                integerSpinbox.setHidden(False)
+            print fieldType
+            
+        # Ok / Cancel buttons and layout
         okButton = QtGui.QPushButton('Save')
         okButton.clicked.connect(acceptDial)
         cancelButt = QtGui.QPushButton('Cancel')
         cancelButt.clicked.connect(rejectDial)
+
         okCancelLay = QtGui.QHBoxLayout()
         okCancelLay.addWidget(cancelButt)
         spacer = QtGui.QSpacerItem(0, 0, QtGui.QSizePolicy.MinimumExpanding)
         okCancelLay.addSpacerItem(spacer)
         okCancelLay.addWidget(okButton)
-        
+    
+        # Fields combo
         comboAvailableFields = QtGui.QComboBox()
-        fields = self.advancedFilterFields.keys()   # To have order because when index is changed I'm sure to take the correct field
-        fields.sort()
+        
+        
         for fieldName in fields:
+            # TODO:    binary da escludere
+            # ordinare per stringa e non per nome campo
             fieldDefinition = self.advancedFilterFields.get(fieldName)
             fieldString = fieldDefinition.get('string', '')
             comboAvailableFields.addItem(fieldString)
+            comboAvailableFields.currentIndexChanged.connect(fieldsCustomComboChanged)
         
+        centerLay = QtGui.QVBoxLayout()
+        centerLay.addWidget(comboAvailableFields)
         self.advancedFilterFields
         self.customFiltersTagsLay
         
+        # Combo char text
+#         mappingCharOperator = {'ilike': 'Contains',
+#                                'not ilike': "Doesn't contains",
+#                                '=': 'Is equal to',
+#                                '!=': 'Is not equal to',
+#                                '!= False': 'Is set',
+#                                '=  False', 'Is not set'}
+        # char
+        comboValues = ['Contains', "Doesn't contains", 'Is equal to', 'Is not equal to', 'Is set', 'Is not set']
+        comboCharOperator.addItems(comboValues)
+        centerLay.addWidget(comboCharOperator)
+        # bool
+        comboBoolValues = ['Is true', 'Is false']
+        comboBoolOperator.addItems(comboBoolValues)
+        centerLay.addWidget(comboBoolOperator)
+        # float
+        comboFloatValues = ['Is equal to', 'Is not equal to', 'Greater than', 'Less than', 'Greater than or equal to',
+                            'Less then or equal to', 'Is set', 'Is not set']
+        comboFloatOperator.addItems(comboFloatValues)
+        centerLay.addWidget(comboFloatOperator)
+        # integer
+        centerLay.addWidget(integerSpinbox)
+        # date
+        centerLay.addWidget(dateOperator)
+        # datetime
+        comboDatetimeValues = comboFloatValues
+        comboDatetimeValues.append('Is between')
+        comboDatetimeOperator.addItems(comboDatetimeValues)
+        centerLay.addWidget(comboDatetimeOperator)
+        centerLay.addWidget(datetimeOperator)
+        
+        
+        
+        
+        
+        centerLay.addWidget(mainLineEdit)
+        hideAll()
+        mainLay.addLayout(centerLay)
         mainLay.addLayout(okCancelLay)
         dial.setLayout(mainLay)
         if dial.exec_() == QtGui.QDialog.Accepted:
