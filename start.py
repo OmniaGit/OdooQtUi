@@ -157,7 +157,7 @@ if __name__ == '__main__':
     def do_test():
         connectorObj = MainConnector()
         #connectorObj.loginWithDial()
-        #connectorObj.loginWithDial()
+        connectorObj.loginWithDial()
         connectorObj.loginWithUser(user, password, dbName, xmlrpcServerIP, xmlrpcPort, scheme, loginType)
         #tmplViewObj = connectorObj.initSearchViewObj('product.product')
 

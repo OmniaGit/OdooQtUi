@@ -26,14 +26,15 @@ NOOTEBOOK_TABBAR_STYLE = 'QTabBar::tab:!selected {border: 3px solid grey;border-
 TABLE_LIST_LIST = """QScrollBar {background-color:#893b74} QTableWidget {border-left: 3px solid #893b74; border-right: 3px solid #893b74; border-bottom: 3px solid #893b74;}"""
 FONT_SIZE_LIST_WIDGET = 8
 
-TAG_TEXT_STYLE = 'background-color: #c5c5c5;color: black;padding: 0 5px;font-size: large;max-width: 300px;border: 1px solid black;'
-TAG_BUTTON_STYLE = 'color: black;display: flex;padding: 0 5px;font-weight: bold;font-size: large;background-color:#3eb2df'
+TAG_TEXT_STYLE = 'background-color: #c5c5c5;color: black;padding: 0px 5px 0px 5px;font-size: large;max-width: 300px;border: 1px solid black;'
+TAG_BUTTON_STYLE = 'color: black;margin-left:20px;display: flex;padding: 0px 5px 0px 0px;font-weight: bold;font-size: large;background-color:#3eb2df'
 
-BACKGROUND_RED = 'background-color:#f7a5a5;'
+
 
 # Search view
 SEARCH_FILTER_TOOLBUTTON = 'background-color: #7c7bad;min-width: 130px;min-height:30px;color: white;font-weight: bold;font-size: large;border: 3px solid black;'
 SEARCH_ADVANCED_BUTTON = 'background-color:white;color:#893b74;font-weight: bold;font-size: 18px;border: 4px solid #893b74;min-width: 25px;min-height:25px;'
+OPERATOR_LABEL = 'background-color: #7c7bad;border: 1px solid black;width:30px;color:white;'
 
 # Login dialog
 LOGIN_LINEEDIT_STYLE = 'min-width:200px;height: 16px;padding: 6px 12px;font-size: 14px;border: 1px solid #ccc;border-radius: 4px;background-color: rgb(250, 255, 189);color: rgb(0, 0, 0);'
@@ -47,4 +48,6 @@ LOGIN_STACKED_WIDGET = 'background-color:white;'
 
 TREE_LIST_BACKGROUND_COLOR = 'background-color:#ffffff;'
 
-
+VIOLET_BACKGROUND = 'background-color:#893b74;'
+BACKGROUND_RED = 'background-color:#f7a5a5;'
+BACKGROUND_WHITE = 'background-color:white;'
