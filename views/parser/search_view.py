@@ -313,7 +313,7 @@ class SearchView(object):
                     odooCondition = [(fieldName,'=', False), '|', (fieldName, '=', 0)]
                 value = floatVal
             elif fieldType == 'date':
-                value = dateWidget
+                value = unicode(dateWidget.date().toPyDate())
                 operatorIndex = comboDatetimeOperator.currentIndex()
                 interfaceVal = comboDatetimeValues[operatorIndex]
                 if interfaceVal == 'Is equal to':
@@ -334,7 +334,7 @@ class SearchView(object):
                     odooCondition = [(fieldName,'=', False), '|', (fieldName, '=', 0)]
             elif fieldType == 'datetime':
                 operatorIndex = comboDatetimeOperator.currentIndex()
-                value = datetimeWidget
+                value = unicode(datetimeWidget.dateTime().toPyDateTime())
                 interfaceVal = comboDatetimeValues[operatorIndex]
                 if interfaceVal == 'Is equal to':
                     odooCondition = [(fieldName,'=', value)]
