@@ -126,6 +126,8 @@ class SearchView(object):
         comboBoolValues = ['Is true', 'Is false']
         comboFloatValues = ['Is equal to', 'Is not equal to', 'Greater than', 'Less than', 'Greater than or equal to',
                             'Less then or equal to', 'Is set', 'Is not set']
+        sortedFields = []
+        stringFieldRel = {}
         dial = QtGui.QDialog()
         mainLay = QtGui.QVBoxLayout()
         lay = QtGui.QVBoxLayout()
@@ -142,8 +144,7 @@ class SearchView(object):
         datetimeWidget = QtGui.QDateTimeEdit()
         integerSpinboxWidget = QtGui.QSpinBox()
         mainLineEditWidget = QtGui.QLineEdit()
-        fields = self.advancedFilterFields.keys()   # To have order because when index is changed I'm sure to take the correct field
-        fields.sort()
+        
         self.filterMode = '&'
 
         def acceptDialAnd():
@@ -169,7 +170,8 @@ class SearchView(object):
             mainLineEditWidget.setText('')
 
         def fieldsCustomComboChanged(newIndex):
-            fieldName = fields[newIndex]
+            fieldString = sortedFields[newIndex]
+            fieldName = stringFieldRel.get(fieldString)
             fieldDefinition = self.advancedFilterFields[fieldName]
             fieldType = fieldDefinition.get('type', '')
             hideAll()
@@ -213,11 +215,17 @@ class SearchView(object):
         comboAvailableFields = QtGui.QComboBox()
         comboAvailableFields.setStyleSheet(constants.LOGIN_COMBO_STYLE)
         
-        for fieldName in fields:
-            # TODO:    binary da escludere
-            # ordinare per stringa e non per nome campo
+        for fieldName in self.advancedFilterFields.keys():
             fieldDefinition = self.advancedFilterFields.get(fieldName)
             fieldString = fieldDefinition.get('string', '')
+            fieldType = fieldDefinition.get('type', '')
+            if fieldType == 'binary':
+                continue
+            sortedFields.append(fieldString)
+            stringFieldRel[fieldString] = fieldName
+        
+        sortedFields.sort()
+        for fieldString in sortedFields:
             comboAvailableFields.addItem(fieldString)
             comboAvailableFields.currentIndexChanged.connect(fieldsCustomComboChanged)
         
@@ -258,7 +266,8 @@ class SearchView(object):
         dial.setStyleSheet(constants.VIOLET_BACKGROUND)
         if dial.exec_() == QtGui.QDialog.Accepted:
             newIndex = comboAvailableFields.currentIndex()
-            fieldName = fields[newIndex]
+            fieldString = sortedFields[newIndex]
+            fieldName = stringFieldRel.get(fieldString)
             fieldDefinition = self.advancedFilterFields[fieldName]
             fieldType = fieldDefinition.get('type', '')
             value = unicode(mainLineEditWidget.text())
