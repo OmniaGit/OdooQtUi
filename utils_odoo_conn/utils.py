@@ -521,7 +521,7 @@ def evaluateModifiers(modifiers):
     return invisibleConditions, readonlyConditions
 
 def setRequiredBackground(widgetQtObj, baseBackground):
-    widgetQtObj.setStyleSheet(baseBackground + 'Background-color: rgb(210,210,255)')
+    widgetQtObj.setStyleSheet(baseBackground + 'background-color: #d2d2ff;')
 
 def evaluateAttrs(fieldsDict, toCompute):
     def evalSingleCondition(cond):
@@ -645,6 +645,32 @@ def getLoginFile():
     home = getUserHomeDir()
     return os.path.join(home, '.trayUserLogin')
 
+def loadFromFile():
+    dbName = ''
+    username = ''
+    userpass = ''
+    serverIp = ''
+    serverPort = ''
+    scheme = ''
+    connType = ''
+    availableConnTypes = []
+    dbList = []
+    filePath = getLoginFile()
+    fileDict = {}
+    if os.path.exists(filePath):
+        with open(filePath, 'r') as readFile:
+            content = readFile.read()
+            fileDict = json.loads(content)
+        if fileDict:
+            dbName = fileDict.get('db_name', '')
+            username = fileDict.get('user_name', '')
+            userpass = fileDict.get('user_pass', '')
+            serverIp = fileDict.get('server_ip', '')
+            serverPort = fileDict.get('server_port', '')
+            scheme = fileDict.get('scheme', '')
+            connType = fileDict.get('conn_type', '')
+            dbList = fileDict.get('db_list', [])
+    return dbName, username, userpass, serverIp, serverPort, scheme, connType, dbList
 
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)

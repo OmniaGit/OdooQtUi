@@ -120,7 +120,10 @@ class Many2one(OdooFieldTemplate):
             else:
                 if self.editButton:
                     self.editButton.setHidden(True)
-            self.widgetQtObj2.setStyleSheet(constants.SELECTION_STYLE)
+            if self.required:
+                utils.setRequiredBackground(self.widgetQtObj2, constants.SELECTION_STYLE)
+            else:
+                self.widgetQtObj2.setStyleSheet(constants.SELECTION_STYLE)
 
     def setInvisible(self, val=False):
         super(Many2one, self).setInvisible(val)

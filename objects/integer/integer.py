@@ -47,7 +47,10 @@ class Integer(OdooFieldTemplate):
         if val:
             self.widgetQtObj.setStyleSheet(constants.INTEGER_STYLE + constants.READONLY_STYLE)
         else:
-            self.widgetQtObj.setStyleSheet(constants.INTEGER_STYLE)
+            if self.required:
+                utils.setRequiredBackground(self.widgetQtObj, constants.INTEGER_STYLE)
+            else:
+                self.widgetQtObj.setStyleSheet(constants.INTEGER_STYLE)
 
     def setInvisible(self, val=False):
         super(Integer, self).setInvisible(val)

@@ -53,7 +53,10 @@ class Charachter(OdooFieldTemplate):
         if val:
             self.widgetQtObj.setStyleSheet(constants.CHAR_STYLE + constants.READONLY_STYLE)
         else:
-            self.widgetQtObj.setStyleSheet(constants.CHAR_STYLE)
+            if self.required:
+                utils.setRequiredBackground(self.widgetQtObj, constants.CHAR_STYLE)
+            else:
+                self.widgetQtObj.setStyleSheet(constants.CHAR_STYLE)
 
     def setInvisible(self, val=False):
         super(Charachter, self).setInvisible(val)
