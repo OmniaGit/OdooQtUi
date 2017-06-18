@@ -132,6 +132,12 @@ class TemplateView(QObject):
             outDict[fieldName] = fieldObject.value
         return outDict
 
+    def getAllRequiredFieldsValues(self):
+        outDict = {}
+        for fieldName, fieldObject in self.requiredFields.items():
+            outDict[fieldName] = fieldObject.value
+        return outDict
+
     @property
     def interfaceFieldsDict(self):
         return self.fields.__dict__
