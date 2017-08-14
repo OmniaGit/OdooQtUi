@@ -158,10 +158,10 @@ if __name__ == '__main__':
         connectorObj = MainConnector()
         #connectorObj.loginWithDial()
         connectorObj.loginWithDial()
-        connectorObj.loginWithUser(user, password, dbName, xmlrpcServerIP, xmlrpcPort, scheme, loginType)
+        #connectorObj.loginWithUser(user, password, dbName, xmlrpcServerIP, xmlrpcPort, scheme, loginType)
         #tmplViewObj = connectorObj.initSearchViewObj('product.product')
 
-        #tmplViewObj = connectorObj.initFormViewObj('product.product', viewName='plm.base.component')
+        tmplViewObj = connectorObj.initFormViewObj('product.product', viewName='plm.base.component')
         #viewCheckBoxes = {0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled}
         #tmplViewObj = connectorObj.initTreeListViewObject('product.product', viewCheckBoxes=viewCheckBoxes)
         #tmplViewObj.loadIds([249])
@@ -169,9 +169,9 @@ if __name__ == '__main__':
 
         #tmplViewObj = connectorObj.initFormViewObj('product.product')
 
-        viewCheckBoxes = {0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled}
-        tmplViewObj = connectorObj.initTreeListViewObject('product.product', viewCheckBoxes=viewCheckBoxes, viewFilter=True)
-        tmplViewObj.loadIdsForceEmpty([])
+        #viewCheckBoxes = {0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled}
+        #tmplViewObj = connectorObj.initTreeListViewObject('product.product', viewCheckBoxes=viewCheckBoxes, viewFilter=True)
+        #tmplViewObj.loadIdsForceEmpty([])
         #tmplViewObj.loadIds([])
 
         #tmplViewObj.sortResults('fieldName', 'filterMode')

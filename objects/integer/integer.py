@@ -46,6 +46,8 @@ class Integer(OdooFieldTemplate):
         self.widgetQtObj.setEnabled(not val)
         if val:
             self.widgetQtObj.setStyleSheet(constants.INTEGER_STYLE + constants.READONLY_STYLE)
+        elif self.required:
+            utils.setRequiredBackground(self.widgetQtObj, constants.INTEGER_STYLE)
         else:
             self.widgetQtObj.setStyleSheet(constants.INTEGER_STYLE)
 

@@ -3,6 +3,11 @@ Created on 17 Feb 2017
 
 @author: dsmerghetto
 '''
+# Form color
+BACKGROUND_WHITE = 'background-color:white;'
+COMMON_FIELDS_REQUIRED_BACKGROUND = 'background-color: rgb(210,210,255)'
+COMMON_FIELDS_BORDER = 'border: 2px solid #cfcfcf;'
+COMMON_FIELDS_BOTTOM_BORDER = COMMON_FIELDS_BORDER + 'border-left-style: none;border-right-style: none;border-top-style: none;'
 
 READONLY_STYLE = 'background-color:#ebebeb;'
 BUTTON_STYLE = 'border-radius: 0px;border: none;color: white;background-color: #21b799;border-color: #21b799;padding: 5px 10px;font-size: 12px;'
@@ -15,12 +20,12 @@ LABEL_STYLE_STATUSBAR = 'background-color: grey;color:white;max-width:100px;bord
 LABEL_STYLE_STATUSBAR_ACTIVE = LABEL_STYLE_STATUSBAR + 'background-color:blue;'
 LABEL_SEPARATOR = LABEL_STYLE + 'font-size:14px;font-weight: bold;'
 MANY_2_MANY_H_HEADER = 'font-weight: bold;vertical-align: middle;color:black;background-color:#dfdfdf;'
-CHAR_STYLE = 'border: 2px solid #cfcfcf;border-left-style: none;border-right-style: none;border-top-style: none;'
-TEXT_STYLE = 'border: 2px solid #cfcfcf;'
-FLOAT_STYLE = 'border: 2px solid #cfcfcf;border-left-style: none;border-right-style: none;border-top-style: none;'
-INTEGER_STYLE = 'border: 2px solid #cfcfcf;border-left-style: none;border-right-style: none;border-top-style: none;'
-SELECTION_STYLE = 'border: 2px solid #cfcfcf;border-left-style: none;border-right-style: none;border-top-style: none;'
-DATE_STYLE = 'border: 2px solid #cfcfcf;border-left-style: none;border-right-style: none;border-top-style: none;'
+CHAR_STYLE = COMMON_FIELDS_BOTTOM_BORDER
+FLOAT_STYLE = COMMON_FIELDS_BOTTOM_BORDER
+INTEGER_STYLE = COMMON_FIELDS_BOTTOM_BORDER
+SELECTION_STYLE = COMMON_FIELDS_BOTTOM_BORDER
+DATE_STYLE = COMMON_FIELDS_BOTTOM_BORDER
+TEXT_STYLE = BACKGROUND_WHITE
 NOOTEBOOK_STYLE = 'border-left-style: none;border-right-style: none;border-bottom-style: none;border-top-style: none;'
 NOOTEBOOK_TABBAR_STYLE = 'QTabBar::tab:!selected {border: 3px solid grey;border-left-style: none;border-right-style: none;border-top-style: none;min-width:180px;} QTabBar::tab:selected {border: 3px solid #893b74;border-left-style: none;border-right-style: none;border-top-style: none;color: #893b74;font-size: 12px;min-width:150px} QTabBar::tab:hover {border: 3px solid #893b74;border-left-style: none;border-right-style: none;border-top-style: none;color: #893b74;font-size: 12px;font-weight: bold;min-width:150px}'
 TABLE_LIST_LIST = """QScrollBar {background-color:#893b74} QTableWidget {border-left: 3px solid #893b74; border-right: 3px solid #893b74; border-bottom: 3px solid #893b74;}"""

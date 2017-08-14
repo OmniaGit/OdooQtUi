@@ -104,6 +104,8 @@ class Selection(OdooFieldTemplate):
             self.widgetQtObj.setDisabled(val)
             if val:
                 self.widgetQtObj.setStyleSheet(constants.SELECTION_STYLE + constants.READONLY_STYLE)
+            elif self.required:
+                utils.setRequiredBackground(self.widgetQtObj, constants.SELECTION_STYLE)
             else:
                 self.widgetQtObj.setStyleSheet(constants.SELECTION_STYLE)
 
