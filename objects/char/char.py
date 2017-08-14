@@ -28,6 +28,7 @@ class Charachter(OdooFieldTemplate):
         self.widgetQtObj.editingFinished.connect(self.valueChanged)
         self.widgetLyQtObject.addWidget(self.widgetQtObj)
         if self.translatable:
+            self.widgetLyQtObject.setSpacing(10)
             self.connectTranslationButton()
             self.widgetLyQtObject.addWidget(self.translateButton)
         if self.required:

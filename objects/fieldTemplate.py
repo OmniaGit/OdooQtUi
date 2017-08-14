@@ -53,6 +53,7 @@ class OdooFieldTemplate(QtCore.QObject, object):
         self.translateButton = QtGui.QPushButton('Translate')
         self.translateButton.setStyleSheet(constants.BUTTON_STYLE)
         self.translateButton.clicked.connect(self.translateDialog)
+        self.widgetLyQtObject.setSpacing(10)
 
     def valueTemplateChanged(self):
         self.value_changed_signal.emit(self.fieldName)
