@@ -654,7 +654,6 @@ def loadFromFile():
     serverPort = ''
     scheme = ''
     connType = ''
-    availableConnTypes = []
     dbList = []
     filePath = getLoginFile()
     fileDict = {}

@@ -38,7 +38,7 @@ class MainConnector(object):
     def loginWithDial(self):
         loginDialInst = LoginDialComplete()
         loginDialInst.interfaceDial.exec_()
-        if loginDialInst.logged:
+        if connectionObj.userLogged:
             self.activeLanguage = connectionObj.contextUser.get('lang', 'en_US')
             return True
         return False

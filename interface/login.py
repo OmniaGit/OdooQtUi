@@ -129,6 +129,16 @@ class LoginDialComplete(object):
     def __init__(self, connType='xmlrpc'):
         self.connType = connType
         self.dbName, self.username, self.userpass, self.serverIp, self.serverPort, self.scheme, self.connType, self.dbList = utils.loadFromFile()
+        utils.logMessage('info', '''
+Try login with stored settings:\n 
+database= %r\n
+user= %r\n
+pass= %r\n
+server= %r\n
+port= %r\n
+scheme= %r\n
+connection type=%r\n
+''' % (self.dbName, self.username, self.userpass, self.serverIp, self.serverPort, self.scheme, self.connType), '__init__')
         connectionObj.initConnection(self.connType,
                                      '',
                                      '',
@@ -139,19 +149,18 @@ class LoginDialComplete(object):
         self.availableConnTypes = connectionObj.availableConnTypes
         self.interfaceDial = LoginDial(self.connType, self.availableConnTypes)
         self.setEvents()
-        
+        utils.logMessage('info', 'Try login using stored data', '__init__')
+        self.loginWithUserDial()
         if connectionObj.userLogged:
-            self.logged = True
-        else:
-            self.logged = self.loginWithUserDial()
-        self.interfaceDial.label_status.setText('User Already Logged!')
-        if self.logged:
+            utils.logMessage('info', 'User logged reading from stored file', '__init__')
+            self.interfaceDial.label_status.setText('User Already Logged!')
             self.interfaceDial.stackedWidget.setCurrentIndex(1)
             self.interfaceDial.pushButton_back.setHidden(False)
             self.interfaceDial.pushButton_ok.setHidden(False)
             self.interfaceDial.pushButton_next.setHidden(True)
             self.interfaceDial.label_status.setHidden(False)
         else:
+            utils.logMessage('warning', 'User not logged reading from stored file', '__init__')
             self.interfaceDial.label_status.setHidden(True)
             self.interfaceDial.stackedWidget.setCurrentIndex(0)
             self.interfaceDial.pushButton_back.setHidden(True)
@@ -164,7 +173,7 @@ class LoginDialComplete(object):
         self.interfaceDial.pushButton_ok.clicked.connect(self.acceptDial)
 
     def initFields(self):
-        self.interfaceDial.initFields(self.logged,
+        self.interfaceDial.initFields(connectionObj.userLogged,
                                       self.userpass,
                                       self.serverPort,
                                       self.scheme,
@@ -182,8 +191,8 @@ class LoginDialComplete(object):
         self.scheme = self.interfaceDial.scheme
         self.connType = self.interfaceDial.connType
         self.writeToFile()
-        self.logged = self.loginWithUserDial()
-        if self.logged:
+        self.loginWithUserDial()
+        if connectionObj.userLogged:
             self.interfaceDial.acceptDial()
             self.interfaceDial.accept()
         else:
