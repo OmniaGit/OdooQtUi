@@ -107,7 +107,10 @@ class Selection(OdooFieldTemplate):
             elif self.required:
                 utils.setRequiredBackground(self.widgetQtObj, constants.SELECTION_STYLE)
             else:
-                self.widgetQtObj.setStyleSheet(constants.SELECTION_STYLE)
+                if self.required:
+                    utils.setRequiredBackground(self.widgetQtObj, constants.SELECTION_STYLE)
+                else:
+                    self.widgetQtObj.setStyleSheet(constants.SELECTION_STYLE)
 
     def setInvisible(self, val=False):
         super(Selection, self).setInvisible(val)

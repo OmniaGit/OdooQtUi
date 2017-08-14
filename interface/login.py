@@ -128,7 +128,7 @@ class LoginDialComplete(object):
     
     def __init__(self, connType='xmlrpc'):
         self.connType = connType
-        self.loadFromFile()
+        self.dbName, self.username, self.userpass, self.serverIp, self.serverPort, self.scheme, self.connType, self.dbList = utils.loadFromFile()
         connectionObj.initConnection(self.connType,
                                      '',
                                      '',
@@ -237,30 +237,4 @@ class LoginDialComplete(object):
         filePath = utils.getLoginFile()
         with open(filePath, 'w') as outFile:
             outFile.write(toWrite)
-
-    def loadFromFile(self):
-        self.dbName = ''
-        self.username = ''
-        self.userpass = ''
-        self.serverIp = ''
-        self.serverPort = ''
-        self.scheme = ''
-        self.connType = ''
-        self.availableConnTypes = []
-        self.dbList = []
-        filePath = utils.getLoginFile()
-        fileDict = {}
-        if os.path.exists(filePath):
-            with open(filePath, 'r') as readFile:
-                content = readFile.read()
-                fileDict = json.loads(content)
-            if fileDict:
-                self.dbName = fileDict.get('db_name', '')
-                self.username = fileDict.get('user_name', '')
-                self.userpass = fileDict.get('user_pass', '')
-                self.serverIp = fileDict.get('server_ip', '')
-                self.serverPort = fileDict.get('server_port', '')
-                self.scheme = fileDict.get('scheme', '')
-                self.connType = fileDict.get('conn_type', '')
-                self.dbList = fileDict.get('db_list', [])
 

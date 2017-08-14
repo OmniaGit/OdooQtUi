@@ -6,6 +6,7 @@ Created on 3 Feb 2017
 
 from utils_odoo_conn import utils
 import xmlrpclib
+import httplib
 
 
 class XmlRpcConnection(object):
@@ -27,7 +28,10 @@ class XmlRpcConnection(object):
 
     def loginNoUser(self):
         try:
-            self.socketNoLogin = xmlrpclib.ServerProxy(self.urlNoLogin)
+            t = TimeoutTransport()
+            t.set_timeout(4.0)
+            # server = xmlrpclib.Server('http://time.xmlrpc.com/RPC2', transport=t)
+            self.socketNoLogin = xmlrpclib.ServerProxy(self.urlNoLogin, transport=t)
         except Exception, ex:
             utils.logMessage('error', 'Error during login without user: %r' % (ex), 'loginNoUser')
             return False
@@ -147,10 +151,28 @@ class XmlRpcConnection(object):
 
     def on_change(self, odooObj, activeIds, allVals, fieldName, allOnchanges, context):
         try:
-            return self.callOdooFunction(odooObj, 'onchange', [activeIds, allVals, fieldName, allOnchanges, context])
+            return self.callOdooFunction(odooObj, 'onchange', [activeIds, allVals, fieldName, allOnchanges], {'context': context})
         except Exception, ex:
             utils.logMessage('error', 'Wrong on_change call with odooObj: %r, fieldName: %r, activeIds: %r, context: %r. Error: %r' % (odooObj, fieldName, activeIds, context, ex), 'on_change')
         return {}
+
+    def execute_kw(self, obj, method, *args, **kargs):
+        return self.callOdooFunction(obj, method, args, kargs)
+
+    def execute(self, obj, method, *args):
+        if method == 'execute_kw':
+            odooObj, functionName, parameters, kwargParameters = args
+            return self.callOdooFunction(odooObj, functionName, parameters, kwargParameters)
+        try:
+            return self.socketYesLogin.execute(self.databaseName, self.userId, self.userPassword,
+                                              odooObj,
+                                              functionName,
+                                              parameters,
+                                              kwargParameters)
+        except Exception, ex:
+            utils.logMessage('error', ex, 'execute')
+            utils.logMessage('error', 'Error during call Odoo Function execute with arguments: %r, %r, %r, %r' % (obj, method, args), 'execute')
+            return False
 
     @utils.timeit
     def callOdooFunction(self, odooObj, functionName, parameters=[], kwargParameters={}):
@@ -160,8 +182,22 @@ class XmlRpcConnection(object):
             @parameters: [val1, val2, ...]
             @kwargParameters: {'context': {}, limit: val, 'order': val,...}
         '''
-        return self.socketYesLogin.execute_kw(self.databaseName, self.userId, self.userPassword,
-                                              odooObj,
-                                              functionName,
-                                              parameters,
-                                              kwargParameters)
+        try:
+            return self.socketYesLogin.execute_kw(self.databaseName, self.userId, self.userPassword,
+                                                  odooObj,
+                                                  functionName,
+                                                  parameters,
+                                                  kwargParameters)
+        except Exception, ex:
+            utils.logMessage('error', ex, 'callOdooFunction')
+            utils.logMessage('error', 'Error during call Odoo Function with arguments: %r, %r, %r, %r' % (odooObj, functionName, parameters, kwargParameters), 'callOdooFunction')
+            return False
+
+class TimeoutTransport(xmlrpclib.Transport):
+    timeout = 10.0
+    def set_timeout(self, timeout):
+        self.timeout = timeout
+    def make_connection(self, host):
+        h = httplib.HTTPConnection(host, timeout=self.timeout)
+        return h
+

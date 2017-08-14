@@ -51,7 +51,10 @@ class Boolean(OdooFieldTemplate):
         if val:
             self.widgetQtObj.setStyleSheet(constants.READONLY_STYLE)
         else:
-            self.widgetQtObj.setStyleSheet('background-color:white;')
+            if self.required:
+                utils.setRequiredBackground(self.widgetQtObj, '')
+            else:
+                self.widgetQtObj.setStyleSheet('background-color:white;')
 
     def setInvisible(self, val=False):
         super(Boolean, self).setInvisible(val)

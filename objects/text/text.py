@@ -54,7 +54,14 @@ class Text(OdooFieldTemplate):
         elif self.required:
             utils.setRequiredBackground(self.widgetQtObj, constants.TEXT_STYLE)
         else:
+<<<<<<< HEAD
             self.widgetQtObj.setStyleSheet(constants.TEXT_STYLE)
+=======
+            if self.required:
+                utils.setRequiredBackground(self.widgetQtObj, constants.TEXT_STYLE)
+            else:
+                self.widgetQtObj.setStyleSheet('background-color:white;')
+>>>>>>> refs/remotes/origin/master
 
     def setInvisible(self, val=False):
         super(Text, self).setInvisible(val)

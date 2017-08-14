@@ -49,7 +49,10 @@ class Float(OdooFieldTemplate):
         elif self.required:
             utils.setRequiredBackground(self.widgetQtObj, constants.FLOAT_STYLE)
         else:
-            self.widgetQtObj.setStyleSheet(constants.FLOAT_STYLE)
+            if self.required:
+                utils.setRequiredBackground(self.widgetQtObj, constants.FLOAT_STYLE)
+            else:
+                self.widgetQtObj.setStyleSheet(constants.FLOAT_STYLE)
 
     def setInvisible(self, val=False):
         super(Float, self).setInvisible(val)

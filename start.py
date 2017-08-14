@@ -158,7 +158,11 @@ if __name__ == '__main__':
         connectorObj = MainConnector()
         #connectorObj.loginWithDial()
         connectorObj.loginWithDial()
+<<<<<<< HEAD
         #connectorObj.loginWithUser(user, password, dbName, xmlrpcServerIP, xmlrpcPort, scheme, loginType)
+=======
+        #res = connectorObj.loginWithUser(user, password, dbName, xmlrpcServerIP, xmlrpcPort, scheme, loginType)
+>>>>>>> refs/remotes/origin/master
         #tmplViewObj = connectorObj.initSearchViewObj('product.product')
 
         tmplViewObj = connectorObj.initFormViewObj('product.product', viewName='plm.base.component')
@@ -169,9 +173,15 @@ if __name__ == '__main__':
 
         #tmplViewObj = connectorObj.initFormViewObj('product.product')
 
+<<<<<<< HEAD
         #viewCheckBoxes = {0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled}
         #tmplViewObj = connectorObj.initTreeListViewObject('product.product', viewCheckBoxes=viewCheckBoxes, viewFilter=True)
         #tmplViewObj.loadIdsForceEmpty([])
+=======
+#         viewCheckBoxes = {0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled}
+#         tmplViewObj = connectorObj.initTreeListViewObject('product.product', viewCheckBoxes=viewCheckBoxes, viewFilter=True)
+#         tmplViewObj.loadIdsForceEmpty([])
+>>>>>>> refs/remotes/origin/master
         #tmplViewObj.loadIds([])
 
         #tmplViewObj.sortResults('fieldName', 'filterMode')

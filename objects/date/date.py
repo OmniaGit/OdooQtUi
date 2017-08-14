@@ -49,7 +49,10 @@ class Date(OdooFieldTemplate):
         elif self.required:
             utils.setRequiredBackground(self.widgetQtObj, constants.DATE_STYLE)
         else:
-            self.widgetQtObj.setStyleSheet(constants.DATE_STYLE)
+            if self.required:
+                utils.setRequiredBackground(self.widgetQtObj, constants.DATE_STYLE)
+            else:
+                self.widgetQtObj.setStyleSheet(constants.DATE_STYLE)
 
     def setInvisible(self, val=False):
         super(Date, self).setInvisible(val)
