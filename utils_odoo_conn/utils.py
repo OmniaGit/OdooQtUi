@@ -13,6 +13,7 @@ import traceback
 from os.path import expanduser
 import stat
 import time
+from utils_odoo_conn import constants
 
 
 try:
@@ -521,7 +522,7 @@ def evaluateModifiers(modifiers):
     return invisibleConditions, readonlyConditions
 
 def setRequiredBackground(widgetQtObj, baseBackground):
-    widgetQtObj.setStyleSheet(baseBackground + 'background-color: #d2d2ff;')
+    widgetQtObj.setStyleSheet(baseBackground + constants.COMMON_FIELDS_REQUIRED_BACKGROUND)
 
 def evaluateAttrs(fieldsDict, toCompute):
     def evalSingleCondition(cond):
@@ -653,7 +654,6 @@ def loadFromFile():
     serverPort = ''
     scheme = ''
     connType = ''
-    availableConnTypes = []
     dbList = []
     filePath = getLoginFile()
     fileDict = {}

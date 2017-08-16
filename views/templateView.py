@@ -39,11 +39,12 @@ class TemplateView(QObject):
         if not view_id and viewName:
             view_id = self.searchForView(odooObjectName, viewName)
         self.fieldsViewDefinition = self.rpcObject.fieldsViewGet(odooObjectName, view_id, self.viewType)
-        self.arch = self.fieldsViewDefinition.get('arch', '')
-        self.model = self.fieldsViewDefinition.get('model', '')
-        self.viewName = self.fieldsViewDefinition.get('name', '')
-        self.viewId = self.fieldsViewDefinition.get('view_id', '')
-        self.fieldsNameTypeRel = self.fieldsViewDefinition.get('fields', '')
+        if self.fieldsViewDefinition:
+            self.arch = self.fieldsViewDefinition.get('arch', '')
+            self.model = self.fieldsViewDefinition.get('model', '')
+            self.viewName = self.fieldsViewDefinition.get('name', '')
+            self.viewId = self.fieldsViewDefinition.get('view_id', '')
+            self.fieldsNameTypeRel = self.fieldsViewDefinition.get('fields', '')
 
     def addToObject(self):
         fieldIdentifier = 'field_'

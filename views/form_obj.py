@@ -31,13 +31,14 @@ class TemplateFormView(TemplateView):
 
     def initViewObj(self, odooObjectName, viewName, view_id):
         super(TemplateFormView, self).initViewObj(odooObjectName, viewName, view_id)
-        self.startingFieldValues = self.fieldsViewDefinition.get('fields', {})
-        self.formObj = FormView(self.arch, self.fieldsNameTypeRel, self.rpcObject, self.useHeader, self.useChatter)
-        self.formObj.nootebook_changed_signal.connect(self.updateDataStructure)
-        self.layout = self.formObj.computeArch()
-        self.mappingInterface = self.formObj.globalMapping
-        self.addToObject()
-        self._setFieldModifiers()
+        if self.fieldsViewDefinition:
+            self.startingFieldValues = self.fieldsViewDefinition.get('fields', {})
+            self.formObj = FormView(self.arch, self.fieldsNameTypeRel, self.rpcObject, self.useHeader, self.useChatter)
+            self.formObj.nootebook_changed_signal.connect(self.updateDataStructure)
+            self.layout = self.formObj.computeArch()
+            self.mappingInterface = self.formObj.globalMapping
+            self.addToObject()
+            self._setFieldModifiers()
 
     def updateDataStructure(self, pageIndex=0):
         print 'compute Nootebook fields: %r' % (pageIndex)

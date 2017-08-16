@@ -28,6 +28,7 @@ class Charachter(OdooFieldTemplate):
         self.widgetQtObj.editingFinished.connect(self.valueChanged)
         self.widgetLyQtObject.addWidget(self.widgetQtObj)
         if self.translatable:
+            self.widgetLyQtObject.setSpacing(10)
             self.connectTranslationButton()
             self.widgetLyQtObject.addWidget(self.translateButton)
         if self.required:
@@ -52,6 +53,8 @@ class Charachter(OdooFieldTemplate):
         self.widgetQtObj.setEnabled(not val)
         if val:
             self.widgetQtObj.setStyleSheet(constants.CHAR_STYLE + constants.READONLY_STYLE)
+        elif self.required:
+            utils.setRequiredBackground(self.widgetQtObj, constants.CHAR_STYLE)
         else:
             if self.required:
                 utils.setRequiredBackground(self.widgetQtObj, constants.CHAR_STYLE)
