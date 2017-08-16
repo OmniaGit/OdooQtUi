@@ -92,7 +92,9 @@ class Many2one(OdooFieldTemplate):
         elif isinstance(val, int):
             res = self.rpc.read(self.relation, ['name'], [val])
             if res:
-                newTextVal = res[0].get('name', '')
+                relDict = res[0]
+                newTextVal = relDict.get('name', '')
+                self.itemToIdRel[newTextVal] = relDict.get('id', False)
         elif isinstance(val, (unicode, str)):
             newTextVal = val
         if newTextVal in self.availableItems:
