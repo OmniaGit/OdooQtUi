@@ -312,10 +312,19 @@ def getOS():
 def launchMessage(message='', msgType='message'):
     logMessage('info', message, 'launchMessage')
     messBox = QtGui.QMessageBox()
+    messBox.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
     messBox.setText(unicode(message))
     if msgType == 'message':
+        messBox.setIcon(QtGui.QMessageBox.Information)
+        messBox.setStandardButtons(QtGui.QMessageBox.Ok)
+    if msgType == 'warning':
+        messBox.setIcon(QtGui.QMessageBox.Warning)
+        messBox.setStandardButtons(QtGui.QMessageBox.Ok)
+    if msgType == 'error':
+        messBox.setIcon(QtGui.QMessageBox.Critical)
         messBox.setStandardButtons(QtGui.QMessageBox.Ok)
     elif msgType == 'question':
+        messBox.setIcon(QtGui.QMessageBox.Question)
         messBox.setStandardButtons(QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel)
     if (messBox.exec_() == QtGui.QMessageBox.Ok):
         messBox.accept()
