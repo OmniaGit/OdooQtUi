@@ -63,6 +63,8 @@ class TemplateFormView(TemplateView):
 
     @utils.timeit
     def loadIds(self, objIds=[], forceFieldValues={}, readonlyFields={}, invisibleFields={}, fieldsToRead=[], skipRemoveNootebook=False):
+        if isinstance(objIds, int):
+            objIds = [objIds]
         self.activeIds = objIds
         if not fieldsToRead:
             fieldsToRead = self.interfaceFieldsDict.keys()
