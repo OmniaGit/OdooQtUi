@@ -143,6 +143,8 @@ class XmlRpcConnection(object):
 
     def fieldsViewGet(self, odooObj, view_id=False, view_type='form', context={}):
         try:
+            if not view_id:
+                view_id = False
             kwargParameters = {'context': context}
             return self.callOdooFunction(odooObj, 'fields_view_get', [view_id, view_type], kwargParameters)
         except Exception, ex:
@@ -189,6 +191,7 @@ class XmlRpcConnection(object):
                                                   parameters,
                                                   kwargParameters)
         except Exception, ex:
+            utils.launchMessage(ex, 'error')
             utils.logMessage('error', ex, 'callOdooFunction')
             utils.logMessage('error', 'Error during call Odoo Function with arguments: %r, %r, %r, %r' % (odooObj, functionName, parameters, kwargParameters), 'callOdooFunction')
             return False
