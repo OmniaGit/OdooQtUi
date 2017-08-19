@@ -71,12 +71,13 @@ class Many2one(OdooFieldTemplate):
 
     def comboActivated(self, val=False):
         if not self.skipSearch:
-            print 'combo activated, %r, val %r' % (self.availableItems, val)
+            print 'combo activated, %r, val %r, self.skipSearch:%r' % (self.availableItems, val, self.skipSearch)
             self.skipSearch = True
             newItems = self.getItems(True)
             self.widgetQtObj2.clear()
             self.widgetQtObj2.addItems(newItems)
             self.availableItems = newItems
+            
 
     def setValue(self, val=False):
         self.currentValue = val
@@ -104,7 +105,9 @@ class Many2one(OdooFieldTemplate):
             self.widgetQtObj2.clear()
             self.widgetQtObj2.addItems(self.availableItems)
             indexToSet = self.availableItems.index(newTextVal)
+        self.skipSearch = True
         self.widgetQtObj2.setCurrentIndex(indexToSet)
+        self.skipSearch = False
 
     def setReadonly(self, val=False):
         super(Many2one, self).setReadonly(val)
@@ -250,9 +253,14 @@ class Many2one(OdooFieldTemplate):
 
     @property
     def value(self):
-        if self.currentValue:
-            return self.currentValue[0]
-        return self.currentValue
+        try:
+            if isinstance(self.currentValue, int):
+                return self.currentValue
+            if self.currentValue:
+                return self.currentValue[0]
+            return self.currentValue
+        except Exception, ex:
+            utils.logMessage('error', 'Error during getting value from many2one field %r: %r' % (self.fieldName, ex), 'value')
 
     @property
     def valueInterface(self):
