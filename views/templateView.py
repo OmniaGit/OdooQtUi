@@ -58,6 +58,12 @@ class TemplateView(QObject):
                 self.buttons.__dict__[newKey] = obj
         return True
 
+    def cleanFields(self, fieldsToClean=[]):
+        if not fieldsToClean:
+            for fieldObj in self.interfaceFieldsDict.values():
+                if fieldObj:
+                    fieldObj.eraseValue()
+        
     def setFieldValues(self, fieldsDict):
         for fieldName, fieldVal in fieldsDict.items():
             self.setValueField(fieldName, fieldVal)

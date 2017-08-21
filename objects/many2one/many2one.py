@@ -77,7 +77,6 @@ class Many2one(OdooFieldTemplate):
             self.widgetQtObj2.clear()
             self.widgetQtObj2.addItems(newItems)
             self.availableItems = newItems
-            
 
     def setValue(self, val=False):
         self.currentValue = val
@@ -91,11 +90,19 @@ class Many2one(OdooFieldTemplate):
             newTextVal = ''
             return
         elif isinstance(val, int):
-            res = self.rpc.read(self.relation, ['name'], [val])
-            if res:
-                relDict = res[0]
-                newTextVal = relDict.get('name', '')
-                self.itemToIdRel[newTextVal] = relDict.get('id', False)
+            found = False
+            for text, objId in self.itemToIdRel.items():
+                if objId == val:
+                    found = True
+                    newTextVal = text
+                    self.currentValue = [objId, text]
+            if not found:
+                res = self.rpc.read(self.relation, ['name'], [val])
+                if res:
+                    relDict = res[0]
+                    newTextVal = relDict.get('name', '')
+                    self.itemToIdRel[newTextVal] = relDict.get('id', False)
+                    self.currentValue = [relDict.get('id', False), newTextVal]
         elif isinstance(val, (unicode, str)):
             newTextVal = val
         if newTextVal in self.availableItems:
@@ -163,6 +170,7 @@ class Many2one(OdooFieldTemplate):
         cancelButt.clicked.connect(reject)
         okButt.setStyleSheet(constants.BUTTON_STYLE_OK)
         cancelButt.setStyleSheet(constants.BUTTON_STYLE_CANCEL)
+        lay.setParent(None)
         mainLay.addLayout(lay)
         dialog.setLayout(mainLay)
         dialog.setStyleSheet('background-color:#893b74;')
@@ -210,6 +218,7 @@ class Many2one(OdooFieldTemplate):
             cancelButt.clicked.connect(reject)
             okButt.setStyleSheet(constants.BUTTON_STYLE_OK)
             cancelButt.setStyleSheet(constants.BUTTON_STYLE_CANCEL)
+            lay.setParent(None)
             mainLay.addLayout(lay)
             dialog.setLayout(mainLay)
             dialog.setStyleSheet('background-color:#893b74;')
@@ -267,3 +276,6 @@ class Many2one(OdooFieldTemplate):
         if self.currentValue:
             return self.currentValue[1]
         return ''
+
+    def eraseValue(self):
+        self.setValue(False)

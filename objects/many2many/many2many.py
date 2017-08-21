@@ -301,3 +301,6 @@ class Many2many(OdooFieldTemplate):
     @property
     def valueInterface(self):
         return self.currentValue
+
+    def eraseValue(self):
+        self.setValue([])

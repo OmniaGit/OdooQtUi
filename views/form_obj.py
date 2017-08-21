@@ -11,6 +11,7 @@ from PyQt4 import QtGui
 from PyQt4 import QtCore
 from templateView import TemplateView
 import copy
+from views.parser.search_view import FieldObj
 
 
 class TemplateFormView(TemplateView):
@@ -63,6 +64,8 @@ class TemplateFormView(TemplateView):
 
     @utils.timeit
     def loadIds(self, objIds=[], forceFieldValues={}, readonlyFields={}, invisibleFields={}, fieldsToRead=[], skipRemoveNootebook=False):
+        if objIds is None or not objIds:
+            objIds = []
         if isinstance(objIds, int):
             objIds = [objIds]
         self.activeIds = objIds
@@ -89,6 +92,8 @@ class TemplateFormView(TemplateView):
                 for fieldName, fieldVal in self.formVals.items():
                     self.setValueField(fieldName, fieldVal)
                 self.skipOnChange = False
+        else:
+            self.setDefaults()
         for fieldName, fieldVal in forceFieldValues.items():
             self.setValueField(fieldName, fieldVal)
         self._setFieldModifiers()
@@ -115,6 +120,17 @@ class TemplateFormView(TemplateView):
             if fieldObj.required:
                 self.requiredFields[fieldObj.fieldName] = fieldObj
 
+    def checkRequiredFieldsEvaluated(self, showMessage=False):
+        fieldsToEvaluate = []
+        message = 'These required fields needs to be evaluated:'
+        for fieldObject in self.requiredFields.values():
+            if not fieldObject.value and not isinstance(fieldObject.value, (int, float)):
+                fieldsToEvaluate.append(fieldObject.fieldStringInterface)
+                message = message + '\n %r' % (fieldObject.fieldStringInterface)
+        if showMessage and fieldsToEvaluate:
+            utils.launchMessage(message, 'warning')
+        return fieldsToEvaluate
+      
     def setInvisibleField(self, fieldName, val=False):
         fieldObj = self.interfaceFieldsDict.get(fieldName, None)
         if not fieldObj:

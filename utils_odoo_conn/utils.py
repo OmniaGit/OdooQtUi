@@ -313,6 +313,7 @@ def launchMessage(message='', msgType='message'):
     logMessage('info', message, 'launchMessage')
     messBox = QtGui.QMessageBox()
     messBox.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+    messBox.setWindowTitle('Odoo Plm Connector')
     messBox.setText(unicode(message))
     if msgType == 'message':
         messBox.setIcon(QtGui.QMessageBox.Information)

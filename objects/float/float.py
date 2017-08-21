@@ -66,3 +66,6 @@ class Float(OdooFieldTemplate):
     @property
     def valueInterface(self):
         return self.currentValue
+
+    def eraseValue(self):
+        self.setValue(0.0)
