@@ -194,7 +194,7 @@ class XmlRpcConnection(object):
             utils.launchMessage(ex, 'error')
             utils.logMessage('error', ex, 'callOdooFunction')
             utils.logMessage('error', 'Error during call Odoo Function with arguments: %r, %r, %r, %r' % (odooObj, functionName, parameters, kwargParameters), 'callOdooFunction')
-            return False
+        return False
 
 class TimeoutTransport(xmlrpclib.Transport):
     timeout = 10.0
