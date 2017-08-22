@@ -172,7 +172,7 @@ if __name__ == '__main__':
 #         viewCheckBoxes = {0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled}
 #         tmplViewObj = connectorObj.initTreeListViewObject('product.product', viewCheckBoxes=viewCheckBoxes, viewFilter=True)
 #         tmplViewObj.loadIdsForceEmpty([])
-        #tmplViewObj.loadIds([])
+        tmplViewObj.loadIds([])
 
         #tmplViewObj.sortResults('fieldName', 'filterMode')
 

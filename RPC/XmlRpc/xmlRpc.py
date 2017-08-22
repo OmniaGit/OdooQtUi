@@ -153,6 +153,7 @@ class XmlRpcConnection(object):
 
     def on_change(self, odooObj, activeIds, allVals, fieldName, allOnchanges, context):
         try:
+            utils.logMessage('debug', 'Onchange field %r' % (fieldName), 'on_change')
             return self.callOdooFunction(odooObj, 'onchange', [activeIds, allVals, fieldName, allOnchanges], {'context': context})
         except Exception, ex:
             utils.logMessage('error', 'Wrong on_change call with odooObj: %r, fieldName: %r, activeIds: %r, context: %r. Error: %r' % (odooObj, fieldName, activeIds, context, ex), 'on_change')

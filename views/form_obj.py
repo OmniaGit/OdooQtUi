@@ -50,8 +50,10 @@ class TemplateFormView(TemplateView):
 
     def setDefaults(self):
         self.fieldDefaultVals = self.rpcObject.defaultGet(self.model, self.interfaceFieldsDict.keys())
+        self.skipOnChange = True
         for fieldName, fieldVal in self.fieldDefaultVals.items():
             self.setValueField(fieldName, fieldVal)
+        self.skipOnChange = False
 
     def removeNootebookFields(self, fieldsToRead):
         mainDict = {}
