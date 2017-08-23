@@ -23,6 +23,10 @@ class MainConnector(object):
     def __init__(self):
         self.activeLanguage = 'en_US'
         self.userGroups = []    # Not Used
+        self.loadedViews = {'form': [],
+                            'tree_tree': [],
+                            'tree_list': [],
+                            'search': []}
         return object.__init__(self)
 
     def loginNoUser(self, xmlrpcServerIP='127.0.0.1', xmlrpcPort=8069, scheme='http', loginType='xmlrpc'):
@@ -63,26 +67,42 @@ class MainConnector(object):
         
     def initTreeListViewObject(self, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', viewCheckBoxes={}, viewFilter=False):
         localLang, rpcObj = self._getCommonLangAndRpc(activeLanguage, rpcObj)
+        oldView = self.checkAlreadyLoadedView('tree_list', rpcObj, odooObjectName, viewName, view_id)
+        if oldView:
+            return oldView
         templateViewObj = TemplateTreeListView(rpcObj, localLang, viewFilter)
         templateViewObj.initViewObj(odooObjectName, viewName, view_id, viewCheckBoxes)
+        self.appendLoadedView('tree_list', rpcObj, odooObjectName, viewName, view_id, templateViewObj)
         return templateViewObj
 
     def initTreeTreeViewObj(self, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage=''):
         localLang, rpcObj = self._getCommonLangAndRpc(activeLanguage, rpcObj)
+        oldView = self.checkAlreadyLoadedView('tree_tree', rpcObj, odooObjectName, viewName, view_id)
+        if oldView:
+            return oldView
         templateViewObj = TemplateTreeTreeView(rpcObj, localLang)
         templateViewObj.initViewObj(odooObjectName, viewName, view_id)
+        self.appendLoadedView('tree_tree', rpcObj, odooObjectName, viewName, view_id, templateViewObj)
         return templateViewObj
 
     def initFormViewObj(self, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', useHeader=False, useChatter=False):
         localLang, rpcObj = self._getCommonLangAndRpc(activeLanguage, rpcObj)
+        oldView = self.checkAlreadyLoadedView('form', rpcObj, odooObjectName, viewName, view_id)
+        if oldView:
+            return oldView
         templateViewObj = TemplateFormView(rpcObj, localLang, useHeader, useChatter)
         templateViewObj.initViewObj(odooObjectName, viewName, view_id)
+        self.appendLoadedView('form', rpcObj, odooObjectName, viewName, view_id, templateViewObj)
         return templateViewObj
 
     def initSearchViewObj(self, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage=''):
         localLang, rpcObj = self._getCommonLangAndRpc(activeLanguage, rpcObj)
+        oldView = self.checkAlreadyLoadedView('search', rpcObj, odooObjectName, viewName, view_id)
+        if oldView:
+            return oldView
         templateViewObj = TemplateSearchView(rpcObj, localLang)
         templateViewObj.initViewObj(odooObjectName, viewName, view_id)
+        self.appendLoadedView('search', rpcObj, odooObjectName, viewName, view_id, templateViewObj)
         return templateViewObj
 
     def initViewObj(self, viewType, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', useHeader=False, useChatter=False, viewCheckBoxes={}):
@@ -99,6 +119,9 @@ class MainConnector(object):
             localLang = activeLanguage
         if not rpcObj:
             rpcObj = connectionObj
+        oldView = self.checkAlreadyLoadedView(viewType, rpcObj, odooObjectName, viewName, view_id)
+        if oldView:
+            return oldView
         if viewType == 'form':
             templateViewObj = TemplateFormView(rpcObj, localLang, useHeader, useChatter)
             templateViewObj.initViewObj(odooObjectName, viewName, view_id)
@@ -113,7 +136,32 @@ class MainConnector(object):
             templateViewObj.initViewObj(odooObjectName, viewName, view_id)
         else:
             utils.logMessage('warning', 'View Type not supported: %r' % (viewType), 'initViewObj')
+        self.appendLoadedView(viewType, rpcObj, odooObjectName, viewName, view_id, templateViewObj)
         return templateViewObj
+
+    def appendLoadedView(self, viewType, rpcObj, odooObjectName, viewName, view_id, templateViewObj):
+        self.loadedViews[viewType].append({
+            'login': rpcObj.getLoginInfos(),
+            'view_type': viewType,
+            'object_name': odooObjectName,
+            'view_name': viewName,
+            'view_id': view_id,
+            'TMP_VIEW_OBJ': templateViewObj,
+            })
+
+    def checkAlreadyLoadedView(self, viewType, rpcObj, odooObjectName, viewName, view_id):
+        viewList = self.loadedViews.get(viewType, [])
+        for viewDict in viewList:
+            oldLogin = viewDict.get('login')
+            if oldLogin == rpcObj.getLoginInfos():
+                oldViewType = viewDict.get('view_type')
+                oldObjectName = viewDict.get('object_name')
+                oldViewName = viewDict.get('view_name')
+                oldViewId = viewDict.get('view_id')
+                if oldViewType == viewType and oldObjectName == odooObjectName and oldViewName == viewName and oldViewId == view_id:
+                    return viewDict['TMP_VIEW_OBJ']
+        return False
+        
 
 if __name__ == '__main__':
     import time

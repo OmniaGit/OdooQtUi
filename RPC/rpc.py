@@ -29,6 +29,14 @@ class RpcConnection(object):
         if connectionType == 'xmlrpc':
             self.sockInstance = XmlRpcConnection(userName, userPassword, databaseName, xmlrpcPort, scheme, xmlrpcServerIP)
 
+    def getLoginInfos(self):
+        return [self.userName,
+                self.userPassword,
+                self.databaseName,
+                self.xmlrpcPort,
+                self.scheme,
+                self.xmlrpcServerIP,
+                self.connectionType]
     @property
     def url(self):
         return self.sockInstance.urlYesLogin
@@ -73,6 +81,8 @@ class RpcConnection(object):
         return self.sockInstance.search(obj, filterList, limit, offset, context=localContext)
 
     def read(self, obj, fields, ids, context={}, limit=False):
+        if not ids:
+            return {}
         localContext = self.contextUser
         localContext.update(context)
         if isinstance(ids, int):

@@ -38,6 +38,18 @@ class One2many(OdooFieldTemplate):
         buttonsLay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum))
         self.mainLay.addLayout(buttonsLay)
 
+    def setForegroundWindow(self):
+        """
+            For initialization problem i need to change the z order of the parent window
+        """
+        try:
+            flags = win32con.SWP_NOMOVE | win32con.SWP_NOSIZE
+            if self.parentHWnd:
+                win32gui.SetWindowPos(self.parentHWnd, -2, 0, 0, 0, 0, flags)
+            win32gui.SetWindowPos(int(self.obj.winId()), -1, 0, 0, 0, 0, flags)
+        except Exception, ex:
+            logging.error(ex)
+
     def createAndAdd(self):
         try:
             def acceptDial():
@@ -62,6 +74,7 @@ class One2many(OdooFieldTemplate):
             cancelButt.clicked.connect(rejectDial)
             okButt.setStyleSheet(constants.BUTTON_STYLE_OK)
             cancelButt.setStyleSheet(constants.BUTTON_STYLE_CANCEL)
+            dialog.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
             if dialog.exec_() == QtGui.QDialog.Accepted:
                 fieldVals = viewObjForm.getAllFieldsValues()
                 objId = self.rpc.create(self.relation, fieldVals)

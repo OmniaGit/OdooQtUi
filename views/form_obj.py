@@ -48,8 +48,10 @@ class TemplateFormView(TemplateView):
             fieldNamesToUpdate = dictFieldsToUpdate.keys()
             self.loadIds(self.activeIds, {}, {}, {}, fieldNamesToUpdate, True)
 
-    def setDefaults(self):
-        self.fieldDefaultVals = self.rpcObject.defaultGet(self.model, self.interfaceFieldsDict.keys())
+    def setDefaults(self, fieldsToRead=[]):
+        if not fieldsToRead:
+            fieldsToRead = self.interfaceFieldsDict.keys()
+        self.fieldDefaultVals = self.rpcObject.defaultGet(self.model, fieldsToRead)
         self.skipOnChange = True
         for fieldName, fieldVal in self.fieldDefaultVals.items():
             self.setValueField(fieldName, fieldVal)
@@ -95,7 +97,7 @@ class TemplateFormView(TemplateView):
                     self.setValueField(fieldName, fieldVal)
                 self.skipOnChange = False
         else:
-            self.setDefaults()
+            self.setDefaults(fieldsToRead)
         for fieldName, fieldVal in forceFieldValues.items():
             self.setValueField(fieldName, fieldVal)
         self._setFieldModifiers()

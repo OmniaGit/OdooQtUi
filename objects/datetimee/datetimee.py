@@ -63,8 +63,8 @@ class Datetime(OdooFieldTemplate):
 
     @property
     def valueInterface(self):
-        if not self.currentValue:
-            self.currentValue = self.widgetQtObj.dateTime().toString('yyyy-MM-dd hh:mm:ss')
+        if self.currentValue:
+            self.currentValue = unicode(self.widgetQtObj.dateTime().toString('yyyy-MM-dd hh:mm:ss'))
         return self.currentValue
 
     def eraseValue(self):

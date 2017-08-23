@@ -61,6 +61,8 @@ class Date(OdooFieldTemplate):
 
     @property
     def value(self):
+        if self.currentValue:
+            self.currentValue = unicode(self.widgetQtObj.date().toString('yyyy-MM-dd'))
         return self.currentValue
 
     @property

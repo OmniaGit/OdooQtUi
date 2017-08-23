@@ -79,7 +79,12 @@ class TemplateTreeListView(TemplateView):
     @utils.timeit
     def loadIds(self, objIds=[], forceFieldValues={}, readonlyFields={}, invisibleFields={}):
         if not objIds:
-            objIds = connectionObj.search(self.model, [], self.passRange) # to check with many records if 40 stop will work, 40)
+            return
+        return self.loadIdsForceEmpty(objIds, forceFieldValues, readonlyFields, invisibleFields)
+
+    @utils.timeit
+    def loadAllIds(self, forceFieldValues={}, readonlyFields={}, invisibleFields={}):
+        objIds = connectionObj.search(self.model, [], self.passRange) # to check with many records if 40 stop will work, 40)
         return self.loadIdsForceEmpty(objIds, forceFieldValues, readonlyFields, invisibleFields)
 
     @utils.timeit
@@ -116,7 +121,7 @@ class TemplateTreeListView(TemplateView):
                         val = ''
                     else:
                         val = val[1]
-                localList.append(unicode(fieldObj.currentValue))
+                localList.append(unicode(fieldObj.valueInterface))
             valuesList.append(localList)
             recordId = record.get('id', False)
             self.idValsRel[recordId] = record
