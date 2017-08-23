@@ -97,8 +97,8 @@ class Many2many(OdooFieldTemplate):
 
     def setValue(self, relIds):
         self.currentValue = relIds
-        from start import MainConnector
-        conn = MainConnector()
+        from start import odooConnector
+        conn = odooConnector
         self.treeViewObj = conn.initViewObj('tree_list', self.relation, rpcObj=self.rpc, viewCheckBoxes={0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled})
         self.treeViewObj.loadIds(relIds, {}, {}, {})
         self.widgetQtObj = self.treeViewObj.treeObj.tableWidget

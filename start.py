@@ -144,7 +144,7 @@ class MainConnector(object):
             'login': rpcObj.getLoginInfos(),
             'view_type': viewType,
             'object_name': odooObjectName,
-            'view_name': viewName,
+            'view_name': viewName or '',
             'view_id': view_id,
             'TMP_VIEW_OBJ': templateViewObj,
             })
@@ -161,7 +161,8 @@ class MainConnector(object):
                 if oldViewType == viewType and oldObjectName == odooObjectName and oldViewName == viewName and oldViewId == view_id:
                     return viewDict['TMP_VIEW_OBJ']
         return False
-        
+
+odooConnector = MainConnector()
 
 if __name__ == '__main__':
     import time
