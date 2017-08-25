@@ -18,6 +18,7 @@ from objects.integer.integer import Integer
 from objects.many2many.many2many import Many2many
 from objects.many2one.many2one import Many2one
 from objects.one2many.one2many import One2many
+from objects.binary.binary import Binary
 from objects.text.text import Text
 from utils_odoo_conn import constants
 import json
@@ -138,6 +139,13 @@ class FormView(QtCore.QObject, object):
             elif childTag == 'h1':
                 layout = self.computeGroup(childElement, nootebookIndex)
                 mainVLay.addLayout(layout)
+            elif childTag == 'label':
+                childAttrs = childElement.attrib
+                fieldRelated = childAttrs.get('for', '')
+                labelObj = QtGui.QLabel()
+                labelObj.setStyleSheet(constants.LABEL_STYLE)
+                self.aloneLabels[fieldRelated] = labelObj
+                mainVLay.addWidget(labelObj)
             else:
                 logging.warning('Tag %r not supported and not evaluated' % (childElement))
         mainVLay.setSpacing(3)
@@ -276,6 +284,10 @@ class FormView(QtCore.QObject, object):
             fieldObj = Boolean(xmlObj, self.fieldsNameTypeRel, self.rpc)
         elif fieldType == 'one2many':
             fieldObj = One2many(xmlObj, self.fieldsNameTypeRel, self.rpc)
+        elif fieldType == 'binary':
+            fieldObj = Binary(xmlObj, self.fieldsNameTypeRel, self.rpc)
+        else:
+            utils.logMessage('warning', 'Field %r not supported' % (fieldType), 'computeField')
         return fieldObj
 
     def computeHeader(self, archHeader, useHeader=False):
