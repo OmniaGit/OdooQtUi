@@ -50,6 +50,9 @@ class Binary(OdooFieldTemplate):
             self.buttonClear = QtGui.QPushButton('Clear')
             self.buttonClear.setStyleSheet(constants.BUTTON_STYLE_MANY_2_ONE)
             self.buttonClear.clicked.connect(self.clearField)
+            self.buttonClear = QtGui.QPushButton('Download')
+            self.buttonClear.setStyleSheet(constants.BUTTON_STYLE_MANY_2_ONE)
+            self.buttonClear.clicked.connect(self.downloadFile)
             if self.required:
                 utils.setRequiredBackground(self.widgetQtObj, '')
             self.widgetLyQtObject.addWidget(self.widgetQtObj)
@@ -60,6 +63,9 @@ class Binary(OdooFieldTemplate):
                 self.connectTranslationButton()
                 self.widgetLyQtObject.addWidget(self.translateButton)
         self.widgetLyQtObject.addWidget(self.widgetQtObj)
+
+    def downloadFile(self):
+        pass
 
     def editField(self):
         filePath = utils.getFileFromSystem('Open', '')
