@@ -13,6 +13,7 @@ import traceback
 from os.path import expanduser
 import stat
 import time
+import base64
 from utils_odoo_conn import constants
 
 
@@ -291,6 +292,19 @@ def getFileFromSystem(desc='Open', startPath='/home/'):
         return unicode(fileName)
     return ''
 
+def packFile(filePath):
+    """
+        get a base64 stream of a file
+    """
+    content = None
+    logging.debug("PackFile: Processing file (%r)." % (filePath))
+    try:
+        with open(filePath, "rb") as filedata:
+            content = base64.encodestring("".join(filedata.readlines()))
+    except Exception, ex:
+        logging.warning("PackFile : broken stream on file : %r. Err: %r" % (filePath, ex))
+        raise Exception("PackFile : broken stream on file : %r." % (filePath))
+    return content
 
 # def getSchreenshotDefaultPath():
 #     for confObj in DB_INST.getRowsTable(constants.TABLE_NAME_CONFIGURATIONS, ['config_value'], [('config_name', '=', 'SCHREENSHOT_DB_PATH')]):

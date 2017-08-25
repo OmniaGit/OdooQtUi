@@ -56,7 +56,7 @@ class Many2many(OdooFieldTemplate):
             from start import MainConnector
             conn = MainConnector()
             self.tmpviewObjForm = conn.initViewObj('form', self.relation, rpcObj=self.rpc)
-
+            self.tmpviewObjForm.loadIds([])
             self.formdialog = QtGui.QDialog()
             mainLay = QtGui.QVBoxLayout()
             mainLay.addLayout(self.tmpviewObjForm.layout)
