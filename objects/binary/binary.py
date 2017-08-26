@@ -9,6 +9,8 @@ from utils_odoo_conn import utils
 from utils_odoo_conn import constants
 from objects.fieldTemplate import OdooFieldTemplate
 import os
+import base64
+import tempfile
 
 
 class Binary(OdooFieldTemplate):
@@ -20,6 +22,7 @@ class Binary(OdooFieldTemplate):
         self.xmlWidget = self.fieldXmlAttributes.get('widget')
         self.imageWidth = 100
         self.imageHeight = 100
+        self.fileName = self.fieldXmlAttributes.get('filename') # File name has to be take here
         try:
             self.imageWidth = eval(self.fieldXmlAttributes.get('img_width'))
             self.imageHeight = eval(self.fieldXmlAttributes.get('img_height'))
@@ -28,15 +31,16 @@ class Binary(OdooFieldTemplate):
         self.getQtObject()
 
     def getQtObject(self):
-        if self.xmlWidget:
+        if self.xmlWidget == 'image':
             self.widgetQtObj = QtGui.QLabel()
             self.pixmap = QtGui.QPixmap()
             self.pixmap = self.pixmap.scaled(self.imageWidth,
                                              self.imageHeight,
                                              aspectRatioMode=QtCore.Qt.IgnoreAspectRatio,
                                              transformMode=QtCore.Qt.FastTransformation)
-            self.icon = QtGui.QIcon(self.pixmap)
             self.widgetQtObj.setPixmap(self.pixmap)
+            self.widgetQtObj.resize(self.imageWidth, self.imageHeight)
+            self.widgetQtObj.setText('aaa')
         else:
             self.labelQtObj = QtGui.QLabel(self.labelString)
             self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
@@ -75,7 +79,8 @@ class Binary(OdooFieldTemplate):
             utils.launchMessage('Unable to open file!', 'warning')
         
     def downloadFile(self):
-        newFilePath = utils.getDirectoryFileToSaveSystem(None, statingPath=self.fieldStringInterface)
+        statingPath = self.fieldStringInterface
+        newFilePath = utils.getDirectoryFileToSaveSystem(None, statingPath=statingPath)
         if not self.currentValue:
             utils.launchMessage('Unable to save the file!', 'warning')
             utils.logMessage('warning', 'Empty file content in binary field', 'downloadFile')
@@ -102,21 +107,27 @@ class Binary(OdooFieldTemplate):
         self.valueTemplateChanged()
 
     def setValue(self, newVal):
-        pass
-        print 'To implement setValue changed for binary'
-#         newVal = eval(unicode(newVal))
-#         self.widgetQtObj.setChecked(newVal)
-#         self.currentValue = newVal
+        self.currentValue = newVal
+        if self.xmlWidget == 'image':
+            self.pixmap = QtGui.QPixmap()
+            if newVal:
+                self.pixmap.loadFromData(base64.b64decode(newVal))
+            self.pixmap = self.pixmap.scaled(self.imageWidth,
+                                             self.imageHeight,
+                                             aspectRatioMode=QtCore.Qt.IgnoreAspectRatio,
+                                             transformMode=QtCore.Qt.FastTransformation)
+            self.widgetQtObj.setPixmap(self.pixmap)
+            self.widgetQtObj.resize(self.imageWidth, self.imageHeight)
 
     def setReadonly(self, val=False):
-        super(Binary, self).setReadonly(val)
-        self.widgetQtObj.setEnabled(False)
-        self.widgetQtObj.setStyleSheet(constants.CHAR_STYLE + constants.READONLY_STYLE)
         if self.xmlWidget != 'image':
+            super(Binary, self).setReadonly(val)
+            self.widgetQtObj.setEnabled(False)
+            self.widgetQtObj.setStyleSheet(constants.CHAR_STYLE + constants.READONLY_STYLE)
             self.buttonClear.setHidden(val)
             self.buttonEdit.setHidden(val)
-        if self.required:
-            utils.setRequiredBackground(self.widgetQtObj, constants.CHAR_STYLE)
+            if self.required:
+                utils.setRequiredBackground(self.widgetQtObj, constants.CHAR_STYLE)
 
     def setInvisible(self, val=False):
         super(Binary, self).setInvisible(val)
