@@ -50,22 +50,38 @@ class Binary(OdooFieldTemplate):
             self.buttonClear = QtGui.QPushButton('Clear')
             self.buttonClear.setStyleSheet(constants.BUTTON_STYLE_MANY_2_ONE)
             self.buttonClear.clicked.connect(self.clearField)
-            self.buttonClear = QtGui.QPushButton('Download')
-            self.buttonClear.setStyleSheet(constants.BUTTON_STYLE_MANY_2_ONE)
-            self.buttonClear.clicked.connect(self.downloadFile)
+            self.buttonDownload = QtGui.QPushButton('Download')
+            self.buttonDownload.setStyleSheet(constants.BUTTON_STYLE_MANY_2_ONE + 'min-width:100px;')
+            self.buttonDownload.clicked.connect(self.downloadFile)
+            self.buttonOpen = QtGui.QPushButton('Open')
+            self.buttonOpen.setStyleSheet(constants.BUTTON_STYLE_MANY_2_ONE + 'min-width:50px;')
+            self.buttonOpen.clicked.connect(self.openFile)
             if self.required:
                 utils.setRequiredBackground(self.widgetQtObj, '')
             self.widgetLyQtObject.addWidget(self.widgetQtObj)
             self.widgetLyQtObject.addWidget(self.buttonEdit)
             self.widgetLyQtObject.addWidget(self.buttonClear)
+            self.widgetLyQtObject.addWidget(self.buttonDownload)
+            self.widgetLyQtObject.addWidget(self.buttonOpen)
             self.widgetLyQtObject.setSpacing(10)
             if self.translatable:
                 self.connectTranslationButton()
                 self.widgetLyQtObject.addWidget(self.translateButton)
         self.widgetLyQtObject.addWidget(self.widgetQtObj)
 
+    def openFile(self):
+        filePath = self.downloadFile()
+        if not utils.openByDefaultEditor(filePath):
+            utils.launchMessage('Unable to open file!', 'warning')
+        
     def downloadFile(self):
-        pass
+        newFilePath = utils.getDirectoryFileToSaveSystem(None, statingPath=self.fieldStringInterface)
+        if not self.currentValue:
+            utils.launchMessage('Unable to save the file!', 'warning')
+            utils.logMessage('warning', 'Empty file content in binary field', 'downloadFile')
+        filePath = unicode(newFilePath)
+        utils.unpackFile(self.currentValue, filePath)
+        return filePath
 
     def editField(self):
         filePath = utils.getFileFromSystem('Open', '')

@@ -275,11 +275,10 @@ def getCurrentPath():
 #     return AskFormEdit(labelName, buttonName)
 
 
-# def getDirectoryFileToSaveSystem(parent):
-#     confObjects = DB_INST.getRowsTable(constants.TABLE_NAME_CONFIGURATIONS, fields=['config_value'], filtersList=[('config_name', '=', 'SAVE_SCHREENSHOT_EXTENSION')])
-#     filename = QtGui.QFileDialog.getSaveFileName(None, "Save file", "", str(confObjects[0].config_value))
-#     logging.info('[getDirectoryFileToSaveSystem] filename: %s' % filename)
-#     return filename
+def getDirectoryFileToSaveSystem(parent, statingPath='', fileType=''):
+    filename = QtGui.QFileDialog.getSaveFileName(None, "Save file", statingPath, fileType)
+    logging.info('[getDirectoryFileToSaveSystem] filename: %s' % filename)
+    return filename
 
 
 def getDirectoryFromSystem(parent, pathToOpen=''):
@@ -306,11 +305,37 @@ def packFile(filePath):
         raise Exception("PackFile : broken stream on file : %r." % (filePath))
     return content
 
+def unpackFile(content, toFile):
+    """
+       Unpack the content into a file
+    """
+    if not(content) or (content is None):
+        return
+    filedata = file(toFile, 'wb')
+    logging.debug("UnpackFile: Processing file (%s)." % (toFile))
+    try:
+        value = base64.decodestring(content)
+        filedata.write(value)
+    except Exception, ex:
+        logging.warning("UnpackFile : broken stream on file : %r Error: %r" % (toFile, ex))
+        raise ex
+    filedata.close()
+
 # def getSchreenshotDefaultPath():
 #     for confObj in DB_INST.getRowsTable(constants.TABLE_NAME_CONFIGURATIONS, ['config_value'], [('config_name', '=', 'SCHREENSHOT_DB_PATH')]):
 #         return unicode(confObj.config_value)
 #     return ''
-
+def openByDefaultEditor(path):
+    if not path:
+        return False
+    try:
+        toOpen = '"%s"' % (path).encode(sys.getfilesystemencoding())
+        logMessage('debug', '[openCommon] toOpen: %s' % (toOpen), 'openCommon')
+        os.startfile(toOpen)
+    except Exception, ex:
+        logMessage('error', 'error during opening file with default editor %r' % (ex), 'openByDefaultEditor')
+        return False
+    return True
 
 def getOS():
     platform = sys.platform
