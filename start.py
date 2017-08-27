@@ -210,18 +210,18 @@ if __name__ == '__main__':
         #res = connectorObj.loginWithUser(user, password, dbName, xmlrpcServerIP, xmlrpcPort, scheme, loginType)
         #tmplViewObj = connectorObj.initSearchViewObj('product.product')
 
-        tmplViewObj = connectorObj.initFormViewObj('plm.document')
+        #tmplViewObj = connectorObj.initFormViewObj('plm.document')
         #viewCheckBoxes = {0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled}
         #tmplViewObj = connectorObj.initTreeListViewObject('product.product', viewCheckBoxes=viewCheckBoxes)
         #tmplViewObj.loadIds([249])
         #tmplViewObj.sortResults('fieldName', 'filterMode')
 
         #tmplViewObj = connectorObj.initFormViewObj('product.product')
-
+        tmplViewObj = connectorObj.initSearchViewObj('product.product')
 #         viewCheckBoxes = {0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled}
 #         tmplViewObj = connectorObj.initTreeListViewObject('product.product', viewCheckBoxes=viewCheckBoxes, viewFilter=True)
 #         tmplViewObj.loadIdsForceEmpty([])
-        tmplViewObj.loadIds([16])
+        #tmplViewObj.loadIds([16])
 
         #tmplViewObj.sortResults('fieldName', 'filterMode')
 

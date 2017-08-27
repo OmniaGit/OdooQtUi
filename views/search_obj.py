@@ -51,5 +51,6 @@ class TemplateSearchView(TemplateView, QObject):
                 currentFilterList.append(conditionTuple)
         self.currentFilterList.extend(operatorsOrdered)
         self.currentFilterList.extend(currentFilterList)
+        print 'New filter %r' % (self.currentFilterList)
         self.out_filter_change_signal.emit(self.currentFilterList)
 
