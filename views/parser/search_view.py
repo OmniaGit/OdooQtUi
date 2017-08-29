@@ -30,30 +30,86 @@ class SearchView(object):
         self.advancedFilterFields = advancedFilterFields    # Field definition of ALL model fields
 
         self.filters = [] # Filters in the combo and checkboxes
-        self.fields = [] # Filters in qCompleter
-        self.tmpFields = []
+        self.fieldsTemplate = [] # Filters in qCompleter
+        self.tmpFields = [] # All qcompleter fields created
         self.outFilters = []
+        
+        self.tmpLayouts = []    # Temporary "or layouts" to delete when condition is confirmed
+        self.tmpLineEdits = []  # Temporary "or line edits" to read and delete
+        self.orPressed = False  # Flag to know if or flag has been pressed
+        
+        self.globalCondition = []   # List of conditions objects
 
-    def computeArchRecursion(self, xmlElementParent):
-        widgetContents = QtGui.QWidget()
-        mainLay = QtGui.QVBoxLayout()
-        filterListLay = QtGui.QHBoxLayout()
-        mainHLay = self.computeRecursion(xmlElementParent)
-        widgetContents.setStyleSheet('background-color:#ffffff;')
-        mainLay.addLayout(mainHLay)
-        mainLay.addLayout(filterListLay)
-        widgetContents.setLayout(mainLay)
-        outLay = QtGui.QVBoxLayout()
-        outLay.addWidget(widgetContents)
-        return outLay
+    def applyCondition(self):
+        operators = []
+        conditionList = []
+        intString = ''
+        lineEditList = [self.linedit]
+        lineEditList.extend(self.tmpLineEdits)
+        for lineEdit in lineEditList:
+            text = unicode(lineEdit.text())
+            fieldObj = self.getTmpField(text)
+            conditionList.append(fieldObj.condition)
+            operators.append('|')
+            intString = intString + fieldObj.interfaceStringWithValue + '\nOr  '
+        intString = intString[:-4]
+        
+        condObj = self.addCondition(operators + conditionList, intString)
+        self.addFieldTag(condObj)
+        for lay in self.tmpLayouts:
+            self.clearQLayoutChildren(lay)
+        self.orPressed = False  # Restored to False the or flag
+        self.tmpLineEdits = []  # Cleared the ltmp lineedits widgets
+        self.linedit.setText('')
+        # lanciare evento di filtro cambiato
+
+    def addCondition(self, cond, intString):
+        conditionObj = Condition()
+        conditionObj.condition = cond
+        conditionObj.intString = intString
+        self.globalCondition.append(conditionObj)
+        return conditionObj
+
+    def removeCondition(self, conditionObj):
+        if conditionObj in self.globalCondition:
+            self.globalCondition.remove(conditionObj)
+
+    def orCondition(self):
+        self.orPressed = True
+        lineEditLay = QtGui.QHBoxLayout()
+        lineEdit = self.createCommonLineEdit()
+        lineEdit.setCompleter(self.completer)
+        orButton, applyButton = self.createCommonOrButton()
+        lineEditLay.addWidget(lineEdit)
+        lineEditLay.addWidget(orButton)
+        lineEditLay.addWidget(applyButton)
+        self.multipleConditionLay.addLayout(lineEditLay)
+        self.tmpLayouts.append(lineEditLay)
+        self.tmpLineEdits.append(lineEdit)
+
+    def createCommonLineEdit(self):
+        linedit = QtGui.QLineEdit()
+        linedit.textChanged.connect(self.textChangedEvent)
+        linedit.returnPressed.connect(self.returnPressedLocal)
+        return linedit
+
+    def createCommonOrButton(self):
+        orButton = QtGui.QPushButton('Or')
+        orButton.setStyleSheet(constants.BUTTON_STYLE)
+        orButton.clicked.connect(self.orCondition)
+        applyButton = QtGui.QPushButton('Apply')
+        applyButton.setStyleSheet(constants.BUTTON_STYLE)
+        applyButton.clicked.connect(self.applyCondition)
+        return orButton, applyButton
 
     def computeRecursion(self, xmlElementParent):
         self.mainVLay = QtGui.QVBoxLayout()
         mainHLay = QtGui.QHBoxLayout()
+
+        self.multipleConditionLay = QtGui.QVBoxLayout()
+        lineEditLay = QtGui.QHBoxLayout()
         # Setup lineedit
-        self.linedit = QtGui.QLineEdit()
-        self.linedit.textChanged.connect(self.textChangedEvent)
-        self.linedit.returnPressed.connect(self.returnPressedLocal)
+        self.linedit = self.createCommonLineEdit()
 
         # Setup completer
         self.completer = CustomQCompleter()
@@ -64,13 +120,13 @@ class SearchView(object):
         self.populateCombo()
         self.completer.setModel(self.filterListModel)
         self.linedit.setCompleter(self.completer)
-        mainHLay.addWidget(self.linedit)
+        lineEditLay.addWidget(self.linedit)
 
         # Setup or button
-        self.searchButton = QtGui.QPushButton('Or')
-        self.searchButton.setStyleSheet(constants.BUTTON_STYLE)
-        self.searchButton.clicked.connect(self.orCondition)
-        mainHLay.addWidget(self.searchButton)
+        orButton, _applyButton = self.createCommonOrButton()
+        lineEditLay.addWidget(orButton)
+        self.multipleConditionLay.addLayout(lineEditLay)
+        mainHLay.addLayout(self.multipleConditionLay)
         
         # Setup plus button
         self.buttonPlus = QtGui.QPushButton('+')
@@ -120,6 +176,206 @@ class SearchView(object):
                 self.computeField(childElement)
             else:
                 logging.warning('Tag %r not supported and not evaluated' % (childElement))
+
+    def computeFilter(self, elemXml):
+        fieldAttributes = elemXml.attrib
+        filterObj = FilterObj()
+        evalDomain = []
+        try:
+            evalDomain = eval(fieldAttributes.get('domain', ''))
+            evalDomain = self.evaluateCondition(evalDomain)
+        except Exception, ex:
+            logging.error('Unable to compute domain %r. EX: %r' % (fieldAttributes.get('domain', ''), ex))
+        filterObj.domain = evalDomain
+        filterObj.string = fieldAttributes.get('string', '')
+        filterObj.help = fieldAttributes.get('help', '')
+        filterObj.conditionComputedFilter = evalDomain
+        if filterObj.string:
+            self.filters.append(filterObj)
+        return filterObj
+
+    def removeFilter(self, filterObj):
+        if filterObj in self.globalCondition:
+            self.globalCondition.remove(filterObj)
+
+    def addFilter(self, filterObj):
+        self.globalCondition.append(filterObj)
+
+    def actionSelectionChanged(self, actionChange=False, newVal=False):
+        if not actionChange:
+            logging.warning('Action not found')
+            return
+        stringOption = unicode(actionChange.iconText())
+        filterObj = self.checkFilter(stringOption)
+        if filterObj:
+            if not newVal:  # Uncheck the filter
+                self.removeFilter(filterObj)
+            else:   # Check the filter
+                self.addFilter(filterObj)
+        else:
+            logging.warning('Unable to find filter for string %r' % (stringOption))
+    
+    def computeField(self, elemXml):
+        fieldAttributes = elemXml.attrib
+        fieldObj = FieldObj()
+        fieldObj.name = fieldAttributes.get('name', '')
+        fieldObj.fieldDefinition = self.fieldsNameTypeRel.get(fieldObj.name, {})
+        fieldObj.string = fieldAttributes.get('string', fieldObj.fieldDefinition.get('string', ''))
+        fieldObj.interfaceString = SEARCH_FOR_STRING % (fieldObj.string)
+        self.fieldsTemplate.append(fieldObj)
+        return fieldObj
+    
+    def populateCombo(self, currentVal=''):
+        '''
+            Populate runtime the QCompleter values for line edit
+            @currentVal: Current value digited by user
+            @fields: List of field objects
+            @filters: List of filter objects
+        '''
+        currentVal = unicode(currentVal)
+        stringList = []
+        if currentVal:
+            for fieldObj in self.fieldsTemplate:
+                for tmpField in self.tmpFields:
+                    if tmpField.interfaceStringWithValue == currentVal:  # User is going to choice with arrows
+                        return
+                newInterfaceValue = fieldObj.interfaceString + currentVal + '"'
+                tmpField = copy.deepcopy(fieldObj)
+                tmpField.value = currentVal
+                tmpField.interfaceStringWithValue = newInterfaceValue
+                tmpField.condition = (tmpField.name, self.searchMode, currentVal)
+                self.tmpFields.append(tmpField)
+                stringList.append(tmpField.interfaceStringWithValue)
+        self.filterListModel.setStringList(stringList)
+
+    def textChangedEvent(self, newText=''):
+        newText = unicode(newText)
+        if newText:
+            self.populateCombo(currentVal=unicode(newText))
+
+    def returnPressedLocal(self):
+        if self.orPressed:
+            return
+        timer = QtCore.QTimer()
+        self.timers.append(timer)
+        timer.timeout.connect(self.delayedAddFieldFilter)
+        timer.start(500)
+
+    def clearQLayoutChildren(self, layout):
+        for i in reversed(range(layout.count())): 
+            childLay = layout.itemAt(i)
+            widget = childLay.widget()
+            if widget:
+                widget.setHidden(True)
+                widget.setParent(None)
+            if isinstance(childLay, (QtGui.QHBoxLayout, QtGui.QVBoxLayout)):
+                self.clearQLayoutChildren(childLay)
+        for elem in layout.children():
+            if isinstance(childLay, (QtGui.QHBoxLayout, QtGui.QVBoxLayout)):
+                layout.removeItem(elem)
+            else:
+                layout.removeWidget(elem)
+    
+    def delayedAddFieldFilter(self):
+        filterText = unicode(self.linedit.text())
+        tmpField = self.getTmpField(filterText)
+        condObj = self.addCondition(tmpField.condition, tmpField.interfaceStringWithValue)
+        self.addFieldTag(condObj)
+        self.linedit.setText('')
+        for timer in self.timers:
+            timer.stop()
+            
+    def getTmpField(self, val):
+        for fieldObj in self.tmpFields:
+            if fieldObj.interfaceStringWithValue == val:
+                return fieldObj
+        return False
+        
+    def addFieldTag(self, condObj):
+        maxFiltersInLine = 2
+        hlay = QtGui.QHBoxLayout()
+        
+        label = QtGui.QLabel(condObj.intString)
+        label.setStyleSheet(constants.TAG_TEXT_STYLE)
+        
+        removeButton = QtGui.QPushButton('X')
+        removeButton.setStyleSheet(constants.BUTTON_STYLE)
+        removeButton.setMaximumWidth(30)
+
+        hlay.setSpacing(0)
+        hlay.addWidget(label)
+        hlay.addWidget(removeButton)
+
+        childrenWidgetsCount = self.tagsLay.count()
+        print childrenWidgetsCount
+        if childrenWidgetsCount == 0:
+            hlayRow = QtGui.QHBoxLayout()
+            hlayRow.addLayout(hlay)
+            self.tagsLay.addLayout(hlayRow)
+            removeButton.clicked.connect(partial(self.removeFieldFilter, condObj))
+        else:
+            rowLay = self.tagsLay.children()[-1]
+            rowTagsCount = rowLay.count()
+            if rowTagsCount <= maxFiltersInLine:
+                rowLay.addLayout(hlay)
+                removeButton.clicked.connect(partial(self.removeFieldFilter, condObj))
+            else:
+                hlayRow = QtGui.QHBoxLayout()
+                hlayRow.addLayout(hlay)
+                self.tagsLay.addLayout(hlayRow)
+                removeButton.clicked.connect(partial(self.removeFieldFilter, condObj))
+
+    def removeFieldFilter(self, conditionObj):
+        self.removeCondition(conditionObj)
+        self.reloadFilters()
+        
+    def reloadFilters(self):
+        self.clearQLayoutChildren(self.tagsLay)
+        for condObj in self.globalCondition:
+            self.addFieldTag(condObj)
+
+    def computeArchRecursion(self, xmlElementParent):
+        widgetContents = QtGui.QWidget()
+        mainLay = QtGui.QVBoxLayout()
+        filterListLay = QtGui.QHBoxLayout()
+        mainHLay = self.computeRecursion(xmlElementParent)
+        widgetContents.setStyleSheet('background-color:#ffffff;')
+        mainLay.addLayout(mainHLay)
+        mainLay.addLayout(filterListLay)
+        widgetContents.setLayout(mainLay)
+        outLay = QtGui.QVBoxLayout()
+        outLay.addWidget(widgetContents)
+        return outLay
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         
         
     def customAdvancedFilter(self):
@@ -252,7 +508,6 @@ class SearchView(object):
         centerLay.addWidget(datetimeWidget)
         # date
         centerLay.addWidget(dateWidget)
-
         
         
         centerLay.addWidget(mainLineEditWidget)
@@ -393,43 +648,6 @@ class SearchView(object):
                 filterTuple = (self.filterMode, fieldCustomObj)
                 self.outFilters.append(filterTuple)
                 self.addFilterInterface(interfaceStr, self.filterMode, filterTuple)
-                
-#                 hlay = QtGui.QHBoxLayout()
-#                 hlay.setSpacing(0)
-#                 labelText = QtGui.QLabel()
-#                 labelOperator = QtGui.QLabel()
-#                 closeButton = QtGui.QPushButton()
-#                 labelText.setText(interfaceStr)
-#                 labelText.setStyleSheet(constants.TAG_TEXT_STYLE)
-#                 labelOperator.setText(intFilterMode)
-#                 labelOperator.setStyleSheet(constants.OPERATOR_LABEL)
-#                 closeButton.setText('X')
-#                 closeButton.setStyleSheet(constants.BUTTON_STYLE)
-#                 closeButton.clicked.connect(partial(self.removeCustomTag, closeButton, labelOperator, labelText, fieldCustomObj))
-#                 hlay.addWidget(labelOperator)
-#                 hlay.addWidget(labelText)
-#                 hlay.addWidget(closeButton)
-#                 
-#                 
-#                 rowsCount = self.customFiltersTagsLay.count()
-#                 if not rowsCount:
-#                     rowLay = QtGui.QHBoxLayout()
-#                     rowLay.addLayout(hlay)
-#                     spacer = QtGui.QSpacerItem(0, 0, QtGui.QSizePolicy.MinimumExpanding)
-#                     rowLay.addSpacerItem(spacer)
-#                     self.customFiltersTagsLay.addLayout(rowLay)
-#                 else:
-#                     lastRow = self.customFiltersTagsLay.children()[-1]
-#                     childrenCount = lastRow.count()
-#                     if childrenCount >= 4:
-#                         rowLay = QtGui.QHBoxLayout()
-#                         rowLay.addLayout(hlay)
-#                         spacer = QtGui.QSpacerItem(0, 0, QtGui.QSizePolicy.MinimumExpanding)
-#                         rowLay.addSpacerItem(spacer)
-#                         self.customFiltersTagsLay.addLayout(rowLay)
-#                     else:
-#                         lastRow.addLayout(hlay)
-#                 self.launchFilterChanged()
 
     def removeCustomTag(self, removeButton, labelOperator, labelText, fieldCustomObj):
         if fieldCustomObj in self.customFilters:
@@ -439,25 +657,6 @@ class SearchView(object):
             self.customFilters.remove(fieldCustomObj)
             self.launchFilterChanged()
 
-    def actionSelectionChanged(self, actionChange=False, newVal=False):
-        if not actionChange:
-            logging.warning('Action not found')
-            return
-        stringOption = unicode(actionChange.iconText())
-        filterObj = self.checkFilter(stringOption)
-        if filterObj:
-            if not newVal:  # Uncheck the filter
-                toFind = ('|', filterObj)
-                if toFind in self.outFilters:
-                    self.outFilters.remove(toFind)
-                else:
-                    utils.logMessage('warning', 'Unable to remove Filter', 'actionSelectionChanged')
-            else:   # Check the filter
-                self.outFilters.append(('|', filterObj))
-            self.launchFilterChanged()
-        else:
-            logging.warning('Unable to find filter for string %r' % (stringOption))
-        
     def advancedFilter(self):
         if self.buttonFilters.isHidden():
             self.buttonFilters.setHidden(False)
@@ -481,40 +680,12 @@ class SearchView(object):
                 return fieldObj
         return False
         
-    def checkTmpField(self, val):
-        for fieldObj in self.tmpFields:
-            if fieldObj.interfaceStringWithValue == val:
-                return fieldObj
-        return False
-
     def checkFilter(self, val):
         for filterObj in self.filters:
             if unicode(filterObj.string.strip()) == unicode(val):
                 return filterObj
         return False
 
-    def clearQLayoutChildren(self, layout):
-        for i in reversed(range(layout.count())): 
-            childLay = layout.itemAt(i)
-            widget = childLay.widget()
-            if widget:
-                widget.setParent(None)
-            if isinstance(childLay, (QtGui.QHBoxLayout, QtGui.QVBoxLayout)):
-                self.clearQLayoutChildren(childLay)
-
-    def reloadFilters(self):
-        def computeOperatorForFilterReverse(op):
-            if op.upper() == '&':
-                return 'And'
-            elif op.upper() == '|':
-                return 'Or'
-
-        self.clearQLayoutChildren(self.tagsLay)
-        if not self.outFilters:
-            self.launchFilterChanged()
-        for operator, fieldObj in self.outFilters:
-            filterTuple = (operator, fieldObj)
-            self.addFilterInterface(fieldObj.interfaceStringWithValue, operator, filterTuple)
         
     def addFieldFilter(self, filterString, operator='And', objRel=None):
 
@@ -545,57 +716,9 @@ class SearchView(object):
         self.addFilterInterface(filterString, operator, filterTuple)
 
 
-    def addFilterInterface(self, filterString, operator, filterTuple):
-        maxFiltersInLine = 4
-        hlay = QtGui.QHBoxLayout()
-        
-        label = QtGui.QLabel(filterString)
-        label.setStyleSheet(constants.TAG_TEXT_STYLE)
-        
-        removeButton = QtGui.QPushButton('X')
-        removeButton.setStyleSheet(constants.BUTTON_STYLE)
-        removeButton.setMaximumWidth(30)
 
-        labelOperator = QtGui.QLabel(operator)
-        labelOperator.setMaximumWidth(50)
-        labelOperator.setAlignment(QtCore.Qt.AlignHCenter)
 
-        hlay.setSpacing(0)
-        hlay.addWidget(labelOperator)
-        hlay.addWidget(label)
-        hlay.addWidget(removeButton)
 
-        childrenWidgetsCount = self.tagsLay.count()
-        if childrenWidgetsCount == 0:
-            hlayRow = QtGui.QHBoxLayout()
-            hlayRow.addLayout(hlay)
-            self.tagsLay.addLayout(hlayRow)
-            removeButton.clicked.connect(partial(self.removeFieldFilter, filterTuple))
-        else:
-            rowLay = self.tagsLay.children()[-1]
-            rowTagsCount = rowLay.count()
-            if rowTagsCount <= maxFiltersInLine:
-                rowLay.addLayout(hlay)
-                removeButton.clicked.connect(partial(self.removeFieldFilter, filterTuple))
-            else:
-                hlayRow = QtGui.QHBoxLayout()
-                hlayRow.addLayout(hlay)
-                self.tagsLay.addLayout(hlayRow)
-                removeButton.clicked.connect(partial(self.removeFieldFilter, filterTuple))
-        
-        self.launchFilterChanged()
-    
-    def orCondition(self):
-        self.addFieldFilter(unicode(self.linedit.text()), 'Or')
-        self.linedit.setText('')
-
-    def removeFieldFilter(self, filterTuple):
-        if not filterTuple:
-            logging.warning('Unable to remove filter %r because obj not found' % (filterTuple))
-            return
-        if filterTuple in self.outFilters:
-            self.outFilters.remove(filterTuple)
-        self.reloadFilters()
 
     def launchFilterChanged(self):
         outFilters = []
@@ -624,45 +747,6 @@ class SearchView(object):
         if self.parent:
             self.parent.filter_changed_signal.emit(outFilters)
 
-    def returnPressedLocal(self):
-        timer = QtCore.QTimer()
-        self.timers.append(timer)
-        timer.timeout.connect(self.delayedAddFieldFilter)
-        timer.start(500)
-
-    def delayedAddFieldFilter(self):
-        filterText = unicode(self.linedit.text())
-        self.addFieldFilter(filterText)
-        self.linedit.setText('')
-        for timer in self.timers:
-            timer.stop()
-
-    def populateCombo(self, currentVal=''):
-        '''
-            Populate runtime the QCompleter values for line edit
-            @currentVal: Current value digited by user
-            @fields: List of field objects
-            @filters: List of filter objects
-        '''
-        stringList = []
-        if currentVal:
-            for fieldObj in self.fields:
-                for tmpField in self.tmpFields:
-                    if tmpField.interfaceStringWithValue == currentVal:  # User is going to choice with arrows
-                        return
-                newInterfaceValue = fieldObj.interfaceString + currentVal + '"'
-                tmpField = copy.deepcopy(fieldObj)
-                tmpField.value = currentVal
-                tmpField.interfaceStringWithValue = newInterfaceValue
-                self.tmpFields.append(tmpField)
-                stringList.append(tmpField.interfaceStringWithValue)
-        self.filterListModel.setStringList(stringList)
-
-    def textChangedEvent(self, newText=''):
-        newText = unicode(newText)
-        if newText:
-            self.populateCombo(currentVal=unicode(newText))
-
     def evaluateCondition(self, conditions):
         outFilter = []
         operators = []
@@ -683,32 +767,6 @@ class SearchView(object):
                 logging.warning('[evaluateCondition] Cannot evaluate element %r' % (elem))
         return outFilter
         
-    def computeFilter(self, elemXml):
-        fieldAttributes = elemXml.attrib
-        filterObj = FilterObj()
-        evalDomain = []
-        try:
-            evalDomain = eval(fieldAttributes.get('domain', ''))
-            evalDomain = self.evaluateCondition(evalDomain)
-        except Exception, ex:
-            logging.error('Unable to compute domain %r. EX: %r' % (fieldAttributes.get('domain', ''), ex))
-        filterObj.domain = evalDomain
-        filterObj.string = fieldAttributes.get('string', '')
-        filterObj.help = fieldAttributes.get('help', '')
-        filterObj.conditionComputedFilter = evalDomain
-        if filterObj.string:
-            self.filters.append(filterObj)
-        return filterObj
-
-    def computeField(self, elemXml):
-        fieldAttributes = elemXml.attrib
-        fieldObj = FieldObj()
-        fieldObj.name = fieldAttributes.get('name', '')
-        fieldObj.fieldDefinition = self.fieldsNameTypeRel.get(fieldObj.name, {})
-        fieldObj.string = fieldAttributes.get('string', fieldObj.fieldDefinition.get('string', ''))
-        fieldObj.interfaceString = SEARCH_FOR_STRING % (fieldObj.string)
-        self.fields.append(fieldObj)
-        return fieldObj
 
     def computeArch(self):
         if self.arch:
@@ -763,9 +821,17 @@ class FieldObj(object):
         self.interfaceStringWithValue = ''
         self.interfaceString = ''
         self.value = ''
+        self.condition = []
 
 class FieldObjCustom(object):
     def __init__(self):
         self.string = ''
         self.domain = []
         self.interfaceString = ''
+
+class Condition():
+    def __init__(self):
+        self.condition = ''
+        self.intString = ''
+        
+        
