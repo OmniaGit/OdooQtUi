@@ -386,7 +386,7 @@ class SearchView(object):
                 intFieldName = fieldDefinition.get('string', fieldName)
                 interfaceStr = '%s %s "%s"' % (intFieldName, interfaceVal, value)
                 fieldCustomObj = FieldObjCustom()
-                fieldCustomObj.conditionComputedFilter = odooCondition[0]
+                fieldCustomObj.conditionComputedFilter = odooCondition
                 fieldCustomObj.domain = odooCondition
                 fieldCustomObj.interfaceString = interfaceStr
                 fieldCustomObj.interfaceStringWithValue = interfaceStr
@@ -540,7 +540,7 @@ class SearchView(object):
 
         tupleCondition = (objRel.name, self.searchMode, objRel.value)
         filterTuple = (odooOperator, objRel)
-        objRel.conditionComputedFilter = tupleCondition
+        objRel.conditionComputedFilter = [tupleCondition]
         self.outFilters.append(filterTuple)
         self.addFilterInterface(filterString, operator, filterTuple)
 
@@ -601,7 +601,7 @@ class SearchView(object):
         outFilters = []
         for operator, fieldObj in self.outFilters:
             outFilters.append(operator)
-            outFilters.append(fieldObj.conditionComputedFilter)
+            outFilters.extend(fieldObj.conditionComputedFilter)
 #         if self.customFilters:
 #             void = False
 #             if not outFilters:
@@ -695,6 +695,7 @@ class SearchView(object):
         filterObj.domain = evalDomain
         filterObj.string = fieldAttributes.get('string', '')
         filterObj.help = fieldAttributes.get('help', '')
+        filterObj.conditionComputedFilter = evalDomain
         if filterObj.string:
             self.filters.append(filterObj)
         return filterObj
