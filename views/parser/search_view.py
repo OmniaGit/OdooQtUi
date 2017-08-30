@@ -279,6 +279,8 @@ class SearchView(object):
     def delayedAddFieldFilter(self):
         filterText = unicode(self.linedit.text())
         tmpField = self.getTmpField(filterText)
+        if not tmpField:
+            return
         condObj = self.addCondition(tmpField.condition, tmpField.interfaceStringWithValue)
         self.addFieldTag(condObj)
         self.linedit.setText('')
@@ -372,105 +374,53 @@ class SearchView(object):
 
 
 
+    # This section is dedicated to advanced custom filter
 
+    def fieldsCustomComboChanged(self, indexChanged):
+        fieldStr = self.comboFieldsList[indexChanged]
+        fieldNameSelected = self.stringFieldRel.get(fieldStr, '')
+        fieldDefinition = self.advancedFilterFields[fieldNameSelected]
+        fieldType = fieldDefinition.get('type', '')
+        if fieldType in ['char', 'many2one', 'text', 'one2many', 'many2many']:
+            comboCharOperator = QtGui.QComboBox()
+            comboCharOperator.setStyleSheet(constants.LOGIN_COMBO_STYLE)
+            mainLineEditWidget = QtGui.QLineEdit()
+            self.customLastFieldLayout.addWidget(comboCharOperator)
+            self.customLastFieldLayout.addWidget(mainLineEditWidget)
+        elif fieldType == 'boolean':
+            comboBoolOperator = QtGui.QComboBox()
+            comboBoolOperator.setStyleSheet(constants.LOGIN_COMBO_STYLE)
+            self.customLastFieldLayout.addWidget(comboBoolOperator)
+        elif fieldType == 'float':
+            comboFloatOperator = QtGui.QComboBox()
+            comboFloatOperator.setStyleSheet(constants.LOGIN_COMBO_STYLE)
+            mainLineEditWidget = QtGui.QLineEdit()
+            self.customLastFieldLayout.addWidget(comboFloatOperator)
+            self.customLastFieldLayout.addWidget(mainLineEditWidget)
+        elif fieldType == 'date':
+            dateWidget = QtGui.QDateEdit()
+            comboDatetimeOperator = QtGui.QComboBox()
+            comboDatetimeOperator.setStyleSheet(constants.LOGIN_COMBO_STYLE)
+            self.customLastFieldLayout.addWidget(comboDatetimeOperator)
+            self.customLastFieldLayout.addWidget(dateWidget)
+        elif fieldType == 'datetime':
+            datetimeWidget = QtGui.QDateTimeEdit()
+            comboDatetimeOperator = QtGui.QComboBox()
+            comboDatetimeOperator.setStyleSheet(constants.LOGIN_COMBO_STYLE)
+            self.customLastFieldLayout.addWidget(comboDatetimeOperator)
+            self.customLastFieldLayout.addWidget(datetimeWidget)
+        elif fieldType == 'integer':
+            comboFloatOperator = QtGui.QComboBox()
+            integerSpinboxWidget = QtGui.QSpinBox()
+            self.customLastFieldLayout.addWidget(comboFloatOperator)
+            self.customLastFieldLayout.addWidget(integerSpinboxWidget)
 
-
-
-        
-        
-    def customAdvancedFilter(self):
-        comboValues = ['Contains', "Doesn't contains", 'Is equal to', 'Is not equal to', 'Is set', 'Is not set']
-        comboBoolValues = ['Is true', 'Is false']
-        comboFloatValues = ['Is equal to', 'Is not equal to', 'Greater than', 'Less than', 'Greater than or equal to',
-                            'Less then or equal to', 'Is set', 'Is not set']
-        sortedFields = []
-        stringFieldRel = {}
-        dial = QtGui.QDialog()
-        mainLay = QtGui.QVBoxLayout()
-        lay = QtGui.QVBoxLayout()
-        mainWidget = QtGui.QWidget()
-        comboCharOperator = QtGui.QComboBox()
-        comboCharOperator.setStyleSheet(constants.LOGIN_COMBO_STYLE)
-        comboBoolOperator = QtGui.QComboBox()
-        comboBoolOperator.setStyleSheet(constants.LOGIN_COMBO_STYLE)
-        comboDatetimeOperator = QtGui.QComboBox()
-        comboDatetimeOperator.setStyleSheet(constants.LOGIN_COMBO_STYLE)
-        comboFloatOperator = QtGui.QComboBox()
-        comboFloatOperator.setStyleSheet(constants.LOGIN_COMBO_STYLE)
-        dateWidget = QtGui.QDateEdit()
-        datetimeWidget = QtGui.QDateTimeEdit()
-        integerSpinboxWidget = QtGui.QSpinBox()
-        mainLineEditWidget = QtGui.QLineEdit()
-        
-        self.filterMode = '&'
-
-        def acceptDialAnd():
-            self.filterMode = '&'
-            dial.accept()
-
-        def acceptDialOr():
-            self.filterMode = '|'
-            dial.accept()
-
-        def rejectDial():
-            dial.reject()
-        
-        def hideAll():
-            comboCharOperator.setHidden(True)
-            mainLineEditWidget.setHidden(True)
-            comboBoolOperator.setHidden(True)
-            comboFloatOperator.setHidden(True)
-            integerSpinboxWidget.setHidden(True)
-            dateWidget.setHidden(True)
-            comboDatetimeOperator.setHidden(True)
-            datetimeWidget.setHidden(True)
-            mainLineEditWidget.setText('')
-
-        def fieldsCustomComboChanged(newIndex):
-            fieldString = sortedFields[newIndex]
-            fieldName = stringFieldRel.get(fieldString)
-            fieldDefinition = self.advancedFilterFields[fieldName]
-            fieldType = fieldDefinition.get('type', '')
-            hideAll()
-            if fieldType in ['char', 'many2one', 'text', 'one2many', 'many2many']:
-                comboCharOperator.setHidden(False)
-                mainLineEditWidget.setHidden(False)
-            elif fieldType == 'boolean':
-                comboBoolOperator.setHidden(False)
-            elif fieldType == 'float':
-                comboFloatOperator.setHidden(False)
-                mainLineEditWidget.setHidden(False)
-            elif fieldType == 'date':
-                dateWidget.setHidden(False)
-                comboDatetimeOperator.setHidden(False)
-            elif fieldType == 'datetime':
-                datetimeWidget.setHidden(False)
-                comboDatetimeOperator.setHidden(False)
-            elif fieldType == 'integer':
-                comboFloatOperator.setHidden(False)
-                integerSpinboxWidget.setHidden(False)
-            
-        # Ok / Cancel buttons and layout
-        andButton = QtGui.QPushButton('Filter as And')
-        andButton.clicked.connect(acceptDialAnd)
-        andButton.setStyleSheet(constants.LOGIN_ACCEPT_BUTTON)
-        orButton = QtGui.QPushButton('Filter as Or')
-        orButton.setStyleSheet(constants.LOGIN_ACCEPT_BUTTON)
-        orButton.clicked.connect(acceptDialOr)
-        cancelButt = QtGui.QPushButton('Cancel')
-        cancelButt.clicked.connect(rejectDial)
-        cancelButt.setStyleSheet(constants.LOGIN_CANCEL_BUTTON)
-
-        okCancelLay = QtGui.QHBoxLayout()
-        okCancelLay.addWidget(cancelButt)
-        spacer = QtGui.QSpacerItem(0, 0, QtGui.QSizePolicy.MinimumExpanding)
-        okCancelLay.addSpacerItem(spacer)
-        okCancelLay.addWidget(andButton)
-        okCancelLay.addWidget(orButton)
-
+    def getComboFields(self):
         # Fields combo
-        comboAvailableFields = QtGui.QComboBox()
-        comboAvailableFields.setStyleSheet(constants.LOGIN_COMBO_STYLE)
+        sortedFields = []
+        self.stringFieldRel = {}
+        comboAllFields = QtGui.QComboBox()
+        comboAllFields.setStyleSheet(constants.LOGIN_COMBO_STYLE)
         
         for fieldName in self.advancedFilterFields.keys():
             fieldDefinition = self.advancedFilterFields.get(fieldName)
@@ -479,175 +429,266 @@ class SearchView(object):
             if fieldType == 'binary':
                 continue
             sortedFields.append(fieldString)
-            stringFieldRel[fieldString] = fieldName
+            self.stringFieldRel[fieldString] = fieldName
         
         sortedFields.sort()
+        self.comboFieldsList = sortedFields
         for fieldString in sortedFields:
-            comboAvailableFields.addItem(fieldString)
-            comboAvailableFields.currentIndexChanged.connect(fieldsCustomComboChanged)
+            comboAllFields.addItem(fieldString)
+        comboAllFields.currentIndexChanged.connect(self.fieldsCustomComboChanged)
+        return comboAllFields
+
+    def acceptDialAnd(self):
+        silgleFieldLay = self.getSingleFieldLayoutCustom()
+        self.conditionsCustomLay.addLayout(silgleFieldLay)
+        self.filterMode = '&'
+        self.orButton.setHidden(True)   # Not allow user to filter in different modes in the same time
+
+    def acceptDialOr(self):
+        self.filterMode = '|'
+        silgleFieldLay = self.getSingleFieldLayoutCustom()
+        self.conditionsCustomLay.addLayout(silgleFieldLay)
+        self.andButton.setHidden(True)   # Not allow user to filter in different modes in the same time
+
+    def rejectDial(self):
+        self.dialCustomFilter.reject()
+
+    def applyCustomFilter(self):
         
-        centerLay = QtGui.QVBoxLayout()
-        centerLay.addWidget(comboAvailableFields)
+        self.dialCustomFilter.accept()
         
-        # char
-        comboCharOperator.addItems(comboValues)
-        centerLay.addWidget(comboCharOperator)
-        # bool
-        comboBoolOperator.addItems(comboBoolValues)
-        centerLay.addWidget(comboBoolOperator)
-        # float
-        comboFloatOperator.addItems(comboFloatValues)
-        centerLay.addWidget(comboFloatOperator)
-        # integer
-        centerLay.addWidget(integerSpinboxWidget)
-        # datetime
-        comboDatetimeValues = comboFloatValues
-        comboDatetimeValues.append('Is between')
-        comboDatetimeOperator.addItems(comboDatetimeValues)
-        centerLay.addWidget(comboDatetimeOperator)
-        centerLay.addWidget(datetimeWidget)
-        # date
-        centerLay.addWidget(dateWidget)
+    def getButtonsLay(self):
+        # Ok / Cancel buttons and layout
+        self.andButton = QtGui.QPushButton('Filter as And')
+        self.andButton.clicked.connect(self.acceptDialAnd)
+        self.andButton.setStyleSheet(constants.LOGIN_ACCEPT_BUTTON)
+        self.orButton = QtGui.QPushButton('Filter as Or')
+        self.orButton.setStyleSheet(constants.LOGIN_ACCEPT_BUTTON)
+        self.orButton.clicked.connect(self.acceptDialOr)
+        applyButton = QtGui.QPushButton('Apply')
+        applyButton.setStyleSheet(constants.LOGIN_ACCEPT_BUTTON)
+        applyButton.clicked.connect(self.applyCustomFilter)
+        cancelButt = QtGui.QPushButton('Cancel')
+        cancelButt.clicked.connect(self.rejectDial)
+        cancelButt.setStyleSheet(constants.LOGIN_CANCEL_BUTTON)
+
+        okCancelLay = QtGui.QHBoxLayout()
+        okCancelLay.addWidget(cancelButt)
+        spacer = QtGui.QSpacerItem(0, 0, QtGui.QSizePolicy.MinimumExpanding)
+        okCancelLay.addSpacerItem(spacer)
+        okCancelLay.addWidget(self.andButton)
+        okCancelLay.addWidget(self.orButton)
+        okCancelLay.addWidget(applyButton)
+        return okCancelLay
+        
+    def getSingleFieldLayoutCustom(self):
+        singleFieldLay = QtGui.QVBoxLayout()
+        self.customLastFieldLayout = singleFieldLay
+        comboWidget = self.getComboFields()
+        singleFieldLay.addWidget(comboWidget)
+        
+        return singleFieldLay
+        
+    def customAdvancedFilter(self):
+        self.customLastFieldLayout = None
+        self.filterMode = '&'
+        self.dialCustomFilter = QtGui.QDialog()
+        lay = QtGui.QVBoxLayout()
+        mainWidget = QtGui.QWidget()
+        mainLay = QtGui.QVBoxLayout()
+        
+        self.conditionsCustomLay = QtGui.QVBoxLayout()
+        singleFieldLay = self.getSingleFieldLayoutCustom()
+        buttonsLay = self.getButtonsLay()
         
         
-        centerLay.addWidget(mainLineEditWidget)
-        hideAll()
-        mainLay.addLayout(centerLay)
-        mainLay.addLayout(okCancelLay)
-        mainLay.setMargin(30)
+        self.conditionsCustomLay.addLayout(singleFieldLay)
+        mainLay.addLayout(self.conditionsCustomLay)
+        mainLay.addLayout(buttonsLay)
         mainWidget.setLayout(mainLay)
         mainWidget.setStyleSheet(constants.BACKGROUND_WHITE)
         lay.addWidget(mainWidget)
-        dial.setLayout(lay)
-        dial.setStyleSheet(constants.VIOLET_BACKGROUND)
-        if dial.exec_() == QtGui.QDialog.Accepted:
-            newIndex = comboAvailableFields.currentIndex()
-            fieldString = sortedFields[newIndex]
-            fieldName = stringFieldRel.get(fieldString)
-            fieldDefinition = self.advancedFilterFields[fieldName]
-            fieldType = fieldDefinition.get('type', '')
-            value = unicode(mainLineEditWidget.text())
-            odooCondition = []
-            if fieldType in ['char', 'many2one', 'text', 'one2many', 'many2many']:
-                operatorIndex = comboCharOperator.currentIndex()
-                interfaceVal = comboValues[operatorIndex]
-                if interfaceVal == 'Contains':
-                    odooCondition = [(fieldName, 'ilike', value)]
-                elif interfaceVal == "Doesn't contains":
-                    odooCondition = [(fieldName, 'not ilike', value)]
-                elif interfaceVal == 'Is equal to':
-                    odooCondition = [(fieldName,'=', value)]
-                elif interfaceVal == 'Is not equal to':
-                    odooCondition = [(fieldName,'!=', value)]
-                elif interfaceVal == 'Is set':
-                    odooCondition = [(fieldName, '!=', False), '|', (fieldName, '!=', '')]
-                elif interfaceVal == 'Is not set':
-                    odooCondition = [(fieldName, '=', False), '|', (fieldName, '=', '')]
-            elif fieldType == 'boolean':
-                operatorIndex = comboBoolOperator.currentIndex()
-                interfaceVal = comboBoolValues[operatorIndex]
-                if interfaceVal == 'Is true':
-                    odooCondition = [(fieldName,'=', True)]
-                    value = True
-                elif interfaceVal == 'Is false':
-                    odooCondition = [(fieldName,'=', False)]
-                    value = True
-            elif fieldType == 'float':
-                try:
-                    floatVal = float(value)
-                except Exception:
-                    utils.launchMessage('Wrong value for float field!', 'warning')
-                    return
-                operatorIndex = comboFloatOperator.currentIndex()
-                interfaceVal = comboFloatValues[operatorIndex]
-                if interfaceVal == 'Is equal to':
-                    odooCondition = [(fieldName,'=', floatVal)]
-                elif interfaceVal == 'Is not equal to':
-                    odooCondition = [(fieldName,'!=', floatVal)]
-                elif interfaceVal == 'Greater than':
-                    odooCondition = [(fieldName,'>', floatVal)]
-                elif interfaceVal == 'Less than':
-                    odooCondition = [(fieldName,'<', floatVal)]
-                elif interfaceVal == 'Greater than or equal to':
-                    odooCondition = [(fieldName,'>=', floatVal)]
-                elif interfaceVal == 'Less then or equal to':
-                    odooCondition = [(fieldName,'<=', floatVal)]
-                elif interfaceVal == 'Is set':
-                    odooCondition = [(fieldName,'!=', False), '|', (fieldName, '!=', 0)]
-                elif interfaceVal == 'Is not set':
-                    odooCondition = [(fieldName,'=', False), '|', (fieldName, '=', 0)]
-                value = floatVal
-            elif fieldType == 'date':
-                value = unicode(dateWidget.date().toPyDate())
-                operatorIndex = comboDatetimeOperator.currentIndex()
-                interfaceVal = comboDatetimeValues[operatorIndex]
-                if interfaceVal == 'Is equal to':
-                    odooCondition = [(fieldName,'=', value)]
-                elif interfaceVal == 'Is not equal to':
-                    odooCondition = [(fieldName,'!=', value)]
-                elif interfaceVal == 'Greater than':
-                    odooCondition = [(fieldName,'>', value)]
-                elif interfaceVal == 'Less than':
-                    odooCondition = [(fieldName,'<', value)]
-                elif interfaceVal == 'Greater than or equal to':
-                    odooCondition = [(fieldName,'>=', value)]
-                elif interfaceVal == 'Less then or equal to':
-                    odooCondition = [(fieldName,'<=', value)]
-                elif interfaceVal == 'Is set':
-                    odooCondition = [(fieldName,'!=', False), '|', (fieldName, '!=', 0)]
-                elif interfaceVal == 'Is not set':
-                    odooCondition = [(fieldName,'=', False), '|', (fieldName, '=', 0)]
-            elif fieldType == 'datetime':
-                operatorIndex = comboDatetimeOperator.currentIndex()
-                value = unicode(datetimeWidget.dateTime().toPyDateTime())
-                interfaceVal = comboDatetimeValues[operatorIndex]
-                if interfaceVal == 'Is equal to':
-                    odooCondition = [(fieldName,'=', value)]
-                elif interfaceVal == 'Is not equal to':
-                    odooCondition = [(fieldName,'!=', value)]
-                elif interfaceVal == 'Greater than':
-                    odooCondition = [(fieldName,'>', value)]
-                elif interfaceVal == 'Less than':
-                    odooCondition = [(fieldName,'<', value)]
-                elif interfaceVal == 'Greater than or equal to':
-                    odooCondition = [(fieldName,'>=', value)]
-                elif interfaceVal == 'Less then or equal to':
-                    odooCondition = [(fieldName,'<=', value)]
-                elif interfaceVal == 'Is set':
-                    odooCondition = [(fieldName,'!=', False), '|', (fieldName, '!=', 0)]
-                elif interfaceVal == 'Is not set':
-                    odooCondition = [(fieldName,'=', False), '|', (fieldName, '=', 0)]
-            elif fieldType == 'integer':
-                operatorIndex = comboFloatOperator.currentIndex()
-                value = integerSpinboxWidget.value()
-                interfaceVal = comboFloatValues[operatorIndex]
-                if interfaceVal == 'Is equal to':
-                    odooCondition = [(fieldName,'=', value)]
-                elif interfaceVal == 'Is not equal to':
-                    odooCondition = [(fieldName,'!=', value)]
-                elif interfaceVal == 'Greater than':
-                    odooCondition = [(fieldName,'>', value)]
-                elif interfaceVal == 'Less than':
-                    odooCondition = [(fieldName,'<', value)]
-                elif interfaceVal == 'Greater than or equal to':
-                    odooCondition = [(fieldName,'>=', value)]
-                elif interfaceVal == 'Less then or equal to':
-                    odooCondition = [(fieldName,'<=', value)]
-                elif interfaceVal == 'Is set':
-                    odooCondition = [(fieldName,'!=', False), '|', (fieldName, '!=', 0)]
-                elif interfaceVal == 'Is not set':
-                    odooCondition = [(fieldName,'=', False), '|', (fieldName, '=', 0)]
-            if odooCondition:
-                intFieldName = fieldDefinition.get('string', fieldName)
-                interfaceStr = '%s %s "%s"' % (intFieldName, interfaceVal, value)
-                fieldCustomObj = FieldObjCustom()
-                fieldCustomObj.conditionComputedFilter = odooCondition
-                fieldCustomObj.domain = odooCondition
-                fieldCustomObj.interfaceString = interfaceStr
-                fieldCustomObj.interfaceStringWithValue = interfaceStr
-                filterTuple = (self.filterMode, fieldCustomObj)
-                self.outFilters.append(filterTuple)
-                self.addFilterInterface(interfaceStr, self.filterMode, filterTuple)
+        self.dialCustomFilter.setLayout(lay)
+        self.dialCustomFilter.setStyleSheet(constants.VIOLET_BACKGROUND)
+        
+        if self.dialCustomFilter.exec_() == QtGui.QDialog.Accepted:
+            pass
+        
+        
+        
+        
+        
+        
+#         comboValues = ['Contains', "Doesn't contains", 'Is equal to', 'Is not equal to', 'Is set', 'Is not set']
+#         comboBoolValues = ['Is true', 'Is false']
+#         comboFloatValues = ['Is equal to', 'Is not equal to', 'Greater than', 'Less than', 'Greater than or equal to',
+#                             'Less then or equal to', 'Is set', 'Is not set']
+#         
+# 
+#         self.filterMode = '&'
+# 
+#         centerLay = QtGui.QVBoxLayout()
+#         centerLay.addWidget(comboAvailableFields)
+#         
+#         # char
+#         comboCharOperator.addItems(comboValues)
+#         centerLay.addWidget(comboCharOperator)
+#         # bool
+#         comboBoolOperator.addItems(comboBoolValues)
+#         centerLay.addWidget(comboBoolOperator)
+#         # float
+#         comboFloatOperator.addItems(comboFloatValues)
+#         centerLay.addWidget(comboFloatOperator)
+#         # integer
+#         centerLay.addWidget(integerSpinboxWidget)
+#         # datetime
+#         comboDatetimeValues = comboFloatValues
+#         comboDatetimeValues.append('Is between')
+#         comboDatetimeOperator.addItems(comboDatetimeValues)
+#         centerLay.addWidget(comboDatetimeOperator)
+#         centerLay.addWidget(datetimeWidget)
+#         # date
+#         centerLay.addWidget(dateWidget)
+#         
+#         
+#         centerLay.addWidget(mainLineEditWidget)
+#         hideAll()
+#         mainLay.addLayout(centerLay)
+#         mainLay.addLayout(okCancelLay)
+#         mainLay.setMargin(30)
+#         mainWidget.setLayout(mainLay)
+#         mainWidget.setStyleSheet(constants.BACKGROUND_WHITE)
+#         lay.addWidget(mainWidget)
+#         dial.setLayout(lay)
+#         dial.setStyleSheet(constants.VIOLET_BACKGROUND)
+#         if dial.exec_() == QtGui.QDialog.Accepted:
+#             newIndex = comboAvailableFields.currentIndex()
+#             fieldString = sortedFields[newIndex]
+#             fieldName = stringFieldRel.get(fieldString)
+#             fieldDefinition = self.advancedFilterFields[fieldName]
+#             fieldType = fieldDefinition.get('type', '')
+#             value = unicode(mainLineEditWidget.text())
+#             odooCondition = []
+#             if fieldType in ['char', 'many2one', 'text', 'one2many', 'many2many']:
+#                 operatorIndex = comboCharOperator.currentIndex()
+#                 interfaceVal = comboValues[operatorIndex]
+#                 if interfaceVal == 'Contains':
+#                     odooCondition = [(fieldName, 'ilike', value)]
+#                 elif interfaceVal == "Doesn't contains":
+#                     odooCondition = [(fieldName, 'not ilike', value)]
+#                 elif interfaceVal == 'Is equal to':
+#                     odooCondition = [(fieldName,'=', value)]
+#                 elif interfaceVal == 'Is not equal to':
+#                     odooCondition = [(fieldName,'!=', value)]
+#                 elif interfaceVal == 'Is set':
+#                     odooCondition = [(fieldName, '!=', False), '|', (fieldName, '!=', '')]
+#                 elif interfaceVal == 'Is not set':
+#                     odooCondition = [(fieldName, '=', False), '|', (fieldName, '=', '')]
+#             elif fieldType == 'boolean':
+#                 operatorIndex = comboBoolOperator.currentIndex()
+#                 interfaceVal = comboBoolValues[operatorIndex]
+#                 if interfaceVal == 'Is true':
+#                     odooCondition = [(fieldName,'=', True)]
+#                     value = True
+#                 elif interfaceVal == 'Is false':
+#                     odooCondition = [(fieldName,'=', False)]
+#                     value = True
+#             elif fieldType == 'float':
+#                 try:
+#                     floatVal = float(value)
+#                 except Exception:
+#                     utils.launchMessage('Wrong value for float field!', 'warning')
+#                     return
+#                 operatorIndex = comboFloatOperator.currentIndex()
+#                 interfaceVal = comboFloatValues[operatorIndex]
+#                 if interfaceVal == 'Is equal to':
+#                     odooCondition = [(fieldName,'=', floatVal)]
+#                 elif interfaceVal == 'Is not equal to':
+#                     odooCondition = [(fieldName,'!=', floatVal)]
+#                 elif interfaceVal == 'Greater than':
+#                     odooCondition = [(fieldName,'>', floatVal)]
+#                 elif interfaceVal == 'Less than':
+#                     odooCondition = [(fieldName,'<', floatVal)]
+#                 elif interfaceVal == 'Greater than or equal to':
+#                     odooCondition = [(fieldName,'>=', floatVal)]
+#                 elif interfaceVal == 'Less then or equal to':
+#                     odooCondition = [(fieldName,'<=', floatVal)]
+#                 elif interfaceVal == 'Is set':
+#                     odooCondition = [(fieldName,'!=', False), '|', (fieldName, '!=', 0)]
+#                 elif interfaceVal == 'Is not set':
+#                     odooCondition = [(fieldName,'=', False), '|', (fieldName, '=', 0)]
+#                 value = floatVal
+#             elif fieldType == 'date':
+#                 value = unicode(dateWidget.date().toPyDate())
+#                 operatorIndex = comboDatetimeOperator.currentIndex()
+#                 interfaceVal = comboDatetimeValues[operatorIndex]
+#                 if interfaceVal == 'Is equal to':
+#                     odooCondition = [(fieldName,'=', value)]
+#                 elif interfaceVal == 'Is not equal to':
+#                     odooCondition = [(fieldName,'!=', value)]
+#                 elif interfaceVal == 'Greater than':
+#                     odooCondition = [(fieldName,'>', value)]
+#                 elif interfaceVal == 'Less than':
+#                     odooCondition = [(fieldName,'<', value)]
+#                 elif interfaceVal == 'Greater than or equal to':
+#                     odooCondition = [(fieldName,'>=', value)]
+#                 elif interfaceVal == 'Less then or equal to':
+#                     odooCondition = [(fieldName,'<=', value)]
+#                 elif interfaceVal == 'Is set':
+#                     odooCondition = [(fieldName,'!=', False), '|', (fieldName, '!=', 0)]
+#                 elif interfaceVal == 'Is not set':
+#                     odooCondition = [(fieldName,'=', False), '|', (fieldName, '=', 0)]
+#             elif fieldType == 'datetime':
+#                 operatorIndex = comboDatetimeOperator.currentIndex()
+#                 value = unicode(datetimeWidget.dateTime().toPyDateTime())
+#                 interfaceVal = comboDatetimeValues[operatorIndex]
+#                 if interfaceVal == 'Is equal to':
+#                     odooCondition = [(fieldName,'=', value)]
+#                 elif interfaceVal == 'Is not equal to':
+#                     odooCondition = [(fieldName,'!=', value)]
+#                 elif interfaceVal == 'Greater than':
+#                     odooCondition = [(fieldName,'>', value)]
+#                 elif interfaceVal == 'Less than':
+#                     odooCondition = [(fieldName,'<', value)]
+#                 elif interfaceVal == 'Greater than or equal to':
+#                     odooCondition = [(fieldName,'>=', value)]
+#                 elif interfaceVal == 'Less then or equal to':
+#                     odooCondition = [(fieldName,'<=', value)]
+#                 elif interfaceVal == 'Is set':
+#                     odooCondition = [(fieldName,'!=', False), '|', (fieldName, '!=', 0)]
+#                 elif interfaceVal == 'Is not set':
+#                     odooCondition = [(fieldName,'=', False), '|', (fieldName, '=', 0)]
+#             elif fieldType == 'integer':
+#                 operatorIndex = comboFloatOperator.currentIndex()
+#                 value = integerSpinboxWidget.value()
+#                 interfaceVal = comboFloatValues[operatorIndex]
+#                 if interfaceVal == 'Is equal to':
+#                     odooCondition = [(fieldName,'=', value)]
+#                 elif interfaceVal == 'Is not equal to':
+#                     odooCondition = [(fieldName,'!=', value)]
+#                 elif interfaceVal == 'Greater than':
+#                     odooCondition = [(fieldName,'>', value)]
+#                 elif interfaceVal == 'Less than':
+#                     odooCondition = [(fieldName,'<', value)]
+#                 elif interfaceVal == 'Greater than or equal to':
+#                     odooCondition = [(fieldName,'>=', value)]
+#                 elif interfaceVal == 'Less then or equal to':
+#                     odooCondition = [(fieldName,'<=', value)]
+#                 elif interfaceVal == 'Is set':
+#                     odooCondition = [(fieldName,'!=', False), '|', (fieldName, '!=', 0)]
+#                 elif interfaceVal == 'Is not set':
+#                     odooCondition = [(fieldName,'=', False), '|', (fieldName, '=', 0)]
+#             if odooCondition:
+#                 intFieldName = fieldDefinition.get('string', fieldName)
+#                 interfaceStr = '%s %s "%s"' % (intFieldName, interfaceVal, value)
+#                 fieldCustomObj = FieldObjCustom()
+#                 fieldCustomObj.conditionComputedFilter = odooCondition
+#                 fieldCustomObj.domain = odooCondition
+#                 fieldCustomObj.interfaceString = interfaceStr
+#                 fieldCustomObj.interfaceStringWithValue = interfaceStr
+#                 filterTuple = (self.filterMode, fieldCustomObj)
+#                 self.outFilters.append(filterTuple)
+#                 self.addFilterInterface(interfaceStr, self.filterMode, filterTuple)
 
     def removeCustomTag(self, removeButton, labelOperator, labelText, fieldCustomObj):
         if fieldCustomObj in self.customFilters:
