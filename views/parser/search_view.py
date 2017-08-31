@@ -194,7 +194,14 @@ class SearchView(object):
             evalDomain = self.evaluateCondition(evalDomain)
         except Exception, ex:
             logging.error('Unable to compute domain %r. EX: %r' % (fieldAttributes.get('domain', ''), ex))
-        filterObj.domain = evalDomain
+        operators = []
+        conds = []
+        for elem in evalDomain:
+            if isinstance(elem, (list, tuple)):
+                conds.append(elem)
+            else:
+                operators.append(elem)
+        filterObj.condition = operators + conds
         filterObj.string = fieldAttributes.get('string', '')
         filterObj.help = fieldAttributes.get('help', '')
         filterObj.conditionComputedFilter = evalDomain
@@ -220,6 +227,7 @@ class SearchView(object):
                 self.removeFilter(filterObj)
             else:   # Check the filter
                 self.addFilter(filterObj)
+            self.launchFilterChanged()
         else:
             logging.warning('Unable to find filter for string %r' % (stringOption))
     
@@ -564,7 +572,7 @@ class CustomQCompleter(QtGui.QCompleter):
 
 class FilterObj(object):
     def __init__(self):
-        self.domain = []
+        self.condition = []
         self.string = ''
         self.help = ''
         self.interfaceString = ''
@@ -584,7 +592,7 @@ class FieldObj(object):
 class FieldObjCustom(object):
     def __init__(self):
         self.string = ''
-        self.domain = []
+        self.condition = []
         self.interfaceString = ''
 
 class Condition():
