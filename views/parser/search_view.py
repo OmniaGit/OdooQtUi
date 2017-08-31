@@ -377,22 +377,24 @@ class SearchView(object):
     # This section is dedicated to advanced custom filter
 
     def acceptDialAnd(self):
-        silgleFieldLay = self.getSingleFieldLayoutCustom()
-        self.conditionsCustomLay.addLayout(silgleFieldLay)
+        singleFieldLay = self.getSingleFieldLayoutCustom()
+        self.customFiltersAdded.append(singleFieldLay)
+        self.conditionsCustomLay.addLayout(singleFieldLay)
         self.filterMode = '&'
         self.orButton.setHidden(True)   # Not allow user to filter in different modes in the same time
 
     def acceptDialOr(self):
         self.filterMode = '|'
-        silgleFieldLay = self.getSingleFieldLayoutCustom()
-        self.conditionsCustomLay.addLayout(silgleFieldLay)
+        singleFieldLay = self.getSingleFieldLayoutCustom()
+        self.customFiltersAdded.append(singleFieldLay)
+        self.conditionsCustomLay.addLayout(singleFieldLay)
         self.andButton.setHidden(True)   # Not allow user to filter in different modes in the same time
 
     def rejectDial(self):
+        self.customFiltersAdded = []
         self.dialCustomFilter.reject()
 
     def applyCustomFilter(self):
-        
         self.dialCustomFilter.accept()
         
     def getButtonsLay(self):
@@ -425,10 +427,12 @@ class SearchView(object):
         return singleFieldLay
 
     def removeCustomFilter(self, layoutToRemove):
+        if layoutToRemove in self.customFiltersAdded:
+            self.customFiltersAdded.remove(layoutToRemove)
         self.clearQLayoutChildren(layoutToRemove)
         
     def customAdvancedFilter(self):
-        self.customLastFieldLayout = None
+        self.customFiltersAdded = []
         self.filterMode = '&'
         self.dialCustomFilter = QtGui.QDialog()
         lay = QtGui.QVBoxLayout()
@@ -440,6 +444,7 @@ class SearchView(object):
         self.scrollWidget = QtGui.QWidget()
         self.conditionsCustomLay = QtGui.QVBoxLayout()
         singleFieldLay = self.getSingleFieldLayoutCustom()
+        self.customFiltersAdded.append(singleFieldLay)
         buttonsLay = self.getButtonsLay()
         
         
@@ -458,8 +463,17 @@ class SearchView(object):
         
         self.dialCustomFilter.resize(500, 450)
         if self.dialCustomFilter.exec_() == QtGui.QDialog.Accepted:
-            pass
-        
+            conditions = []
+            operators = []
+            interfaceStringSum = ''
+            for layoutObj in self.customFiltersAdded:
+                condition, interfaceString = layoutObj.getSingleCondition()
+                interfaceStringSum = interfaceStringSum + interfaceString + '\n'
+                conditions.append(condition)
+                operators.append(self.filterMode)
+            globalCondition = operators + conditions
+            self.addCondition(globalCondition, interfaceStringSum)
+            
         
         
         
@@ -477,16 +491,16 @@ class SearchView(object):
 #         centerLay.addWidget(comboAvailableFields)
 #         
         # char
-        comboCharOperator.addItems(comboValues)
-        centerLay.addWidget(comboCharOperator)
-        # bool
-        comboBoolOperator.addItems(comboBoolValues)
-        centerLay.addWidget(comboBoolOperator)
-        # float
-        comboFloatOperator.addItems(comboFloatValues)
-        centerLay.addWidget(comboFloatOperator)
-        # integer
-        centerLay.addWidget(integerSpinboxWidget)
+#         comboCharOperator.addItems(comboValues)
+#         centerLay.addWidget(comboCharOperator)
+#         # bool
+#         comboBoolOperator.addItems(comboBoolValues)
+#         centerLay.addWidget(comboBoolOperator)
+#         # float
+#         comboFloatOperator.addItems(comboFloatValues)
+#         centerLay.addWidget(comboFloatOperator)
+#         # integer
+#         centerLay.addWidget(integerSpinboxWidget)
 #         # datetime
 #         comboDatetimeValues = comboFloatValues
 #         comboDatetimeValues.append('Is between')
@@ -810,7 +824,7 @@ class QVBoxLayCustom(QtGui.QVBoxLayout):
         self.mainWidget = QtGui.QWidget()
         self.removeLay = QtGui.QHBoxLayout()
         self.mainLay = QtGui.QVBoxLayout()
-        
+
         self.advancedFilterFields = advancedFilterFields
         # Remove button
         self.removeButton = QtGui.QPushButton('X')
@@ -851,16 +865,16 @@ class QVBoxLayCustom(QtGui.QVBoxLayout):
         self.widgetsLay.addWidget(self.datetimeWidget)
         self.widgetsLay.addWidget(self.integerSpinboxWidget)
         
-        comboValues = ['Contains', "Doesn't contains", 'Is equal to', 'Is not equal to', 'Is set', 'Is not set']
-        comboBoolValues = ['Is true', 'Is false']
-        comboFloatValues = ['Is equal to', 'Is not equal to', 'Greater than', 'Less than', 'Greater than or equal to',
+        self.comboValues = ['Contains', "Doesn't contains", 'Is equal to', 'Is not equal to', 'Is set', 'Is not set']
+        self.comboBoolValues = ['Is true', 'Is false']
+        self.comboFloatValues = ['Is equal to', 'Is not equal to', 'Greater than', 'Less than', 'Greater than or equal to',
                             'Less then or equal to', 'Is set', 'Is not set']
-        comboDatetimeValues = comboFloatValues
-        comboDatetimeValues.append('Is between')
-        self.comboDatetimeOperator.addItems(comboDatetimeValues)
-        self.comboBoolOperator.addItems(comboBoolValues)
-        self.comboFloatOperator.addItems(comboFloatValues)
-        self.comboCharOperator.addItems(comboValues)
+        self.comboDatetimeValues = self.comboFloatValues
+        self.comboDatetimeValues.append('Is between')
+        self.comboDatetimeOperator.addItems(self.comboDatetimeValues)
+        self.comboBoolOperator.addItems(self.comboBoolValues)
+        self.comboFloatOperator.addItems(self.comboFloatValues)
+        self.comboCharOperator.addItems(self.comboValues)
         self.hideAll()
 
         self.mainLay.addLayout(self.widgetsLay)
@@ -871,7 +885,15 @@ class QVBoxLayCustom(QtGui.QVBoxLayout):
         self.addWidget(self.mainWidget)
         
         self.mainWidget.setStyleSheet(constants.BACKGROUND_LIGHT_BLUE)
+
+    def getSelectedFieldName(self):
+        comboIndex = self.combo.currentIndex()
+        fieldString = self.comboFieldsList[comboIndex]
+        return self.stringFieldRel[fieldString]
         
+    def getSingleCondition(self):
+        fieldName = self.getSelectedFieldName()
+        return self.getCondition(fieldName)
         
     def fieldsCustomComboChanged(self, newIndex):
         self.removeButton.setHidden(False)
@@ -897,6 +919,24 @@ class QVBoxLayCustom(QtGui.QVBoxLayout):
         elif fieldType == 'integer':
             self.comboFloatOperator.setHidden(False)
             self.integerSpinboxWidget.setHidden(False)
+
+    def getValue(self, fieldType):
+        if fieldType in ['char', 'many2one', 'text', 'one2many', 'many2many']:
+            return unicode(self.mainLineEditWidget.text())
+        elif fieldType == 'boolean':
+            return ''
+        elif fieldType == 'date':
+            return unicode(self.dateWidget.date().toPyDate())
+        elif fieldType == 'datetime':
+            return unicode(self.datetimeWidget.dateTime().toPyDateTime())
+        elif fieldType == 'integer':
+            return self.integerSpinboxWidget.value()
+        elif fieldType == 'float':
+            try:
+                return float(unicode(self.mainLineEditWidget.text()))
+            except Exception:
+                utils.launchMessage('Wrong value for float field!', 'warning')
+                return 0
 
     def hideAll(self):
         self.comboCharOperator.setHidden(True)
@@ -931,3 +971,113 @@ class QVBoxLayCustom(QtGui.QVBoxLayout):
             comboAllFields.addItem(fieldString)
         comboAllFields.currentIndexChanged.connect(self.fieldsCustomComboChanged)
         return comboAllFields
+
+    def getCondition(self, fieldName):
+        fieldDefinition = self.advancedFilterFields[fieldName]
+        fieldType = fieldDefinition.get('type', '')
+        value = self.getValue(fieldType)
+        if fieldType in ['char', 'many2one', 'text', 'one2many', 'many2many']:
+            operatorIndex = self.comboCharOperator.currentIndex()
+            interfaceVal = self.comboValues[operatorIndex]
+            if interfaceVal == 'Contains':
+                return [(fieldName, 'ilike', value)]
+            elif interfaceVal == "Doesn't contains":
+                return [(fieldName, 'not ilike', value)]
+            elif interfaceVal == 'Is equal to':
+                return [(fieldName,'=', value)]
+            elif interfaceVal == 'Is not equal to':
+                return [(fieldName,'!=', value)]
+            elif interfaceVal == 'Is set':
+                return [(fieldName, '!=', False), '|', (fieldName, '!=', '')]
+            elif interfaceVal == 'Is not set':
+                return [(fieldName, '=', False), '|', (fieldName, '=', '')]
+        elif fieldType == 'boolean':
+            operatorIndex = self.comboBoolOperator.currentIndex()
+            interfaceVal = self.comboBoolValues[operatorIndex]
+            if interfaceVal == 'Is true':
+                return [(fieldName,'=', True)]
+            elif interfaceVal == 'Is false':
+                return [(fieldName,'=', False)]
+        elif fieldType == 'float':
+            operatorIndex = self.comboFloatOperator.currentIndex()
+            interfaceVal = self.comboFloatValues[operatorIndex]
+            if interfaceVal == 'Is equal to':
+                return [(fieldName,'=', value)]
+            elif interfaceVal == 'Is not equal to':
+                return [(fieldName,'!=', value)]
+            elif interfaceVal == 'Greater than':
+                return [(fieldName,'>', value)]
+            elif interfaceVal == 'Less than':
+                return [(fieldName,'<', value)]
+            elif interfaceVal == 'Greater than or equal to':
+                return [(fieldName,'>=', value)]
+            elif interfaceVal == 'Less then or equal to':
+                return [(fieldName,'<=', value)]
+            elif interfaceVal == 'Is set':
+                return [(fieldName,'!=', False), '|', (fieldName, '!=', 0)]
+            elif interfaceVal == 'Is not set':
+                return [(fieldName,'=', False), '|', (fieldName, '=', 0)]
+        elif fieldType == 'date':
+            operatorIndex = self.comboDatetimeOperator.currentIndex()
+            interfaceVal = self.comboDatetimeValues[operatorIndex]
+            if interfaceVal == 'Is equal to':
+                return [(fieldName,'=', value)]
+            elif interfaceVal == 'Is not equal to':
+                return [(fieldName,'!=', value)]
+            elif interfaceVal == 'Greater than':
+                return [(fieldName,'>', value)]
+            elif interfaceVal == 'Less than':
+                return [(fieldName,'<', value)]
+            elif interfaceVal == 'Greater than or equal to':
+                return [(fieldName,'>=', value)]
+            elif interfaceVal == 'Less then or equal to':
+                return [(fieldName,'<=', value)]
+            elif interfaceVal == 'Is set':
+                return [(fieldName,'!=', False), '|', (fieldName, '!=', 0)]
+            elif interfaceVal == 'Is not set':
+                return [(fieldName,'=', False), '|', (fieldName, '=', 0)]
+        elif fieldType == 'datetime':
+            operatorIndex = self.comboDatetimeOperator.currentIndex()
+            interfaceVal = self.comboDatetimeValues[operatorIndex]
+            if interfaceVal == 'Is equal to':
+                return [(fieldName,'=', value)]
+            elif interfaceVal == 'Is not equal to':
+                return [(fieldName,'!=', value)]
+            elif interfaceVal == 'Greater than':
+                return [(fieldName,'>', value)]
+            elif interfaceVal == 'Less than':
+                return [(fieldName,'<', value)]
+            elif interfaceVal == 'Greater than or equal to':
+                return [(fieldName,'>=', value)]
+            elif interfaceVal == 'Less then or equal to':
+                return [(fieldName,'<=', value)]
+            elif interfaceVal == 'Is set':
+                return [(fieldName,'!=', False), '|', (fieldName, '!=', 0)]
+            elif interfaceVal == 'Is not set':
+                return [(fieldName,'=', False), '|', (fieldName, '=', 0)]
+        elif fieldType == 'integer':
+            operatorIndex = self.comboFloatOperator.currentIndex()
+            interfaceVal = self.comboFloatValues[operatorIndex]
+            if interfaceVal == 'Is equal to':
+                return [(fieldName,'=', value)]
+            elif interfaceVal == 'Is not equal to':
+                return [(fieldName,'!=', value)]
+            elif interfaceVal == 'Greater than':
+                return [(fieldName,'>', value)]
+            elif interfaceVal == 'Less than':
+                return [(fieldName,'<', value)]
+            elif interfaceVal == 'Greater than or equal to':
+                return [(fieldName,'>=', value)]
+            elif interfaceVal == 'Less then or equal to':
+                return [(fieldName,'<=', value)]
+            elif interfaceVal == 'Is set':
+                return [(fieldName,'!=', False), '|', (fieldName, '!=', 0)]
+            elif interfaceVal == 'Is not set':
+                return [(fieldName,'=', False), '|', (fieldName, '=', 0)]
+        return []
+        
+
+
+
+
+
