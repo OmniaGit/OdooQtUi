@@ -421,7 +421,11 @@ class SearchView(object):
         
     def getSingleFieldLayoutCustom(self):
         singleFieldLay = QVBoxLayCustom(self.advancedFilterFields)
+        singleFieldLay.removeButton.clicked.connect(partial(self.removeCustomFilter, singleFieldLay))
         return singleFieldLay
+
+    def removeCustomFilter(self, layoutToRemove):
+        self.clearQLayoutChildren(layoutToRemove)
         
     def customAdvancedFilter(self):
         self.customLastFieldLayout = None
@@ -431,6 +435,9 @@ class SearchView(object):
         mainWidget = QtGui.QWidget()
         mainLay = QtGui.QVBoxLayout()
         
+        self.scroll = QtGui.QScrollArea()
+        self.scroll.setWidgetResizable(True)
+        self.scrollWidget = QtGui.QWidget()
         self.conditionsCustomLay = QtGui.QVBoxLayout()
         singleFieldLay = self.getSingleFieldLayoutCustom()
         buttonsLay = self.getButtonsLay()
@@ -439,7 +446,9 @@ class SearchView(object):
         self.conditionsCustomLay.addLayout(singleFieldLay)
         self.conditionsCustomLay.setSpacing(20)
         self.conditionsCustomLay.setMargin(20)
-        mainLay.addLayout(self.conditionsCustomLay)
+        self.scrollWidget.setLayout(self.conditionsCustomLay)
+        self.scroll.setWidget(self.scrollWidget)
+        mainLay.addWidget(self.scroll)
         mainLay.addLayout(buttonsLay)
         mainWidget.setLayout(mainLay)
         mainWidget.setStyleSheet(constants.BACKGROUND_WHITE)
@@ -447,6 +456,7 @@ class SearchView(object):
         self.dialCustomFilter.setLayout(lay)
         self.dialCustomFilter.setStyleSheet(constants.VIOLET_BACKGROUND)
         
+        self.dialCustomFilter.resize(500, 450)
         if self.dialCustomFilter.exec_() == QtGui.QDialog.Accepted:
             pass
         
@@ -702,24 +712,6 @@ class SearchView(object):
         for operator, fieldObj in self.outFilters:
             outFilters.append(operator)
             outFilters.extend(fieldObj.conditionComputedFilter)
-#         if self.customFilters:
-#             void = False
-#             if not outFilters:
-#                 void = True
-#             for filterCustomObj in self.customFilters:
-#                 outFilters.extend(filterCustomObj.domain)
-#             if void:
-#                 outFilters = outFilters[1:]
-#         if self.conditionFilters:
-#             if outFilters:
-#                 outFilters.append('&')
-#             for elem in self.conditionFilters:
-#                 if isinstance(elem, (str, unicode)):
-#                     outFilters.append(elem)
-#                 elif isinstance(elem, FilterObj):
-#                     outFilters.extend(elem.domain)
-#                 else:
-#                     logging.warning('[launchFilterChanged] Cannot evaluate element %r' % (elem))
         self.tmpFields = []
         if self.parent:
             self.parent.filter_changed_signal.emit(outFilters)
