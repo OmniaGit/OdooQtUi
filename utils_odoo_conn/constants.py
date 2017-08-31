@@ -7,6 +7,8 @@ Created on 17 Feb 2017
 VIOLET_BACKGROUND = 'background-color:#893b74;'
 BACKGROUND_RED = 'background-color:#f7a5a5;'
 BACKGROUND_WHITE = 'background-color:white;'
+BACKGROUND_GREY = 'background-color:#dfd9d9;'
+BACKGROUND_LIGHT_BLUE = 'background-color: #cdd6fc;'
 READONLY_STYLE = 'background-color:#ebebeb;'
 COMMON_FIELDS_REQUIRED_BACKGROUND = 'background-color: rgb(210,210,255)'
 

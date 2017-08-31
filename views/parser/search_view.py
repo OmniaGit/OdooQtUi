@@ -376,68 +376,6 @@ class SearchView(object):
 
     # This section is dedicated to advanced custom filter
 
-    def fieldsCustomComboChanged(self, indexChanged):
-        fieldStr = self.comboFieldsList[indexChanged]
-        fieldNameSelected = self.stringFieldRel.get(fieldStr, '')
-        fieldDefinition = self.advancedFilterFields[fieldNameSelected]
-        fieldType = fieldDefinition.get('type', '')
-        if fieldType in ['char', 'many2one', 'text', 'one2many', 'many2many']:
-            comboCharOperator = QtGui.QComboBox()
-            comboCharOperator.setStyleSheet(constants.LOGIN_COMBO_STYLE)
-            mainLineEditWidget = QtGui.QLineEdit()
-            self.customLastFieldLayout.addWidget(comboCharOperator)
-            self.customLastFieldLayout.addWidget(mainLineEditWidget)
-        elif fieldType == 'boolean':
-            comboBoolOperator = QtGui.QComboBox()
-            comboBoolOperator.setStyleSheet(constants.LOGIN_COMBO_STYLE)
-            self.customLastFieldLayout.addWidget(comboBoolOperator)
-        elif fieldType == 'float':
-            comboFloatOperator = QtGui.QComboBox()
-            comboFloatOperator.setStyleSheet(constants.LOGIN_COMBO_STYLE)
-            mainLineEditWidget = QtGui.QLineEdit()
-            self.customLastFieldLayout.addWidget(comboFloatOperator)
-            self.customLastFieldLayout.addWidget(mainLineEditWidget)
-        elif fieldType == 'date':
-            dateWidget = QtGui.QDateEdit()
-            comboDatetimeOperator = QtGui.QComboBox()
-            comboDatetimeOperator.setStyleSheet(constants.LOGIN_COMBO_STYLE)
-            self.customLastFieldLayout.addWidget(comboDatetimeOperator)
-            self.customLastFieldLayout.addWidget(dateWidget)
-        elif fieldType == 'datetime':
-            datetimeWidget = QtGui.QDateTimeEdit()
-            comboDatetimeOperator = QtGui.QComboBox()
-            comboDatetimeOperator.setStyleSheet(constants.LOGIN_COMBO_STYLE)
-            self.customLastFieldLayout.addWidget(comboDatetimeOperator)
-            self.customLastFieldLayout.addWidget(datetimeWidget)
-        elif fieldType == 'integer':
-            comboFloatOperator = QtGui.QComboBox()
-            integerSpinboxWidget = QtGui.QSpinBox()
-            self.customLastFieldLayout.addWidget(comboFloatOperator)
-            self.customLastFieldLayout.addWidget(integerSpinboxWidget)
-
-    def getComboFields(self):
-        # Fields combo
-        sortedFields = []
-        self.stringFieldRel = {}
-        comboAllFields = QtGui.QComboBox()
-        comboAllFields.setStyleSheet(constants.LOGIN_COMBO_STYLE)
-        
-        for fieldName in self.advancedFilterFields.keys():
-            fieldDefinition = self.advancedFilterFields.get(fieldName)
-            fieldString = fieldDefinition.get('string', '')
-            fieldType = fieldDefinition.get('type', '')
-            if fieldType == 'binary':
-                continue
-            sortedFields.append(fieldString)
-            self.stringFieldRel[fieldString] = fieldName
-        
-        sortedFields.sort()
-        self.comboFieldsList = sortedFields
-        for fieldString in sortedFields:
-            comboAllFields.addItem(fieldString)
-        comboAllFields.currentIndexChanged.connect(self.fieldsCustomComboChanged)
-        return comboAllFields
-
     def acceptDialAnd(self):
         silgleFieldLay = self.getSingleFieldLayoutCustom()
         self.conditionsCustomLay.addLayout(silgleFieldLay)
@@ -482,11 +420,7 @@ class SearchView(object):
         return okCancelLay
         
     def getSingleFieldLayoutCustom(self):
-        singleFieldLay = QtGui.QVBoxLayout()
-        self.customLastFieldLayout = singleFieldLay
-        comboWidget = self.getComboFields()
-        singleFieldLay.addWidget(comboWidget)
-        
+        singleFieldLay = QVBoxLayCustom(self.advancedFilterFields)
         return singleFieldLay
         
     def customAdvancedFilter(self):
@@ -503,6 +437,8 @@ class SearchView(object):
         
         
         self.conditionsCustomLay.addLayout(singleFieldLay)
+        self.conditionsCustomLay.setSpacing(20)
+        self.conditionsCustomLay.setMargin(20)
         mainLay.addLayout(self.conditionsCustomLay)
         mainLay.addLayout(buttonsLay)
         mainWidget.setLayout(mainLay)
@@ -530,17 +466,17 @@ class SearchView(object):
 #         centerLay = QtGui.QVBoxLayout()
 #         centerLay.addWidget(comboAvailableFields)
 #         
-#         # char
-#         comboCharOperator.addItems(comboValues)
-#         centerLay.addWidget(comboCharOperator)
-#         # bool
-#         comboBoolOperator.addItems(comboBoolValues)
-#         centerLay.addWidget(comboBoolOperator)
-#         # float
-#         comboFloatOperator.addItems(comboFloatValues)
-#         centerLay.addWidget(comboFloatOperator)
-#         # integer
-#         centerLay.addWidget(integerSpinboxWidget)
+        # char
+        comboCharOperator.addItems(comboValues)
+        centerLay.addWidget(comboCharOperator)
+        # bool
+        comboBoolOperator.addItems(comboBoolValues)
+        centerLay.addWidget(comboBoolOperator)
+        # float
+        comboFloatOperator.addItems(comboFloatValues)
+        centerLay.addWidget(comboFloatOperator)
+        # integer
+        centerLay.addWidget(integerSpinboxWidget)
 #         # datetime
 #         comboDatetimeValues = comboFloatValues
 #         comboDatetimeValues.append('Is between')
@@ -875,4 +811,131 @@ class Condition():
         self.condition = ''
         self.intString = ''
         
+class QVBoxLayCustom(QtGui.QVBoxLayout):
+    
+    def __init__(self, advancedFilterFields):
+        super(QVBoxLayCustom, self).__init__()
+        self.mainWidget = QtGui.QWidget()
+        self.removeLay = QtGui.QHBoxLayout()
+        self.mainLay = QtGui.QVBoxLayout()
         
+        self.advancedFilterFields = advancedFilterFields
+        # Remove button
+        self.removeButton = QtGui.QPushButton('X')
+        self.removeButton.setHidden(True)
+        self.removeButton.setStyleSheet(constants.LOGIN_CANCEL_BUTTON + 'max-height:15px; max-width:7px;height:15px; width:7px;font-weight:bold;')
+        self.spacer = QtGui.QSpacerItem(0, 0, QtGui.QSizePolicy.MinimumExpanding)
+        
+        # Fields
+        self.widgetsLay = QtGui.QVBoxLayout()
+        self.combo = self.getComboFields()
+        self.widgetsLay.addWidget(self.combo)
+
+        # Create fields widgets
+        self.comboCharOperator = QtGui.QComboBox()
+        self.comboBoolOperator = QtGui.QComboBox()
+        self.comboFloatOperator = QtGui.QComboBox()
+        self.comboDatetimeOperator = QtGui.QComboBox()
+        self.mainLineEditWidget = QtGui.QLineEdit()
+        self.dateWidget = QtGui.QDateEdit()
+        self.datetimeWidget = QtGui.QDateTimeEdit()
+        self.integerSpinboxWidget = QtGui.QSpinBox()
+        
+        self.comboCharOperator.setStyleSheet(constants.LOGIN_COMBO_STYLE)
+        self.comboBoolOperator.setStyleSheet(constants.LOGIN_COMBO_STYLE)
+        self.comboFloatOperator.setStyleSheet(constants.LOGIN_COMBO_STYLE)
+        self.comboDatetimeOperator.setStyleSheet(constants.LOGIN_COMBO_STYLE)
+        self.mainLineEditWidget.setStyleSheet(constants.LOGIN_LINEEDIT_STYLE)
+        self.dateWidget.setStyleSheet(constants.LOGIN_LINEEDIT_STYLE)
+        self.datetimeWidget.setStyleSheet(constants.LOGIN_LINEEDIT_STYLE)
+        self.integerSpinboxWidget.setStyleSheet(constants.LOGIN_LINEEDIT_STYLE)
+        
+        self.widgetsLay.addWidget(self.comboCharOperator)
+        self.widgetsLay.addWidget(self.comboBoolOperator)
+        self.widgetsLay.addWidget(self.comboFloatOperator)
+        self.widgetsLay.addWidget(self.comboDatetimeOperator)
+        self.widgetsLay.addWidget(self.mainLineEditWidget)
+        self.widgetsLay.addWidget(self.dateWidget)
+        self.widgetsLay.addWidget(self.datetimeWidget)
+        self.widgetsLay.addWidget(self.integerSpinboxWidget)
+        
+        comboValues = ['Contains', "Doesn't contains", 'Is equal to', 'Is not equal to', 'Is set', 'Is not set']
+        comboBoolValues = ['Is true', 'Is false']
+        comboFloatValues = ['Is equal to', 'Is not equal to', 'Greater than', 'Less than', 'Greater than or equal to',
+                            'Less then or equal to', 'Is set', 'Is not set']
+        comboDatetimeValues = comboFloatValues
+        comboDatetimeValues.append('Is between')
+        self.comboDatetimeOperator.addItems(comboDatetimeValues)
+        self.comboBoolOperator.addItems(comboBoolValues)
+        self.comboFloatOperator.addItems(comboFloatValues)
+        self.comboCharOperator.addItems(comboValues)
+        self.hideAll()
+
+        self.mainLay.addLayout(self.widgetsLay)
+        
+        self.removeLay.addLayout(self.mainLay)
+        self.removeLay.addWidget(self.removeButton)
+        self.mainWidget.setLayout(self.removeLay)
+        self.addWidget(self.mainWidget)
+        
+        self.mainWidget.setStyleSheet(constants.BACKGROUND_LIGHT_BLUE)
+        
+        
+    def fieldsCustomComboChanged(self, newIndex):
+        self.removeButton.setHidden(False)
+        fieldString = self.comboFieldsList[newIndex]
+        fieldName = self.stringFieldRel.get(fieldString)
+        fieldDefinition = self.advancedFilterFields[fieldName]
+        fieldType = fieldDefinition.get('type', '')
+        self.hideAll()
+        if fieldType in ['char', 'many2one', 'text', 'one2many', 'many2many']:
+            self.comboCharOperator.setHidden(False)
+            self.mainLineEditWidget.setHidden(False)
+        elif fieldType == 'boolean':
+            self.comboBoolOperator.setHidden(False)
+        elif fieldType == 'float':
+            self.comboFloatOperator.setHidden(False)
+            self.mainLineEditWidget.setHidden(False)
+        elif fieldType == 'date':
+            self.dateWidget.setHidden(False)
+            self.comboDatetimeOperator.setHidden(False)
+        elif fieldType == 'datetime':
+            self.datetimeWidget.setHidden(False)
+            self.comboDatetimeOperator.setHidden(False)
+        elif fieldType == 'integer':
+            self.comboFloatOperator.setHidden(False)
+            self.integerSpinboxWidget.setHidden(False)
+
+    def hideAll(self):
+        self.comboCharOperator.setHidden(True)
+        self.mainLineEditWidget.setHidden(True)
+        self.comboBoolOperator.setHidden(True)
+        self.comboFloatOperator.setHidden(True)
+        self.integerSpinboxWidget.setHidden(True)
+        self.dateWidget.setHidden(True)
+        self.comboDatetimeOperator.setHidden(True)
+        self.datetimeWidget.setHidden(True)
+        self.mainLineEditWidget.setText('')
+
+    def getComboFields(self):
+        # Fields combo
+        sortedFields = []
+        self.stringFieldRel = {}
+        comboAllFields = QtGui.QComboBox()
+        comboAllFields.setStyleSheet(constants.LOGIN_COMBO_STYLE)
+        
+        for fieldName in self.advancedFilterFields.keys():
+            fieldDefinition = self.advancedFilterFields.get(fieldName)
+            fieldString = fieldDefinition.get('string', '')
+            fieldType = fieldDefinition.get('type', '')
+            if fieldType == 'binary':
+                continue
+            sortedFields.append(fieldString)
+            self.stringFieldRel[fieldString] = fieldName
+        
+        sortedFields.sort()
+        self.comboFieldsList = sortedFields
+        for fieldString in sortedFields:
+            comboAllFields.addItem(fieldString)
+        comboAllFields.currentIndexChanged.connect(self.fieldsCustomComboChanged)
+        return comboAllFields
