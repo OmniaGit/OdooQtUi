@@ -7,6 +7,8 @@ Created on 17 Feb 2017
 VIOLET_BACKGROUND = 'background-color:#893b74;'
 BACKGROUND_RED = 'background-color:#f7a5a5;'
 BACKGROUND_WHITE = 'background-color:white;'
+BACKGROUND_GREY = 'background-color:#dfd9d9;'
+BACKGROUND_LIGHT_BLUE = 'background-color: #cdd6fc;'
 READONLY_STYLE = 'background-color:#ebebeb;'
 COMMON_FIELDS_REQUIRED_BACKGROUND = 'background-color: rgb(210,210,255)'
 
@@ -41,7 +43,7 @@ NOOTEBOOK_TABBAR_STYLE = 'QTabBar::tab:!selected {border: 3px solid grey;border-
 TABLE_LIST_LIST = """QScrollBar {background-color:#893b74} QTableWidget {border-left: 3px solid #893b74; border-right: 3px solid #893b74; border-bottom: 3px solid #893b74;}"""
 FONT_SIZE_LIST_WIDGET = 8
 
-TAG_TEXT_STYLE = 'background-color: #c5c5c5;color: black;padding: 0px 5px 0px 5px;font-size: large;max-width: 300px;border: 1px solid black;'
+TAG_TEXT_STYLE = 'background-color: #c5c5c5;color: black;padding: 0px 5px 0px 5px;font-size: large;max-width: 500px;border: 1px solid black;'
 TAG_BUTTON_STYLE = 'color: black;margin-left:20px;display: flex;padding: 0px 5px 0px 0px;font-size: large;background-color:#3eb2df' + BOLD_FONT
 
 

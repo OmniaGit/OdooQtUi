@@ -48,6 +48,8 @@ class TreeViewList(object):
             flagsDict = self.viewCheckBoxes
         utils.commonPopulateTable(self.orderedFields, [], self.tableWidget, flagsDict)
         mainVLay.addWidget(self.tableWidget)
+        self.tableWidget.horizontalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        self.tableWidget.horizontalHeader().setStyleSheet('::section {background-color:#a2b0ff;color:black;font-weight:bold;}')
         return mainVLay
 
     def appendToglobalMapping(self, key, value):

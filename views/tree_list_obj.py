@@ -132,6 +132,7 @@ class TemplateTreeListView(TemplateView):
         self.treeObj.tableWidget.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.treeObj.tableWidget.horizontalHeader().setStyleSheet(constants.MANY_2_MANY_H_HEADER)
         self.treeObj.tableWidget.verticalHeader().setVisible(False)
+        self.treeObj.tableWidget.horizontalHeader().setStyleSheet('::section {background-color:#a2b0ff;color:black;font-weight:bold;}')
 
     def _valueChanged(self, fieldName):
         fieldName = unicode(fieldName)

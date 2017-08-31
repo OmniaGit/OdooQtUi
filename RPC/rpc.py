@@ -78,7 +78,10 @@ class RpcConnection(object):
     def search(self, obj, filterList, limit=False, offset=False, context={}):
         localContext = self.contextUser
         localContext.update(context)
-        return self.sockInstance.search(obj, filterList, limit, offset, context=localContext)
+        res = self.sockInstance.search(obj, filterList, limit, offset, context=localContext)
+        if not res:
+            return []
+        return res
 
     def read(self, obj, fields, ids, context={}, limit=False):
         if not ids:

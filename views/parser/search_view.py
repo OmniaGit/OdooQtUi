@@ -21,23 +21,337 @@ SEARCH_FOR_STRING = 'Search "%s" for: "'
 class SearchView(object):
 
     def __init__(self, arch='', fieldsNameTypeRel={}, parent=False, searchMode='ilike', advancedFilterFields={}):
+        super(SearchView, self).__init__()
         self.searchMode = searchMode
         self.arch = arch
         self.parent = parent
-        super(SearchView, self).__init__()
-        self.filters = []   # list of objects "Filter" to filter in the tool button choice
-        # self.fieldsSearch = []  # list of objects "Field" to filter in the line edit
-        self.fieldsSearchTemplate = []  # Template fields for the qcompleter
-        self.fieldsSearch = []
         self.timers = []    # timers to add filters in delayed mode
-        self.fieldsNameTypeRel = fieldsNameTypeRel  # fields definition of the parent view
+        self.fieldsNameTypeRel = fieldsNameTypeRel  # Field definition of interface fields
+        self.advancedFilterFields = advancedFilterFields    # Field definition of ALL model fields
+
+        self.filters = [] # Filters in the combo and checkboxes
+        self.fieldsTemplate = [] # Filters in qCompleter
+        self.tmpFields = [] # All qcompleter fields created
+        self.outFilters = []
         
-        self.fieldFilters = []    # filters to be returned (came from fields)
-        self.conditionFilters = [] # filters came from tool button (came from filters)
-        self.customFilters = [] # filters came from custom dialog
+        self.tmpLayouts = []    # Temporary "or layouts" to delete when condition is confirmed
+        self.tmpLineEdits = []  # Temporary "or line edits" to read and delete
+        self.orPressed = False  # Flag to know if or flag has been pressed
         
-        # When signal of filter changed is emitted condition filter are appended to field filters and return the result
-        self.advancedFilterFields = advancedFilterFields
+        self.globalCondition = []   # List of conditions objects
+
+    def launchFilterChanged(self):
+        outFilters = []
+        for conditionObj in self.globalCondition:
+            outFilters.extend(conditionObj.condition)
+        print 'OutCondition %r' % (unicode(outFilters))
+        if self.parent:
+            self.parent.filter_changed_signal.emit(outFilters)
+
+    def applyCondition(self):
+        operators = []
+        conditionList = []
+        intString = ''
+        lineEditList = [self.linedit]
+        lineEditList.extend(self.tmpLineEdits)
+        for lineEdit in lineEditList:
+            text = unicode(lineEdit.text())
+            fieldObj = self.getTmpField(text)
+            conditionList.append(fieldObj.condition)
+            operators.append('|')
+            intString = intString + fieldObj.interfaceStringWithValue + '\nOr  '
+        intString = intString[:-4]
+        
+        condObj = self.addCondition(operators + conditionList, intString)
+        self.addFieldTag(condObj)
+        for lay in self.tmpLayouts:
+            self.clearQLayoutChildren(lay)
+        self.orPressed = False  # Restored to False the or flag
+        self.tmpLineEdits = []  # Cleared the ltmp lineedits widgets
+        self.linedit.setText('')
+        # lanciare evento di filtro cambiato
+
+    def addCondition(self, cond, intString):
+        conditionObj = Condition()
+        conditionObj.condition = cond
+        conditionObj.intString = intString
+        self.globalCondition.append(conditionObj)
+        return conditionObj
+
+    def removeCondition(self, conditionObj):
+        if conditionObj in self.globalCondition:
+            self.globalCondition.remove(conditionObj)
+
+    def orCondition(self):
+        self.orPressed = True
+        lineEditLay = QtGui.QHBoxLayout()
+        lineEdit = self.createCommonLineEdit()
+        lineEdit.setCompleter(self.completer)
+        orButton, applyButton = self.createCommonOrButton()
+        lineEditLay.addWidget(lineEdit)
+        lineEditLay.addWidget(orButton)
+        lineEditLay.addWidget(applyButton)
+        self.multipleConditionLay.addLayout(lineEditLay)
+        self.tmpLayouts.append(lineEditLay)
+        self.tmpLineEdits.append(lineEdit)
+
+    def createCommonLineEdit(self):
+        linedit = QtGui.QLineEdit()
+        linedit.textChanged.connect(self.textChangedEvent)
+        linedit.returnPressed.connect(self.returnPressedLocal)
+        return linedit
+
+    def createCommonOrButton(self):
+        orButton = QtGui.QPushButton('Or')
+        orButton.setStyleSheet(constants.BUTTON_STYLE)
+        orButton.clicked.connect(self.orCondition)
+        applyButton = QtGui.QPushButton('Apply')
+        applyButton.setStyleSheet(constants.BUTTON_STYLE)
+        applyButton.clicked.connect(self.applyCondition)
+        return orButton, applyButton
+
+    def computeRecursion(self, xmlElementParent):
+        self.mainVLay = QtGui.QVBoxLayout()
+        mainHLay = QtGui.QHBoxLayout()
+
+        self.multipleConditionLay = QtGui.QVBoxLayout()
+        lineEditLay = QtGui.QHBoxLayout()
+        # Setup lineedit
+        self.linedit = self.createCommonLineEdit()
+
+        # Setup completer
+        self.completer = CustomQCompleter()
+        self.completer.setCaseSensitivity(QtCore.Qt.CaseInsensitive)
+        self.completer.setWrapAround(True)
+        self.filterListModel = QtGui.QStringListModel()
+        self.computeFieldAndFilters(xmlElementParent)
+        self.populateCombo()
+        self.completer.setModel(self.filterListModel)
+        self.linedit.setCompleter(self.completer)
+        lineEditLay.addWidget(self.linedit)
+
+        # Setup or button
+        orButton, _applyButton = self.createCommonOrButton()
+        lineEditLay.addWidget(orButton)
+        self.multipleConditionLay.addLayout(lineEditLay)
+        mainHLay.addLayout(self.multipleConditionLay)
+        
+        # Setup plus button
+        self.buttonPlus = QtGui.QPushButton('+')
+        self.buttonPlus.setStyleSheet(constants.SEARCH_ADVANCED_BUTTON)
+        self.buttonPlus.clicked.connect(self.advancedFilter)
+        mainHLay.addWidget(self.buttonPlus)
+        
+        # Setup filters menu
+        self.buttonFilters = QtGui.QToolButton()
+        self.buttonFilters.setText('Filters')
+        self.buttonFilters.setStyleSheet(constants.SEARCH_FILTER_TOOLBUTTON)
+        self.buttonFilters.setMenu(self.toolmenu)
+        self.buttonFilters.setPopupMode(QtGui.QToolButton.InstantPopup)
+        self.buttonFilters.setHidden(True)
+        mainHLay.addWidget(self.buttonFilters)
+
+        # Setup advanced filter
+        self.buttonCustomFilters = QtGui.QPushButton()
+        self.buttonCustomFilters.setText('Advanced Filter')
+        self.buttonCustomFilters.setStyleSheet(constants.SEARCH_FILTER_TOOLBUTTON)
+        self.buttonCustomFilters.setHidden(True)
+        self.buttonCustomFilters.clicked.connect(self.customAdvancedFilter)
+        mainHLay.addWidget(self.buttonCustomFilters)
+
+        mainHLay.setSpacing(3)
+        
+        self.mainVLay.addLayout(mainHLay)
+        
+        
+        self.tagsLay = QtGui.QVBoxLayout()
+        self.mainVLay.addLayout(self.tagsLay)
+        
+        return self.mainVLay
+
+    def computeFieldAndFilters(self, xmlElementParent):
+        self.toolmenu = QtGui.QMenu()
+        for childElement in xmlElementParent.getchildren():
+            childTag = childElement.tag
+            if childTag == 'filter':
+                filterObj = self.computeFilter(childElement)
+                action = self.toolmenu.addAction(filterObj.string)
+                action.setCheckable(True)
+                action.toggled.connect(partial(self.actionSelectionChanged, action))
+            elif childTag == 'separator':
+                self.toolmenu.addSeparator()
+            elif childTag == 'field':   # Values in the line edit
+                self.computeField(childElement)
+            else:
+                logging.warning('Tag %r not supported and not evaluated' % (childElement))
+
+    def computeFilter(self, elemXml):
+        fieldAttributes = elemXml.attrib
+        filterObj = FilterObj()
+        evalDomain = []
+        try:
+            evalDomain = eval(fieldAttributes.get('domain', ''))
+            evalDomain = self.evaluateCondition(evalDomain)
+        except Exception, ex:
+            logging.error('Unable to compute domain %r. EX: %r' % (fieldAttributes.get('domain', ''), ex))
+        operators = []
+        conds = []
+        for elem in evalDomain:
+            if isinstance(elem, (list, tuple)):
+                conds.append(elem)
+            else:
+                operators.append(elem)
+        filterObj.condition = operators + conds
+        filterObj.string = fieldAttributes.get('string', '')
+        filterObj.help = fieldAttributes.get('help', '')
+        filterObj.conditionComputedFilter = evalDomain
+        if filterObj.string:
+            self.filters.append(filterObj)
+        return filterObj
+
+    def removeFilter(self, filterObj):
+        if filterObj in self.globalCondition:
+            self.globalCondition.remove(filterObj)
+
+    def addFilter(self, filterObj):
+        self.globalCondition.append(filterObj)
+
+    def actionSelectionChanged(self, actionChange=False, newVal=False):
+        if not actionChange:
+            logging.warning('Action not found')
+            return
+        stringOption = unicode(actionChange.iconText())
+        filterObj = self.checkFilter(stringOption)
+        if filterObj:
+            if not newVal:  # Uncheck the filter
+                self.removeFilter(filterObj)
+            else:   # Check the filter
+                self.addFilter(filterObj)
+            self.launchFilterChanged()
+        else:
+            logging.warning('Unable to find filter for string %r' % (stringOption))
+    
+    def computeField(self, elemXml):
+        fieldAttributes = elemXml.attrib
+        fieldObj = FieldObj()
+        fieldObj.name = fieldAttributes.get('name', '')
+        fieldObj.fieldDefinition = self.fieldsNameTypeRel.get(fieldObj.name, {})
+        fieldObj.string = fieldAttributes.get('string', fieldObj.fieldDefinition.get('string', ''))
+        fieldObj.interfaceString = SEARCH_FOR_STRING % (fieldObj.string)
+        self.fieldsTemplate.append(fieldObj)
+        return fieldObj
+    
+    def populateCombo(self, currentVal=''):
+        '''
+            Populate runtime the QCompleter values for line edit
+            @currentVal: Current value digited by user
+            @fields: List of field objects
+            @filters: List of filter objects
+        '''
+        currentVal = unicode(currentVal)
+        stringList = []
+        if currentVal:
+            for fieldObj in self.fieldsTemplate:
+                for tmpField in self.tmpFields:
+                    if tmpField.interfaceStringWithValue == currentVal:  # User is going to choice with arrows
+                        return
+                newInterfaceValue = fieldObj.interfaceString + currentVal + '"'
+                tmpField = copy.deepcopy(fieldObj)
+                tmpField.value = currentVal
+                tmpField.interfaceStringWithValue = newInterfaceValue
+                tmpField.condition = (tmpField.name, self.searchMode, currentVal)
+                self.tmpFields.append(tmpField)
+                stringList.append(tmpField.interfaceStringWithValue)
+        self.filterListModel.setStringList(stringList)
+
+    def textChangedEvent(self, newText=''):
+        newText = unicode(newText)
+        if newText:
+            self.populateCombo(currentVal=unicode(newText))
+
+    def returnPressedLocal(self):
+        if self.orPressed:
+            return
+        timer = QtCore.QTimer()
+        self.timers.append(timer)
+        timer.timeout.connect(self.delayedAddFieldFilter)
+        timer.start(500)
+
+    def clearQLayoutChildren(self, layout):
+        for i in reversed(range(layout.count())): 
+            childLay = layout.itemAt(i)
+            widget = childLay.widget()
+            if widget:
+                widget.setHidden(True)
+                widget.setParent(None)
+            if isinstance(childLay, (QtGui.QHBoxLayout, QtGui.QVBoxLayout)):
+                self.clearQLayoutChildren(childLay)
+        for elem in layout.children():
+            if isinstance(childLay, (QtGui.QHBoxLayout, QtGui.QVBoxLayout)):
+                layout.removeItem(elem)
+            else:
+                layout.removeWidget(elem)
+    
+    def delayedAddFieldFilter(self):
+        filterText = unicode(self.linedit.text())
+        tmpField = self.getTmpField(filterText)
+        if not tmpField:
+            return
+        condObj = self.addCondition([tmpField.condition], tmpField.interfaceStringWithValue)
+        self.addFieldTag(condObj)
+        self.linedit.setText('')
+        for timer in self.timers:
+            timer.stop()
+            
+    def getTmpField(self, val):
+        for fieldObj in self.tmpFields:
+            if fieldObj.interfaceStringWithValue == val:
+                return fieldObj
+        return False
+        
+    def addFieldTag(self, condObj):
+        maxFiltersInLine = 2
+        hlay = QtGui.QHBoxLayout()
+        
+        label = QtGui.QLabel(condObj.intString)
+        label.setStyleSheet(constants.TAG_TEXT_STYLE)
+        
+        removeButton = QtGui.QPushButton('X')
+        removeButton.setStyleSheet(constants.BUTTON_STYLE)
+        removeButton.setMaximumWidth(30)
+
+        hlay.setSpacing(0)
+        hlay.addWidget(label)
+        hlay.addWidget(removeButton)
+
+        childrenWidgetsCount = self.tagsLay.count()
+        if childrenWidgetsCount == 0:
+            hlayRow = QtGui.QHBoxLayout()
+            hlayRow.addLayout(hlay)
+            self.tagsLay.addLayout(hlayRow)
+            removeButton.clicked.connect(partial(self.removeFieldFilter, condObj))
+        else:
+            rowLay = self.tagsLay.children()[-1]
+            rowTagsCount = rowLay.count()
+            if rowTagsCount <= maxFiltersInLine:
+                rowLay.addLayout(hlay)
+                removeButton.clicked.connect(partial(self.removeFieldFilter, condObj))
+            else:
+                hlayRow = QtGui.QHBoxLayout()
+                hlayRow.addLayout(hlay)
+                self.tagsLay.addLayout(hlayRow)
+                removeButton.clicked.connect(partial(self.removeFieldFilter, condObj))
+        self.launchFilterChanged()
+
+    def removeFieldFilter(self, conditionObj):
+        self.removeCondition(conditionObj)
+        self.reloadFilters()
+        
+    def reloadFilters(self):
+        self.clearQLayoutChildren(self.tagsLay)
+        for condObj in self.globalCondition:
+            self.addFieldTag(condObj)
+        self.launchFilterChanged()
 
     def computeArchRecursion(self, xmlElementParent):
         widgetContents = QtGui.QWidget()
@@ -52,483 +366,128 @@ class SearchView(object):
         outLay.addWidget(widgetContents)
         return outLay
 
-    def computeRecursion(self, xmlElementParent):
-        self.mainVLay = QtGui.QVBoxLayout()
-        mainHLay = QtGui.QHBoxLayout()
-        customFiltersLay = QtGui.QHBoxLayout()
-        self.tagsLay = QtGui.QVBoxLayout()
-        self.customFiltersTagsLay = QtGui.QVBoxLayout()
 
-        self.buttonFilters = QtGui.QToolButton()
-        self.buttonFilters.setText('Filters')
-        self.buttonFilters.setStyleSheet(constants.SEARCH_FILTER_TOOLBUTTON)
 
-        self.buttonCustomFilters = QtGui.QPushButton()
-        self.buttonCustomFilters.setText('Advanced Filter')
-        self.buttonCustomFilters.setStyleSheet(constants.SEARCH_FILTER_TOOLBUTTON)
-        self.buttonCustomFilters.setHidden(True)
-        self.buttonCustomFilters.clicked.connect(self.customAdvancedFilter)
-        
-        customFiltersLay.addLayout(self.customFiltersTagsLay)
-        spacer = QtGui.QSpacerItem(0, 0, QtGui.QSizePolicy.MinimumExpanding)
-        customFiltersLay.addSpacerItem(spacer)
-        customFiltersLay.addWidget(self.buttonFilters)
-        customFiltersLay.addWidget(self.buttonCustomFilters)
+    # This section is dedicated to advanced custom filter
 
-        self.toolmenu = QtGui.QMenu()
-        for childElement in xmlElementParent.getchildren():
-            childTag = childElement.tag
-            if childTag == 'filter':
-                filterObj = self.computeFilter(childElement)
-                action = self.toolmenu.addAction(filterObj.string)
-                action.setCheckable(True)
-                action.toggled.connect(partial(self.actionSelectionChanged, action))
-            elif childTag == 'field':   # Values in the line edit
-                self.computeField(childElement)
-            elif childTag == 'separator':
-                self.toolmenu.addSeparator()
-            else:
-                logging.warning('Tag %r not supported and not evaluated' % (childElement))
-        self.buttonFilters.setMenu(self.toolmenu)
-        self.buttonFilters.setPopupMode(QtGui.QToolButton.InstantPopup)
-        self.buttonFilters.setHidden(True)
-        self.linedit = QtGui.QLineEdit()
-        self.linedit.textChanged.connect(self.textChangedEvent)
-        self.linedit.returnPressed.connect(self.returnPressedLocal)
-        self.completer = CustomQCompleter()
-        self.completer.setCaseSensitivity(QtCore.Qt.CaseInsensitive)
-        self.completer.setWrapAround(True)
-        self.filterListModel = QtGui.QStringListModel()
-        self.populateCombo()
-        self.completer.setModel(self.filterListModel)
-        self.linedit.setCompleter(self.completer)
-        
-        self.searchButton = QtGui.QPushButton('Or')
-        self.searchButton.setStyleSheet(constants.BUTTON_STYLE)
-        self.searchButton.clicked.connect(self.orCondition)
-
-        self.buttonAdvancedFilter = QtGui.QPushButton('+')
-        self.buttonAdvancedFilter.setStyleSheet(constants.SEARCH_ADVANCED_BUTTON)
-        self.buttonAdvancedFilter.clicked.connect(self.advancedFilter)
-
-        mainHLay.addWidget(self.linedit)
-        mainHLay.addWidget(self.searchButton)
-        mainHLay.addWidget(self.buttonAdvancedFilter)
-        mainHLay.setSpacing(3)
-        
-        self.mainVLay.addLayout(mainHLay)
-        
-        self.filtersGroupsLay = QtGui.QHBoxLayout()
-        self.mainVLay.addLayout(self.filtersGroupsLay)
-        self.filtersGroupsLay.addLayout(customFiltersLay)
-        self.mainVLay.addLayout(self.tagsLay)
-        return self.mainVLay
-
-    def customAdvancedFilter(self):
-        comboValues = ['Contains', "Doesn't contains", 'Is equal to', 'Is not equal to', 'Is set', 'Is not set']
-        comboBoolValues = ['Is true', 'Is false']
-        comboFloatValues = ['Is equal to', 'Is not equal to', 'Greater than', 'Less than', 'Greater than or equal to',
-                            'Less then or equal to', 'Is set', 'Is not set']
-        sortedFields = []
-        stringFieldRel = {}
-        dial = QtGui.QDialog()
-        mainLay = QtGui.QVBoxLayout()
-        lay = QtGui.QVBoxLayout()
-        mainWidget = QtGui.QWidget()
-        comboCharOperator = QtGui.QComboBox()
-        comboCharOperator.setStyleSheet(constants.LOGIN_COMBO_STYLE)
-        comboBoolOperator = QtGui.QComboBox()
-        comboBoolOperator.setStyleSheet(constants.LOGIN_COMBO_STYLE)
-        comboDatetimeOperator = QtGui.QComboBox()
-        comboDatetimeOperator.setStyleSheet(constants.LOGIN_COMBO_STYLE)
-        comboFloatOperator = QtGui.QComboBox()
-        comboFloatOperator.setStyleSheet(constants.LOGIN_COMBO_STYLE)
-        dateWidget = QtGui.QDateEdit()
-        datetimeWidget = QtGui.QDateTimeEdit()
-        integerSpinboxWidget = QtGui.QSpinBox()
-        mainLineEditWidget = QtGui.QLineEdit()
-        
+    def acceptDialAnd(self):
+        singleFieldLay = self.getSingleFieldLayoutCustom()
+        self.customFiltersAdded.append(singleFieldLay)
+        self.conditionsCustomLay.addLayout(singleFieldLay)
         self.filterMode = '&'
+        self.orButton.setHidden(True)   # Not allow user to filter in different modes in the same time
 
-        def acceptDialAnd():
-            self.filterMode = '&'
-            dial.accept()
+    def acceptDialOr(self):
+        self.filterMode = '|'
+        singleFieldLay = self.getSingleFieldLayoutCustom()
+        self.customFiltersAdded.append(singleFieldLay)
+        self.conditionsCustomLay.addLayout(singleFieldLay)
+        self.andButton.setHidden(True)   # Not allow user to filter in different modes in the same time
 
-        def acceptDialOr():
-            self.filterMode = '|'
-            dial.accept()
+    def rejectDial(self):
+        self.customFiltersAdded = []
+        self.dialCustomFilter.reject()
 
-        def rejectDial():
-            dial.reject()
+    def applyCustomFilter(self):
+        self.dialCustomFilter.accept()
         
-        def hideAll():
-            comboCharOperator.setHidden(True)
-            mainLineEditWidget.setHidden(True)
-            comboBoolOperator.setHidden(True)
-            comboFloatOperator.setHidden(True)
-            integerSpinboxWidget.setHidden(True)
-            dateWidget.setHidden(True)
-            comboDatetimeOperator.setHidden(True)
-            datetimeWidget.setHidden(True)
-            mainLineEditWidget.setText('')
-
-        def fieldsCustomComboChanged(newIndex):
-            fieldString = sortedFields[newIndex]
-            fieldName = stringFieldRel.get(fieldString)
-            fieldDefinition = self.advancedFilterFields[fieldName]
-            fieldType = fieldDefinition.get('type', '')
-            hideAll()
-            if fieldType in ['char', 'many2one', 'text', 'one2many', 'many2many']:
-                comboCharOperator.setHidden(False)
-                mainLineEditWidget.setHidden(False)
-            elif fieldType == 'boolean':
-                comboBoolOperator.setHidden(False)
-            elif fieldType == 'float':
-                comboFloatOperator.setHidden(False)
-                mainLineEditWidget.setHidden(False)
-            elif fieldType == 'date':
-                dateWidget.setHidden(False)
-                comboDatetimeOperator.setHidden(False)
-            elif fieldType == 'datetime':
-                datetimeWidget.setHidden(False)
-                comboDatetimeOperator.setHidden(False)
-            elif fieldType == 'integer':
-                comboFloatOperator.setHidden(False)
-                integerSpinboxWidget.setHidden(False)
-            
+    def getButtonsLay(self):
         # Ok / Cancel buttons and layout
-        andButton = QtGui.QPushButton('Filter as And')
-        andButton.clicked.connect(acceptDialAnd)
-        andButton.setStyleSheet(constants.LOGIN_ACCEPT_BUTTON)
-        orButton = QtGui.QPushButton('Filter as Or')
-        orButton.setStyleSheet(constants.LOGIN_ACCEPT_BUTTON)
-        orButton.clicked.connect(acceptDialOr)
+        self.andButton = QtGui.QPushButton('Filter as And')
+        self.andButton.clicked.connect(self.acceptDialAnd)
+        self.andButton.setStyleSheet(constants.LOGIN_ACCEPT_BUTTON)
+        self.orButton = QtGui.QPushButton('Filter as Or')
+        self.orButton.setStyleSheet(constants.LOGIN_ACCEPT_BUTTON)
+        self.orButton.clicked.connect(self.acceptDialOr)
+        applyButton = QtGui.QPushButton('Apply')
+        applyButton.setStyleSheet(constants.LOGIN_ACCEPT_BUTTON)
+        applyButton.clicked.connect(self.applyCustomFilter)
         cancelButt = QtGui.QPushButton('Cancel')
-        cancelButt.clicked.connect(rejectDial)
+        cancelButt.clicked.connect(self.rejectDial)
         cancelButt.setStyleSheet(constants.LOGIN_CANCEL_BUTTON)
 
         okCancelLay = QtGui.QHBoxLayout()
         okCancelLay.addWidget(cancelButt)
         spacer = QtGui.QSpacerItem(0, 0, QtGui.QSizePolicy.MinimumExpanding)
         okCancelLay.addSpacerItem(spacer)
-        okCancelLay.addWidget(andButton)
-        okCancelLay.addWidget(orButton)
+        okCancelLay.addWidget(self.andButton)
+        okCancelLay.addWidget(self.orButton)
+        okCancelLay.addWidget(applyButton)
+        return okCancelLay
+        
+    def getSingleFieldLayoutCustom(self):
+        singleFieldLay = QVBoxLayCustom(self.advancedFilterFields)
+        singleFieldLay.removeButton.clicked.connect(partial(self.removeCustomFilter, singleFieldLay))
+        return singleFieldLay
 
-        # Fields combo
-        comboAvailableFields = QtGui.QComboBox()
-        comboAvailableFields.setStyleSheet(constants.LOGIN_COMBO_STYLE)
+    def removeCustomFilter(self, layoutToRemove):
+        if layoutToRemove in self.customFiltersAdded:
+            self.customFiltersAdded.remove(layoutToRemove)
+        self.clearQLayoutChildren(layoutToRemove)
         
-        for fieldName in self.advancedFilterFields.keys():
-            fieldDefinition = self.advancedFilterFields.get(fieldName)
-            fieldString = fieldDefinition.get('string', '')
-            fieldType = fieldDefinition.get('type', '')
-            if fieldType == 'binary':
-                continue
-            sortedFields.append(fieldString)
-            stringFieldRel[fieldString] = fieldName
+    def customAdvancedFilter(self):
+        self.customFiltersAdded = []
+        self.filterMode = '&'
+        self.dialCustomFilter = QtGui.QDialog()
+        lay = QtGui.QVBoxLayout()
+        mainWidget = QtGui.QWidget()
+        mainLay = QtGui.QVBoxLayout()
         
-        sortedFields.sort()
-        for fieldString in sortedFields:
-            comboAvailableFields.addItem(fieldString)
-            comboAvailableFields.currentIndexChanged.connect(fieldsCustomComboChanged)
-        
-        centerLay = QtGui.QVBoxLayout()
-        centerLay.addWidget(comboAvailableFields)
-        
-        # char
-        comboCharOperator.addItems(comboValues)
-        centerLay.addWidget(comboCharOperator)
-        # bool
-        comboBoolOperator.addItems(comboBoolValues)
-        centerLay.addWidget(comboBoolOperator)
-        # float
-        comboFloatOperator.addItems(comboFloatValues)
-        centerLay.addWidget(comboFloatOperator)
-        # integer
-        centerLay.addWidget(integerSpinboxWidget)
-        # datetime
-        comboDatetimeValues = comboFloatValues
-        comboDatetimeValues.append('Is between')
-        comboDatetimeOperator.addItems(comboDatetimeValues)
-        centerLay.addWidget(comboDatetimeOperator)
-        centerLay.addWidget(datetimeWidget)
-        # date
-        centerLay.addWidget(dateWidget)
-
+        self.scroll = QtGui.QScrollArea()
+        self.scroll.setWidgetResizable(True)
+        self.scrollWidget = QtGui.QWidget()
+        self.conditionsCustomLay = QtGui.QVBoxLayout()
+        singleFieldLay = self.getSingleFieldLayoutCustom()
+        self.customFiltersAdded.append(singleFieldLay)
+        buttonsLay = self.getButtonsLay()
         
         
-        centerLay.addWidget(mainLineEditWidget)
-        hideAll()
-        mainLay.addLayout(centerLay)
-        mainLay.addLayout(okCancelLay)
-        mainLay.setMargin(30)
+        self.conditionsCustomLay.addLayout(singleFieldLay)
+        self.conditionsCustomLay.setSpacing(20)
+        self.conditionsCustomLay.setMargin(20)
+        self.scrollWidget.setLayout(self.conditionsCustomLay)
+        self.scroll.setWidget(self.scrollWidget)
+        mainLay.addWidget(self.scroll)
+        mainLay.addLayout(buttonsLay)
         mainWidget.setLayout(mainLay)
         mainWidget.setStyleSheet(constants.BACKGROUND_WHITE)
         lay.addWidget(mainWidget)
-        dial.setLayout(lay)
-        dial.setStyleSheet(constants.VIOLET_BACKGROUND)
-        if dial.exec_() == QtGui.QDialog.Accepted:
-            newIndex = comboAvailableFields.currentIndex()
-            fieldString = sortedFields[newIndex]
-            fieldName = stringFieldRel.get(fieldString)
-            fieldDefinition = self.advancedFilterFields[fieldName]
-            fieldType = fieldDefinition.get('type', '')
-            value = unicode(mainLineEditWidget.text())
-            odooCondition = []
-            if fieldType in ['char', 'many2one', 'text', 'one2many', 'many2many']:
-                operatorIndex = comboCharOperator.currentIndex()
-                interfaceVal = comboValues[operatorIndex]
-                if interfaceVal == 'Contains':
-                    odooCondition = [(fieldName, 'ilike', value)]
-                elif interfaceVal == "Doesn't contains":
-                    odooCondition = [(fieldName, 'not ilike', value)]
-                elif interfaceVal == 'Is equal to':
-                    odooCondition = [(fieldName,'=', value)]
-                elif interfaceVal == 'Is not equal to':
-                    odooCondition = [(fieldName,'!=', value)]
-                elif interfaceVal == 'Is set':
-                    odooCondition = [(fieldName, '!=', False), '|', (fieldName, '!=', '')]
-                elif interfaceVal == 'Is not set':
-                    odooCondition = [(fieldName, '=', False), '|', (fieldName, '=', '')]
-            elif fieldType == 'boolean':
-                operatorIndex = comboBoolOperator.currentIndex()
-                interfaceVal = comboBoolValues[operatorIndex]
-                if interfaceVal == 'Is true':
-                    odooCondition = [(fieldName,'=', True)]
-                    value = True
-                elif interfaceVal == 'Is false':
-                    odooCondition = [(fieldName,'=', False)]
-                    value = True
-            elif fieldType == 'float':
-                try:
-                    floatVal = float(value)
-                except Exception:
-                    utils.launchMessage('Wrong value for float field!', 'warning')
-                    return
-                operatorIndex = comboFloatOperator.currentIndex()
-                interfaceVal = comboFloatValues[operatorIndex]
-                if interfaceVal == 'Is equal to':
-                    odooCondition = [(fieldName,'=', floatVal)]
-                elif interfaceVal == 'Is not equal to':
-                    odooCondition = [(fieldName,'!=', floatVal)]
-                elif interfaceVal == 'Greater than':
-                    odooCondition = [(fieldName,'>', floatVal)]
-                elif interfaceVal == 'Less than':
-                    odooCondition = [(fieldName,'<', floatVal)]
-                elif interfaceVal == 'Greater than or equal to':
-                    odooCondition = [(fieldName,'>=', floatVal)]
-                elif interfaceVal == 'Less then or equal to':
-                    odooCondition = [(fieldName,'<=', floatVal)]
-                elif interfaceVal == 'Is set':
-                    odooCondition = [(fieldName,'!=', False), '|', (fieldName, '!=', 0)]
-                elif interfaceVal == 'Is not set':
-                    odooCondition = [(fieldName,'=', False), '|', (fieldName, '=', 0)]
-                value = floatVal
-            elif fieldType == 'date':
-                value = unicode(dateWidget.date().toPyDate())
-                operatorIndex = comboDatetimeOperator.currentIndex()
-                interfaceVal = comboDatetimeValues[operatorIndex]
-                if interfaceVal == 'Is equal to':
-                    odooCondition = [(fieldName,'=', value)]
-                elif interfaceVal == 'Is not equal to':
-                    odooCondition = [(fieldName,'!=', value)]
-                elif interfaceVal == 'Greater than':
-                    odooCondition = [(fieldName,'>', value)]
-                elif interfaceVal == 'Less than':
-                    odooCondition = [(fieldName,'<', value)]
-                elif interfaceVal == 'Greater than or equal to':
-                    odooCondition = [(fieldName,'>=', value)]
-                elif interfaceVal == 'Less then or equal to':
-                    odooCondition = [(fieldName,'<=', value)]
-                elif interfaceVal == 'Is set':
-                    odooCondition = [(fieldName,'!=', False), '|', (fieldName, '!=', 0)]
-                elif interfaceVal == 'Is not set':
-                    odooCondition = [(fieldName,'=', False), '|', (fieldName, '=', 0)]
-            elif fieldType == 'datetime':
-                operatorIndex = comboDatetimeOperator.currentIndex()
-                value = unicode(datetimeWidget.dateTime().toPyDateTime())
-                interfaceVal = comboDatetimeValues[operatorIndex]
-                if interfaceVal == 'Is equal to':
-                    odooCondition = [(fieldName,'=', value)]
-                elif interfaceVal == 'Is not equal to':
-                    odooCondition = [(fieldName,'!=', value)]
-                elif interfaceVal == 'Greater than':
-                    odooCondition = [(fieldName,'>', value)]
-                elif interfaceVal == 'Less than':
-                    odooCondition = [(fieldName,'<', value)]
-                elif interfaceVal == 'Greater than or equal to':
-                    odooCondition = [(fieldName,'>=', value)]
-                elif interfaceVal == 'Less then or equal to':
-                    odooCondition = [(fieldName,'<=', value)]
-                elif interfaceVal == 'Is set':
-                    odooCondition = [(fieldName,'!=', False), '|', (fieldName, '!=', 0)]
-                elif interfaceVal == 'Is not set':
-                    odooCondition = [(fieldName,'=', False), '|', (fieldName, '=', 0)]
-            elif fieldType == 'integer':
-                operatorIndex = comboFloatOperator.currentIndex()
-                value = integerSpinboxWidget.value()
-                interfaceVal = comboFloatValues[operatorIndex]
-                if interfaceVal == 'Is equal to':
-                    odooCondition = [(fieldName,'=', value)]
-                elif interfaceVal == 'Is not equal to':
-                    odooCondition = [(fieldName,'!=', value)]
-                elif interfaceVal == 'Greater than':
-                    odooCondition = [(fieldName,'>', value)]
-                elif interfaceVal == 'Less than':
-                    odooCondition = [(fieldName,'<', value)]
-                elif interfaceVal == 'Greater than or equal to':
-                    odooCondition = [(fieldName,'>=', value)]
-                elif interfaceVal == 'Less then or equal to':
-                    odooCondition = [(fieldName,'<=', value)]
-                elif interfaceVal == 'Is set':
-                    odooCondition = [(fieldName,'!=', False), '|', (fieldName, '!=', 0)]
-                elif interfaceVal == 'Is not set':
-                    odooCondition = [(fieldName,'=', False), '|', (fieldName, '=', 0)]
-            if odooCondition:
-                odooCond = [self.filterMode]
-                odooCond.extend(odooCondition)
-                intFilterMode = 'And'
-                if self.filterMode == '|':
-                    intFilterMode = 'Or'
-                intFieldName = fieldDefinition.get('string', fieldName)
-                interfaceStr = '%s %s "%s"' % (intFieldName, interfaceVal, value)
-                fieldCustomObj = FieldObjCustom()
-                fieldCustomObj.domain = odooCond
-                fieldCustomObj.interfaceString = interfaceStr
-                self.customFilters.append(fieldCustomObj)
-                
-                hlay = QtGui.QHBoxLayout()
-                hlay.setSpacing(0)
-                labelText = QtGui.QLabel()
-                labelOperator = QtGui.QLabel()
-                closeButton = QtGui.QPushButton()
-                labelText.setText(interfaceStr)
-                labelText.setStyleSheet(constants.TAG_TEXT_STYLE)
-                labelOperator.setText(intFilterMode)
-                labelOperator.setStyleSheet(constants.OPERATOR_LABEL)
-                closeButton.setText('X')
-                closeButton.setStyleSheet(constants.BUTTON_STYLE)
-                closeButton.clicked.connect(partial(self.removeCustomTag, closeButton, labelOperator, labelText, fieldCustomObj))
-                hlay.addWidget(labelOperator)
-                hlay.addWidget(labelText)
-                hlay.addWidget(closeButton)
-                
-                
-                rowsCount = self.customFiltersTagsLay.count()
-                if not rowsCount:
-                    rowLay = QtGui.QHBoxLayout()
-                    rowLay.addLayout(hlay)
-                    spacer = QtGui.QSpacerItem(0, 0, QtGui.QSizePolicy.MinimumExpanding)
-                    rowLay.addSpacerItem(spacer)
-                    self.customFiltersTagsLay.addLayout(rowLay)
-                else:
-                    lastRow = self.customFiltersTagsLay.children()[-1]
-                    childrenCount = lastRow.count()
-                    if childrenCount >= 4:
-                        rowLay = QtGui.QHBoxLayout()
-                        rowLay.addLayout(hlay)
-                        spacer = QtGui.QSpacerItem(0, 0, QtGui.QSizePolicy.MinimumExpanding)
-                        rowLay.addSpacerItem(spacer)
-                        self.customFiltersTagsLay.addLayout(rowLay)
-                    else:
-                        lastRow.addLayout(hlay)
-                self.launchFilterChanged()
-
-    def removeCustomTag(self, removeButton, labelOperator, labelText, fieldCustomObj):
-        if fieldCustomObj in self.customFilters:
-            removeButton.hide()
-            labelOperator.hide()
-            labelText.hide()
-            self.customFilters.remove(fieldCustomObj)
-            self.launchFilterChanged()
-
-    def actionSelectionChanged(self, actionChange=False, newVal=False):
-        if not actionChange:
-            logging.warning('Action not found')
-            return
-        stringOption = unicode(actionChange.iconText())
-        filterObj = self.checkFilter(stringOption)
-        if filterObj:
-            if not newVal:  # Uncheck the filter
-                lenFilters = len(self.conditionFilters)
-                filterIndex = self.conditionFilters.index(filterObj)
-                if filterIndex == 0:    # Remove the first filter
-                    if lenFilters == 1:
-                        del self.conditionFilters[0]
-                    else:
-                        del self.conditionFilters[1]    # Remove operator
-                        del self.conditionFilters[0]    # Remove filterObject
-                else:   # Remove any other filter
-                    del self.conditionFilters[filterIndex]    # Remove operator
-                    del self.conditionFilters[filterIndex - 1]    # Remove filterObject
-            else:   # Check the filter
-                if not self.conditionFilters:
-                    self.conditionFilters = [filterObj]
-                else:
-                    self.conditionFilters.append('|')
-                    self.conditionFilters.append(filterObj)
-            self.launchFilterChanged()
-        else:
-            logging.warning('Unable to find filter for string %r' % (stringOption))
+        self.dialCustomFilter.setLayout(lay)
+        self.dialCustomFilter.setStyleSheet(constants.VIOLET_BACKGROUND)
         
+        self.dialCustomFilter.resize(500, 450)
+        if self.dialCustomFilter.exec_() == QtGui.QDialog.Accepted:
+            conditions = []
+            operators = []
+            interfaceStringSum = ''
+            for layoutObj in self.customFiltersAdded:
+                condition, interfaceString = layoutObj.getSingleCondition()
+                interfaceStringSum = interfaceStringSum + interfaceString + '\n'
+                conditions.extend(condition)
+                operators.append(self.filterMode)
+            if operators:
+                del operators[-1]
+            globalCondition = operators + conditions
+            condObj = self.addCondition(globalCondition, interfaceStringSum)
+            self.addFieldTag(condObj)
+
     def advancedFilter(self):
         if self.buttonFilters.isHidden():
             self.buttonFilters.setHidden(False)
             if self.advancedFilterFields:
                 self.buttonCustomFilters.setHidden(False)
-            self.buttonAdvancedFilter.setText('-')
+            self.buttonPlus.setText('-')
         else:
             self.buttonFilters.setHidden(True)
             self.buttonCustomFilters.setHidden(True)
-            self.buttonAdvancedFilter.setText('+')
-
-    def checkField(self, val):
-        for fieldObj in self.fieldFilters:
-            if fieldObj.interfaceString == val:
-                return fieldObj
-        return False
-
-    def checkFieldSearch(self, val):
-        for fieldObj in self.fieldsSearch:
-            if fieldObj.interfaceStringWithValue == val:
-                return fieldObj
-        return False
+            self.buttonPlus.setText('+')
         
-    def lastFieldsQCompleter(self, val):
-        for fieldObj in self.fieldsSearchTemplate:
-            if fieldObj.interfaceStringWithValue == val:
-                return fieldObj
-        return False
-
     def checkFilter(self, val):
         for filterObj in self.filters:
             if unicode(filterObj.string.strip()) == unicode(val):
                 return filterObj
         return False
 
-    def clearQLayoutChildren(self, layout):
-        for i in reversed(range(layout.count())): 
-            childLay = layout.itemAt(i)
-            widget = childLay.widget()
-            if widget:
-                widget.setParent(None)
-            if isinstance(childLay, (QtGui.QHBoxLayout, QtGui.QVBoxLayout)):
-                self.clearQLayoutChildren(childLay)
-
-    def reloadFilters(self):
-        def computeOperatorForFilterReverse(op):
-            if op.upper() == '&':
-                return 'And'
-            elif op.upper() == '|':
-                return 'Or'
-
-        self.clearQLayoutChildren(self.tagsLay)
-        newFilters = copy.deepcopy(self.fieldFilters)
-        self.fieldFilters = []
-        if not newFilters:
-            self.launchFilterChanged()
-        for operator, fieldObj in newFilters:
-            self.addFieldFilter(fieldObj.interfaceStringWithValue, computeOperatorForFilterReverse(operator), fieldObj)
         
     def addFieldFilter(self, filterString, operator='And', objRel=None):
 
@@ -540,141 +499,20 @@ class SearchView(object):
 
         if not filterString:
             return 
-        hlay = QtGui.QHBoxLayout()
         
         if not objRel:
-            objRel = self.lastFieldsQCompleter(filterString)
+            objRel = self.checkTmpField(filterString)
             if not objRel:
                 logging.warning('Unable to find filter for string %r' % (filterString))
                 return
             objRel = copy.deepcopy(objRel)  # Copied new filter because if you select the same filter again the value will be overwritten
         
-
-        label = QtGui.QLabel(filterString)
-        label.setStyleSheet(constants.TAG_TEXT_STYLE)
-        
-        removeButton = QtGui.QPushButton('X')
-        removeButton.setStyleSheet(constants.BUTTON_STYLE)
-        removeButton.setMaximumWidth(30)
-
-        labelOperator = QtGui.QLabel(operator)
-        labelOperator.setMaximumWidth(50)
-        labelOperator.setAlignment(QtCore.Qt.AlignHCenter)
-        
         odooOperator = computeOperatorForFilter(operator)
-        
-        hlay.setSpacing(0)
-        hlay.addWidget(labelOperator)
-        hlay.addWidget(label)
-        hlay.addWidget(removeButton)
-        
-        maxFiltersInLine = 4
-
         tupleCondition = (objRel.name, self.searchMode, objRel.value)
-        filterTuple = ('&', objRel)
-        objRel.conditionComputedFilter = tupleCondition
-        if not self.fieldFilters:
-            self.fieldFilters.append(filterTuple)
-        else:
-            filterTuple = (odooOperator, objRel)
-            self.fieldFilters.append(filterTuple)
-
-        childrenWidgetsCount = self.tagsLay.count()
-        if childrenWidgetsCount == 0:
-            hlayRow = QtGui.QHBoxLayout()
-            hlayRow.addLayout(hlay)
-            self.tagsLay.addLayout(hlayRow)
-            removeButton.clicked.connect(partial(self.removeFieldFilter, filterTuple))
-        else:
-            rowLay = self.tagsLay.children()[-1]
-            rowTagsCount = rowLay.count()
-            if rowTagsCount <= maxFiltersInLine:
-                rowLay.addLayout(hlay)
-                removeButton.clicked.connect(partial(self.removeFieldFilter, filterTuple))
-            else:
-                hlayRow = QtGui.QHBoxLayout()
-                hlayRow.addLayout(hlay)
-                self.tagsLay.addLayout(hlayRow)
-                removeButton.clicked.connect(partial(self.removeFieldFilter, filterTuple))
-        
-        self.launchFilterChanged()
-    
-    def orCondition(self):
-        self.addFieldFilter(unicode(self.linedit.text()), 'Or')
-        self.linedit.setText('')
-
-    def removeFieldFilter(self, filterTuple):
-        if not filterTuple:
-            logging.warning('Unable to remove filter %r because obj not found' % (filterTuple))
-            return
-        if filterTuple in self.fieldFilters:
-            self.fieldFilters.remove(filterTuple)
-        self.reloadFilters()
-
-    def launchFilterChanged(self):
-        outFilters = []
-        for operator, fieldObj in self.fieldFilters:
-            outFilters.append(operator)
-            outFilters.append(fieldObj.conditionComputedFilter)
-        if self.customFilters:
-            void = False
-            if not outFilters:
-                void = True
-            for filterCustomObj in self.customFilters:
-                outFilters.extend(filterCustomObj.domain)
-            if void:
-                outFilters = outFilters[1:]
-        if self.conditionFilters:
-            if outFilters:
-                outFilters.append('&')
-            for elem in self.conditionFilters:
-                if isinstance(elem, (str, unicode)):
-                    outFilters.append(elem)
-                elif isinstance(elem, FilterObj):
-                    outFilters.extend(elem.domain)
-                else:
-                    logging.warning('[launchFilterChanged] Cannot evaluate element %r' % (elem))
-        if self.parent:
-            self.parent.filter_changed_signal.emit(outFilters)
-
-    def returnPressedLocal(self):
-        timer = QtCore.QTimer()
-        self.timers.append(timer)
-        timer.timeout.connect(self.delayedAddFieldFilter)
-        timer.start(500)
-
-    def delayedAddFieldFilter(self):
-        filterText = unicode(self.linedit.text())
-        self.addFieldFilter(filterText)
-        self.linedit.setText('')
-        for timer in self.timers:
-            timer.stop()
-
-    def populateCombo(self, fieldsSearch=[], filters=[], currentVal=''):
-        '''
-            Populate runtime the QCompleter values for line edit
-            @currentVal: Current value digited by user
-            @fieldsSearchTemplate: List of field objects
-            @filters: List of filter objects
-        '''
-        stringList = []
-        if not fieldsSearch:
-            fieldsSearch = self.fieldsSearchTemplate
-        if currentVal:  # User have digited something
-            for fieldObj in fieldsSearch:
-                fieldObjRel = self.lastFieldsQCompleter(currentVal)
-                if fieldObjRel: # When user goes down with choices I need to restore correct value because everytime line edit changes it's value
-                    return # In this case I break the repopulating of the qcompleter because user is going to choice the correct option
-                    #currentVal = fieldObjRel.value  # Take clean field name from field object
-                fieldObj.value = currentVal
-                fieldObj.interfaceStringWithValue = fieldObj.interfaceString + currentVal + '"'
-                stringList.append(fieldObj.interfaceStringWithValue)
-        self.filterListModel.setStringList(stringList)
-
-    def textChangedEvent(self, newText=''):
-        newText = unicode(newText)
-        if newText:
-            self.populateCombo(currentVal=unicode(newText))
+        filterTuple = (odooOperator, objRel)
+        objRel.conditionComputedFilter = [tupleCondition]
+        self.outFilters.append(filterTuple)
+        self.addFilterInterface(filterString, operator, filterTuple)
 
     def evaluateCondition(self, conditions):
         outFilter = []
@@ -695,32 +533,6 @@ class SearchView(object):
             else:
                 logging.warning('[evaluateCondition] Cannot evaluate element %r' % (elem))
         return outFilter
-        
-    def computeFilter(self, elemXml):
-        fieldAttributes = elemXml.attrib
-        filterObj = FilterObj()
-        evalDomain = []
-        try:
-            evalDomain = eval(fieldAttributes.get('domain', ''))
-            evalDomain = self.evaluateCondition(evalDomain)
-        except Exception, ex:
-            logging.error('Unable to compute domain %r. EX: %r' % (fieldAttributes.get('domain', ''), ex))
-        filterObj.domain = evalDomain
-        filterObj.string = fieldAttributes.get('string', '')
-        filterObj.help = fieldAttributes.get('help', '')
-        if filterObj.string:
-            self.filters.append(filterObj)
-        return filterObj
-
-    def computeField(self, elemXml):
-        fieldAttributes = elemXml.attrib
-        fieldObj = FieldObj()
-        fieldObj.name = fieldAttributes.get('name', '')
-        fieldObj.fieldDefinition = self.fieldsNameTypeRel.get(fieldObj.name, {})
-        fieldObj.string = fieldAttributes.get('string', fieldObj.fieldDefinition.get('string', ''))
-        fieldObj.interfaceString = SEARCH_FOR_STRING % (fieldObj.string)
-        self.fieldsSearchTemplate.append(fieldObj)
-        return fieldObj
 
     def computeArch(self):
         if self.arch:
@@ -760,7 +572,7 @@ class CustomQCompleter(QtGui.QCompleter):
 
 class FilterObj(object):
     def __init__(self):
-        self.domain = []
+        self.condition = []
         self.string = ''
         self.help = ''
         self.interfaceString = ''
@@ -775,9 +587,280 @@ class FieldObj(object):
         self.interfaceStringWithValue = ''
         self.interfaceString = ''
         self.value = ''
+        self.condition = []
 
 class FieldObjCustom(object):
     def __init__(self):
         self.string = ''
-        self.domain = []
+        self.condition = []
         self.interfaceString = ''
+
+class Condition():
+    def __init__(self):
+        self.condition = ''
+        self.intString = ''
+        
+class QVBoxLayCustom(QtGui.QVBoxLayout):
+    
+    def __init__(self, advancedFilterFields):
+        super(QVBoxLayCustom, self).__init__()
+        self.mainWidget = QtGui.QWidget()
+        self.removeLay = QtGui.QHBoxLayout()
+        self.mainLay = QtGui.QVBoxLayout()
+
+        self.advancedFilterFields = advancedFilterFields
+        # Remove button
+        self.removeButton = QtGui.QPushButton('X')
+        self.removeButton.setHidden(True)
+        self.removeButton.setStyleSheet(constants.LOGIN_CANCEL_BUTTON + 'max-height:15px; max-width:7px;height:15px; width:7px;font-weight:bold;')
+        self.spacer = QtGui.QSpacerItem(0, 0, QtGui.QSizePolicy.MinimumExpanding)
+        
+        # Fields
+        self.widgetsLay = QtGui.QVBoxLayout()
+        self.combo = self.getComboFields()
+        self.widgetsLay.addWidget(self.combo)
+
+        # Create fields widgets
+        self.comboCharOperator = QtGui.QComboBox()
+        self.comboBoolOperator = QtGui.QComboBox()
+        self.comboFloatOperator = QtGui.QComboBox()
+        self.comboDatetimeOperator = QtGui.QComboBox()
+        self.mainLineEditWidget = QtGui.QLineEdit()
+        self.dateWidget = QtGui.QDateEdit()
+        self.datetimeWidget = QtGui.QDateTimeEdit()
+        self.integerSpinboxWidget = QtGui.QSpinBox()
+        
+        self.comboCharOperator.setStyleSheet(constants.LOGIN_COMBO_STYLE)
+        self.comboBoolOperator.setStyleSheet(constants.LOGIN_COMBO_STYLE)
+        self.comboFloatOperator.setStyleSheet(constants.LOGIN_COMBO_STYLE)
+        self.comboDatetimeOperator.setStyleSheet(constants.LOGIN_COMBO_STYLE)
+        self.mainLineEditWidget.setStyleSheet(constants.LOGIN_LINEEDIT_STYLE)
+        self.dateWidget.setStyleSheet(constants.LOGIN_LINEEDIT_STYLE)
+        self.datetimeWidget.setStyleSheet(constants.LOGIN_LINEEDIT_STYLE)
+        self.integerSpinboxWidget.setStyleSheet(constants.LOGIN_LINEEDIT_STYLE)
+        
+        self.widgetsLay.addWidget(self.comboCharOperator)
+        self.widgetsLay.addWidget(self.comboBoolOperator)
+        self.widgetsLay.addWidget(self.comboFloatOperator)
+        self.widgetsLay.addWidget(self.comboDatetimeOperator)
+        self.widgetsLay.addWidget(self.mainLineEditWidget)
+        self.widgetsLay.addWidget(self.dateWidget)
+        self.widgetsLay.addWidget(self.datetimeWidget)
+        self.widgetsLay.addWidget(self.integerSpinboxWidget)
+        
+        self.comboValues = ['Contains', "Doesn't contains", 'Is equal to', 'Is not equal to', 'Is set', 'Is not set']
+        self.comboBoolValues = ['Is true', 'Is false']
+        self.comboFloatValues = ['Is equal to', 'Is not equal to', 'Greater than', 'Less than', 'Greater than or equal to',
+                            'Less then or equal to', 'Is set', 'Is not set']
+        self.comboDatetimeValues = self.comboFloatValues
+        self.comboDatetimeValues.append('Is between')
+        self.comboDatetimeOperator.addItems(self.comboDatetimeValues)
+        self.comboBoolOperator.addItems(self.comboBoolValues)
+        self.comboFloatOperator.addItems(self.comboFloatValues)
+        self.comboCharOperator.addItems(self.comboValues)
+        self.hideAll()
+
+        self.mainLay.addLayout(self.widgetsLay)
+        
+        self.removeLay.addLayout(self.mainLay)
+        self.removeLay.addWidget(self.removeButton)
+        self.mainWidget.setLayout(self.removeLay)
+        self.addWidget(self.mainWidget)
+        
+        self.mainWidget.setStyleSheet(constants.BACKGROUND_LIGHT_BLUE)
+
+    def getSelectedFieldName(self):
+        comboIndex = self.combo.currentIndex()
+        fieldString = self.comboFieldsList[comboIndex]
+        return self.stringFieldRel[fieldString], fieldString
+        
+    def getSingleCondition(self):
+        fieldName, fieldString = self.getSelectedFieldName()
+        return self.getCondition(fieldName, fieldString)
+        
+    def fieldsCustomComboChanged(self, newIndex):
+        self.removeButton.setHidden(False)
+        fieldString = self.comboFieldsList[newIndex]
+        fieldName = self.stringFieldRel.get(fieldString)
+        fieldDefinition = self.advancedFilterFields[fieldName]
+        fieldType = fieldDefinition.get('type', '')
+        self.hideAll()
+        if fieldType in ['char', 'many2one', 'text', 'one2many', 'many2many']:
+            self.comboCharOperator.setHidden(False)
+            self.mainLineEditWidget.setHidden(False)
+        elif fieldType == 'boolean':
+            self.comboBoolOperator.setHidden(False)
+        elif fieldType == 'float':
+            self.comboFloatOperator.setHidden(False)
+            self.mainLineEditWidget.setHidden(False)
+        elif fieldType == 'date':
+            self.dateWidget.setHidden(False)
+            self.comboDatetimeOperator.setHidden(False)
+        elif fieldType == 'datetime':
+            self.datetimeWidget.setHidden(False)
+            self.comboDatetimeOperator.setHidden(False)
+        elif fieldType == 'integer':
+            self.comboFloatOperator.setHidden(False)
+            self.integerSpinboxWidget.setHidden(False)
+
+    def getValue(self, fieldType):
+        if fieldType in ['char', 'many2one', 'text', 'one2many', 'many2many']:
+            return unicode(self.mainLineEditWidget.text())
+        elif fieldType == 'boolean':
+            return ''
+        elif fieldType == 'date':
+            return unicode(self.dateWidget.date().toPyDate())
+        elif fieldType == 'datetime':
+            return unicode(self.datetimeWidget.dateTime().toPyDateTime())
+        elif fieldType == 'integer':
+            return self.integerSpinboxWidget.value()
+        elif fieldType == 'float':
+            try:
+                return float(unicode(self.mainLineEditWidget.text()))
+            except Exception:
+                utils.launchMessage('Wrong value for float field!', 'warning')
+                return 0
+
+    def hideAll(self):
+        self.comboCharOperator.setHidden(True)
+        self.mainLineEditWidget.setHidden(True)
+        self.comboBoolOperator.setHidden(True)
+        self.comboFloatOperator.setHidden(True)
+        self.integerSpinboxWidget.setHidden(True)
+        self.dateWidget.setHidden(True)
+        self.comboDatetimeOperator.setHidden(True)
+        self.datetimeWidget.setHidden(True)
+        self.mainLineEditWidget.setText('')
+
+    def getComboFields(self):
+        # Fields combo
+        sortedFields = []
+        self.stringFieldRel = {}
+        comboAllFields = QtGui.QComboBox()
+        comboAllFields.setStyleSheet(constants.LOGIN_COMBO_STYLE)
+        
+        for fieldName in self.advancedFilterFields.keys():
+            fieldDefinition = self.advancedFilterFields.get(fieldName)
+            fieldString = fieldDefinition.get('string', '')
+            fieldType = fieldDefinition.get('type', '')
+            if fieldType == 'binary':
+                continue
+            sortedFields.append(fieldString)
+            self.stringFieldRel[fieldString] = fieldName
+        
+        sortedFields.sort()
+        self.comboFieldsList = sortedFields
+        for fieldString in sortedFields:
+            comboAllFields.addItem(fieldString)
+        comboAllFields.currentIndexChanged.connect(self.fieldsCustomComboChanged)
+        return comboAllFields
+
+    def getCondition(self, fieldName, fieldString):
+        fieldDefinition = self.advancedFilterFields[fieldName]
+        fieldType = fieldDefinition.get('type', '')
+        value = self.getValue(fieldType)
+        if fieldType in ['char', 'many2one', 'text', 'one2many', 'many2many']:
+            operatorIndex = self.comboCharOperator.currentIndex()
+            interfaceVal = self.comboValues[operatorIndex]
+            if interfaceVal == 'Contains':
+                return [(fieldName, 'ilike', value)], '%r %r %r' % (fieldString, interfaceVal, value)
+            elif interfaceVal == "Doesn't contains":
+                return [(fieldName, 'not ilike', value)], '%r %r %r' % (fieldString, interfaceVal, value)
+            elif interfaceVal == 'Is equal to':
+                return [(fieldName,'=', value)], '%r %r %r' % (fieldString, interfaceVal, value)
+            elif interfaceVal == 'Is not equal to':
+                return [(fieldName,'!=', value)], '%r %r %r' % (fieldString, interfaceVal, value)
+            elif interfaceVal == 'Is set':
+                return [(fieldName, '!=', False), '|', (fieldName, '!=', '')], '%r %r %r' % (fieldString, interfaceVal)
+            elif interfaceVal == 'Is not set':
+                return [(fieldName, '=', False), '|', (fieldName, '=', '')], '%r %r %r' % (fieldString, interfaceVal)
+        elif fieldType == 'boolean':
+            operatorIndex = self.comboBoolOperator.currentIndex()
+            interfaceVal = self.comboBoolValues[operatorIndex]
+            if interfaceVal == 'Is true':   
+                return [(fieldName,'=', True)], '%r %r %r' % (fieldString, interfaceVal)
+            elif interfaceVal == 'Is false':
+                return [(fieldName,'=', False)], '%r %r %r' % (fieldString, interfaceVal)
+        elif fieldType == 'float':
+            operatorIndex = self.comboFloatOperator.currentIndex()
+            interfaceVal = self.comboFloatValues[operatorIndex]
+            if interfaceVal == 'Is equal to':
+                return [(fieldName,'=', value)], '%r %r %r' % (fieldString, interfaceVal, value)
+            elif interfaceVal == 'Is not equal to':
+                return [(fieldName,'!=', value)], '%r %r %r' % (fieldString, interfaceVal, value)
+            elif interfaceVal == 'Greater than':
+                return [(fieldName,'>', value)], '%r %r %r' % (fieldString, interfaceVal, value)
+            elif interfaceVal == 'Less than':
+                return [(fieldName,'<', value)], '%r %r %r' % (fieldString, interfaceVal, value)
+            elif interfaceVal == 'Greater than or equal to':
+                return [(fieldName,'>=', value)], '%r %r %r' % (fieldString, interfaceVal, value)
+            elif interfaceVal == 'Less then or equal to':
+                return [(fieldName,'<=', value)], '%r %r %r' % (fieldString, interfaceVal, value)
+            elif interfaceVal == 'Is set':
+                return [(fieldName,'!=', False), '|', (fieldName, '!=', 0)], '%r %r %r' % (fieldString, interfaceVal)
+            elif interfaceVal == 'Is not set':
+                return [(fieldName,'=', False), '|', (fieldName, '=', 0)], '%r %r %r' % (fieldString, interfaceVal)
+        elif fieldType == 'date':
+            operatorIndex = self.comboDatetimeOperator.currentIndex()
+            interfaceVal = self.comboDatetimeValues[operatorIndex]
+            if interfaceVal == 'Is equal to':
+                return [(fieldName,'=', value)], '%r %r %r' % (fieldString, interfaceVal, value)
+            elif interfaceVal == 'Is not equal to':
+                return [(fieldName,'!=', value)], '%r %r %r' % (fieldString, interfaceVal, value)
+            elif interfaceVal == 'Greater than':
+                return [(fieldName,'>', value)], '%r %r %r' % (fieldString, interfaceVal, value)
+            elif interfaceVal == 'Less than':
+                return [(fieldName,'<', value)], '%r %r %r' % (fieldString, interfaceVal, value)
+            elif interfaceVal == 'Greater than or equal to':
+                return [(fieldName,'>=', value)], '%r %r %r' % (fieldString, interfaceVal, value)
+            elif interfaceVal == 'Less then or equal to':
+                return [(fieldName,'<=', value)], '%r %r %r' % (fieldString, interfaceVal, value)
+            elif interfaceVal == 'Is set':
+                return [(fieldName,'!=', False), '|', (fieldName, '!=', 0)], '%r %r %r' % (fieldString, interfaceVal)
+            elif interfaceVal == 'Is not set':
+                return [(fieldName,'=', False), '|', (fieldName, '=', 0)], '%r %r %r' % (fieldString, interfaceVal)
+        elif fieldType == 'datetime':
+            operatorIndex = self.comboDatetimeOperator.currentIndex()
+            interfaceVal = self.comboDatetimeValues[operatorIndex]
+            if interfaceVal == 'Is equal to':
+                return [(fieldName,'=', value)], '%r %r %r' % (fieldString, interfaceVal, value)
+            elif interfaceVal == 'Is not equal to':
+                return [(fieldName,'!=', value)], '%r %r %r' % (fieldString, interfaceVal, value)
+            elif interfaceVal == 'Greater than':
+                return [(fieldName,'>', value)], '%r %r %r' % (fieldString, interfaceVal, value)
+            elif interfaceVal == 'Less than':
+                return [(fieldName,'<', value)], '%r %r %r' % (fieldString, interfaceVal, value)
+            elif interfaceVal == 'Greater than or equal to':
+                return [(fieldName,'>=', value)], '%r %r %r' % (fieldString, interfaceVal, value)
+            elif interfaceVal == 'Less then or equal to':
+                return [(fieldName,'<=', value)], '%r %r %r' % (fieldString, interfaceVal, value)
+            elif interfaceVal == 'Is set':
+                return [(fieldName,'!=', False), '|', (fieldName, '!=', 0)], '%r %r %r' % (fieldString, interfaceVal)
+            elif interfaceVal == 'Is not set':
+                return [(fieldName,'=', False), '|', (fieldName, '=', 0)], '%r %r %r' % (fieldString, interfaceVal)
+        elif fieldType == 'integer':
+            operatorIndex = self.comboFloatOperator.currentIndex()
+            interfaceVal = self.comboFloatValues[operatorIndex]
+            if interfaceVal == 'Is equal to':
+                return [(fieldName,'=', value)], '%r %r %r' % (fieldString, interfaceVal, value)
+            elif interfaceVal == 'Is not equal to':
+                return [(fieldName,'!=', value)], '%r %r %r' % (fieldString, interfaceVal, value)
+            elif interfaceVal == 'Greater than':
+                return [(fieldName,'>', value)], '%r %r %r' % (fieldString, interfaceVal, value)
+            elif interfaceVal == 'Less than':
+                return [(fieldName,'<', value)], '%r %r %r' % (fieldString, interfaceVal, value)
+            elif interfaceVal == 'Greater than or equal to':
+                return [(fieldName,'>=', value)], '%r %r %r' % (fieldString, interfaceVal, value)
+            elif interfaceVal == 'Less then or equal to':
+                return [(fieldName,'<=', value)], '%r %r %r' % (fieldString, interfaceVal, value)
+            elif interfaceVal == 'Is set':
+                return [(fieldName,'!=', False), '|', (fieldName, '!=', 0)], '%r %r %r' % (fieldString, interfaceVal)
+            elif interfaceVal == 'Is not set':
+                return [(fieldName,'=', False), '|', (fieldName, '=', 0)], '%r %r %r' % (fieldString, interfaceVal)
+        return []
+        
+
+
+
+
+

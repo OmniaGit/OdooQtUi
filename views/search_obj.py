@@ -41,16 +41,6 @@ class TemplateSearchView(TemplateView, QObject):
         self.addToObject()
 
     def _filterChanged(self, filterList):
-        self.currentFilterList = []
-        currentFilterList = []
-        operatorsOrdered = []
-        for conditionTuple in filterList:
-            if isinstance(conditionTuple, (str, unicode)):
-                operatorsOrdered.append(conditionTuple)
-            else:
-                currentFilterList.append(conditionTuple)
-        self.currentFilterList.extend(operatorsOrdered)
-        self.currentFilterList.extend(currentFilterList)
-        print 'New filter %r' % (self.currentFilterList)
-        self.out_filter_change_signal.emit(self.currentFilterList)
+        print 'New filter %r' % (filterList)
+        self.out_filter_change_signal.emit(filterList)
 

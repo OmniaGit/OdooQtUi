@@ -217,7 +217,10 @@ if __name__ == '__main__':
         #tmplViewObj.sortResults('fieldName', 'filterMode')
 
         #tmplViewObj = connectorObj.initFormViewObj('product.product')
-        tmplViewObj = connectorObj.initSearchViewObj('product.product')
+        tmplViewObj = connectorObj.initTreeListViewObject('product.product',
+                                                          viewCheckBoxes=False,
+                                                          viewFilter=True)
+        #tmplViewObj = connectorObj.initSearchViewObj('product.product')
 #         viewCheckBoxes = {0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled}
 #         tmplViewObj = connectorObj.initTreeListViewObject('product.product', viewCheckBoxes=viewCheckBoxes, viewFilter=True)
 #         tmplViewObj.loadIdsForceEmpty([])
