@@ -195,7 +195,7 @@ class FormView(QtCore.QObject, object):
                 groupString = childAttrs.get('string', '')
                 if groupString:
                     label = QtGui.QLabel(groupString)
-                    label.setStyleSheet(constants.LABEL_SEPARATOR)
+                    label.setStyleSheet(constants.LABEL_SEPARATOR + 'font-size:17px;margin-top:20px;')
                     globalLay.addWidget(label, rowCount, colCount, 1, childColSpan)
                     rowCount = rowCount + 1
                 layout = self.computeGroup(childElement, nootebookIndex)
