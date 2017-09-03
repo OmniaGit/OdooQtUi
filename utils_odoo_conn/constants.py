@@ -4,7 +4,8 @@ Created on 17 Feb 2017
 @author: dsmerghetto
 '''
 # Form color
-VIOLET_BACKGROUND = 'background-color:#893b74;'
+#old_violet = #875a7b
+VIOLET_BACKGROUND = 'background-color:#875a7b;'
 BACKGROUND_RED = 'background-color:#f7a5a5;'
 BACKGROUND_WHITE = 'background-color:white;'
 BACKGROUND_GREY = 'background-color:#dfd9d9;'
@@ -39,8 +40,8 @@ SELECTION_STYLE = COMMON_FIELDS_BOTTOM_BORDER
 DATE_STYLE = COMMON_FIELDS_BOTTOM_BORDER
 TEXT_STYLE = BACKGROUND_WHITE
 NOOTEBOOK_STYLE = 'border-left-style: none;border-right-style: none;border-bottom-style: none;border-top-style: none;'
-NOOTEBOOK_TABBAR_STYLE = 'QTabBar::tab:!selected {border: 3px solid grey;border-left-style: none;border-right-style: none;border-top-style: none;min-width:180px;} QTabBar::tab:selected {border: 3px solid #893b74;border-left-style: none;border-right-style: none;border-top-style: none;color: #893b74;font-size: 12px;min-width:150px} QTabBar::tab:hover {border: 3px solid #893b74;border-left-style: none;border-right-style: none;border-top-style: none;color: #893b74;font-size: 12px;font-weight: bold;min-width:150px}'
-TABLE_LIST_LIST = """QScrollBar {background-color:#893b74} QTableWidget {border-left: 3px solid #893b74; border-right: 3px solid #893b74; border-bottom: 3px solid #893b74;}"""
+NOOTEBOOK_TABBAR_STYLE = 'QTabBar::tab:!selected {border: 3px solid grey;border-left-style: none;border-right-style: none;border-top-style: none;min-width:180px;} QTabBar::tab:selected {border: 3px solid #875a7b;border-left-style: none;border-right-style: none;border-top-style: none;color: #875a7b;font-size: 12px;min-width:150px} QTabBar::tab:hover {border: 3px solid #875a7b;border-left-style: none;border-right-style: none;border-top-style: none;color: #875a7b;font-size: 12px;font-weight: bold;min-width:150px}'
+TABLE_LIST_LIST = """QScrollBar {background-color:#875a7b} QTableWidget {border-left: 3px solid #875a7b; border-right: 3px solid #875a7b; border-bottom: 3px solid #875a7b;}"""
 FONT_SIZE_LIST_WIDGET = 8
 
 TAG_TEXT_STYLE = 'background-color: #c5c5c5;color: black;padding: 0px 5px 0px 5px;font-size: large;max-width: 500px;border: 1px solid black;'
@@ -50,17 +51,17 @@ TAG_BUTTON_STYLE = 'color: black;margin-left:20px;display: flex;padding: 0px 5px
 
 # Search view
 SEARCH_FILTER_TOOLBUTTON = 'background-color: #7c7bad;min-width: 130px;min-height:30px;color: white;font-size: large;border: 3px solid black;' + BOLD_FONT
-SEARCH_ADVANCED_BUTTON = 'background-color:white;color:#893b74;font-size: 18px;border: 4px solid #893b74;min-width: 25px;min-height:25px;' + BOLD_FONT
+SEARCH_ADVANCED_BUTTON = 'background-color:white;color:#875a7b;font-size: 18px;border: 4px solid #875a7b;min-width: 25px;min-height:25px;' + BOLD_FONT
 OPERATOR_LABEL = 'background-color: #7c7bad;border: 1px solid black;width:30px;color:white;'
 
 # Login dialog
 LOGIN_LINEEDIT_STYLE = 'min-width:200px;height: 16px;padding: 6px 12px;font-size: 14px;border: 1px solid #ccc;border-radius: 4px;background-color: rgb(250, 255, 189);color: rgb(0, 0, 0);'
-LOGIN_COMBO_STYLE = 'QComboBox {background-color: #eee;color: rgb(0, 0, 0);height: 16px;padding: 6px 12px;font-size: 14px;border-radius: 4px;border: 1px solid #ccc;} QScrollBar {background-color:#893b74} '
+LOGIN_COMBO_STYLE = 'QComboBox {background-color: #eee;color: rgb(0, 0, 0);height: 16px;padding: 6px 12px;font-size: 14px;border-radius: 4px;border: 1px solid #ccc;} QScrollBar {background-color:#875a7b} '
 LOGIN_ACCEPT_BUTTON = 'border-radius: 4px;color: white;background-color: #337ab7;border: 2px solid black;padding: 5px 10px;font-size: 12px;'
 LOGIN_NEXT_BACK_BUTTONS = LOGIN_ACCEPT_BUTTON + 'background-color: #59be50;'
 LOGIN_CANCEL_BUTTON = LOGIN_ACCEPT_BUTTON + 'background-color: #f05050;'
 LOGIN_LABEL = BOLD_FONT
-LOGIN_MAIN = 'background-color:#893b74;'
+LOGIN_MAIN = 'background-color:#875a7b;'
 LOGIN_STACKED_WIDGET = 'background-color:white;'
 
 TREE_LIST_BACKGROUND_COLOR = 'background-color:#ffffff;'

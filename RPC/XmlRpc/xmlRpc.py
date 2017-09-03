@@ -7,6 +7,7 @@ Created on 3 Feb 2017
 from utils_odoo_conn import utils
 import xmlrpclib
 import httplib
+import socket
 
 
 class XmlRpcConnection(object):
@@ -154,7 +155,10 @@ class XmlRpcConnection(object):
     def on_change(self, odooObj, activeIds, allVals, fieldName, allOnchanges, context):
         try:
             utils.logMessage('debug', 'Onchange field %r' % (fieldName), 'on_change')
-            return self.callOdooFunction(odooObj, 'onchange', [activeIds, allVals, fieldName, allOnchanges], {'context': context})
+            res = self.callOdooFunction(odooObj, 'onchange', [activeIds, allVals, fieldName, allOnchanges], {'context': context})
+            if not res:
+                return {}
+            return res
         except Exception, ex:
             utils.logMessage('error', 'Wrong on_change call with odooObj: %r, fieldName: %r, activeIds: %r, context: %r. Error: %r' % (odooObj, fieldName, activeIds, context, ex), 'on_change')
         return {}
@@ -191,6 +195,14 @@ class XmlRpcConnection(object):
                                                   functionName,
                                                   parameters,
                                                   kwargParameters)
+        except socket.error, err:
+            message = 'Unable to communicate with the server: %r\n%r' % (err.faultCode, err.faultString)
+            utils.launchMessage(message, 'error')
+            utils.logMessage('error', message, 'callOdooFunction')
+        except xmlrpclib.Fault, err:
+            message = 'Unable to communicate with the server: %r\n%r' % (err.faultCode, err.faultString)
+            utils.launchMessage(message, 'error')
+            utils.logMessage('error', message, 'callOdooFunction')
         except Exception, ex:
             utils.launchMessage(ex, 'error')
             utils.logMessage('error', ex, 'callOdooFunction')
@@ -204,4 +216,3 @@ class TimeoutTransport(xmlrpclib.Transport):
     def make_connection(self, host):
         h = httplib.HTTPConnection(host, timeout=self.timeout)
         return h
-

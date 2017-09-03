@@ -134,6 +134,11 @@ class TemplateTreeListView(TemplateView):
         self.treeObj.tableWidget.verticalHeader().setVisible(False)
         self.treeObj.tableWidget.horizontalHeader().setStyleSheet('::section {background-color:#a2b0ff;color:black;font-weight:bold;}')
 
+    def getLineValues(self, lineIndex):
+        recordId = self.idLineRel[lineIndex]
+        recordObj = self.idValsRel.get(recordId, {})
+        return recordObj
+        
     def _valueChanged(self, fieldName):
         fieldName = unicode(fieldName)
         fieldObj = self.interfaceFieldsDict.get(fieldName)
