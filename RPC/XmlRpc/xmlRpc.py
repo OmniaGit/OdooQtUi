@@ -30,7 +30,7 @@ class XmlRpcConnection(object):
     def loginNoUser(self):
         try:
             t = TimeoutTransport()
-            t.set_timeout(4.0)
+            t.set_timeout(2.5)
             # server = xmlrpclib.Server('http://time.xmlrpc.com/RPC2', transport=t)
             self.socketNoLogin = xmlrpclib.ServerProxy(self.urlNoLogin, transport=t)
         except Exception, ex:
