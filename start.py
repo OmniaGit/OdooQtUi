@@ -8,6 +8,7 @@ import sys
 from PyQt4 import QtGui
 from PyQt4 import QtCore
 from utils_odoo_conn import utils
+from utils_odoo_conn import constants
 from RPC.rpc import connectionObj
 from views.search_obj import TemplateSearchView
 from views.form_obj import TemplateFormView
@@ -232,7 +233,7 @@ if __name__ == '__main__':
         #tmplViewObj.QtInterface.setMargin(20)
         interf = tmplViewObj.QtInterface
         dialog.setLayout(interf)
-        dialog.setStyleSheet('background-color:#893b74;')
+        dialog.setStyleSheet(constants.VIOLET_BACKGROUND)
         dialog.resize(1200, 600)
         dialog.move(100, 100)
         dialog.show()
