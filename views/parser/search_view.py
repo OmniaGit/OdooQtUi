@@ -69,7 +69,6 @@ class SearchView(object):
         self.orPressed = False  # Restored to False the or flag
         self.tmpLineEdits = []  # Cleared the ltmp lineedits widgets
         self.linedit.setText('')
-        # lanciare evento di filtro cambiato
 
     def addCondition(self, cond, intString):
         conditionObj = Condition()
@@ -94,9 +93,11 @@ class SearchView(object):
         self.multipleConditionLay.addLayout(lineEditLay)
         self.tmpLayouts.append(lineEditLay)
         self.tmpLineEdits.append(lineEdit)
+        lineEdit.selectAll()
+        lineEdit.setFocus()
 
     def createCommonLineEdit(self):
-        linedit = QtGui.QLineEdit()
+        linedit = CustomLineEdit(self)
         linedit.textChanged.connect(self.textChangedEvent)
         linedit.returnPressed.connect(self.returnPressedLocal)
         return linedit
@@ -109,17 +110,6 @@ class SearchView(object):
         applyButton.setStyleSheet(constants.BUTTON_STYLE)
         applyButton.clicked.connect(self.applyCondition)
         return orButton, applyButton
-
-    def keyPressEventOr(self, event):
-        key = event.key()
-        modifiers = int(event.modifiers())
-        
-        if key == QtCore.Qt.Key_Return:
-            if modifiers == QtCore.Qt.CTRL:
-                self.orCondition()
-                return 
-        self.linedit.keyPressEvent.emit()
-        #return super(QtGui.QLineEdit, self.linedit).keyPressEvent(event)
         
     def computeRecursion(self, xmlElementParent):
         self.mainVLay = QtGui.QVBoxLayout()
@@ -129,7 +119,7 @@ class SearchView(object):
         lineEditLay = QtGui.QHBoxLayout()
         # Setup lineedit
         self.linedit = self.createCommonLineEdit()
-        self.linedit.keyPressEvent = self.keyPressEventOr
+        self.tmpLineEdits.append(self.linedit)
 
         # Setup completer
         self.completer = CustomQCompleter()
@@ -873,6 +863,18 @@ class QVBoxLayCustom(QtGui.QVBoxLayout):
         
 
 
+class CustomLineEdit(QtGui.QLineEdit):
+    
+    def __init__(self, parentClass):
+        self.parentClass = parentClass
+        return super(CustomLineEdit, self).__init__()
 
+    def keyPressEvent(self, event):
+        key = event.key()
+        modifiers = int(event.modifiers())
+        if key == QtCore.Qt.Key_Return:
+            if modifiers == QtCore.Qt.CTRL:
+                self.parentClass.orCondition()
+        return super(CustomLineEdit, self).keyPressEvent(event)
 
 
