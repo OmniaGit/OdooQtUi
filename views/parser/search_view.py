@@ -61,7 +61,7 @@ class SearchView(object):
             operators.append('|')
             intString = intString + fieldObj.interfaceStringWithValue + '\nOr  '
         intString = intString[:-4]
-        
+        operators = operators[1:]
         condObj = self.addCondition(operators + conditionList, intString)
         self.addFieldTag(condObj)
         for lay in self.tmpLayouts:
