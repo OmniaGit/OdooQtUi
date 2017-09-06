@@ -110,6 +110,17 @@ class SearchView(object):
         applyButton.clicked.connect(self.applyCondition)
         return orButton, applyButton
 
+    def keyPressEventOr(self, event):
+        key = event.key()
+        modifiers = int(event.modifiers())
+        
+        if key == QtCore.Qt.Key_Return:
+            if modifiers == QtCore.Qt.CTRL:
+                self.orCondition()
+                return 
+        self.linedit.keyPressEvent.emit()
+        #return super(QtGui.QLineEdit, self.linedit).keyPressEvent(event)
+        
     def computeRecursion(self, xmlElementParent):
         self.mainVLay = QtGui.QVBoxLayout()
         mainHLay = QtGui.QHBoxLayout()
@@ -118,6 +129,7 @@ class SearchView(object):
         lineEditLay = QtGui.QHBoxLayout()
         # Setup lineedit
         self.linedit = self.createCommonLineEdit()
+        self.linedit.keyPressEvent = self.keyPressEventOr
 
         # Setup completer
         self.completer = CustomQCompleter()
