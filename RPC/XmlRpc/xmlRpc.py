@@ -58,7 +58,12 @@ class XmlRpcConnection(object):
         return True
 
     def listDb(self):
-        return xmlrpclib.ServerProxy(self.urlListDB).list()
+        try:
+            return xmlrpclib.ServerProxy(self.urlListDB).list()
+        except Exception, ex:
+            utils.logMessage('warning', 'Unable to list database. EX: %r' % (ex), 'listDb')
+            utils.launchMessage('Unable to get database list, please check your login settings.', 'warning')
+        return False
 
     def search(self, obj, filterList, limit=False, offset=False, context={}):
         try:

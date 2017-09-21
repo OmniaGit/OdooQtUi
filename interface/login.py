@@ -26,7 +26,6 @@ class LoginDial(QtGui.QDialog, Ui_dialog_login):
 
     def setEvents(self):
         self.pushButton_cancel.clicked.connect(self.cancelDial)
-        self.pushButton_next.clicked.connect(self.nextPage)
         self.pushButton_ok.clicked.connect(self.acceptDial)
         self.pushButton_back.clicked.connect(self.previousPage)
 
@@ -101,12 +100,6 @@ class LoginDial(QtGui.QDialog, Ui_dialog_login):
         self.pushButton_back.setHidden(True)
         self.pushButton_next.setHidden(False)
         self.stackedWidget.setCurrentIndex(0)
-
-    def nextPage(self):
-        self.pushButton_ok.setHidden(False)
-        self.pushButton_back.setHidden(False)
-        self.pushButton_next.setHidden(True)
-        self.stackedWidget.setCurrentIndex(1)
 
     def cancelDial(self):
         self.reject()
@@ -216,9 +209,14 @@ connection type=%r\n
                                      xmlrpcServerIP)
 
         self.dbList = connectionObj.listDb()
+        if not self.dbList:
+            return
         self.interfaceDial.comboBox_database.clear()
         self.interfaceDial.comboBox_database.addItems(self.dbList)
-        self.interfaceDial.nextPage()
+        self.interfaceDial.pushButton_ok.setHidden(False)
+        self.interfaceDial.pushButton_back.setHidden(False)
+        self.interfaceDial.pushButton_next.setHidden(True)
+        self.interfaceDial.stackedWidget.setCurrentIndex(1)
 
     def loginWithUserDial(self):
         connectionObj.initConnection(self.connType,
