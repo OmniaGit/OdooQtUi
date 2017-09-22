@@ -108,17 +108,18 @@ class Many2many(OdooFieldTemplate):
         self.mainLay.addLayout(self.treeViewObj.layout)
         if self.required:
             utils.setRequiredBackground(self.widgetQtObj, '')
-        self.btnAddAnItem = QtGui.QPushButton('Add an item')
-        self.btnAddAnItem.setStyleSheet(constants.BUTTON_ADD_AN_ITEM)
-        self.btnAddAnItem.clicked.connect(self.addAnItem)
-        addAnItemLay = QtGui.QHBoxLayout()
-        addAnItemLay.addWidget(self.btnAddAnItem)
-        addAnItemLay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum))
-        self.mainLay.addLayout(addAnItemLay)
-        self.widgetLyQtObject.addLayout(self.mainLay)
-        if self.translatable:
-            self.connectTranslationButton()
-            self.widgetLyQtObject.addWidget(self.translateButton)
+        if not self.btnAddAnItem:
+            self.btnAddAnItem = QtGui.QPushButton('Add an item')
+            self.btnAddAnItem.setStyleSheet(constants.BUTTON_ADD_AN_ITEM)
+            self.btnAddAnItem.clicked.connect(self.addAnItem)
+            addAnItemLay = QtGui.QHBoxLayout()
+            addAnItemLay.addWidget(self.btnAddAnItem)
+            addAnItemLay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum))
+            self.mainLay.addLayout(addAnItemLay)
+            self.widgetLyQtObject.addLayout(self.mainLay)
+            if self.translatable:
+                self.connectTranslationButton()
+                self.widgetLyQtObject.addWidget(self.translateButton)
 
     def setupTableWidgetLay(self, tableWidget):
         tableWidget.resizeColumnsToContents()

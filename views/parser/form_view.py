@@ -160,9 +160,9 @@ class FormView(QtCore.QObject, object):
         scroll = QtGui.QScrollArea()
         scroll.setWidget(widgetContents)
         scroll.setWidgetResizable(True)
-        outLay = QtGui.QVBoxLayout()
-        outLay.addWidget(scroll)
-        return outLay
+        self.outLay = QtGui.QVBoxLayout()
+        self.outLay.addWidget(scroll)
+        return self.outLay
 
     def computeGroup(self, groupXmlObj, nootebookIndex=0):
         def computeCol(val):

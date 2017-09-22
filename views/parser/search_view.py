@@ -356,19 +356,17 @@ class SearchView(object):
         self.launchFilterChanged()
 
     def computeArchRecursion(self, xmlElementParent):
-        widgetContents = QtGui.QWidget()
-        mainLay = QtGui.QVBoxLayout()
-        filterListLay = QtGui.QHBoxLayout()
-        mainHLay = self.computeRecursion(xmlElementParent)
-        widgetContents.setStyleSheet('background-color:#ffffff;')
-        mainLay.addLayout(mainHLay)
-        mainLay.addLayout(filterListLay)
-        widgetContents.setLayout(mainLay)
-        outLay = QtGui.QVBoxLayout()
-        outLay.addWidget(widgetContents)
-        return outLay
-
-
+        self.widgetContents = QtGui.QWidget()
+        self.mainLayOut = QtGui.QVBoxLayout()
+        self.filterListLay = QtGui.QHBoxLayout()
+        self.mainHLayRec = self.computeRecursion(xmlElementParent)
+        self.widgetContents.setStyleSheet('background-color:#ffffff;')
+        self.mainLayOut.addLayout(self.mainHLayRec)
+        self.mainLayOut.addLayout(self.filterListLay)
+        self.widgetContents.setLayout(self.mainLayOut)
+        self.outLay = QtGui.QVBoxLayout()
+        self.outLay.addWidget(self.widgetContents)
+        return self.outLay
 
     # This section is dedicated to advanced custom filter
 
