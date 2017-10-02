@@ -67,7 +67,7 @@ class MainConnector(object):
         if not rpcObj:
             rpcObj = connectionObj
         return activeLanguage, rpcObj
-        
+
     def initTreeListViewObject(self, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', viewCheckBoxes={}, viewFilter=False):
         localLang, rpcObj = self._getCommonLangAndRpc(activeLanguage, rpcObj)
         oldView = self.checkAlreadyLoadedView('tree_list', rpcObj, odooObjectName, viewName, view_id, viewFilter)
@@ -143,15 +143,13 @@ class MainConnector(object):
         return templateViewObj
 
     def appendLoadedView(self, viewType, rpcObj, odooObjectName, viewName, view_id, templateViewObj, viewFilter=False):
-        self.loadedViews[viewType].append({
-            'login': rpcObj.getLoginInfos(),
-            'view_type': viewType,
-            'object_name': odooObjectName,
-            'view_name': viewName or '',
-            'view_id': view_id,
-            'use_filter': viewFilter,
-            'TMP_VIEW_OBJ': templateViewObj,
-            })
+        self.loadedViews[viewType].append({'login': rpcObj.getLoginInfos(),
+                                           'view_type': viewType,
+                                           'object_name': odooObjectName,
+                                           'view_name': viewName or '',
+                                           'view_id': view_id,
+                                           'use_filter': viewFilter,
+                                           'TMP_VIEW_OBJ': templateViewObj})
 
     def checkAlreadyLoadedView(self, viewType, rpcObj, odooObjectName, viewName, view_id, viewFilter=False):
         viewList = self.loadedViews.get(viewType, [])
@@ -163,13 +161,13 @@ class MainConnector(object):
                 oldViewName = viewDict.get('view_name')
                 oldViewId = viewDict.get('view_id')
                 oldViewFilter = viewDict.get('use_filter', False)
-                if oldViewType == viewType and oldObjectName == odooObjectName and oldViewName == viewName and oldViewId == view_id and oldViewFilter==viewFilter:
+                if oldViewType == viewType and oldObjectName == odooObjectName and oldViewName == viewName and oldViewId == view_id and oldViewFilter == viewFilter:
                     return viewDict['TMP_VIEW_OBJ']
         return False
 
-odooConnector = MainConnector()
 
 if __name__ == '__main__':
+    odooConnector = MainConnector()
     import time
     ts = time.time()
 
@@ -196,7 +194,7 @@ if __name__ == '__main__':
 #     password = 'admin'
 #     dbName = 'Maus_2'
 #     loginType = 'xmlrpc'
- 
+
     scheme = 'http'
     xmlrpcServerIP = '127.0.0.1'
     xmlrpcPort = 8069
@@ -242,7 +240,6 @@ if __name__ == '__main__':
         dialog.move(100, 100)
         dialog.show()
         dialog.exec_()
-        
     do_test()
 
     app.exec_()
