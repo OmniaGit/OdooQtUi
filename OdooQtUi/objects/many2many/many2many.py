@@ -12,12 +12,13 @@ from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
 
 
 class Many2many(OdooFieldTemplate):
-    def __init__(self, xmlField, fieldsDefinition, rpc):
+    def __init__(self, xmlField, fieldsDefinition, rpc, odooConnector=None):
         super(Many2many, self).__init__(xmlField, fieldsDefinition, rpc)
         self.labelQtObj = False
         self.widgetQtObj = False
         self.treeViewObj = False
         self.btnAddAnItem = None
+        self.odooConnector = odooConnector
         self.currentValue = []
         self.relation = self.fieldPyDefinition.get('relation', '')
         self.canCreate = json.loads(self.fieldXmlAttributes.get('can_create', 'true'))
@@ -52,9 +53,7 @@ class Many2many(OdooFieldTemplate):
 
     def createAndAdd(self):
         try:
-            from start import MainConnector
-            conn = MainConnector()
-            self.tmpviewObjForm = conn.initViewObj('form', self.relation, rpcObj=self.rpc)
+            self.tmpviewObjForm = self.odooConnector.initViewObj('form', self.relation, rpcObj=self.rpc)
             self.tmpviewObjForm.loadIds([])
             self.formdialog = QtGui.QDialog()
             mainLay = QtGui.QVBoxLayout()
@@ -96,9 +95,10 @@ class Many2many(OdooFieldTemplate):
 
     def setValue(self, relIds):
         self.currentValue = relIds
-        from start import odooConnector
-        conn = odooConnector
-        self.treeViewObj = conn.initViewObj('tree_list', self.relation, rpcObj=self.rpc, viewCheckBoxes={0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled})
+        self.treeViewObj = self.odooConnector.initViewObj('tree_list',
+                                                          self.relation,
+                                                          rpcObj=self.rpc,
+                                                          viewCheckBoxes={0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled})
         self.treeViewObj.loadIds(relIds, {}, {}, {})
         self.widgetQtObj = self.treeViewObj.treeObj.tableWidget
         self.fieldsToReadOrdered = self.treeViewObj.treeObj.orderedFields

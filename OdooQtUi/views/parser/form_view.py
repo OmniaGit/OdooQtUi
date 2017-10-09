@@ -31,8 +31,9 @@ class FormView(QtCore.QObject, object):
 
     nootebook_changed_signal = QtCore.pyqtSignal(int)
 
-    def __init__(self, arch, fieldsNameTypeRel, rpc, useHeader=False, useChatter=False):
+    def __init__(self, arch, fieldsNameTypeRel, rpc, useHeader=False, useChatter=False, odooConnector=None):
         super(FormView, self).__init__()
+        self.odooConnector = odooConnector
         self.arch = arch
         self.fieldsNameTypeRel = fieldsNameTypeRel
         self.globalMapping = {}
@@ -277,7 +278,7 @@ class FormView(QtCore.QObject, object):
         elif fieldType == 'many2one':
             fieldObj = Many2one(xmlObj, self.fieldsNameTypeRel, self.rpc)
         elif fieldType == 'many2many':
-            fieldObj = Many2many(xmlObj, self.fieldsNameTypeRel, self.rpc)
+            fieldObj = Many2many(xmlObj, self.fieldsNameTypeRel, self.rpc, self.odooConnector)
         elif fieldType == 'text':
             fieldObj = Text(xmlObj, self.fieldsNameTypeRel, self.rpc)
         elif fieldType == 'date':

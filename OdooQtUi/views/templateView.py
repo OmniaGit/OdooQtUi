@@ -58,11 +58,14 @@ class TemplateView(QObject):
         return True
 
     def cleanFields(self, fieldsToClean=[]):
-        if not fieldsToClean:
-            for fieldObj in self.interfaceFieldsDict.values():
-                if fieldObj:
-                    fieldObj.eraseValue()
-        
+        try:
+            if not fieldsToClean:
+                for fieldObj in self.interfaceFieldsDict.values():
+                    if fieldObj:
+                        fieldObj.eraseValue()
+        except Exception, ex:
+            utils.logMessage("error", unicode(ex), 'cleanFields')
+
     def setFieldValues(self, fieldsDict):
         for fieldName, fieldVal in fieldsDict.items():
             self.setValueField(fieldName, fieldVal)

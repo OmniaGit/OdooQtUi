@@ -93,7 +93,7 @@ class MainConnector(object):
         oldView = self.checkAlreadyLoadedView('form', rpcObj, odooObjectName, viewName, view_id)
         if oldView:
             return oldView
-        templateViewObj = TemplateFormView(rpcObj, localLang, useHeader, useChatter)
+        templateViewObj = TemplateFormView(rpcObj, localLang, useHeader, useChatter, self)
         templateViewObj.initViewObj(odooObjectName, viewName, view_id)
         self.appendLoadedView('form', rpcObj, odooObjectName, viewName, view_id, templateViewObj)
         return templateViewObj
@@ -126,7 +126,7 @@ class MainConnector(object):
         if oldView:
             return oldView
         if viewType == 'form':
-            templateViewObj = TemplateFormView(rpcObj, localLang, useHeader, useChatter)
+            templateViewObj = TemplateFormView(rpcObj, localLang, useHeader, useChatter, self)
             templateViewObj.initViewObj(odooObjectName, viewName, view_id)
         elif viewType == 'tree_tree':
             templateViewObj = TemplateTreeTreeView(rpcObj, localLang)
