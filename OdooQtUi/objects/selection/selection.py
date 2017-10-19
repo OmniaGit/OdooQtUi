@@ -7,7 +7,7 @@ import json
 
 from PyQt4 import QtGui
 from PyQt4 import QtCore
-from OdooQtUi.utils_odoo_conn import utils
+from OdooQtUi.utils_odoo_conn import utils, utilsUi
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
 
@@ -64,7 +64,7 @@ class Selection(OdooFieldTemplate):
         self.widgetQtObj.setToolTip(self.tooltip)
         self.widgetQtObj.currentIndexChanged.connect(self.valueChanged)
         if self.required:
-            utils.setRequiredBackground(self.widgetQtObj, constants.SELECTION_STYLE)
+            utilsUi.setRequiredBackground(self.widgetQtObj, constants.SELECTION_STYLE)
         self.widgetLyQtObject.addWidget(self.widgetQtObj)
         if self.translatable:
             self.connectTranslationButton()
@@ -106,10 +106,10 @@ class Selection(OdooFieldTemplate):
             if val:
                 self.widgetQtObj.setStyleSheet(constants.SELECTION_STYLE + constants.READONLY_STYLE)
             elif self.required:
-                utils.setRequiredBackground(self.widgetQtObj, constants.SELECTION_STYLE)
+                utilsUi.setRequiredBackground(self.widgetQtObj, constants.SELECTION_STYLE)
             else:
                 if self.required:
-                    utils.setRequiredBackground(self.widgetQtObj, constants.SELECTION_STYLE)
+                    utilsUi.setRequiredBackground(self.widgetQtObj, constants.SELECTION_STYLE)
                 else:
                     self.widgetQtObj.setStyleSheet(constants.SELECTION_STYLE)
 

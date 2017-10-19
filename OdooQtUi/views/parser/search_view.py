@@ -13,6 +13,7 @@ from PyQt4 import QtCore
 from functools import partial
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.utils_odoo_conn import utils
+from OdooQtUi.utils_odoo_conn import utilsUi
 
 # Do not delete these, are necessary to compute filters coming from server
 import datetime                                 
@@ -720,8 +721,9 @@ class QVBoxLayCustom(QtGui.QVBoxLayout):
         elif fieldType == 'float':
             try:
                 return float(unicode(self.mainLineEditWidget.text()))
-            except Exception:
-                utils.launchMessage('Wrong value for float field!', 'warning')
+            except Exception, ex:
+                utils.logMessage('warning', unicode(ex), 'getValue')
+                utilsUi.launchMessage('Wrong value for float field!', 'warning')
                 return 0
 
     def hideAll(self):

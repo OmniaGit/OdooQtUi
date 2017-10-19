@@ -6,7 +6,7 @@ Created on 7 Feb 2017
 import json
 
 from PyQt4 import QtGui, QtCore
-from OdooQtUi.utils_odoo_conn import utils
+from OdooQtUi.utils_odoo_conn import utils, utilsUi
 from OdooQtUi.utils_odoo_conn import constants
 from functools import partial
 from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
@@ -67,7 +67,7 @@ class One2many(OdooFieldTemplate):
             dialog.setStyleSheet('background-color:#893b74;')
             dialog.resize(1200, 600)
             dialog.move(100, 100)
-            buttLay, okButt, cancelButt = utils.getButtonBox('right')
+            buttLay, okButt, cancelButt = utilsUi.getButtonBox('right')
             mainLay.addLayout(buttLay)
             dialog.setLayout(mainLay)
             okButt.clicked.connect(acceptDial)
@@ -122,7 +122,7 @@ class One2many(OdooFieldTemplate):
         self.setupTableWidgetLay(self.widgetQtObj)
         self.mainLay.addLayout(self.treeViewObj.layout)
         if self.required:
-            utils.setRequiredBackground(self.widgetQtObj, '')
+            utilsUi.setRequiredBackground(self.widgetQtObj, '')
         addAnItemLay = QtGui.QHBoxLayout()
         addAnItemLay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum))
         self.mainLay.addLayout(addAnItemLay)

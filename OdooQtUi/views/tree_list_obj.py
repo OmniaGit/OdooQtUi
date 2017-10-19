@@ -7,7 +7,7 @@ from PyQt4 import QtGui
 from parser.tree_list import TreeViewList
 from templateView import TemplateView
 from OdooQtUi.views.search_obj import TemplateSearchView
-from OdooQtUi.utils_odoo_conn import utils
+from OdooQtUi.utils_odoo_conn import utils, utilsUi
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.RPC.rpc import connectionObj
 
@@ -126,7 +126,7 @@ class TemplateTreeListView(TemplateView):
             recordId = record.get('id', False)
             self.idValsRel[recordId] = record
             self.idLineRel[records.index(record)] = recordId
-        utils.commonPopulateTable(self.labelsOrdered, valuesList, self.treeObj.tableWidget, flagsDict, fontSize=constants.FONT_SIZE_LIST_WIDGET)
+        utilsUi.commonPopulateTable(self.labelsOrdered, valuesList, self.treeObj.tableWidget, flagsDict, fontSize=constants.FONT_SIZE_LIST_WIDGET)
         self.treeObj.tableWidget.resizeColumnsToContents()
         self.treeObj.tableWidget.setShowGrid(False)
         self.treeObj.tableWidget.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
@@ -138,7 +138,7 @@ class TemplateTreeListView(TemplateView):
         recordId = self.idLineRel[lineIndex]
         recordObj = self.idValsRel.get(recordId, {})
         return recordObj
-        
+
     def _valueChanged(self, fieldName):
         fieldName = unicode(fieldName)
         fieldObj = self.interfaceFieldsDict.get(fieldName)

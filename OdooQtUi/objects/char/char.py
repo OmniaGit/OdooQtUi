@@ -5,7 +5,7 @@ Created on 7 Feb 2017
 '''
 
 from PyQt4 import QtGui
-from OdooQtUi.utils_odoo_conn import utils
+from OdooQtUi.utils_odoo_conn import utils, utilsUi
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
 
@@ -32,7 +32,7 @@ class Charachter(OdooFieldTemplate):
             self.connectTranslationButton()
             self.widgetLyQtObject.addWidget(self.translateButton)
         if self.required:
-            utils.setRequiredBackground(self.widgetQtObj, constants.CHAR_STYLE)
+            utilsUi.setRequiredBackground(self.widgetQtObj, constants.CHAR_STYLE)
 
     def valueChanged(self):
         self.currentValue = unicode(self.widgetQtObj.text())
@@ -54,10 +54,10 @@ class Charachter(OdooFieldTemplate):
         if val:
             self.widgetQtObj.setStyleSheet(constants.CHAR_STYLE + constants.READONLY_STYLE)
         elif self.required:
-            utils.setRequiredBackground(self.widgetQtObj, constants.CHAR_STYLE)
+            utilsUi.setRequiredBackground(self.widgetQtObj, constants.CHAR_STYLE)
         else:
             if self.required:
-                utils.setRequiredBackground(self.widgetQtObj, constants.CHAR_STYLE)
+                utilsUi.setRequiredBackground(self.widgetQtObj, constants.CHAR_STYLE)
             else:
                 self.widgetQtObj.setStyleSheet(constants.CHAR_STYLE)
 

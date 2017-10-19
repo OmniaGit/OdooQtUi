@@ -5,7 +5,7 @@ Created on 3 Feb 2017
 '''
 import xml.etree.cElementTree as ElementTree
 from PyQt4 import QtGui
-from OdooQtUi.utils_odoo_conn import constants
+from OdooQtUi.utils_odoo_conn import constants, utilsUi
 from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.objects.selection.selection import Selection
 from OdooQtUi.objects.boolean.boolean import Boolean
@@ -45,7 +45,7 @@ class TreeViewList(object):
         flagsDict = {}
         if self.viewCheckBoxes:
             flagsDict = self.viewCheckBoxes
-        utils.commonPopulateTable(self.orderedFields, [], self.tableWidget, flagsDict)
+        utilsUi.commonPopulateTable(self.orderedFields, [], self.tableWidget, flagsDict)
         mainVLay.addWidget(self.tableWidget)
         self.tableWidget.horizontalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
         self.tableWidget.horizontalHeader().setStyleSheet('::section {background-color:#a2b0ff;color:black;font-weight:bold;}')

@@ -7,6 +7,7 @@ import json
 from PyQt4 import QtGui, QtCore
 from functools import partial
 from OdooQtUi.utils_odoo_conn import utils
+from OdooQtUi.utils_odoo_conn import utilsUi
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
 
@@ -44,7 +45,7 @@ class Many2many(OdooFieldTemplate):
         for requiredFieldStr, requiredFieldObj in self.tmpviewObjForm.requiredFields.items():
             fieldVal = fieldVals.get(requiredFieldStr, '')
             if not fieldVal and not isinstance(fieldVal, (int, float)):
-                utils.launchMessage('Field %r need a value' % (requiredFieldObj.labelString), 'error')
+                utilsUi.launchMessage('Field %r need a value' % (requiredFieldObj.labelString), 'error')
                 return
         self.formdialog.accept()
 
@@ -61,7 +62,7 @@ class Many2many(OdooFieldTemplate):
             self.formdialog.setStyleSheet('background-color:#893b74;')
             self.formdialog.resize(1200, 600)
             self.formdialog.move(100, 100)
-            buttLay, okButt, cancelButt = utils.getButtonBox('right')
+            buttLay, okButt, cancelButt = utilsUi.getButtonBox('right')
             mainLay.addLayout(buttLay)
             self.formdialog.setLayout(mainLay)
             okButt.clicked.connect(self.acceptFormDial)
@@ -106,7 +107,7 @@ class Many2many(OdooFieldTemplate):
         self.setupTableWidgetLay(self.widgetQtObj)
         self.mainLay.addLayout(self.treeViewObj.layout)
         if self.required:
-            utils.setRequiredBackground(self.widgetQtObj, '')
+            utilsUi.setRequiredBackground(self.widgetQtObj, '')
         if not self.btnAddAnItem:
             self.btnAddAnItem = QtGui.QPushButton('Add an item')
             self.btnAddAnItem.setStyleSheet(constants.BUTTON_ADD_AN_ITEM)
@@ -213,7 +214,7 @@ class Many2many(OdooFieldTemplate):
         viewObj.loadIds(resIds, {}, {}, {})
         dial = QtGui.QDialog()
         vlay = QtGui.QVBoxLayout()
-        layButt, okButt, cancelButt = utils.getButtonBox('right')
+        layButt, okButt, cancelButt = utilsUi.getButtonBox('right')
         okButt.setStyleSheet(constants.BUTTON_STYLE_OK)
         cancelButt.setStyleSheet(constants.BUTTON_STYLE_CANCEL)
         okButt.clicked.connect(acceptDial)

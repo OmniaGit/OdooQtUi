@@ -13,7 +13,7 @@ import logging
 import datetime
 import traceback
 
-from PyQt4 import QtGui, QtCore
+from PyQt4 import QtGui
 from os.path import expanduser
 from OdooQtUi.utils_odoo_conn import constants
 
@@ -161,11 +161,6 @@ def getImagePath(imageName):
     iconsDir = getIconsDirectory()
     return computePath(os.path.join(iconsDir, imageName))
 
-# 
-# def getNoImagePath():
-#     iconsDir = getIconsDirectory()
-#     return computePath(os.path.join(iconsDir, constants.ICON_NO_IMAGE))
-
 
 def getIconsDirectory():
     """
@@ -224,33 +219,6 @@ def getCurrentPath():
     return modulePath
 
 
-# def askQuestion(labelName):
-#     formDial = askForm(labelName)
-#     if formDial.exec_() == QtGui.QDialog.Accepted:
-#         return True
-#     return False
-
-
-# def askForm(labelName, buttonName=False):
-#     return AskFormEdit(labelName, buttonName)
-
-
-def getDirectoryFileToSaveSystem(parent, statingPath='', fileType=''):
-    filename = QtGui.QFileDialog.getSaveFileName(None, "Save file", statingPath, fileType)
-    logging.info('[getDirectoryFileToSaveSystem] filename: %s' % filename)
-    return filename
-
-
-def getDirectoryFromSystem(parent, pathToOpen=''):
-    return unicode(QtGui.QFileDialog.getExistingDirectory(parent, "Select Directory", pathToOpen))
-
-
-def getFileFromSystem(desc='Open', startPath='/home/'):
-    fileName = QtGui.QFileDialog.getOpenFileName(None, desc, startPath)
-    if os.path.exists(fileName):
-        return unicode(fileName)
-    return ''
-
 def packFile(filePath):
     """
         get a base64 stream of a file
@@ -264,6 +232,7 @@ def packFile(filePath):
         logging.warning("PackFile : broken stream on file : %r. Err: %r" % (filePath, ex))
         raise Exception("PackFile : broken stream on file : %r." % (filePath))
     return content
+
 
 def unpackFile(content, toFile):
     """
@@ -281,10 +250,7 @@ def unpackFile(content, toFile):
         raise ex
     filedata.close()
 
-# def getSchreenshotDefaultPath():
-#     for confObj in DB_INST.getRowsTable(constants.TABLE_NAME_CONFIGURATIONS, ['config_value'], [('config_name', '=', 'SCHREENSHOT_DB_PATH')]):
-#         return unicode(confObj.config_value)
-#     return ''
+
 def openByDefaultEditor(path):
     if not path:
         return False
@@ -297,6 +263,7 @@ def openByDefaultEditor(path):
         return False
     return True
 
+
 def getOS():
     platform = sys.platform
     if 'linux' in platform:
@@ -306,31 +273,6 @@ def getOS():
     else:
         logging.warning('Os not found: %s' % (platform))
         return 'UNKNOWN'
-
-
-def launchMessage(message='', msgType='message'):
-    logMessage('info', message, 'launchMessage')
-    messBox = QtGui.QMessageBox()
-    messBox.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
-    messBox.setWindowTitle('Odoo Plm Connector')
-    messBox.setText(unicode(message))
-    if msgType == 'message':
-        messBox.setIcon(QtGui.QMessageBox.Information)
-        messBox.setStandardButtons(QtGui.QMessageBox.Ok)
-    if msgType == 'warning':
-        messBox.setIcon(QtGui.QMessageBox.Warning)
-        messBox.setStandardButtons(QtGui.QMessageBox.Ok)
-    if msgType == 'error':
-        messBox.setIcon(QtGui.QMessageBox.Critical)
-        messBox.setStandardButtons(QtGui.QMessageBox.Ok)
-    elif msgType == 'question':
-        messBox.setIcon(QtGui.QMessageBox.Question)
-        messBox.setStandardButtons(QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel)
-    if (messBox.exec_() == QtGui.QMessageBox.Ok):
-        messBox.accept()
-        return True
-    else:
-        return False
 
 
 def logMessage(msgType='DEBUG', message='', functionName=''):
@@ -364,14 +306,6 @@ def convertJpgToPng(jpgPath, savePngPath=''):
         return ''
 
 
-def exceptionManagement(ex, message=''):
-    traceback.print_exc(file=sys.stdout)
-    traceBackMess = traceback.format_exc()
-    logging.error(ex)
-    logging.error(traceBackMess)
-    launchMessage(message + ': %s \n %s' % (ex, traceBackMess))
-
-
 def getRowsFromListWidget(listWidget):
     outList = []
     linesCount = listWidget.count()
@@ -388,12 +322,14 @@ def evalValue(val):
     val = unicode(val)
     try:
         return eval(val)
-    except:
+    except Exception, ex:
+        logging.warning(unicode(ex))
         return val
 
 
 def removeRowFromTableWidget(tableWidget, rowIndex):
     tableWidget.model().removeRow(rowIndex)
+
 
 def getRowsFromTableWidget(tableWidget, outType='list', fieldNames=[], rowsIndexesToGet=[]):
     '''
@@ -443,71 +379,6 @@ def getSelectedRowsFromListWidget(listWidget):
     return [unicode(item.text()) for item in itemsSelected]
 
 
-# def getSelectedRowsFromTableWidget(tableWidget, headers=False, onlyOne=False):
-#     if not headers:
-#         headers = []
-#         for colIndex in range(0, tableWidget.columnCount()):
-#             headers.append(unicode(tableWidget.horizontalHeaderItem(colIndex).text()))
-#     outDict = {}
-#     selectedItems = tableWidget.selectedItems()
-#     if onlyOne and len(selectedItems) != 2:
-#         launchMessage(translate('Too much rows selected!'), 'warning')
-#         return {}
-#     for itemIndex in selectedItems:
-#         colIndex = itemIndex.column()
-#         rowIndex = itemIndex.row()
-#         colName = headers[colIndex]
-#         itemText = unicode(itemIndex.text())
-#         if rowIndex not in outDict:
-#             outDict[rowIndex] = {colName: itemText}
-#         else:
-#             outDict[rowIndex][colName] = itemText
-#     return outDict
-
-
-def commonPopulateTable(headers, values, tableWidget, flags={}, add=False, fontSize=False):
-    '''
-        @headers: [header1, header2, ...]
-        @flags: {'colIndex': flags}
-        @values: [[val1, val2, ...], ...] or [obj1, obj2, ...]
-    '''
-    if not add:
-        tableWidget.clear()
-        tableWidget.setRowCount(0)
-    outDict = {}
-    colCount = len(headers)
-    colIndexList = range(0, colCount)
-    tableWidget.setColumnCount(colCount)
-    tableWidget.setHorizontalHeaderLabels(headers)
-    rowPosition = tableWidget.rowCount()
-    for menuObj in values:
-        tableWidget.setRowCount(rowPosition + 1)
-        rowDict = {}
-        for colIndex in colIndexList:
-            colName = headers[colIndex]
-            if isinstance(menuObj, (list, tuple)):
-                colVal = menuObj[colIndex]
-            else:
-                colVal = menuObj.__dict__.get(colName, '')
-            rowDict[colName] = colVal
-            twItem = QtGui.QTableWidgetItem(colVal)
-            if fontSize:
-                font = QtGui.QFont()
-                font.setPointSize(fontSize)
-                twItem.setFont(font)
-            if colIndex in flags:
-                flagsToAdd = flags[colIndex]
-                twItem.setFlags(flagsToAdd)
-                if flagsToAdd & QtCore.Qt.ItemIsUserCheckable:
-                    twItem.setCheckState(QtCore.Qt.Unchecked)
-            else:
-                twItem.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
-            tableWidget.setItem(rowPosition, colIndex, twItem)
-        outDict[rowPosition] = rowDict
-        rowPosition = rowPosition + 1
-    return outDict
-
-
 def evaluateBoolean(val):
     if isinstance(val, bool):
         return val
@@ -530,8 +401,7 @@ def evaluateModifiers(modifiers):
     readonlyConditions = modifiers.get('readonly', {})
     return invisibleConditions, readonlyConditions
 
-def setRequiredBackground(widgetQtObj, baseBackground):
-    widgetQtObj.setStyleSheet(baseBackground + constants.COMMON_FIELDS_REQUIRED_BACKGROUND)
+
 
 def evaluateAttrs(fieldsDict, toCompute):
     def evalSingleCondition(cond):
@@ -576,12 +446,12 @@ def evaluateAttrs(fieldsDict, toCompute):
                 logMessage('warning', 'valToCompare: %r is not a char for operator: %r' % (valToCompare, operator), 'evalSingleCondition')
                 return False
             return fieldVal.lower() in valToCompare.lower()
-    
+
     if isinstance(toCompute, bool):
         return toCompute
     if len(toCompute) == 1:
         return evalSingleCondition(toCompute[0])
-    
+
     conditions = []
     operators = []
     for singleCompute in toCompute:
@@ -600,7 +470,8 @@ def evaluateAttrs(fieldsDict, toCompute):
         conditions.append(res)
 
     return _evalSimple(conditions, operators)
-    
+
+
 def _evalSimple(conditions, operators):
     if len(operators) != len(conditions) - 1:
         logMessage('warning', 'Cannot eval with conditions: %r and operators: %r' % (conditions, operators), '_evalSimple')
@@ -620,19 +491,6 @@ def _evalSimple(conditions, operators):
     return lastCond
 
 
-def getButtonBox(spacer='right'):
-    mainLay = QtGui.QHBoxLayout()
-    okButt = QtGui.QPushButton('Ok')
-    cancelButt = QtGui.QPushButton('Cancel')
-    if spacer == 'right':
-        mainLay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum))
-    mainLay.addWidget(okButt)
-    mainLay.addWidget(cancelButt)
-    if spacer == 'left':
-        mainLay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum))
-    return mainLay, okButt, cancelButt
-
-
 def timeit(method):
 
     def timed(*args, **kw):
@@ -641,7 +499,7 @@ def timeit(method):
         te = time.time()
 
         print '%2.2f sec, %r par: %r' % \
-              (te-ts, method.__name__, args[1:])
+              (te - ts, method.__name__, args[1:])
         return result
 
     return timed
@@ -654,6 +512,7 @@ def getUserHomeDir():
 def getLoginFile():
     home = getUserHomeDir()
     return os.path.join(home, '.trayUserLogin')
+
 
 def loadFromFile():
     dbName = ''
@@ -680,13 +539,3 @@ def loadFromFile():
             connType = fileDict.get('conn_type', '')
             dbList = fileDict.get('db_list', [])
     return dbName, username, userpass, serverIp, serverPort, scheme, connType, dbList
-
-if __name__ == '__main__':
-    app = QtGui.QApplication(sys.argv)
-    # aaa = getExeFromPath('/home/daniel/eclipse/committers-neon/eclipse/')
-    #aaa = getExeFromPath('C:\Program Files (x86)')
-    
-    conditions = [True, False, True, True]
-    operators = ['|', '&', '&']
-    print _evalSimple(conditions, operators)
-    app.exec_()

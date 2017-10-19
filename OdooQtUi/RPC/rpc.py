@@ -4,7 +4,6 @@ Created on 02 feb 2017
 @author: Daniel
 '''
 import logging
-from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.RPC.XmlRpc.xmlRpc import XmlRpcConnection
 
 
@@ -44,7 +43,6 @@ class RpcConnection(object):
     def loginNoUser(self):
         return self.sockInstance.loginNoUser()
 
-    @utils.timeit
     def loginWithUser(self):
         if not self.sockInstance:
             return False

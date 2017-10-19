@@ -30,7 +30,7 @@ class MainConnector(object):
                             'tree_tree': [],
                             'tree_list': [],
                             'search': []}
-        return object.__init__(self)
+        return super(MainConnector, self).__init__()
 
     def loginNoUser(self, xmlrpcServerIP='127.0.0.1', xmlrpcPort=8069, scheme='http', loginType='xmlrpc'):
         connectionObj.initConnection(loginType, '', '', '', xmlrpcPort, scheme, xmlrpcServerIP)
@@ -239,6 +239,8 @@ if __name__ == '__main__':
         dialog.resize(1200, 600)
         dialog.move(100, 100)
         dialog.show()
+        dialog.exec_()
+        time.sleep(2)
         dialog.exec_()
     do_test()
 

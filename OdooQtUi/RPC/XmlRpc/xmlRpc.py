@@ -5,6 +5,7 @@ Created on 3 Feb 2017
 '''
 
 from OdooQtUi.utils_odoo_conn import utils
+from OdooQtUi.utils_odoo_conn import utilsUi
 import xmlrpclib
 import httplib
 import socket
@@ -62,7 +63,7 @@ class XmlRpcConnection(object):
             return xmlrpclib.ServerProxy(self.urlListDB).list()
         except Exception, ex:
             utils.logMessage('warning', 'Unable to list database. EX: %r' % (ex), 'listDb')
-            utils.launchMessage('Unable to get database list, please check your login settings.', 'warning')
+            utilsUi.launchMessage('Unable to get database list, please check your login settings.', 'warning')
         return False
 
     def search(self, obj, filterList, limit=False, offset=False, context={}):
@@ -202,17 +203,17 @@ class XmlRpcConnection(object):
                                                   kwargParameters)
         except socket.error, err:
             message = 'Unable to communicate with the server: %r\n%r' % (err.faultCode, err.faultString)
-            utils.launchMessage(message, 'error')
+            utilsUi.launchMessage(message, 'error')
             utils.logMessage('error', message, 'callOdooFunction')
         except xmlrpclib.Fault, err:
             try:
                 return self.socketYesLogin.execute(self.databaseName, self.userId, self.userPassword,odooObj,functionName,parameters)
             except:
                 message = 'Unable to communicate with the server: %r\n%r' % (err.faultCode, err.faultString)
-                utils.launchMessage(message, 'error')
+                utilsUi.launchMessage(message, 'error')
                 utils.logMessage('error', message, 'callOdooFunction')
         except Exception, ex:
-            utils.launchMessage(ex, 'error')
+            utilsUi.launchMessage(ex, 'error')
             utils.logMessage('error', ex, 'callOdooFunction')
             utils.logMessage('error', 'Error during call Odoo Function with arguments: %r, %r, %r, %r' % (odooObj, functionName, parameters, kwargParameters), 'callOdooFunction')
         return False

@@ -10,6 +10,7 @@ from PyQt4 import QtCore
 
 from OdooQtUi.views.parser.form_view import FormView
 from OdooQtUi.utils_odoo_conn import utils
+from OdooQtUi.utils_odoo_conn import utilsUi
 from OdooQtUi.views.parser.search_view import FieldObj
 from templateView import TemplateView
 
@@ -84,7 +85,7 @@ class TemplateFormView(TemplateView):
         if not skipRemoveNootebook:
             fieldsToRead = self.removeNootebookFields(fieldsToRead)
         if len(objIds) > 1:
-            utils.launchMessage('You cannot load multiple ids on form or search view!', 'warning')
+            utilsUi.launchMessage('You cannot load multiple ids on form or search view!', 'warning')
             return False
         formId = False
         if objIds:
@@ -138,9 +139,9 @@ class TemplateFormView(TemplateView):
                 fieldsToEvaluate.append(fieldObject.fieldStringInterface)
                 message = message + '\n %r' % (fieldObject.fieldStringInterface)
         if showMessage and fieldsToEvaluate:
-            utils.launchMessage(message, 'warning')
+            utilsUi.launchMessage(message, 'warning')
         return fieldsToEvaluate
-      
+
     def setInvisibleField(self, fieldName, val=False):
         fieldObj = self.interfaceFieldsDict.get(fieldName, None)
         if not fieldObj:
@@ -215,7 +216,7 @@ class TemplateFormView(TemplateView):
 
     def translationDial(self, fieldName):
         if not self.activeIds:
-            utils.launchMessage('Translations are available only on already created records.', 'warning')
+            utilsUi.launchMessage('Translations are available only on already created records.', 'warning')
             return
         fieldName = unicode(fieldName)
         fieldObj = self.interfaceFieldsDict.get(fieldName)
@@ -266,9 +267,9 @@ class TemplateFormView(TemplateView):
             values.append([src, value, lang, translationName])
         tableFlags = {1: QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsEditable,
                       }
-        utils.commonPopulateTable(headers, values, tableWidget, tableFlags)
+        utilsUi.commonPopulateTable(headers, values, tableWidget, tableFlags)
         mainLay.addWidget(tableWidget)
-        layButtons, okButt, cancelButt = utils.getButtonBox()
+        layButtons, okButt, cancelButt = utilsUi.getButtonBox()
         okButt.clicked.connect(acceptTransDial)
         cancelButt.clicked.connect(rejectTransDial)
         mainLay.addLayout(layButtons)

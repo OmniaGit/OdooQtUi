@@ -9,6 +9,7 @@ from PyQt4 import QtCore
 from functools import partial
 from utils_odoo_conn import constants
 from utils_odoo_conn import utils
+from utils_odoo_conn import utilsUi
 import logging
 import copy
 # Do not delete these, are necessary to compute filters coming from server
@@ -303,7 +304,7 @@ class SearchView(object):
                 try:
                     floatVal = float(value)
                 except Exception:
-                    utils.launchMessage('Wrong value for float field!', 'warning')
+                    utilsUi.launchMessage('Wrong value for float field!', 'warning')
                     return
                 operatorIndex = comboFloatOperator.currentIndex()
                 interfaceVal = comboFloatValues[operatorIndex]

@@ -6,7 +6,7 @@ Created on 7 Feb 2017
 import json
 from PyQt4 import QtGui
 from PyQt4 import QtCore
-from OdooQtUi.utils_odoo_conn import utils
+from OdooQtUi.utils_odoo_conn import utils, utilsUi
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
 
@@ -53,7 +53,7 @@ class Many2one(OdooFieldTemplate):
         self.widgetQtObj2.editTextChanged.connect(self.comboActivated)
         self.widgetQtObj2.installEventFilter(self)
         if self.required:
-            utils.setRequiredBackground(self.widgetQtObj2, constants.SELECTION_STYLE)
+            utilsUi.setRequiredBackground(self.widgetQtObj2, constants.SELECTION_STYLE)
         self.childLay.addWidget(self.widgetQtObj2)
         if self.canWrite:
             self.editButton = QtGui.QPushButton('Edit')
@@ -132,7 +132,7 @@ class Many2one(OdooFieldTemplate):
                 if self.editButton:
                     self.editButton.setHidden(True)
             if self.required:
-                utils.setRequiredBackground(self.widgetQtObj2, constants.SELECTION_STYLE)
+                utilsUi.setRequiredBackground(self.widgetQtObj2, constants.SELECTION_STYLE)
             else:
                 self.widgetQtObj2.setStyleSheet(constants.SELECTION_STYLE)
 
@@ -164,7 +164,7 @@ class Many2one(OdooFieldTemplate):
         viewObj = conn.initViewObj('form', self.relation, rpcObj=self.rpc)
         viewObj.loadIds([self.currentValue[0]])
         mainLay = viewObj.QtInterface
-        lay, okButt, cancelButt = utils.getButtonBox()
+        lay, okButt, cancelButt = utilsUi.getButtonBox()
         okButt.clicked.connect(accept)
         cancelButt.clicked.connect(reject)
         okButt.setStyleSheet(constants.BUTTON_STYLE_OK)
@@ -212,7 +212,7 @@ class Many2one(OdooFieldTemplate):
             viewObj = conn.initViewObj('form', self.relation, rpcObj=self.rpc)
             viewObj.loadIds([])
             mainLay = viewObj.QtInterface
-            lay, okButt, cancelButt = utils.getButtonBox()
+            lay, okButt, cancelButt = utilsUi.getButtonBox()
             okButt.clicked.connect(accept)
             cancelButt.clicked.connect(reject)
             okButt.setStyleSheet(constants.BUTTON_STYLE_OK)

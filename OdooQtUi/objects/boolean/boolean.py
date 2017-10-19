@@ -5,7 +5,7 @@ Created on 7 Feb 2017
 '''
 
 from PyQt4 import QtGui, QtCore
-from OdooQtUi.utils_odoo_conn import utils
+from OdooQtUi.utils_odoo_conn import utils, utilsUi
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
 
@@ -25,7 +25,7 @@ class Boolean(OdooFieldTemplate):
         self.widgetQtObj.setToolTip(self.tooltip)
         self.widgetQtObj.stateChanged.connect(self.valueChanged)
         if self.required:
-            utils.setRequiredBackground(self.widgetQtObj, '')
+            utilsUi.setRequiredBackground(self.widgetQtObj, '')
         self.widgetLyQtObject.addWidget(self.widgetQtObj)
         if self.translatable:
             self.connectTranslationButton()
@@ -52,7 +52,7 @@ class Boolean(OdooFieldTemplate):
             self.widgetQtObj.setStyleSheet(constants.READONLY_STYLE)
         else:
             if self.required:
-                utils.setRequiredBackground(self.widgetQtObj, '')
+                utilsUi.setRequiredBackground(self.widgetQtObj, '')
             else:
                 self.widgetQtObj.setStyleSheet('background-color:white;')
 

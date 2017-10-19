@@ -1,7 +1,7 @@
 from datetime import datetime
 from PyQt4 import QtCore
 from PyQt4 import QtGui
-from OdooQtUi.utils_odoo_conn import utils
+from OdooQtUi.utils_odoo_conn import utils, utilsUi
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
 
@@ -22,7 +22,7 @@ class Datetime(OdooFieldTemplate):
         self.widgetQtObj.setToolTip(self.tooltip)
         self.widgetQtObj.dateTimeChanged.connect(self.valueChanged)
         if self.required:
-            utils.setRequiredBackground(self.widgetQtObj, constants.DATE_STYLE)
+            utilsUi.setRequiredBackground(self.widgetQtObj, constants.DATE_STYLE)
         self.widgetLyQtObject.addWidget(self.widgetQtObj)
         if self.translatable:
             self.connectTranslationButton()
@@ -47,10 +47,10 @@ class Datetime(OdooFieldTemplate):
         if val:
             self.widgetQtObj.setStyleSheet(constants.DATE_STYLE + constants.READONLY_STYLE)
         elif self.required:
-            utils.setRequiredBackground(self.widgetQtObj, constants.DATE_STYLE)
+            utilsUi.setRequiredBackground(self.widgetQtObj, constants.DATE_STYLE)
         else:
             if self.required:
-                utils.setRequiredBackground(self.widgetQtObj, constants.DATE_STYLE)
+                utilsUi.setRequiredBackground(self.widgetQtObj, constants.DATE_STYLE)
             else:
                 self.widgetQtObj.setStyleSheet(constants.DATE_STYLE)
 

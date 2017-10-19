@@ -9,9 +9,9 @@ import tempfile
 
 from PyQt4 import QtGui, QtCore
 from OdooQtUi.utils_odoo_conn import utils
+from OdooQtUi.utils_odoo_conn import utilsUi
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
-
 
 
 class Binary(OdooFieldTemplate):
@@ -77,25 +77,25 @@ class Binary(OdooFieldTemplate):
     def openFile(self):
         filePath = self.downloadFile()
         if not utils.openByDefaultEditor(filePath):
-            utils.launchMessage('Unable to open file!', 'warning')
-        
+            utilsUi.launchMessage('Unable to open file!', 'warning')
+
     def downloadFile(self):
         statingPath = self.fieldStringInterface
-        newFilePath = utils.getDirectoryFileToSaveSystem(None, statingPath=statingPath)
+        newFilePath = utilsUi.getDirectoryFileToSaveSystem(None, statingPath=statingPath)
         if not self.currentValue:
-            utils.launchMessage('Unable to save the file!', 'warning')
+            utilsUi.launchMessage('Unable to save the file!', 'warning')
             utils.logMessage('warning', 'Empty file content in binary field', 'downloadFile')
         filePath = unicode(newFilePath)
         utils.unpackFile(self.currentValue, filePath)
         return filePath
 
     def editField(self):
-        filePath = utils.getFileFromSystem('Open', '')
+        filePath = utilsUi.getFileFromSystem('Open', '')
         if not filePath:
             return
         fileContent = utils.packFile(unicode(filePath))
         self.currentValue = fileContent
-        self.fieldStringInterface = os.path.split(filePath) [1]
+        self.fieldStringInterface = os.path.split(filePath)[1]
         self.widgetQtObj.setText(self.fieldStringInterface)
 
     def clearField(self):
