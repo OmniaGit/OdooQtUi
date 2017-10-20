@@ -17,25 +17,22 @@ from templateView import TemplateView
 
 class TemplateFormView(TemplateView):
 
-    def __init__(self, rpcObject, activeLanguageCode='en_US', useHeader=False, useChatter=False, odooConnector=None):
-        super(TemplateFormView, self).__init__(rpcObject, activeLanguageCode)
+    def __init__(self, rpcObject, viewObj, activeLanguageCode='en_US', odooConnector=None):
+        super(TemplateFormView, self).__init__(rpcObject, viewObj, activeLanguageCode)
         self.requiredFields = {}
         self.readonlyFields = {}
         self.invisibleFields = {}
-        self.viewType = 'form'
         self.odooConnector = odooConnector
         self.objectsInit = copy.deepcopy(self.fields)
         self.fieldDefaultVals = {}  # {'fieldName' : fieldval}
         self.skipOnChange = False
         self.readonly = False
         self.activeIds = []     # must be one
-        self.useHeader = useHeader
-        self.useChatter = useChatter
+        self._initViewObj()
 
-    def initViewObj(self, odooObjectName, viewName, view_id):
-        super(TemplateFormView, self).initViewObj(odooObjectName, viewName, view_id)
-        if self.fieldsViewDefinition:
-            self.startingFieldValues = self.fieldsViewDefinition.get('fields', {})
+    def _initViewObj(self):
+        if self.fieldsNameTypeRel:
+            self.startingFieldValues = self.fieldsNameTypeRel.get('fields', {})
             self.formObj = FormView(self.arch,
                                     self.fieldsNameTypeRel,
                                     self.rpcObject,
@@ -43,10 +40,13 @@ class TemplateFormView(TemplateView):
                                     self.useChatter,
                                     self.odooConnector)
             self.formObj.nootebook_changed_signal.connect(self.updateDataStructure)
-            self.layout = self.formObj.computeArch()
+            layout = self.formObj.computeArch()
             self.mappingInterface = self.formObj.globalMapping
             self.addToObject()
             self._setFieldModifiers()
+            self.setLayout(layout)
+        else:
+            utils.logMessage('warning', 'Unable to get fields view definition!', '_initViewObj')
 
     def updateDataStructure(self, pageIndex=0):
         print 'compute Nootebook fields: %r' % (pageIndex)

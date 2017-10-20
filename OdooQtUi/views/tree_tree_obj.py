@@ -16,6 +16,5 @@ class TemplateTreeTreeView(TemplateView):
         self.activeIds = []
 
     def initViewObj(self, odooObjectName, viewName, view_id):
-        super(TemplateTreeTreeView, self).initViewObj(odooObjectName, viewName, view_id)
         self.field_parent = self.fieldsViewDefinition.get('field_parent', '')
         self.addToObject()

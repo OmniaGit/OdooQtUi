@@ -15,52 +15,56 @@ from OdooQtUi.RPC.rpc import connectionObj
 
 class TemplateTreeListView(TemplateView):
 
-    def __init__(self, rpcObject, activeLanguageCode='en_US', viewFilter=False):
-        super(TemplateTreeListView, self).__init__(rpcObject, activeLanguageCode)
-        self.viewType = 'tree'
+    def __init__(self, rpcObject, viewObj, activeLanguageCode='en_US', searchObj=None):
+        super(TemplateTreeListView, self).__init__(rpcObject, viewObj, activeLanguageCode)
         self.readonly = True
         self.activeIds = []
         self.idValsRel = {}
         self.idLineRel = {}
+        self.searchObj = searchObj
         self.labelsOrdered = []
         self.currentRange = [0, 40]
         self.passRange = 40
-        self.viewFilter = viewFilter
+        self._initViewObj()
 
-    def initViewObj(self, odooObjectName, viewName='', view_id=False, viewCheckBoxes={}):
-        super(TemplateTreeListView, self).initViewObj(odooObjectName, viewName, view_id)
-        self.viewCheckBoxes = viewCheckBoxes
-        self.layout = QtGui.QVBoxLayout()
+    def _initViewObj(self):
+        mainLay = QtGui.QVBoxLayout()
+        # Add arrow buttons
+        switchRecordsLay = self._setupArrowButtons()
+        mainLay.addLayout(switchRecordsLay, 0)
         if self.viewFilter:
-            allFieldsDef = connectionObj.fieldsGet(self.model)
-            self.searchObj = TemplateSearchView(self.rpcObject, self.activeLanguageCode)
-            self.searchObj.out_filter_change_signal.connect(self.filterChanged)
-            self.searchObj.initViewObj(odooObjectName, allFieldsDef=allFieldsDef)
-            self.layout.addLayout(self.searchObj.layout)
-        self.treeObj = TreeViewList(self.arch, self.fieldsNameTypeRel, self.rpcObject, viewCheckBoxes)
-        self.mainLay = self.treeObj.computeArch()
-        self.switchRecordsLay = QtGui.QHBoxLayout()
+            if not self.searchObj:
+                utils.logMessage('warning', 'You have requested to view search view for this object but search view has not been passed!', '_initViewObj')
+            else:
+                self.searchObj.out_filter_change_signal.connect(self.filterChanged)
+                mainLay.addWidget(self.searchObj)
+        self.listQtObject = TreeViewList(self.arch, self.fieldsNameTypeRel, self.rpcObject, self.viewCheckBoxes)
+        mainLay.addLayout(self.listQtObject.computeArch())
+        self.mappingInterface = self.listQtObject.globalMapping
+        self.addToObject()
+        self.listQtObject.tableWidget.setStyleSheet(constants.TABLE_LIST_LIST)
+        self.listQtObject.tableWidget.setMinimumHeight(200)
+        self.setLayout(mainLay)
+
+    def _setupArrowButtons(self):
+        self.currentRange = [0, 40]
+        switchRecordsLay = QtGui.QHBoxLayout()
         self.buttToLeft = QtGui.QPushButton('<')
         self.buttToRight = QtGui.QPushButton('>')
-        self.switchRecordsLay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum))
-        self.switchRecordsLay.addWidget(self.buttToLeft)
-        self.switchRecordsLay.addWidget(self.buttToRight)
+        switchRecordsLay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum))
+        switchRecordsLay.addWidget(self.buttToLeft)
+        switchRecordsLay.addWidget(self.buttToRight)
         self.buttToLeft.setStyleSheet(constants.BUTTON_STYLE)
         self.buttToRight.setStyleSheet(constants.BUTTON_STYLE)
         self.buttToLeft.clicked.connect(self.switchToLeft)
         self.buttToRight.clicked.connect(self.switchToRight)
-        self.layout.addLayout(self.switchRecordsLay, 0)
-        self.layout.addLayout(self.mainLay)
-        self.mappingInterface = self.treeObj.globalMapping
-        self.addToObject()
-        self.currentRange = [0, 40]
         self.buttToLeft.setHidden(True)
-        self.treeObj.tableWidget.setStyleSheet(constants.TABLE_LIST_LIST)
-        self.treeObj.tableWidget.setMinimumHeight(200)
+        self.buttToRight.setHidden(True)
+        return switchRecordsLay
 
     def filterChanged(self, newFilter):
         objIds = connectionObj.search(self.model, newFilter, limit=self.passRange, offset=self.currentRange[0])
-        self.loadIdsForceEmpty(objIds)
+        self._loadIds(objIds)
 
     def forceRecordVals(self, recordID, valuesDict={}):
         if not valuesDict:
@@ -80,18 +84,20 @@ class TemplateTreeListView(TemplateView):
     def loadIds(self, objIds=[], forceFieldValues={}, readonlyFields={}, invisibleFields={}):
         if not objIds:
             return
-        return self.loadIdsForceEmpty(objIds, forceFieldValues, readonlyFields, invisibleFields)
+        return self._loadIds(objIds, forceFieldValues, readonlyFields, invisibleFields)
 
     @utils.timeit
-    def loadAllIds(self, forceFieldValues={}, readonlyFields={}, invisibleFields={}):
+    def loadForceEmptyIds(self, forceFieldValues={}, readonlyFields={}, invisibleFields={}):
         objIds = connectionObj.search(self.model, [], self.passRange) # to check with many records if 40 stop will work, 40)
-        return self.loadIdsForceEmpty(objIds, forceFieldValues, readonlyFields, invisibleFields)
+        return self._loadIds(objIds, forceFieldValues, readonlyFields, invisibleFields)
 
     @utils.timeit
-    def loadIdsForceEmpty(self, objIds=[], forceFieldValues={}, readonlyFields={}, invisibleFields={}):
-        fields = self.treeObj.orderedFields
+    def _loadIds(self, objIds=[], forceFieldValues={}, readonlyFields={}, invisibleFields={}):
+        fields = self.listQtObject.orderedFields
         if len(objIds) < self.passRange:
             self.buttToRight.setHidden(True)
+        else:
+            self.buttToRight.setHidden(False)
         records = self.rpcObject.read(self.model, fields, objIds)
         flagsDict = {}
         valuesList = []
@@ -126,13 +132,13 @@ class TemplateTreeListView(TemplateView):
             recordId = record.get('id', False)
             self.idValsRel[recordId] = record
             self.idLineRel[records.index(record)] = recordId
-        utilsUi.commonPopulateTable(self.labelsOrdered, valuesList, self.treeObj.tableWidget, flagsDict, fontSize=constants.FONT_SIZE_LIST_WIDGET)
-        self.treeObj.tableWidget.resizeColumnsToContents()
-        self.treeObj.tableWidget.setShowGrid(False)
-        self.treeObj.tableWidget.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-        self.treeObj.tableWidget.horizontalHeader().setStyleSheet(constants.MANY_2_MANY_H_HEADER)
-        self.treeObj.tableWidget.verticalHeader().setVisible(False)
-        self.treeObj.tableWidget.horizontalHeader().setStyleSheet('::section {background-color:#a2b0ff;color:black;font-weight:bold;}')
+        utilsUi.commonPopulateTable(self.labelsOrdered, valuesList, self.listQtObject.tableWidget, flagsDict, fontSize=constants.FONT_SIZE_LIST_WIDGET)
+        self.listQtObject.tableWidget.resizeColumnsToContents()
+        self.listQtObject.tableWidget.setShowGrid(False)
+        self.listQtObject.tableWidget.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        self.listQtObject.tableWidget.horizontalHeader().setStyleSheet(constants.MANY_2_MANY_H_HEADER)
+        self.listQtObject.tableWidget.verticalHeader().setVisible(False)
+        self.listQtObject.tableWidget.horizontalHeader().setStyleSheet('::section {background-color:#a2b0ff;color:black;font-weight:bold;}')
 
     def getLineValues(self, lineIndex):
         recordId = self.idLineRel[lineIndex]

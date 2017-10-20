@@ -5,45 +5,84 @@ Created on 3 Feb 2017
 '''
 import copy
 from PyQt4 import QtGui
-from PyQt4.QtCore import QObject
 from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.RPC.rpc import connectionObj
 
 
-class TemplateView(QObject):
+class TemplateView(QtGui.QWidget):
 
-    def __init__(self, rpcObject, activeLanguageCode='en_US'):
+    def __init__(self, rpcObject, viewObj, activeLanguageCode='en_US'):
         super(TemplateView, self).__init__()
         self.rpcObject = rpcObject
-        self.arch = ''  # xml view...
-        self.model = ''     # 'product.product' / ...
-        self.viewName = ''
-        self.fieldsNameTypeRel = {}
+        self.viewObj = viewObj
         self.fields = Objects()    # fields.fieldName
         self.buttons = Objects()    # buttons.fieldName
         self.mappingInterface = {}   # {'fieldName' : fieldObj}
-        self.layout = QtGui.QVBoxLayout()
         self.activeLanguageCode = activeLanguageCode    # 'en_US'
         self.fieldsChanged = {}     # {'fieldName' : fieldObj}
         self.formVals = {}
 
-    def searchForView(self, model, viewName):
-        viewIds = connectionObj.search('ir.ui.view', [('name', '=', viewName), ('model', '=', model), ('type', '=', self.viewType)])
-        if viewIds:
-            return viewIds[0]
-        utils.logMessage('warning', 'View with name %r and model %r nor found' % (viewName, model), 'searchForView')
-        return False
+    @property
+    def viewFilter(self):
+        return self.viewObj.localViewFilter
+    
+    @property
+    def model(self):
+        return self.viewObj.odooModel
+        
+    @property
+    def arch(self):
+        return self.viewObj.odooArch
 
-    def initViewObj(self, odooObjectName, viewName='', view_id=False):
-        if not view_id and viewName:
-            view_id = self.searchForView(odooObjectName, viewName)
-        self.fieldsViewDefinition = self.rpcObject.fieldsViewGet(odooObjectName, view_id, self.viewType)
-        if self.fieldsViewDefinition:
-            self.arch = self.fieldsViewDefinition.get('arch', '')
-            self.model = self.fieldsViewDefinition.get('model', '')
-            self.viewName = self.fieldsViewDefinition.get('name', '')
-            self.viewId = self.fieldsViewDefinition.get('view_id', '')
-            self.fieldsNameTypeRel = self.fieldsViewDefinition.get('fields', '')
+    @property
+    def viewName(self):
+        return self.viewObj.odooViewName
+
+    @property
+    def viewCheckBoxes(self):
+        return self.viewObj.localViewCheckBoxes
+    
+    @property
+    def viewId(self):
+        return self.viewObj.odooViewId
+    
+    @property
+    def fieldsNameTypeRel(self):
+        return self.viewObj.odooFieldsNameTypeRel
+
+    @property
+    def viewType(self):
+        return self.viewObj.localViewType
+
+    @property
+    def searchMode(self):
+        return self.viewObj.localSearchMode
+    
+    @property
+    def useHeader(self):
+        return self.viewObj.useHeader
+
+    @property
+    def useChatter(self):
+        return self.viewObj.useChatter
+    
+#     def searchForView(self, model, viewName):
+#         viewIds = connectionObj.search('ir.ui.view', [('name', '=', viewName), ('model', '=', model), ('type', '=', self.viewType)])
+#         if viewIds:
+#             return viewIds[0]
+#         utils.logMessage('warning', 'View with name %r and model %r nor found' % (viewName, model), 'searchForView')
+#         return False
+
+#     def initViewObj(self, odooObjectName, viewName='', view_id=False):
+#         if not view_id and viewName:
+#             view_id = self.searchForView(odooObjectName, viewName)
+#         self.fieldsViewDefinition = self.rpcObject.fieldsViewGet(odooObjectName, view_id, self.viewType)
+#         if self.fieldsViewDefinition:
+#             self.arch = self.fieldsViewDefinition.get('arch', '')
+#             self.model = self.fieldsViewDefinition.get('model', '')
+#             self.viewName = self.fieldsViewDefinition.get('name', '')
+#             self.viewId = self.fieldsViewDefinition.get('view_id', '')
+#             self.fieldsNameTypeRel = self.fieldsViewDefinition.get('fields', '')
 
     def addToObject(self):
         fieldIdentifier = 'field_'
@@ -131,13 +170,13 @@ class TemplateView(QObject):
         if not val:
             self._setFieldModifiers()
 
-    @property
-    def QtInterface(self):
-        return self.layout
+#     @property
+#     def QtInterface(self):
+#         return self.layout
 
-    @property
-    def xmlOdooView(self):
-        return self.arch
+#     @property
+#     def xmlOdooView(self):
+#         return self.arch
 
     def getAllFieldsValues(self):
         outDict = {}

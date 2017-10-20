@@ -58,7 +58,9 @@ class Many2many(OdooFieldTemplate):
             self.tmpviewObjForm.loadIds([])
             self.formdialog = QtGui.QDialog()
             mainLay = QtGui.QVBoxLayout()
-            mainLay.addLayout(self.tmpviewObjForm.layout)
+            lay = self.tmpviewObjForm.layout
+            lay.setParent(None)
+            mainLay.addLayout(lay)
             self.formdialog.setStyleSheet('background-color:#893b74;')
             self.formdialog.resize(1200, 600)
             self.formdialog.move(100, 100)
@@ -96,16 +98,21 @@ class Many2many(OdooFieldTemplate):
 
     def setValue(self, relIds):
         self.currentValue = relIds
-        self.treeViewObj = self.odooConnector.initViewObj('tree_list',
-                                                          self.relation,
-                                                          rpcObj=self.rpc,
-                                                          viewCheckBoxes={0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled})
+        self.treeViewObj = self.odooConnector.initTreeListViewObject(odooObjectName=self.relation,
+                                                  viewName='',
+                                                  view_id=False,
+                                                  rpcObj=self.rpc,
+                                                  activeLanguage='',
+                                                  viewCheckBoxes={0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled},
+                                                  viewFilter=False)
         self.treeViewObj.loadIds(relIds, {}, {}, {})
         self.widgetQtObj = self.treeViewObj.treeObj.tableWidget
         self.fieldsToReadOrdered = self.treeViewObj.treeObj.orderedFields
         self.setRemoveButtons(self.widgetQtObj)
         self.setupTableWidgetLay(self.widgetQtObj)
-        self.mainLay.addLayout(self.treeViewObj.layout)
+        lay = self.treeViewObj.layout
+        lay.setParent(None)
+        self.mainLay.addLayout(lay)
         if self.required:
             utilsUi.setRequiredBackground(self.widgetQtObj, '')
         if not self.btnAddAnItem:

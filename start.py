@@ -20,16 +20,42 @@ from OdooQtUi.interface.login import LoginDialComplete
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
+class ViewOdooObj(object):
+    
+    def __init__(self):
+        # Readed Odoo values
+        self.odooArch = ''
+        self.odooModel = ''
+        self.odooViewName = ''
+        self.odooViewId = False
+        self.odooFieldsNameTypeRel = ''
+        # Requested values
+        self.localViewType = ''
+        self.localOdooObjectName = ''
+        self.localViewName = ''
+        self.localViewId = False
+        self.localViewFilter = False
+        self.localSearchMode = ''
+        self.useHeader = False
+        self.useChatter = False
+        self.loginInfos = {}
+
+    def hasMatch(self, localViewType, localOdooObjectName, localViewName, localViewId, localViewFilter, loginInfos):
+        if self.localViewType == localViewType and \
+            self.localOdooObjectName == localOdooObjectName and \
+            self.localViewName == localViewName and \
+            self.localViewId == localViewId and \
+            self.localViewFilter == localViewFilter and \
+            self.loginInfos == loginInfos:
+            return True
+        return False
+        
 
 class MainConnector(object):
 
     def __init__(self):
         self.activeLanguage = 'en_US'
-        self.userGroups = []    # Not Used
-        self.loadedViews = {'form': [],
-                            'tree_tree': [],
-                            'tree_list': [],
-                            'search': []}
+        self.loadedViews = []
         return super(MainConnector, self).__init__()
 
     def loginNoUser(self, xmlrpcServerIP='127.0.0.1', xmlrpcPort=8069, scheme='http', loginType='xmlrpc'):
@@ -50,16 +76,67 @@ class MainConnector(object):
             return True
         return False
 
-    def computeUserGroups(self):
-        # Not Used
-        res = connectionObj.read('res.users', ['groups_id'], connectionObj.userId)
-        for userDict in res:
-            self.userGroups = userDict.get('groups_id', [])
-            break
-
     def setLogLevel(self, logInteger=logging.WARNING):
         logger = logging.getLogger()
         logger.setLevel(logInteger)
+
+    def _initView(self, viewType, rpcObj, activeLanguage, odooObjectName, viewName, view_id, viewFilter=False, viewCheckBoxes={}, searchMode='ilike', useHeader=False, useChatter=False):
+        localLang, rpcObj = self._getCommonLangAndRpc(activeLanguage, rpcObj)
+        viewObj = self.checkAlreadyLoadedView(viewType, rpcObj, odooObjectName, viewName, view_id, viewFilter)
+        if not viewObj:
+            viewObj = self.appendLoadedView(viewType, rpcObj, odooObjectName, viewName, view_id, viewFilter, viewCheckBoxes, searchMode, useHeader, useChatter)
+        return viewObj, localLang, rpcObj
+        
+    def initTreeListViewObject(self, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', viewCheckBoxes={}, viewFilter=False):
+        viewObjSearch = None
+        viewObj, localLang, rpcObj = self._initView('tree_list', rpcObj, activeLanguage, odooObjectName, viewName, view_id, viewFilter, viewCheckBoxes)
+        if viewFilter:
+            allFieldsDef = rpcObj.fieldsGet(odooObjectName)
+            viewObjSearch= self.initSearchViewObj(odooObjectName, viewName='', view_id='', rpcObj=rpcObj, activeLanguage=activeLanguage, allFieldsDef=allFieldsDef)
+        return TemplateTreeListView(rpcObj, viewObj, localLang, viewObjSearch)
+
+    def initSearchViewObj(self, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', searchMode='ilike', allFieldsDef={}):
+        viewObj, localLang, rpcObj = self._initView('search', rpcObj, activeLanguage, odooObjectName, viewName, view_id, searchMode=searchMode)
+        return TemplateSearchView(rpcObj, viewObj, localLang, allFieldsDef)
+
+    def initTreeTreeViewObj(self, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage=''):
+        viewObj, localLang, rpcObj = self._initView('tree_tree', rpcObj, activeLanguage, odooObjectName, viewName, view_id)
+        return TemplateTreeTreeView(rpcObj, viewObj, localLang)
+
+    def initFormViewObj(self, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', useHeader=False, useChatter=False):
+        viewObj, localLang, rpcObj = self._initView('form', rpcObj, activeLanguage, odooObjectName, viewName, view_id, useHeader=useHeader, useChatter=useChatter)
+        return TemplateFormView(rpcObj, viewObj, localLang, self)
+
+    def appendLoadedView(self, viewType, rpcObj, odooObjectName, viewName, view_id, viewFilter=False, viewCheckBoxes={}, searchMode='ilike', useHeader=False, useChatter=False):
+        odooArch, odooModel, odooViewName, odooViewId, odooFieldsNameTypeRel = self._getViewDefinition(rpcObj, odooObjectName, viewType, viewName, view_id)
+        viewOdooObj = ViewOdooObj()
+        viewOdooObj.odooArch = odooArch
+        viewOdooObj.odooModel = odooModel
+        viewOdooObj.odooViewName = odooViewName
+        viewOdooObj.odooViewId = odooViewId
+        viewOdooObj.odooFieldsNameTypeRel = odooFieldsNameTypeRel
+        
+        viewOdooObj.localViewType = viewType
+        viewOdooObj.localOdooObjectName = odooObjectName
+        viewOdooObj.localViewName = viewName
+        viewOdooObj.localViewId = view_id
+        viewOdooObj.localViewFilter = viewFilter
+        viewOdooObj.localViewCheckBoxes = viewCheckBoxes
+        viewOdooObj.localSearchMode = searchMode
+        viewOdooObj.useHeader = useHeader
+        viewOdooObj.useChatter = useChatter
+        
+        viewOdooObj.loginInfos = rpcObj.getLoginInfos()
+        
+        self.loadedViews.append(viewOdooObj)
+        return viewOdooObj
+
+    def checkAlreadyLoadedView(self, viewType, rpcObj, odooObjectName, viewName, view_id, viewFilter=False):
+        loginInfos = rpcObj.getLoginInfos()
+        for viewObj in self.loadedViews:
+            if viewObj.hasMatch(viewType, odooObjectName, viewName, view_id, viewFilter, loginInfos):
+                return viewObj
+        return False
 
     def _getCommonLangAndRpc(self, activeLanguage='', rpcObj=None):
         if not activeLanguage:
@@ -68,103 +145,29 @@ class MainConnector(object):
             rpcObj = connectionObj
         return activeLanguage, rpcObj
 
-    def initTreeListViewObject(self, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', viewCheckBoxes={}, viewFilter=False):
-        localLang, rpcObj = self._getCommonLangAndRpc(activeLanguage, rpcObj)
-        oldView = self.checkAlreadyLoadedView('tree_list', rpcObj, odooObjectName, viewName, view_id, viewFilter)
-        if oldView:
-            return oldView
-        templateViewObj = TemplateTreeListView(rpcObj, localLang, viewFilter)
-        templateViewObj.initViewObj(odooObjectName, viewName, view_id, viewCheckBoxes)
-        self.appendLoadedView('tree_list', rpcObj, odooObjectName, viewName, view_id, templateViewObj, viewFilter)
-        return templateViewObj
-
-    def initTreeTreeViewObj(self, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage=''):
-        localLang, rpcObj = self._getCommonLangAndRpc(activeLanguage, rpcObj)
-        oldView = self.checkAlreadyLoadedView('tree_tree', rpcObj, odooObjectName, viewName, view_id)
-        if oldView:
-            return oldView
-        templateViewObj = TemplateTreeTreeView(rpcObj, localLang)
-        templateViewObj.initViewObj(odooObjectName, viewName, view_id)
-        self.appendLoadedView('tree_tree', rpcObj, odooObjectName, viewName, view_id, templateViewObj)
-        return templateViewObj
-
-    def initFormViewObj(self, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', useHeader=False, useChatter=False):
-        localLang, rpcObj = self._getCommonLangAndRpc(activeLanguage, rpcObj)
-        oldView = self.checkAlreadyLoadedView('form', rpcObj, odooObjectName, viewName, view_id)
-        if oldView:
-            return oldView
-        templateViewObj = TemplateFormView(rpcObj, localLang, useHeader, useChatter, self)
-        templateViewObj.initViewObj(odooObjectName, viewName, view_id)
-        self.appendLoadedView('form', rpcObj, odooObjectName, viewName, view_id, templateViewObj)
-        return templateViewObj
-
-    def initSearchViewObj(self, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage=''):
-        localLang, rpcObj = self._getCommonLangAndRpc(activeLanguage, rpcObj)
-        oldView = self.checkAlreadyLoadedView('search', rpcObj, odooObjectName, viewName, view_id)
-        if oldView:
-            return oldView
-        templateViewObj = TemplateSearchView(rpcObj, localLang)
-        templateViewObj.initViewObj(odooObjectName, viewName, view_id)
-        self.appendLoadedView('search', rpcObj, odooObjectName, viewName, view_id, templateViewObj)
-        return templateViewObj
-
-    def initViewObj(self, viewType, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', useHeader=False, useChatter=False, viewCheckBoxes={}):
-        '''
-        @viewType: tree_tree, tree_list, form, search
-        @odooObjectName: product.product, mrp.bom, ...
-        @startingFieldValues: {'description': val1, 'name': val2, ...}     [only search and form views]
-        @clientReadonlyFields: ['description', 'name', ...]                [only for form view]
-
-        tree_list and tree_tree views are always read only
-        '''
-        localLang = self.activeLanguage
-        if activeLanguage:
-            localLang = activeLanguage
-        if not rpcObj:
-            rpcObj = connectionObj
-        oldView = self.checkAlreadyLoadedView(viewType, rpcObj, odooObjectName, viewName, view_id)
-        if oldView:
-            return oldView
-        if viewType == 'form':
-            templateViewObj = TemplateFormView(rpcObj, localLang, useHeader, useChatter, self)
-            templateViewObj.initViewObj(odooObjectName, viewName, view_id)
-        elif viewType == 'tree_tree':
-            templateViewObj = TemplateTreeTreeView(rpcObj, localLang)
-            templateViewObj.initViewObj(odooObjectName, viewName, view_id)
-        elif viewType == 'tree_list':
-            templateViewObj = TemplateTreeListView(rpcObj, localLang)
-            templateViewObj.initViewObj(odooObjectName, viewName, view_id, viewCheckBoxes={})
-        elif viewType == 'search':
-            templateViewObj = TemplateSearchView(rpcObj, localLang)
-            templateViewObj.initViewObj(odooObjectName, viewName, view_id)
-        else:
-            utils.logMessage('warning', 'View Type not supported: %r' % (viewType), 'initViewObj')
-        self.appendLoadedView(viewType, rpcObj, odooObjectName, viewName, view_id, templateViewObj)
-        return templateViewObj
-
-    def appendLoadedView(self, viewType, rpcObj, odooObjectName, viewName, view_id, templateViewObj, viewFilter=False):
-        self.loadedViews[viewType].append({'login': rpcObj.getLoginInfos(),
-                                           'view_type': viewType,
-                                           'object_name': odooObjectName,
-                                           'view_name': viewName or '',
-                                           'view_id': view_id,
-                                           'use_filter': viewFilter,
-                                           'TMP_VIEW_OBJ': templateViewObj})
-
-    def checkAlreadyLoadedView(self, viewType, rpcObj, odooObjectName, viewName, view_id, viewFilter=False):
-        viewList = self.loadedViews.get(viewType, [])
-        for viewDict in viewList:
-            oldLogin = viewDict.get('login')
-            if oldLogin == rpcObj.getLoginInfos():
-                oldViewType = viewDict.get('view_type')
-                oldObjectName = viewDict.get('object_name')
-                oldViewName = viewDict.get('view_name')
-                oldViewId = viewDict.get('view_id')
-                oldViewFilter = viewDict.get('use_filter', False)
-                if oldViewType == viewType and oldObjectName == odooObjectName and oldViewName == viewName and oldViewId == view_id and oldViewFilter == viewFilter:
-                    return viewDict['TMP_VIEW_OBJ']
+    def _searchForView(self, model, viewName):
+        viewIds = connectionObj.search('ir.ui.view', [('name', '=', viewName),
+                                                      ('model', '=', model),
+                                                      ('type', '=', self.viewType)])
+        if viewIds:
+            return viewIds[0]
+        utils.logMessage('warning', 'View with name %r and model %r nor found' % (viewName, model), 'searchForView')
         return False
 
+    def _getViewDefinition(self, rpcObj, odooObjectName, viewType='', viewName='', view_id=False):
+        if not view_id and viewName:
+            view_id = self._searchForView(odooObjectName, viewName)
+        if viewType == 'tree_list': viewType = 'tree'
+        fieldsViewDefinition = rpcObj.fieldsViewGet(odooObjectName, view_id, viewType)
+        if fieldsViewDefinition:
+            arch = fieldsViewDefinition.get('arch', '')
+            model = fieldsViewDefinition.get('model', '')
+            viewName = fieldsViewDefinition.get('name', '')
+            viewId = fieldsViewDefinition.get('view_id', False)
+            fieldsNameTypeRel = fieldsViewDefinition.get('fields', '')
+            return arch, model, viewName, viewId, fieldsNameTypeRel
+        utils.logMessage('warning', 'Unable to read view definition for odooObjectName %r, viewName %r, view_id %r' % (odooObjectName, viewName, view_id), '_getViewDefinition')
+        return '', '', '', False, ''
 
 if __name__ == '__main__':
     odooConnector = MainConnector()
@@ -219,22 +222,22 @@ if __name__ == '__main__':
         #tmplViewObj.loadIds([249])
         #tmplViewObj.sortResults('fieldName', 'filterMode')
 
-        #tmplViewObj = connectorObj.initFormViewObj('product.product')
-        tmplViewObj = connectorObj.initTreeListViewObject('product.product',
-                                                          viewCheckBoxes=False,
-                                                          viewFilter=True)
+        tmplViewObj = connectorObj.initFormViewObj('product.product')
+        #tmplViewObj = connectorObj.initTreeListViewObject('product.product',viewCheckBoxes=False,viewFilter=True)
         #tmplViewObj = connectorObj.initSearchViewObj('product.product')
 #         viewCheckBoxes = {0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled}
 #         tmplViewObj = connectorObj.initTreeListViewObject('product.product', viewCheckBoxes=viewCheckBoxes, viewFilter=True)
-#         tmplViewObj.loadIdsForceEmpty([])
-        #tmplViewObj.loadIds([16])
+        #tmplViewObj.loadForceEmptyIds()
+        tmplViewObj.loadIds([16])
 
         #tmplViewObj.sortResults('fieldName', 'filterMode')
 
         dialog = QtGui.QDialog()
         #tmplViewObj.QtInterface.setMargin(20)
-        interf = tmplViewObj.QtInterface
-        dialog.setLayout(interf)
+        #interf = tmplViewObj.QtInterface
+        lay = QtGui.QVBoxLayout()
+        lay.addWidget(tmplViewObj)
+        dialog.setLayout(lay)
         dialog.setStyleSheet(constants.VIOLET_BACKGROUND)
         dialog.resize(1200, 600)
         dialog.move(100, 100)
