@@ -50,6 +50,9 @@ class ViewOdooObj(object):
             return True
         return False
         
+    def __str__(self, *args, **kwargs):
+        res = super(ViewOdooObj, self).__str__()
+        return '[%s -- %s -- %s -- %s] ---- [%s]' % (self.odooModel, self.odooViewName, self.localViewType, self.odooViewId, res)
 
 class MainConnector(object):
 
@@ -85,6 +88,7 @@ class MainConnector(object):
         viewObj = self.checkAlreadyLoadedView(viewType, rpcObj, odooObjectName, viewName, view_id, viewFilter)
         if not viewObj:
             viewObj = self.appendLoadedView(viewType, rpcObj, odooObjectName, viewName, view_id, viewFilter, viewCheckBoxes, searchMode, useHeader, useChatter)
+        utils.logMessage('info', 'Loading view %s' % (viewObj), '_initView')
         return viewObj, localLang, rpcObj
         
     def initTreeListViewObject(self, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', viewCheckBoxes={}, viewFilter=False):
@@ -222,13 +226,15 @@ if __name__ == '__main__':
         #tmplViewObj.loadIds([249])
         #tmplViewObj.sortResults('fieldName', 'filterMode')
 
-        tmplViewObj = connectorObj.initFormViewObj('product.product')
-        #tmplViewObj = connectorObj.initTreeListViewObject('product.product',viewCheckBoxes=False,viewFilter=True)
+        #tmplViewObj = connectorObj.initFormViewObj('product.product')
+        tmplViewObj = connectorObj.initTreeListViewObject('product.product',viewCheckBoxes=False,viewFilter=True)
+        
+        tmplViewObj = connectorObj.initTreeListViewObject('product.product',viewCheckBoxes=False,viewFilter=True)
         #tmplViewObj = connectorObj.initSearchViewObj('product.product')
 #         viewCheckBoxes = {0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled}
 #         tmplViewObj = connectorObj.initTreeListViewObject('product.product', viewCheckBoxes=viewCheckBoxes, viewFilter=True)
         #tmplViewObj.loadForceEmptyIds()
-        tmplViewObj.loadIds([16])
+        #tmplViewObj.loadIds([16])
 
         #tmplViewObj.sortResults('fieldName', 'filterMode')
 
