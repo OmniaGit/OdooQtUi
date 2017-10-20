@@ -26,6 +26,13 @@ class Many2many(OdooFieldTemplate):
         self.canWrite = json.loads(self.fieldXmlAttributes.get('can_write', 'true'))
         self.getQtObject()
         self.evaluatedIds = {}
+        self.treeViewObj = self.odooConnector.initTreeListViewObject(odooObjectName=self.relation,
+                                                  viewName='',
+                                                  view_id=False,
+                                                  rpcObj=self.rpc,
+                                                  activeLanguage='',
+                                                  viewCheckBoxes={0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled},
+                                                  viewFilter=False)
 
     def getQtObject(self):
         self.mainLay = QtGui.QVBoxLayout()
@@ -54,7 +61,7 @@ class Many2many(OdooFieldTemplate):
 
     def createAndAdd(self):
         try:
-            self.tmpviewObjForm = self.odooConnector.initViewObj('form', self.relation, rpcObj=self.rpc)
+            self.tmpviewObjForm = self.odooConnector.initFormViewObj(self.relation, rpcObj=self.rpc)
             self.tmpviewObjForm.loadIds([])
             self.formdialog = QtGui.QDialog()
             mainLay = QtGui.QVBoxLayout()
@@ -98,21 +105,12 @@ class Many2many(OdooFieldTemplate):
 
     def setValue(self, relIds):
         self.currentValue = relIds
-        self.treeViewObj = self.odooConnector.initTreeListViewObject(odooObjectName=self.relation,
-                                                  viewName='',
-                                                  view_id=False,
-                                                  rpcObj=self.rpc,
-                                                  activeLanguage='',
-                                                  viewCheckBoxes={0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled},
-                                                  viewFilter=False)
         self.treeViewObj.loadIds(relIds, {}, {}, {})
         self.widgetQtObj = self.treeViewObj.treeObj.tableWidget
         self.fieldsToReadOrdered = self.treeViewObj.treeObj.orderedFields
         self.setRemoveButtons(self.widgetQtObj)
         self.setupTableWidgetLay(self.widgetQtObj)
-        lay = self.treeViewObj.layout
-        lay.setParent(None)
-        self.mainLay.addLayout(lay)
+        self.mainLay.addWidget(self.treeViewObj)
         if self.required:
             utilsUi.setRequiredBackground(self.widgetQtObj, '')
         if not self.btnAddAnItem:

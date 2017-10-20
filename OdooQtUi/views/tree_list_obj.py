@@ -15,12 +15,13 @@ from OdooQtUi.RPC.rpc import connectionObj
 
 class TemplateTreeListView(TemplateView):
 
-    def __init__(self, rpcObject, viewObj, activeLanguageCode='en_US', searchObj=None):
+    def __init__(self, rpcObject, viewObj, activeLanguageCode='en_US', searchObj=None, odooConnector=None):
         super(TemplateTreeListView, self).__init__(rpcObject, viewObj, activeLanguageCode)
         self.readonly = True
         self.activeIds = []
         self.idValsRel = {}
         self.idLineRel = {}
+        self.odooConnector = odooConnector
         self.searchObj = searchObj
         self.labelsOrdered = []
         self.currentRange = [0, 40]
@@ -38,12 +39,12 @@ class TemplateTreeListView(TemplateView):
             else:
                 self.searchObj.out_filter_change_signal.connect(self.filterChanged)
                 mainLay.addWidget(self.searchObj)
-        self.listQtObject = TreeViewList(self.arch, self.fieldsNameTypeRel, self.rpcObject, self.viewCheckBoxes)
-        mainLay.addLayout(self.listQtObject.computeArch())
-        self.mappingInterface = self.listQtObject.globalMapping
+        self.treeObj = TreeViewList(self.arch, self.fieldsNameTypeRel, self.rpcObject, self.viewCheckBoxes, self.odooConnector)
+        mainLay.addLayout(self.treeObj.computeArch())
+        self.mappingInterface = self.treeObj.globalMapping
         self.addToObject()
-        self.listQtObject.tableWidget.setStyleSheet(constants.TABLE_LIST_LIST)
-        self.listQtObject.tableWidget.setMinimumHeight(200)
+        self.treeObj.tableWidget.setStyleSheet(constants.TABLE_LIST_LIST)
+        self.treeObj.tableWidget.setMinimumHeight(200)
         self.setLayout(mainLay)
 
     def _setupArrowButtons(self):
@@ -93,7 +94,7 @@ class TemplateTreeListView(TemplateView):
 
     @utils.timeit
     def _loadIds(self, objIds=[], forceFieldValues={}, readonlyFields={}, invisibleFields={}):
-        fields = self.listQtObject.orderedFields
+        fields = self.treeObj.orderedFields
         if len(objIds) < self.passRange:
             self.buttToRight.setHidden(True)
         else:
@@ -132,13 +133,13 @@ class TemplateTreeListView(TemplateView):
             recordId = record.get('id', False)
             self.idValsRel[recordId] = record
             self.idLineRel[records.index(record)] = recordId
-        utilsUi.commonPopulateTable(self.labelsOrdered, valuesList, self.listQtObject.tableWidget, flagsDict, fontSize=constants.FONT_SIZE_LIST_WIDGET)
-        self.listQtObject.tableWidget.resizeColumnsToContents()
-        self.listQtObject.tableWidget.setShowGrid(False)
-        self.listQtObject.tableWidget.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-        self.listQtObject.tableWidget.horizontalHeader().setStyleSheet(constants.MANY_2_MANY_H_HEADER)
-        self.listQtObject.tableWidget.verticalHeader().setVisible(False)
-        self.listQtObject.tableWidget.horizontalHeader().setStyleSheet('::section {background-color:#a2b0ff;color:black;font-weight:bold;}')
+        utilsUi.commonPopulateTable(self.labelsOrdered, valuesList, self.treeObj.tableWidget, flagsDict, fontSize=constants.FONT_SIZE_LIST_WIDGET)
+        self.treeObj.tableWidget.resizeColumnsToContents()
+        self.treeObj.tableWidget.setShowGrid(False)
+        self.treeObj.tableWidget.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        self.treeObj.tableWidget.horizontalHeader().setStyleSheet(constants.MANY_2_MANY_H_HEADER)
+        self.treeObj.tableWidget.verticalHeader().setVisible(False)
+        self.treeObj.tableWidget.horizontalHeader().setStyleSheet('::section {background-color:#a2b0ff;color:black;font-weight:bold;}')
 
     def getLineValues(self, lineIndex):
         recordId = self.idLineRel[lineIndex]

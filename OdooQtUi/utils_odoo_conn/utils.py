@@ -287,6 +287,7 @@ def logMessage(msgType='DEBUG', message='', functionName=''):
         logging.error(msg)
     else:
         logging.debug(msg)
+    print msg
 
 
 def convertJpgToPng(jpgPath, savePngPath=''):

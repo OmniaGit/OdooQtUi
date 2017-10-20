@@ -97,7 +97,7 @@ class MainConnector(object):
         if viewFilter:
             allFieldsDef = rpcObj.fieldsGet(odooObjectName)
             viewObjSearch= self.initSearchViewObj(odooObjectName, viewName='', view_id='', rpcObj=rpcObj, activeLanguage=activeLanguage, allFieldsDef=allFieldsDef)
-        return TemplateTreeListView(rpcObj, viewObj, localLang, viewObjSearch)
+        return TemplateTreeListView(rpcObj, viewObj, localLang, viewObjSearch, self)
 
     def initSearchViewObj(self, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', searchMode='ilike', allFieldsDef={}):
         viewObj, localLang, rpcObj = self._initView('search', rpcObj, activeLanguage, odooObjectName, viewName, view_id, searchMode=searchMode)
@@ -149,19 +149,19 @@ class MainConnector(object):
             rpcObj = connectionObj
         return activeLanguage, rpcObj
 
-    def _searchForView(self, model, viewName):
+    def _searchForView(self, model, viewName, viewType):
         viewIds = connectionObj.search('ir.ui.view', [('name', '=', viewName),
                                                       ('model', '=', model),
-                                                      ('type', '=', self.viewType)])
+                                                      ('type', '=', viewType)])
         if viewIds:
             return viewIds[0]
         utils.logMessage('warning', 'View with name %r and model %r nor found' % (viewName, model), 'searchForView')
         return False
 
     def _getViewDefinition(self, rpcObj, odooObjectName, viewType='', viewName='', view_id=False):
-        if not view_id and viewName:
-            view_id = self._searchForView(odooObjectName, viewName)
         if viewType == 'tree_list': viewType = 'tree'
+        if not view_id and viewName:
+            view_id = self._searchForView(odooObjectName, viewName, viewType)
         fieldsViewDefinition = rpcObj.fieldsViewGet(odooObjectName, view_id, viewType)
         if fieldsViewDefinition:
             arch = fieldsViewDefinition.get('arch', '')

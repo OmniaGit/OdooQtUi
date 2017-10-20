@@ -22,8 +22,9 @@ from OdooQtUi.objects.text.text import Text
 
 class TreeViewList(object):
 
-    def __init__(self, arch, fieldsNameTypeRel, rpc, viewCheckBoxes={}):
+    def __init__(self, arch, fieldsNameTypeRel, rpc, viewCheckBoxes={}, odooConnector=None):
         self.arch = arch
+        self.odooConnector = odooConnector
         self.fieldsNameTypeRel = fieldsNameTypeRel
         self.globalMapping = {}
         self.orderedFields = []
@@ -73,7 +74,7 @@ class TreeViewList(object):
         elif fieldType == 'many2one':
             fieldObj = Many2one(xmlObj, self.fieldsNameTypeRel, self.rpc)
         elif fieldType == 'many2many':
-            fieldObj = Many2many(xmlObj, self.fieldsNameTypeRel, self.rpc)
+            fieldObj = Many2many(xmlObj, self.fieldsNameTypeRel, self.rpc, self.odooConnector)
         elif fieldType == 'text':
             fieldObj = Text(xmlObj, self.fieldsNameTypeRel, self.rpc)
         elif fieldType == 'date':
