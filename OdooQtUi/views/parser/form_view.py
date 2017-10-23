@@ -194,7 +194,7 @@ class FormView(QtCore.QObject, object):
             childTag = childElement.tag
             childAttrs = childElement.attrib
             childColSpan = int(childAttrs.get('colspan', 2))
-            if childTag == 'group' or childTag == 'h1':
+            if childTag == 'group' or childTag == 'h1' or childTag == 'div':
                 groupString = childAttrs.get('string', '')
                 if groupString:
                     label = QtGui.QLabel(groupString)
@@ -254,6 +254,8 @@ class FormView(QtCore.QObject, object):
                 key = 'button_' + unicode(buttonObj.buttonString).replace(' ', '_')
                 self.appendToglobalMapping(key, buttonObj)
                 colCount = colCount + childColSpan
+            else:
+                utils.logMessage('warning', 'Unable to parse element %r' % (childTag), 'computeGroup')
         return globalLay
 
     def appendToglobalMapping(self, key, value):

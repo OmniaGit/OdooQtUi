@@ -103,9 +103,6 @@ class Many2many(OdooFieldTemplate):
             addAnItemLay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum))
             self.mainLay.addLayout(addAnItemLay)
             self.widgetLyQtObject.addLayout(self.mainLay)
-            if self.translatable:
-                self.connectTranslationButton()
-                self.widgetLyQtObject.addWidget(self.translateButton)
         self.mainLay.addWidget(self.treeViewObj)
 
     def setupTableWidgetLay(self, tableWidget):

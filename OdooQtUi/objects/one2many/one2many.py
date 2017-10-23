@@ -73,20 +73,8 @@ class One2many(OdooFieldTemplate):
                 fieldVals = viewObjForm.getAllFieldsValues()
                 objId = self.rpc.create(self.relation, fieldVals)
                 if objId:
-                    rowCount = self.widgetQtObj.rowCount()
-                    orderedFields = self.treeViewObj.treeObj.orderedFields
-                    orderedFields.append('')
-                    self.widgetQtObj.setRowCount(rowCount + 1)
-                    for fieldName in orderedFields:
-                        if not fieldName:
-                            continue
-                        colIndex = orderedFields.index(fieldName)
-                        fieldVal = viewObjForm.fields.getFieldObj(fieldName).valueInterface
-                        twItem = QtGui.QTableWidgetItem(fieldVal)
-                        self.widgetQtObj.setItem(rowCount, colIndex, twItem)
-                    self.treeViewObj.idLineRel[rowCount] = objId
-                    rowCount = rowCount + 1
-                    self.setRemoveButtons(self.widgetQtObj)
+                    self.currentValue.append(objId)
+                    self.setValue(self.currentValue)
         except Exception, ex:
             utils.logMessage('error', '%r' % (ex), 'createAndAdd')
 
@@ -111,16 +99,10 @@ class One2many(OdooFieldTemplate):
         self.fieldsToReadOrdered = fieldsToReadOrdered
         self.setRemoveButtons(self.widgetQtObj)
         self.setupTableWidgetLay(self.widgetQtObj)
-        self.mainLay.addWidget(self.treeViewObj)
         if self.required:
             utilsUi.setRequiredBackground(self.widgetQtObj, '')
-        addAnItemLay = QtGui.QHBoxLayout()
-        addAnItemLay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum))
-        self.mainLay.addLayout(addAnItemLay)
+        self.mainLay.addWidget(self.treeViewObj)
         self.widgetLyQtObject.addLayout(self.mainLay)
-        if self.translatable:
-            self.connectTranslationButton()
-            self.widgetLyQtObject.addWidget(self.translateButton)
         self.widgetQtObj.setHorizontalHeaderItem(self.widgetQtObj.columnCount() - 1, QtGui.QTableWidgetItem('Remove'))
         self.widgetQtObj.resizeColumnsToContents()
 
