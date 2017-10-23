@@ -92,7 +92,6 @@ class Many2many(OdooFieldTemplate):
         self.fieldsToReadOrdered = self.treeViewObj.treeObj.orderedFields
         self.setRemoveButtons(self.widgetQtObj)
         self.setupTableWidgetLay(self.widgetQtObj)
-        self.mainLay.addWidget(self.treeViewObj)
         if self.required:
             utilsUi.setRequiredBackground(self.widgetQtObj, '')
         if not self.btnAddAnItem:
@@ -107,6 +106,7 @@ class Many2many(OdooFieldTemplate):
             if self.translatable:
                 self.connectTranslationButton()
                 self.widgetLyQtObject.addWidget(self.translateButton)
+        self.mainLay.addWidget(self.treeViewObj)
 
     def setupTableWidgetLay(self, tableWidget):
         tableWidget.resizeColumnsToContents()
