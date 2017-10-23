@@ -170,14 +170,6 @@ class TemplateView(QtGui.QWidget):
         if not val:
             self._setFieldModifiers()
 
-#     @property
-#     def QtInterface(self):
-#         return self.layout
-
-#     @property
-#     def xmlOdooView(self):
-#         return self.arch
-
     def getAllFieldsValues(self):
         outDict = {}
         for fieldName, fieldObject in self.interfaceFieldsDict.items():

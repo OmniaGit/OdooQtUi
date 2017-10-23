@@ -17,6 +17,7 @@ from OdooQtUi.objects.integer.integer import Integer
 from OdooQtUi.objects.many2many.many2many import Many2many
 from OdooQtUi.objects.many2one.many2one import Many2one
 from OdooQtUi.objects.text.text import Text
+from OdooQtUi.objects.one2many.one2many import One2many
 
 
 
@@ -75,6 +76,8 @@ class TreeViewList(object):
             fieldObj = Many2one(xmlObj, self.fieldsNameTypeRel, self.rpc)
         elif fieldType == 'many2many':
             fieldObj = Many2many(xmlObj, self.fieldsNameTypeRel, self.rpc, self.odooConnector)
+        elif fieldType == 'one2many':
+            fieldObj = One2many(xmlObj, self.fieldsNameTypeRel, self.rpc, self.odooConnector)
         elif fieldType == 'text':
             fieldObj = Text(xmlObj, self.fieldsNameTypeRel, self.rpc)
         elif fieldType == 'date':

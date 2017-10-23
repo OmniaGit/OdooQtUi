@@ -286,7 +286,7 @@ class FormView(QtCore.QObject, object):
         elif fieldType == 'boolean':
             fieldObj = Boolean(xmlObj, self.fieldsNameTypeRel, self.rpc)
         elif fieldType == 'one2many':
-            fieldObj = One2many(xmlObj, self.fieldsNameTypeRel, self.rpc)
+            fieldObj = One2many(xmlObj, self.fieldsNameTypeRel, self.rpc, self.odooConnector)
         elif fieldType == 'binary':
             fieldObj = Binary(xmlObj, self.fieldsNameTypeRel, self.rpc)
         else:

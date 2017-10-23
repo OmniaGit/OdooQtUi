@@ -47,59 +47,41 @@ class Many2many(OdooFieldTemplate):
         buttonsLay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum))
         self.mainLay.addLayout(buttonsLay)
 
-    def acceptFormDial(self):
-        fieldVals = self.tmpviewObjForm.getAllFieldsValues()
-        for requiredFieldStr, requiredFieldObj in self.tmpviewObjForm.requiredFields.items():
-            fieldVal = fieldVals.get(requiredFieldStr, '')
-            if not fieldVal and not isinstance(fieldVal, (int, float)):
-                utilsUi.launchMessage('Field %r need a value' % (requiredFieldObj.labelString), 'error')
-                return
-        self.formdialog.accept()
-
-    def rejectFormDial(self):
-        self.formdialog.reject()
-
     def createAndAdd(self):
+        def acceptFormDial():
+            fieldVals = tmpviewObjForm.getAllFieldsValues()
+            for requiredFieldStr, requiredFieldObj in tmpviewObjForm.requiredFields.items():
+                fieldVal = fieldVals.get(requiredFieldStr, '')
+                if not fieldVal and not isinstance(fieldVal, (int, float)):
+                    utilsUi.launchMessage('Field %r need a value' % (requiredFieldObj.labelString), 'error')
+                    return
+            formdialog.accept()
+            
+        def rejectFormDial():
+            formdialog.reject()
+
         try:
-            self.tmpviewObjForm = self.odooConnector.initFormViewObj(self.relation, rpcObj=self.rpc)
-            self.tmpviewObjForm.loadIds([])
-            self.formdialog = QtGui.QDialog()
+            tmpviewObjForm = self.odooConnector.initFormViewObj(self.relation, rpcObj=self.rpc)
+            tmpviewObjForm.loadIds([])
+            formdialog = QtGui.QDialog()
             mainLay = QtGui.QVBoxLayout()
-            lay = self.tmpviewObjForm.layout
-            lay.setParent(None)
-            mainLay.addLayout(lay)
-            self.formdialog.setStyleSheet('background-color:#893b74;')
-            self.formdialog.resize(1200, 600)
-            self.formdialog.move(100, 100)
+            mainLay.addWidget(tmpviewObjForm)
+            formdialog.setStyleSheet('background-color:#893b74;')
+            formdialog.resize(1200, 600)
+            formdialog.move(100, 100)
             buttLay, okButt, cancelButt = utilsUi.getButtonBox('right')
             mainLay.addLayout(buttLay)
-            self.formdialog.setLayout(mainLay)
-            okButt.clicked.connect(self.acceptFormDial)
-            cancelButt.clicked.connect(self.rejectFormDial)
+            formdialog.setLayout(mainLay)
+            okButt.clicked.connect(acceptFormDial)
+            cancelButt.clicked.connect(rejectFormDial)
             okButt.setStyleSheet(constants.BUTTON_STYLE_OK)
             cancelButt.setStyleSheet(constants.BUTTON_STYLE_CANCEL)
-            if self.formdialog.exec_() == QtGui.QDialog.Accepted:
-                fieldVals = self.tmpviewObjForm.getAllFieldsValues()
+            if formdialog.exec_() == QtGui.QDialog.Accepted:
+                fieldVals = tmpviewObjForm.getAllFieldsValues()
                 objId = self.rpc.create(self.relation, fieldVals)
                 if objId:
-                    rowCount = self.widgetQtObj.rowCount()
-                    orderedFields = self.treeViewObj.treeObj.orderedFields
-                    orderedFields.append('')
-                    self.widgetQtObj.setRowCount(rowCount + 1)
-                    for fieldName in orderedFields:
-                        if not fieldName:
-                            continue
-                        colIndex = orderedFields.index(fieldName)
-                        fieldObj = self.tmpviewObjForm.fields.getFieldObj(fieldName)
-                        fieldVal = ''
-                        if fieldObj:
-                            fieldVal = fieldObj.valueInterface
-                        twItem = QtGui.QTableWidgetItem(fieldVal)
-                        self.widgetQtObj.setItem(rowCount, colIndex, twItem)
-                    self.treeViewObj.idLineRel[rowCount] = objId
                     self.currentValue.append(objId)
-                    rowCount = rowCount + 1
-                    self.setRemoveButtons(self.widgetQtObj)
+                    self.setValue(self.currentValue)
         except Exception, ex:
             utils.logMessage('error', '%r' % (ex), 'createAndAdd')
 
@@ -210,9 +192,7 @@ class Many2many(OdooFieldTemplate):
         def toRight():
             commonMove()
 
-        from start import MainConnector
-        conn = MainConnector()
-        viewObj = conn.initTreeListViewObject(self.relation, rpcObj=self.rpc, viewCheckBoxes={0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled})
+        viewObj = self.odooConnector.initTreeListViewObject(self.relation, rpcObj=self.rpc, viewCheckBoxes={0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled})
         viewObj.buttToLeft.clicked.connect(toLeft)
         viewObj.buttToRight.clicked.connect(toRight)
         resIds = self.rpc.search(self.relation, [], limit=viewObj.currentRange[-1], offset=viewObj.currentRange[0])
@@ -224,7 +204,7 @@ class Many2many(OdooFieldTemplate):
         cancelButt.setStyleSheet(constants.BUTTON_STYLE_CANCEL)
         okButt.clicked.connect(acceptDial)
         cancelButt.clicked.connect(rejectDial)
-        vlay.addLayout(viewObj.layout)
+        vlay.addWidget(viewObj)
         vlay.addLayout(layButt)
         dial.setLayout(vlay)
         dial.setStyleSheet('background-color:#893b74;')
@@ -240,24 +220,7 @@ class Many2many(OdooFieldTemplate):
                         self.currentValue.append(objId)
                         localIndexId[rowIndex] = objId
                     checkedRows.append(rowIndex)
-            rowsDict = utils.getRowsFromTableWidget(table, 'dict', self.fieldsToReadOrdered)
-            rowPosition = self.widgetQtObj.rowCount()
-            for checkedIndex in checkedRows:
-                self.widgetQtObj.setRowCount(rowPosition + 1)
-                valsToInsert = rowsDict.get(checkedIndex, {})
-                for fieldName in self.fieldsToReadOrdered:
-                    colIndex = self.fieldsToReadOrdered.index(fieldName)
-                    colVal = valsToInsert.get(fieldName, '')
-                    twItem = QtGui.QTableWidgetItem(colVal)
-                    font = QtGui.QFont()
-                    font.setPointSize(constants.FONT_SIZE_LIST_WIDGET)
-                    twItem.setFont(font)
-                    twItem.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
-                    self.widgetQtObj.setItem(rowPosition, colIndex, twItem)
-                self.treeViewObj.idLineRel[rowPosition] = localIndexId[checkedIndex]
-                rowPosition = rowPosition + 1
-            self.setRemoveButtons(self.widgetQtObj)
-            self.setupTableWidgetLay(self.widgetQtObj)
+            self.setValue(self.currentValue)
         print self.treeViewObj.idLineRel
 
     def valueChanged(self):

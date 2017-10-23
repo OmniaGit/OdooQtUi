@@ -215,32 +215,32 @@ if __name__ == '__main__':
     @utils.timeit
     def do_test():
         connectorObj = MainConnector()
-        #connectorObj.loginWithDial()
         connectorObj.loginWithDial()
-        #res = connectorObj.loginWithUser(user, password, dbName, xmlrpcServerIP, xmlrpcPort, scheme, loginType)
-        #tmplViewObj = connectorObj.initSearchViewObj('product.product')
-
-        #tmplViewObj = connectorObj.initFormViewObj('plm.document')
-        #viewCheckBoxes = {0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled}
-        #tmplViewObj = connectorObj.initTreeListViewObject('product.product', viewCheckBoxes=viewCheckBoxes)
-        #tmplViewObj.loadIds([249])
-        #tmplViewObj.sortResults('fieldName', 'filterMode')
-
-        #tmplViewObj = connectorObj.initFormViewObj('product.product')
-        tmplViewObj = connectorObj.initTreeListViewObject('product.product',viewCheckBoxes=False,viewFilter=True)
         
-        tmplViewObj = connectorObj.initTreeListViewObject('product.product',viewCheckBoxes=False,viewFilter=True)
-        #tmplViewObj = connectorObj.initSearchViewObj('product.product')
-#         viewCheckBoxes = {0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled}
-#         tmplViewObj = connectorObj.initTreeListViewObject('product.product', viewCheckBoxes=viewCheckBoxes, viewFilter=True)
-        #tmplViewObj.loadForceEmptyIds()
-        #tmplViewObj.loadIds([16])
-
-        #tmplViewObj.sortResults('fieldName', 'filterMode')
+        def tryForm(odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', useHeader=False, useChatter=False, idToLoad=False):
+            tmplViewObj = connectorObj.initFormViewObj(odooObjectName, viewName, view_id, rpcObj, activeLanguage, useHeader, useChatter)
+            if idToLoad:
+                tmplViewObj.loadIds([idToLoad])
+            return tmplViewObj
+        
+        def trySearchView(odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', searchMode='ilike', allFieldsDef={}):
+            return connectorObj.initSearchViewObj(odooObjectName, viewName, view_id, rpcObj, activeLanguage, searchMode, allFieldsDef)
+        
+        def tryListView(odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', viewCheckBoxes={}, viewFilter=False, readonlyFields={}, invisibleFields={}, forceFieldValues={}, forceIds=False):
+            tmplViewObj = connectorObj.initTreeListViewObject(odooObjectName, viewName, view_id, rpcObj, activeLanguage, viewCheckBoxes, viewFilter)
+            if forceIds:
+                tmplViewObj.loadIds(forceIds, forceFieldValues, readonlyFields, invisibleFields)
+            else:
+                tmplViewObj.loadForceEmptyIds(forceFieldValues, readonlyFields, invisibleFields)
+            return tmplViewObj
+                
+        
+        
+        tmplViewObj = tryForm('product.product', idToLoad=345)
+        #tmplViewObj = tryForm('mrp.bom', idToLoad=5)
+        #viewCheckBoxes = {0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled}
 
         dialog = QtGui.QDialog()
-        #tmplViewObj.QtInterface.setMargin(20)
-        #interf = tmplViewObj.QtInterface
         lay = QtGui.QVBoxLayout()
         lay.addWidget(tmplViewObj)
         dialog.setLayout(lay)

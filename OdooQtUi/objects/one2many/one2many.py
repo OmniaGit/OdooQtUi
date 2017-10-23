@@ -13,17 +13,25 @@ from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
 
 
 class One2many(OdooFieldTemplate):
-    def __init__(self, xmlField, fieldsDefinition, rpc):
+    def __init__(self, xmlField, fieldsDefinition, rpc, odooConnector=None):
         super(One2many, self).__init__(xmlField, fieldsDefinition, rpc)
         self.labelQtObj = False
         self.widgetQtObj = False
         self.treeViewObj = False
+        self.odooConnector = odooConnector
         self.relation = self.fieldPyDefinition.get('relation', '')
         self.canCreate = json.loads(self.fieldXmlAttributes.get('can_create', 'true'))
         self.canWrite = json.loads(self.fieldXmlAttributes.get('can_write', 'true'))
         self.getQtObject()
         self.evaluatedIds = {}
         self.currentValue = []
+        self.treeViewObj = self.odooConnector.initTreeListViewObject(odooObjectName=self.relation,
+                                                  viewName='',
+                                                  view_id=False,
+                                                  rpcObj=self.rpc,
+                                                  activeLanguage='',
+                                                  viewCheckBoxes={},
+                                                  viewFilter=False)
 
     def getQtObject(self):
         self.mainLay = QtGui.QVBoxLayout()
@@ -38,18 +46,6 @@ class One2many(OdooFieldTemplate):
         buttonsLay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum))
         self.mainLay.addLayout(buttonsLay)
 
-    def setForegroundWindow(self):
-        """
-            For initialization problem i need to change the z order of the parent window
-        """
-        try:
-            flags = win32con.SWP_NOMOVE | win32con.SWP_NOSIZE
-            if self.parentHWnd:
-                win32gui.SetWindowPos(self.parentHWnd, -2, 0, 0, 0, 0, flags)
-            win32gui.SetWindowPos(int(self.obj.winId()), -1, 0, 0, 0, 0, flags)
-        except Exception, ex:
-            logging.error(ex)
-
     def createAndAdd(self):
         try:
             def acceptDial():
@@ -60,10 +56,8 @@ class One2many(OdooFieldTemplate):
     
             dialog = QtGui.QDialog()
             mainLay = QtGui.QVBoxLayout()
-            from start import MainConnector
-            conn = MainConnector()
-            viewObjForm = conn.initViewObj('form', self.relation, rpcObj=self.rpc)
-            mainLay.addLayout(viewObjForm.layout)
+            viewObjForm = self.odooConnector.initFormViewObj(self.relation, rpcObj=self.rpc)
+            mainLay.addWidget(viewObjForm)
             dialog.setStyleSheet('background-color:#893b74;')
             dialog.resize(1200, 600)
             dialog.move(100, 100)
@@ -110,9 +104,6 @@ class One2many(OdooFieldTemplate):
 
     def setValue(self, relIds):
         self.currentValue = relIds
-        from start import MainConnector
-        conn = MainConnector()
-        self.treeViewObj = conn.initViewObj('tree_list', self.relation, rpcObj=self.rpc, viewCheckBoxes={})
         self.treeViewObj.loadIds(relIds, {}, {}, {})
         self.widgetQtObj = self.treeViewObj.treeObj.tableWidget
         self.widgetQtObj.setColumnCount(self.widgetQtObj.columnCount() + 1)
@@ -120,7 +111,7 @@ class One2many(OdooFieldTemplate):
         self.fieldsToReadOrdered = fieldsToReadOrdered
         self.setRemoveButtons(self.widgetQtObj)
         self.setupTableWidgetLay(self.widgetQtObj)
-        self.mainLay.addLayout(self.treeViewObj.layout)
+        self.mainLay.addWidget(self.treeViewObj)
         if self.required:
             utilsUi.setRequiredBackground(self.widgetQtObj, '')
         addAnItemLay = QtGui.QHBoxLayout()
