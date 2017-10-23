@@ -127,3 +127,8 @@ def exceptionManagement(ex, message=''):
 
 def setRequiredBackground(widgetQtObj, baseBackground):
     widgetQtObj.setStyleSheet(baseBackground + constants.COMMON_FIELDS_REQUIRED_BACKGROUND)
+
+def setLayoutMarginAndSpacing(lay):
+    lay.setSpacing(5)
+    lay.setMargin(0)
+    

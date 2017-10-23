@@ -10,7 +10,7 @@ import xml.etree.cElementTree as ElementTree
 from PyQt4 import QtGui
 from PyQt4 import QtCore
 
-from OdooQtUi.utils_odoo_conn import utils
+from OdooQtUi.utils_odoo_conn import utils, utilsUi
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.objects import button
 from OdooQtUi.objects.selection.selection import Selection
@@ -49,7 +49,7 @@ class FormView(QtCore.QObject, object):
         if values:
             del self.notebookTabsNotComputed[pageIndex]
             self.nootebook_changed_signal.emit(pageIndex)
-
+        
     def computeRecursion(self, parent, nootebookIndex=0):
         # TODO:    div name <div name="button_box" class="oe_button_box">
         mainVLay = QtGui.QVBoxLayout()
@@ -57,6 +57,7 @@ class FormView(QtCore.QObject, object):
             childTag = childElement.tag
             if childTag == 'sheet':
                 sheetLay = QtGui.QVBoxLayout()
+                utilsUi.setLayoutMarginAndSpacing(sheetLay)
                 layout = self.computeRecursion(childElement)
                 if layout:
                     sheetLay.addLayout(layout)
@@ -74,6 +75,7 @@ class FormView(QtCore.QObject, object):
                     self.globalMapping.update(mapping)
             elif childTag == 'div':
                 divVlay = QtGui.QVBoxLayout()
+                utilsUi.setLayoutMarginAndSpacing(divVlay)
                 divAttrib = childElement.attrib
                 divClass = divAttrib.get('class', '')
                 if divClass == 'oe_chatter' and not self.useChatter:
@@ -256,6 +258,7 @@ class FormView(QtCore.QObject, object):
                 colCount = colCount + childColSpan
             else:
                 utils.logMessage('warning', 'Unable to parse element %r' % (childTag), 'computeGroup')
+        utilsUi.setLayoutMarginAndSpacing(globalLay)
         return globalLay
 
     def appendToglobalMapping(self, key, value):
@@ -278,7 +281,7 @@ class FormView(QtCore.QObject, object):
         elif fieldType == 'datetime':
             fieldObj = Datetime(xmlObj, self.fieldsNameTypeRel, self.rpc)
         elif fieldType == 'many2one':
-            fieldObj = Many2one(xmlObj, self.fieldsNameTypeRel, self.rpc)
+            fieldObj = Many2one(xmlObj, self.fieldsNameTypeRel, self.rpc, self.odooConnector)
         elif fieldType == 'many2many':
             fieldObj = Many2many(xmlObj, self.fieldsNameTypeRel, self.rpc, self.odooConnector)
         elif fieldType == 'text':
@@ -305,11 +308,11 @@ class FormView(QtCore.QObject, object):
                 utils.logMessage('warning', 'multiple widgets with the same key: %r' % (key), 'computeHeader')
 
         headerLayout = QtGui.QHBoxLayout()
+        utilsUi.setLayoutMarginAndSpacing(headerLayout)
         for xmlObj in archHeader.getchildren():
             if xmlObj.tag == 'button':
                 buttonObj = button.Button(xmlObj)
                 headerLayout.addWidget(buttonObj.qtObject)
-                # buttonObj.qtObject.setHidden(not useHeader)
                 commonAppend('button_header_' + unicode(buttonObj.buttonString).replace(' ', '_'), buttonObj)
             elif xmlObj.tag == 'field':
                 fieldObj = self.computeField(xmlObj)

@@ -73,7 +73,7 @@ class TreeViewList(object):
         elif fieldType == 'datetime':
             fieldObj = Datetime(xmlObj, self.fieldsNameTypeRel, self.rpc)
         elif fieldType == 'many2one':
-            fieldObj = Many2one(xmlObj, self.fieldsNameTypeRel, self.rpc)
+            fieldObj = Many2one(xmlObj, self.fieldsNameTypeRel, self.rpc, self.odooConnector)
         elif fieldType == 'many2many':
             fieldObj = Many2many(xmlObj, self.fieldsNameTypeRel, self.rpc, self.odooConnector)
         elif fieldType == 'one2many':

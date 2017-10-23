@@ -7,6 +7,7 @@ import json
 
 from PyQt4 import QtGui, QtCore
 from OdooQtUi.utils_odoo_conn import utils
+from OdooQtUi.utils_odoo_conn import utilsUi
 from OdooQtUi.utils_odoo_conn import constants
 
 
@@ -43,6 +44,7 @@ class OdooFieldTemplate(QtCore.QObject, object):
         self.initVal = ''
         self.changed = False
         self.widgetLyQtObject = QtGui.QHBoxLayout()
+        utilsUi.setLayoutMarginAndSpacing(self.widgetLyQtObject)
         self.translateButton = False
         self.invisibleConditions, self.readonlyConditions = utils.evaluateModifiers(self.modifiers)
         return super(OdooFieldTemplate, self).__init__()

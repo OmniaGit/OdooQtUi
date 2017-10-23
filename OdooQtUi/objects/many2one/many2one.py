@@ -12,7 +12,7 @@ from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
 
 
 class Many2one(OdooFieldTemplate):
-    def __init__(self, xmlField, fieldsDefinition, rpc):
+    def __init__(self, xmlField, fieldsDefinition, rpc, odooConnector=None):
         super(Many2one, self).__init__(xmlField, fieldsDefinition, rpc)
         self.labelQtObj = False
         self.widgetQtObj = False
@@ -20,6 +20,7 @@ class Many2one(OdooFieldTemplate):
         self.itemToIdRel = {}
         self.skipSearch = False
         self.currentValue = False
+        self.odooConnector = odooConnector
         self.relation = self.fieldPyDefinition.get('relation', '')
         self.canCreate = json.loads(self.fieldXmlAttributes.get('can_create', 'true'))
         self.canWrite = json.loads(self.fieldXmlAttributes.get('can_write', 'true'))
@@ -45,6 +46,7 @@ class Many2one(OdooFieldTemplate):
 
         self.widgetQtObj = QtGui.QWidget()
         self.childLay = QtGui.QHBoxLayout()
+        utilsUi.setLayoutMarginAndSpacing(self.childLay)
         self.widgetQtObj2 = QtGui.QComboBox()
         self.widgetQtObj2.currentIndexChanged.connect(self.indexChanged)
         self.widgetQtObj2.setStyleSheet(constants.SELECTION_STYLE)
@@ -159,11 +161,11 @@ class Many2one(OdooFieldTemplate):
         def reject():
             dialog.reject()
 
-        from start import MainConnector
-        conn = MainConnector()
-        viewObj = conn.initViewObj('form', self.relation, rpcObj=self.rpc)
-        viewObj.loadIds([self.currentValue[0]])
-        mainLay = viewObj.QtInterface
+        self.setViewObject()
+        self.viewObj.loadIds([self.currentValue[0]])
+        mainLay = QtGui.QVBoxLayout()
+        utilsUi.setLayoutMarginAndSpacing(mainLay)
+        mainLay.addWidget(self.viewObj)
         lay, okButt, cancelButt = utilsUi.getButtonBox()
         okButt.clicked.connect(accept)
         cancelButt.clicked.connect(reject)
@@ -174,10 +176,10 @@ class Many2one(OdooFieldTemplate):
         dialog.setLayout(mainLay)
         dialog.setStyleSheet('background-color:#893b74;')
         dialog.adjustSize()
-        dialog.resize(800, dialog.height())
+        dialog.resize(1000, 750)
         if dialog.exec_() == QtGui.QDialog.Accepted:
             valuesToUpdate = {}
-            for fieldName, fieldObj in viewObj.fieldsChanged.items():
+            for fieldName, fieldObj in self.viewObj.fieldsChanged.items():
                 valuesToUpdate[fieldName] = fieldObj.value
             self.rpc.write(self.relation, valuesToUpdate, self.currentValue[0])
             if 'name' in valuesToUpdate:
@@ -196,6 +198,9 @@ class Many2one(OdooFieldTemplate):
                 self.widgetQtObj2.setCurrentIndex(indexToReplace)
                 self.valueTemplateChanged()
 
+    def setViewObject(self):
+        self.viewObj = self.odooConnector.initFormViewObj(self.relation, rpcObj=self.rpc)
+        
     def indexChanged(self, res=False):
         currText = unicode(self.widgetQtObj2.currentText())
         if currText == 'Create and Edit...':
@@ -207,11 +212,9 @@ class Many2one(OdooFieldTemplate):
             def reject():
                 dialog.reject()
 
-            from start import MainConnector
-            conn = MainConnector()
-            viewObj = conn.initViewObj('form', self.relation, rpcObj=self.rpc)
-            viewObj.loadIds([])
-            mainLay = viewObj.QtInterface
+            self.setViewObject()
+            self.viewObj.loadIds([])
+            mainLay = self.viewObj.QtInterface
             lay, okButt, cancelButt = utilsUi.getButtonBox()
             okButt.clicked.connect(accept)
             cancelButt.clicked.connect(reject)
@@ -225,7 +228,7 @@ class Many2one(OdooFieldTemplate):
             dialog.resize(800, dialog.height())
             if dialog.exec_() == QtGui.QDialog.Accepted:
                 valuesToCreate = {}
-                for fieldName, fieldObj in viewObj.interfaceFieldsDict.items():
+                for fieldName, fieldObj in self.viewObj.interfaceFieldsDict.items():
                     valuesToCreate[fieldName] = fieldObj.value
                 res = self.rpc.create(self.relation, valuesToCreate)
                 if res:

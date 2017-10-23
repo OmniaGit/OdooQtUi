@@ -69,6 +69,7 @@ class One2many(OdooFieldTemplate):
             okButt.setStyleSheet(constants.BUTTON_STYLE_OK)
             cancelButt.setStyleSheet(constants.BUTTON_STYLE_CANCEL)
             dialog.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+            utilsUi.setLayoutMarginAndSpacing(mainLay)
             if dialog.exec_() == QtGui.QDialog.Accepted:
                 fieldVals = viewObjForm.getAllFieldsValues()
                 objId = self.rpc.create(self.relation, fieldVals)

@@ -46,6 +46,7 @@ class Many2many(OdooFieldTemplate):
         buttonsLay.addWidget(self.createButt)
         buttonsLay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum))
         self.mainLay.addLayout(buttonsLay)
+        utilsUi.setLayoutMarginAndSpacing(self.mainLay)
 
     def createAndAdd(self):
         def acceptFormDial():
@@ -196,6 +197,7 @@ class Many2many(OdooFieldTemplate):
         viewObj.loadIds(resIds, {}, {}, {})
         dial = QtGui.QDialog()
         vlay = QtGui.QVBoxLayout()
+        utilsUi.setLayoutMarginAndSpacing(vlay)
         layButt, okButt, cancelButt = utilsUi.getButtonBox('right')
         okButt.setStyleSheet(constants.BUTTON_STYLE_OK)
         cancelButt.setStyleSheet(constants.BUTTON_STYLE_CANCEL)
