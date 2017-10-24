@@ -134,13 +134,28 @@ class TemplateTreeListView(TemplateView):
             self.idValsRel[recordId] = record
             self.idLineRel[records.index(record)] = recordId
         utilsUi.commonPopulateTable(self.labelsOrdered, valuesList, self.treeObj.tableWidget, flagsDict, fontSize=constants.FONT_SIZE_LIST_WIDGET)
-        self.treeObj.tableWidget.resizeColumnsToContents()
         self.treeObj.tableWidget.setShowGrid(False)
         self.treeObj.tableWidget.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.treeObj.tableWidget.horizontalHeader().setStyleSheet(constants.MANY_2_MANY_H_HEADER)
         self.treeObj.tableWidget.verticalHeader().setVisible(False)
         self.treeObj.tableWidget.horizontalHeader().setStyleSheet('::section {background-color:#a2b0ff;color:black;font-weight:bold;}')
+        self.refreshColumns()
 
+    def refreshColumns(self):
+        self.treeObj.tableWidget.resizeColumnsToContents()
+        
+    def setRowSelected(self, rowIndex):
+        self.treeObj.tableWidget.selectRow(rowIndex)
+    
+    def setColumnSelected(self, colIndex):
+        self.treeObj.tableWidget.selectColumn()
+    
+    def clearSelection(self):
+        self.treeObj.tableWidget.clearSelection()
+    
+    def setAllItemsSelected(self):
+        self.treeObj.tableWidget.selectAll()
+        
     def getLineValues(self, lineIndex):
         recordId = self.idLineRel[lineIndex]
         recordObj = self.idValsRel.get(recordId, {})
