@@ -109,7 +109,7 @@ class LoginDial(QtGui.QDialog, Ui_dialog_login):
         self.username = unicode(self.lineEdit_username.text())
         self.userpass = unicode(self.lineEdit_password.text())
         self.serverIp = unicode(self.lineEdit_server.text())
-        self.serverPort = int(unicode(self.lineEdit_port.text()))
+        self.serverPort = unicode(self.lineEdit_port.text())
         self.scheme = unicode(self.lineEdit_scheme.text())
         self.connType = unicode(self.comboBox_conn_type.currentText())
         
@@ -210,7 +210,10 @@ connection type=%r\n
 
         self.dbList = connectionObj.listDb()
         if not self.dbList:
-            return
+            self.interfaceDial.label_status.setText('User not logged! Unable to get database list.')
+        else:
+            self.interfaceDial.label_status.setText('')
+        self.dbList = self.dbList or []
         self.interfaceDial.comboBox_database.clear()
         self.interfaceDial.comboBox_database.addItems(self.dbList)
         self.interfaceDial.pushButton_ok.setHidden(False)

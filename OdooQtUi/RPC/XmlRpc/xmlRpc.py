@@ -51,7 +51,9 @@ class XmlRpcConnection(object):
             utils.logMessage('error', 'Error during login with user: %r' % (ex), 'loginWithUser')
             return False
         try:
-            self.socketYesLogin = xmlrpclib.ServerProxy(self.urlYesLogin)
+            t = TimeoutTransport()
+            t.set_timeout(2.5)
+            self.socketYesLogin = xmlrpclib.ServerProxy(self.urlYesLogin, transport=t)
         except Exception, ex:
             utils.logMessage('error', 'Error getting server proxy: %r' % (ex), 'loginWithUser')
             return False
@@ -60,7 +62,9 @@ class XmlRpcConnection(object):
 
     def listDb(self):
         try:
-            return xmlrpclib.ServerProxy(self.urlListDB).list()
+            t = TimeoutTransport()
+            t.set_timeout(2.5)
+            return xmlrpclib.ServerProxy(self.urlListDB, transport=t).list()
         except Exception, ex:
             utils.logMessage('warning', 'Unable to list database. EX: %r' % (ex), 'listDb')
             utilsUi.launchMessage('Unable to get database list, please check your login settings.', 'warning')
@@ -219,7 +223,7 @@ class XmlRpcConnection(object):
         return False
 
 class TimeoutTransport(xmlrpclib.Transport):
-    timeout = 10.0
+    timeout = 5.0
     def set_timeout(self, timeout):
         self.timeout = timeout
     def make_connection(self, host):
