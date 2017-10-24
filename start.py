@@ -39,14 +39,16 @@ class ViewOdooObj(object):
         self.useHeader = False
         self.useChatter = False
         self.loginInfos = {}
+        self.localViewCheckBoxes = False
 
-    def hasMatch(self, localViewType, localOdooObjectName, localViewName, localViewId, localViewFilter, loginInfos):
+    def hasMatch(self, localViewType, localOdooObjectName, localViewName, localViewId, localViewFilter, loginInfos, viewCheckBoxes):
         if self.localViewType == localViewType and \
             self.localOdooObjectName == localOdooObjectName and \
             self.localViewName == localViewName and \
             self.localViewId == localViewId and \
             self.localViewFilter == localViewFilter and \
-            self.loginInfos == loginInfos:
+            self.loginInfos == loginInfos and \
+            self.localViewCheckBoxes == viewCheckBoxes:
             return True
         return False
         
@@ -85,7 +87,7 @@ class MainConnector(object):
 
     def _initView(self, viewType, rpcObj, activeLanguage, odooObjectName, viewName, view_id, viewFilter=False, viewCheckBoxes={}, searchMode='ilike', useHeader=False, useChatter=False):
         localLang, rpcObj = self._getCommonLangAndRpc(activeLanguage, rpcObj)
-        viewObj = self.checkAlreadyLoadedView(viewType, rpcObj, odooObjectName, viewName, view_id, viewFilter)
+        viewObj = self.checkAlreadyLoadedView(viewType, rpcObj, odooObjectName, viewName, view_id, viewFilter, viewCheckBoxes)
         if not viewObj:
             viewObj = self.appendLoadedView(viewType, rpcObj, odooObjectName, viewName, view_id, viewFilter, viewCheckBoxes, searchMode, useHeader, useChatter)
         utils.logMessage('info', 'Loading view %s' % (viewObj), '_initView')
@@ -135,10 +137,10 @@ class MainConnector(object):
         self.loadedViews.append(viewOdooObj)
         return viewOdooObj
 
-    def checkAlreadyLoadedView(self, viewType, rpcObj, odooObjectName, viewName, view_id, viewFilter=False):
+    def checkAlreadyLoadedView(self, viewType, rpcObj, odooObjectName, viewName, view_id, viewFilter=False, viewCheckBoxes=False):
         loginInfos = rpcObj.getLoginInfos()
         for viewObj in self.loadedViews:
-            if viewObj.hasMatch(viewType, odooObjectName, viewName, view_id, viewFilter, loginInfos):
+            if viewObj.hasMatch(viewType, odooObjectName, viewName, view_id, viewFilter, loginInfos, viewCheckBoxes):
                 return viewObj
         return False
 

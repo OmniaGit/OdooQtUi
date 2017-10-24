@@ -18,7 +18,12 @@ from os.path import expanduser
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.utils_odoo_conn import utils
 
+DEFAULT_ICON_PATH = ''
 
+def setDefaultIconPath(iconPath):
+    global DEFAULT_ICON_PATH
+    DEFAULT_ICON_PATH = iconPath
+    
 def launchMessage(message='', msgType='message'):
     utils.logMessage('info', message, 'launchMessage')
     messBox = QtGui.QMessageBox()
@@ -37,6 +42,8 @@ def launchMessage(message='', msgType='message'):
     elif msgType == 'question':
         messBox.setIcon(QtGui.QMessageBox.Question)
         messBox.setStandardButtons(QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel)
+    messBox.setWindowIcon(QtGui.QIcon(DEFAULT_ICON_PATH))
+    
     if (messBox.exec_() == QtGui.QMessageBox.Ok):
         messBox.accept()
         return True
