@@ -6,6 +6,7 @@ Created on 17 Feb 2017
 # Form color
 #old_violet = #875a7b
 VIOLET_BACKGROUND = 'background-color:#875a7b;'
+LOGIN_MAIN = VIOLET_BACKGROUND
 BACKGROUND_RED = 'background-color:#f7a5a5;'
 BACKGROUND_WHITE = 'background-color:white;'
 BACKGROUND_GREY = 'background-color:#dfd9d9;'
@@ -61,7 +62,6 @@ LOGIN_ACCEPT_BUTTON = 'border-radius: 4px;color: white;background-color: #337ab7
 LOGIN_NEXT_BACK_BUTTONS = LOGIN_ACCEPT_BUTTON + 'background-color: #59be50;'
 LOGIN_CANCEL_BUTTON = LOGIN_ACCEPT_BUTTON + 'background-color: #f05050;'
 LOGIN_LABEL = BOLD_FONT
-LOGIN_MAIN = 'background-color:#875a7b;'
 LOGIN_STACKED_WIDGET = 'background-color:white;'
 
 TREE_LIST_BACKGROUND_COLOR = 'background-color:#ffffff;'

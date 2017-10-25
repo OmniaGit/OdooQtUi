@@ -58,7 +58,7 @@ class One2many(OdooFieldTemplate):
             mainLay = QtGui.QVBoxLayout()
             viewObjForm = self.odooConnector.initFormViewObj(self.relation, rpcObj=self.rpc)
             mainLay.addWidget(viewObjForm)
-            dialog.setStyleSheet('background-color:#893b74;')
+            dialog.setStyleSheet(constants.VIOLET_BACKGROUND)
             dialog.resize(1200, 600)
             dialog.move(100, 100)
             buttLay, okButt, cancelButt = utilsUi.getButtonBox('right')

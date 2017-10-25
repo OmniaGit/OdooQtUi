@@ -67,7 +67,7 @@ class Many2many(OdooFieldTemplate):
             formdialog = QtGui.QDialog()
             mainLay = QtGui.QVBoxLayout()
             mainLay.addWidget(tmpviewObjForm)
-            formdialog.setStyleSheet('background-color:#893b74;')
+            formdialog.setStyleSheet(constants.VIOLET_BACKGROUND)
             formdialog.resize(1200, 600)
             formdialog.move(100, 100)
             buttLay, okButt, cancelButt = utilsUi.getButtonBox('right')
@@ -206,7 +206,7 @@ class Many2many(OdooFieldTemplate):
         vlay.addWidget(viewObj)
         vlay.addLayout(layButt)
         dial.setLayout(vlay)
-        dial.setStyleSheet('background-color:#893b74;')
+        dial.setStyleSheet(constants.VIOLET_BACKGROUND)
         dial.resize(800, 500)
         if dial.exec_() == QtGui.QDialog.Accepted:
             checkedRows = []

@@ -174,7 +174,7 @@ class Many2one(OdooFieldTemplate):
         lay.setParent(None)
         mainLay.addLayout(lay)
         dialog.setLayout(mainLay)
-        dialog.setStyleSheet('background-color:#893b74;')
+        dialog.setStyleSheet(constants.VIOLET_BACKGROUND)
         dialog.adjustSize()
         dialog.resize(1000, 750)
         if dialog.exec_() == QtGui.QDialog.Accepted:
@@ -223,7 +223,7 @@ class Many2one(OdooFieldTemplate):
             lay.setParent(None)
             mainLay.addLayout(lay)
             dialog.setLayout(mainLay)
-            dialog.setStyleSheet('background-color:#893b74;')
+            dialog.setStyleSheet(constants.VIOLET_BACKGROUND)
             dialog.adjustSize()
             dialog.resize(800, dialog.height())
             if dialog.exec_() == QtGui.QDialog.Accepted:
