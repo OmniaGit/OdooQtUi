@@ -7,7 +7,7 @@ Created on 17 Feb 2017
 #old_violet = #875a7b
 VIOLET_BACKGROUND = 'background-color:#875a7b;'
 LOGIN_MAIN = VIOLET_BACKGROUND
-BACKGROUND_RED = 'background-color:#f7a5a5;'
+BACKGROUND_RED = 'background-color:#94313d;'
 BACKGROUND_WHITE = 'background-color:white;'
 BACKGROUND_GREY = 'background-color:#dfd9d9;'
 BACKGROUND_LIGHT_BLUE = 'background-color: #cdd6fc;'
@@ -24,7 +24,7 @@ COMMON_FIELDS_BOTTOM_BORDER = COMMON_FIELDS_BORDER + NO_RIGHT_BORDER + NO_LEFT_B
 
 
 BUTTON_COMMON = 'border-radius: 0px;border: none;color: white;padding: 5px 10px;font-size: 12px;'
-BUTTON_STYLE = 'background-color: #21b799;border-color: #21b799;' + BOLD_FONT + BUTTON_COMMON
+BUTTON_STYLE = 'background-color: #21b799;border-color: #21b799;' + BOLD_FONT + BUTTON_COMMON   # Color green
 BUTTON_STYLE_OK = 'background-color: #59be50;border-color: #21b799;' + BUTTON_COMMON
 BUTTON_STYLE_CANCEL = ';background-color: #f05050;border-color: #21b799;' + BUTTON_COMMON
 BUTTON_STYLE_MANY_2_ONE = 'background-color: #3eb2df;border-color: #21b799;max-width:30px;max-height:10px;' + BOLD_FONT + BUTTON_COMMON
