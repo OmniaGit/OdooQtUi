@@ -238,8 +238,8 @@ if __name__ == '__main__':
                 
         
         
-        #tmplViewObj = tryForm('product.product', idToLoad=345)
-        tmplViewObj = tryForm('mrp.bom', idToLoad=5)
+        tmplViewObj = tryForm('product.product', idToLoad=1, useChatter=True)
+        #tmplViewObj = tryForm('mrp.bom', idToLoad=1)
         #viewCheckBoxes = {0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled}
 
         dialog = QtGui.QDialog()

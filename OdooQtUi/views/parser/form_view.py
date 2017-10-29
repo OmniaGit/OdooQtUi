@@ -74,19 +74,22 @@ class FormView(QtCore.QObject, object):
                 if mapping:
                     self.globalMapping.update(mapping)
             elif childTag == 'div':
-                divVlay = QtGui.QVBoxLayout()
-                utilsUi.setLayoutMarginAndSpacing(divVlay)
                 divAttrib = childElement.attrib
                 divClass = divAttrib.get('class', '')
-                if divClass == 'oe_chatter' and not self.useChatter:
-                    logging.warning('Chatter not implemented')
-                    continue
-                if childElement.text:
+                divVlay = QtGui.QVBoxLayout()
+                utilsUi.setLayoutMarginAndSpacing(divVlay)
+                if divClass == 'oe_chatter':
+                    if not self.useChatter:
+                        logging.warning('Chatter not implemented')
+                        continue
+                    else:
+                        self.computeChatter(divVlay, childElement)
+                elif childElement.text:
                     label = QtGui.QLabel(childElement.text)
                     label.setStyleSheet(constants.LABEL_SEPARATOR)
                     divVlay.addWidget(label)
-                childLay = self.computeRecursion(childElement)
-                divVlay.addLayout(childLay)
+                    childLay = self.computeRecursion(childElement)
+                    divVlay.addLayout(childLay)
                 mainVLay.addLayout(divVlay)
             elif childTag == 'notebook':
                 self.tabWidget = QtGui.QTabWidget()
@@ -156,6 +159,20 @@ class FormView(QtCore.QObject, object):
         mainVLay.setSpacing(3)
         return mainVLay
 
+    def computeChatter(self, divVlay, childElement):
+        for fieldObj in childElement.getchildren():
+            if fieldObj.tag == 'field':
+                pyObject = self.computeField(fieldObj)
+                if pyObject:
+                    fieldQt = pyObject.qtObject
+                    if isinstance(fieldQt, QtGui.QLayout):
+                        divVlay.addLayout(fieldQt)
+                    elif isinstance(fieldQt, QtGui.QWidget):
+                        divVlay.addWidget(fieldQt)
+                    self.appendToglobalMapping('field_' + pyObject.fieldName, pyObject)
+            else:
+                utils.logMessage('warning', 'Unable to compute tag in chatter %r' % (fieldObj.tag), 'computeChatter')
+        
     def computeArchRecursion(self, parent):
         widgetContents = QtGui.QWidget()
         mainVLay = self.computeRecursion(parent)
