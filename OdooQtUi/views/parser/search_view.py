@@ -256,6 +256,7 @@ class SearchView(object):
         '''
         currentVal = unicode(currentVal)
         stringList = []
+        self.tmpFields = [] # Do not remove this clear or search without selecting a value will be break
         if currentVal:
             for fieldObj in self.fieldsTemplate:
                 for tmpField in self.tmpFields:
@@ -313,6 +314,8 @@ class SearchView(object):
         for fieldObj in self.tmpFields:
             if fieldObj.interfaceStringWithValue == val:
                 return fieldObj
+        if self.tmpFields:  # This is to get value is no element is selected from combo and enter event is pressed
+            return self.tmpFields[0]
         return False
         
     def addFieldTag(self, condObj):

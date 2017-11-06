@@ -60,7 +60,7 @@ LOGIN_LINEEDIT_STYLE = 'min-width:200px;height: 16px;padding: 6px 12px;font-size
 LOGIN_COMBO_STYLE = 'QComboBox {background-color: #eee;color: rgb(0, 0, 0);height: 16px;padding: 6px 12px;font-size: 14px;border-radius: 4px;border: 1px solid #ccc;} QScrollBar {background-color:#875a7b} '
 LOGIN_ACCEPT_BUTTON = 'border-radius: 4px;color: white;background-color: #337ab7;border: 2px solid black;padding: 5px 10px;font-size: 12px;'
 LOGIN_NEXT_BACK_BUTTONS = LOGIN_ACCEPT_BUTTON + 'background-color: #59be50;'
-LOGIN_CANCEL_BUTTON = LOGIN_ACCEPT_BUTTON + 'background-color: #f05050;'
+LOGIN_CANCEL_BUTTON = LOGIN_ACCEPT_BUTTON + 'background-color: #a30e0e;'
 LOGIN_LABEL = BOLD_FONT
 LOGIN_STACKED_WIDGET = 'background-color:white;'
 
