@@ -49,7 +49,7 @@ class One2many(OdooFieldTemplate):
             self.followersOpened = False
             self.mainLay.addWidget(self.followersButton)
         elif self.odooWidgetType == 'mail_thread':
-            messaggesButton = QtGui.QPushButton('Show Messagges')
+            messaggesButton = QtGui.QPushButton('Show Chatter')
             messaggesButton.setStyleSheet(constants.BUTTON_STYLE)
             messaggesButton.clicked.connect(self.showMessagges)
             self.mainLay.addWidget(messaggesButton)
@@ -69,25 +69,32 @@ class One2many(OdooFieldTemplate):
         self.followersButton.setHidden(True)
         if not self.followersOpened:
             lay = QtGui.QHBoxLayout()
-            self.followButton = QtGui.QPushButton('Following')
+            self.followButton = QtGui.QPushButton('UnFollowing')
             self.followButton.clicked.connect(self.followClicked)
-            self.followButton.setStyleSheet(constants.BUTTON_STYLE)
+            self.setUnfolloWingButton()
             lay.addWidget(self.followButton)
-            buttonFollowersCount = QtGui.QToolButton()
-            buttonFollowersCount.setText(unicode(len(self.currentValue)))
+            self.buttonFollowersCount = QtGui.QToolButton()
+            self.buttonFollowersCount.setText(unicode(len(self.currentValue)))
             self.toolmenu = QtGui.QMenu()
-            self.populateMenu()
-            buttonFollowersCount.setMenu(self.toolmenu)
-            buttonFollowersCount.setPopupMode(QtGui.QToolButton.InstantPopup) 
-            buttonFollowersCount.setStyleSheet(constants.BUTTON_STYLE)
-            lay.addWidget(buttonFollowersCount)
+            res = self.populateMenu()
+            for obj in res:
+                currentPartnerId, _partnerName = self.getPartnerIdFromUserId()
+                partnerRes = obj.get('partner_id')
+                if partnerRes and partnerRes[0] == currentPartnerId:
+                    self.setFollowingButton()
+            self.buttonFollowersCount.setMenu(self.toolmenu)
+            self.buttonFollowersCount.setPopupMode(QtGui.QToolButton.InstantPopup) 
+            self.buttonFollowersCount.setStyleSheet(constants.BUTTON_STYLE)
+            lay.addWidget(self.buttonFollowersCount)
             self.widgetLyQtObject.addLayout(lay)
         else:
             pass
 
     def populateMenu(self):
-        self.toolmenu.addAction('Add Followers')
-        self.toolmenu.addAction('Add Channels')
+        followerAction = self.toolmenu.addAction('Add Followers')
+        followerAction.changed.connect(self.addFollower)
+        channelAction = self.toolmenu.addAction('Add Channels')
+        channelAction.changed.connect(self.addChannel)
         self.toolmenu.addSeparator()
         res = connectionObj.read(self.relation, [], self.currentValue)
         for elem in res:
@@ -95,16 +102,74 @@ class One2many(OdooFieldTemplate):
             if not name or name == 'False':
                 vals = elem.get('channel_id', ['', ''])
                 if vals:
-                    name = vals[-1]
-            self.toolmenu.addAction(name)
+                    name = 'Channel: ' + vals[-1]
+            else:
+                name = 'User: ' + name
+            act = self.toolmenu.addAction(name)
+            act.setCheckable(True)
+            act.setChecked(True)
+            act.toggled.connect(partial(self.removeFollowerChannel, elem.get('id')))
+        return res
+
+    def addFollower(self):
+        utils.logMessage('warning', 'Not implemented add follower', 'addFollower')
+    
+    def addChannel(self):
+        utils.logMessage('warning', 'Not implemented add channel', 'addChannel')
+
+    def removeFollowerChannel(self, resId):
+        if resId:
+            connectionObj.write(self.parentModel, {self.fieldName: [(2, resId, False)]}, self.parentId)
+            self.currentValue.remove(resId)
+            self.toolmenu.clear()
+            self.populateMenu()
+            self.buttonFollowersCount.setText(unicode(len(self.currentValue)))
+            currentPartnerId, _partnerName = self.getPartnerIdFromUserId()
+            if self.parentId == currentPartnerId:
+                self.setFollowingButton()
+            else:
+                self.setUnfolloWingButton()
+
+    def setUnfolloWingButton(self):
+        self.followButton.setText('UnFollowing')
+        self.followButton.setStyleSheet(constants.BUTTON_STYLE + 'background-color: red;')
+
+    def setFollowingButton(self):
+        self.followButton.setText('Following')
+        self.followButton.setStyleSheet(constants.BUTTON_STYLE)
         
+    def _addFollower(self, partnerId):
+        if partnerId:
+            values = {'res_model': self.parentModel,
+                      'partner_id': partnerId,
+                      'res_id': self.parentId[0]}
+            resId = connectionObj.create(self.relation, values)
+            connectionObj.write(self.parentModel, {self.fieldName: [(4, resId, False)]}, self.parentId)
+            self.currentValue.append(resId)
+            self.toolmenu.clear()
+            self.populateMenu()
+            self.buttonFollowersCount.setText(unicode(len(self.currentValue)))
+            self.setFollowingButton()
+
+    def getPartnerIdFromUserId(self, userId=False):
+        if not userId:
+            userId = connectionObj.userId
+        partnerId, partnerName = False, ''
+        res = connectionObj.read('res.users', ['partner_id'], userId)
+        for elem in res:
+            partnerId, partnerName = elem.get('partner_id', [False, ''])
+        return partnerId, partnerName
         
     def followClicked(self):
         currText = unicode(self.followButton.text())
-        if currText == 'Following':
-            self.followButton.setText('Unfollow')
-        else:
-            self.followButton.setText('Following')
+        partnerId, _partnerName = self.getPartnerIdFromUserId()
+        if partnerId:
+            if currText == 'Following':
+                res = connectionObj.search(self.relation, [('partner_id', '=', partnerId), ('res_id', '=', self.parentId)])
+                for objId in res:
+                    self.removeFollowerChannel(objId)
+            else:
+                self._addFollower(partnerId)
         
     def showMessagges(self):
         pass

@@ -217,7 +217,7 @@ if __name__ == '__main__':
     @utils.timeit
     def do_test():
         connectorObj = MainConnector()
-        connectorObj.loginWithDial()
+        connectorObj.loginWithUser('admin', 'admin', 'odoo-11', '127.0.0.1', '8069')
         
         def tryForm(odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', useHeader=False, useChatter=False, idToLoad=False):
             tmplViewObj = connectorObj.initFormViewObj(odooObjectName, viewName, view_id, rpcObj, activeLanguage, useHeader, useChatter)
