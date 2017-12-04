@@ -28,9 +28,11 @@ class One2many(OdooFieldTemplate):
         #self.getQtObject()
         self.evaluatedIds = {}
         self.currentValue = []
+        self.messaggesLay = QtGui.QVBoxLayout()
         if self.odooWidgetType == 'mail_followers':
             self.treeViewObj = QtGui.QWidget()
         elif self.odooWidgetType == 'mail_thread':
+            self.widgetLyQtObject = QtGui.QVBoxLayout()
             self.treeViewObj = QtGui.QWidget()
         else:
             self.treeViewObj = self.odooConnector.initTreeListViewObject(odooObjectName=self.relation,
@@ -53,6 +55,7 @@ class One2many(OdooFieldTemplate):
             messaggesButton.setStyleSheet(constants.BUTTON_STYLE)
             messaggesButton.clicked.connect(self.showMessagges)
             self.mainLay.addWidget(messaggesButton)
+            self.mainLay.addLayout(self.messaggesLay)
         else:
             buttonsLay = QtGui.QHBoxLayout()
             self.labelQtObj = QtGui.QLabel(self.labelString)
@@ -172,7 +175,11 @@ class One2many(OdooFieldTemplate):
                 self._addFollower(partnerId)
         
     def showMessagges(self):
-        pass
+        messages = connectionObj.read(self.relation, [], self.currentValue)
+        for messageDict in messages:
+            label = QtGui.QLabel()
+            label.setText(messageDict.get('body', ''))
+            self.messaggesLay.addWidget(label)
 
     def createAndAdd(self):
         try:
@@ -232,6 +239,7 @@ class One2many(OdooFieldTemplate):
             messaggesButton.setStyleSheet(constants.BUTTON_STYLE)
             messaggesButton.clicked.connect(self.showMessagges)
             self.widgetLyQtObject.addWidget(messaggesButton)
+            self.widgetLyQtObject.addLayout(self.messaggesLay)
         else:
             self.treeViewObj.loadIds(relIds, {}, {}, {})
             self.widgetQtObj = self.treeViewObj.treeObj.tableWidget
