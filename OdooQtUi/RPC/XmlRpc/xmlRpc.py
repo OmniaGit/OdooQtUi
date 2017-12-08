@@ -182,10 +182,10 @@ class XmlRpcConnection(object):
             return self.callOdooFunction(odooObj, functionName, parameters, kwargParameters)
         try:
             return self.socketYesLogin.execute(self.databaseName, self.userId, self.userPassword,
-                                              odooObj,
-                                              functionName,
-                                              parameters,
-                                              kwargParameters)
+                                               odooObj,
+                                               functionName,
+                                               parameters,
+                                               kwargParameters)
         except Exception, ex:
             utils.logMessage('error', ex, 'execute')
             utils.logMessage('error', 'Error during call Odoo Function execute with arguments: %r, %r, %r, %r' % (obj, method, args), 'execute')
@@ -211,9 +211,9 @@ class XmlRpcConnection(object):
             utils.logMessage('error', message, 'callOdooFunction')
         except xmlrpclib.Fault, err:
             try:
-                return self.socketYesLogin.execute(self.databaseName, self.userId, self.userPassword,odooObj,functionName,parameters)
-            except:
-                message = 'Unable to communicate with the server: %r\n%r' % (err.faultCode, err.faultString)
+                return self.socketYesLogin.execute(self.databaseName, self.userId, self.userPassword, odooObj, functionName, parameters)
+            except Exception, ex:
+                message = 'Unable to communicate with the server: %r\n%r' % (ex.faultCode, ex.faultString)
                 utilsUi.launchMessage(message, 'error')
                 utils.logMessage('error', message, 'callOdooFunction')
         except Exception, ex:
@@ -222,10 +222,13 @@ class XmlRpcConnection(object):
             utils.logMessage('error', 'Error during call Odoo Function with arguments: %r, %r, %r, %r' % (odooObj, functionName, parameters, kwargParameters), 'callOdooFunction')
         return False
 
+
 class TimeoutTransport(xmlrpclib.Transport):
     timeout = 5.0
+
     def set_timeout(self, timeout):
         self.timeout = timeout
+
     def make_connection(self, host):
         h = httplib.HTTPConnection(host, timeout=self.timeout)
         return h
