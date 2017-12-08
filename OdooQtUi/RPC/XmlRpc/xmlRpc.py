@@ -206,14 +206,14 @@ class XmlRpcConnection(object):
                                                   parameters,
                                                   kwargParameters)
         except socket.error, err:
-            message = 'Unable to communicate with the server: %r\n%r' % (err.faultCode, err.faultString)
+            message = 'Unable to communicate with the server: %r' % err
             utilsUi.launchMessage(message, 'error')
             utils.logMessage('error', message, 'callOdooFunction')
         except xmlrpclib.Fault, err:
             try:
                 return self.socketYesLogin.execute(self.databaseName, self.userId, self.userPassword, odooObj, functionName, parameters)
             except Exception, ex:
-                message = 'Unable to communicate with the server: %r\n%r' % (ex.faultCode, ex.faultString)
+                message = 'Unable to communicate with the server: %r' % ex.faultCode
                 utilsUi.launchMessage(message, 'error')
                 utils.logMessage('error', message, 'callOdooFunction')
         except Exception, ex:
