@@ -185,8 +185,8 @@ if __name__ == '__main__':
     @utils.timeit
     def do_test():
         connectorObj = MainConnector()
-        #connectorObj.loginWithUser('admin', 'admin', 'odoo-11', '127.0.0.1', '8069')
-        connectorObj.loginWithUser('admin', 'admin', 'v11_all', '192.168.99.16', '8069')
+        connectorObj.loginWithUser('admin', 'admin', 'odoo-11', '127.0.0.1', '8069')
+        #connectorObj.loginWithUser('admin', 'admin', 'v11_all', '192.168.99.16', '8069')
         
         def tryForm(odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', useHeader=False, useChatter=False, idToLoad=False):
             tmplViewObj = connectorObj.initFormViewObj(odooObjectName, viewName, view_id, rpcObj, activeLanguage, useHeader, useChatter)
@@ -207,8 +207,8 @@ if __name__ == '__main__':
                 
         
         
-        tmplViewObj = tryForm('product.product', idToLoad=284, useChatter=True)
-        #tmplViewObj = tryForm('mrp.bom', idToLoad=1)
+        #tmplViewObj = tryForm('product.product', idToLoad=284, useChatter=True)
+        tmplViewObj = tryForm('product.product', idToLoad=1, useChatter=True)
         #viewCheckBoxes = {0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled}
 
         dialog = QtGui.QDialog()

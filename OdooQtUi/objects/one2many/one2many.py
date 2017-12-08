@@ -11,6 +11,7 @@ from OdooQtUi.utils_odoo_conn import constants
 from functools import partial
 from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
 from OdooQtUi.RPC.rpc import connectionObj
+import base64
 
 
 class One2many(OdooFieldTemplate):
@@ -25,11 +26,11 @@ class One2many(OdooFieldTemplate):
         self.canWrite = json.loads(self.fieldXmlAttributes.get('can_write', 'true'))
         self.odooWidgetType = self.fieldXmlAttributes.get('widget', '')
         self.mainLay = QtGui.QVBoxLayout()
-        #self.getQtObject()
         self.evaluatedIds = {}
         self.currentValue = []
         self.messaggesLay = QtGui.QVBoxLayout()
         if self.odooWidgetType == 'mail_followers':
+            self.widgetLyQtObject = QtGui.QVBoxLayout()
             self.treeViewObj = QtGui.QWidget()
         elif self.odooWidgetType == 'mail_thread':
             self.widgetLyQtObject = QtGui.QVBoxLayout()
@@ -42,6 +43,7 @@ class One2many(OdooFieldTemplate):
                                                                          activeLanguage='',
                                                                          viewCheckBoxes={},
                                                                          viewFilter=False)
+        self.getQtObject()
 
     def getQtObject(self):
         if self.odooWidgetType == 'mail_followers':
@@ -49,13 +51,16 @@ class One2many(OdooFieldTemplate):
             self.followersButton.setStyleSheet(constants.BUTTON_STYLE)
             self.followersButton.clicked.connect(self.showFollowers)
             self.followersOpened = False
-            self.mainLay.addWidget(self.followersButton)
+            self.widgetLyQtObject.addWidget(self.followersButton)
+            self.widgetLyQtObject.addLayout(self.messaggesLay)
+            self.widgetLyQtObject.addSpacerItem(QtGui.QSpacerItem(100,100, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding))
         elif self.odooWidgetType == 'mail_thread':
-            messaggesButton = QtGui.QPushButton('Show Chatter')
-            messaggesButton.setStyleSheet(constants.BUTTON_STYLE)
-            messaggesButton.clicked.connect(self.showMessagges)
-            self.mainLay.addWidget(messaggesButton)
-            self.mainLay.addLayout(self.messaggesLay)
+            self.messaggesButton = QtGui.QPushButton('Show Chatter')
+            self.messaggesButton.setStyleSheet(constants.BUTTON_STYLE + 'width:900%;')
+            self.messaggesButton.clicked.connect(self.showMessagges)
+            self.widgetLyQtObject.addWidget(self.messaggesButton)
+            self.widgetLyQtObject.addLayout(self.messaggesLay)
+            self.widgetLyQtObject.addSpacerItem(QtGui.QSpacerItem(20,20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding))
         else:
             buttonsLay = QtGui.QHBoxLayout()
             self.labelQtObj = QtGui.QLabel(self.labelString)
@@ -65,7 +70,7 @@ class One2many(OdooFieldTemplate):
             self.createButt.setStyleSheet(constants.BUTTON_STYLE)
             buttonsLay.addWidget(self.createButt)
             self.createButt.clicked.connect(self.createAndAdd)
-            buttonsLay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum))
+            buttonsLay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding))
             self.mainLay.addLayout(buttonsLay)
 
     def showFollowers(self):
@@ -89,7 +94,7 @@ class One2many(OdooFieldTemplate):
             self.buttonFollowersCount.setPopupMode(QtGui.QToolButton.InstantPopup) 
             self.buttonFollowersCount.setStyleSheet(constants.BUTTON_STYLE)
             lay.addWidget(self.buttonFollowersCount)
-            self.widgetLyQtObject.addLayout(lay)
+            self.messaggesLay.addLayout(lay)
         else:
             pass
 
@@ -175,12 +180,58 @@ class One2many(OdooFieldTemplate):
                 self._addFollower(partnerId)
         
     def showMessagges(self):
+        self.messaggesButton.setEnabled(False)
+        self.messaggesButton.setStyleSheet(constants.BUTTON_STYLE + 'width:900%; background-color: #d3d0d0;')
         messages = connectionObj.read(self.relation, [], self.currentValue)
         for messageDict in messages:
-            label = QtGui.QLabel()
-            label.setText(messageDict.get('body', ''))
-            self.messaggesLay.addWidget(label)
+            _userId, userName = messageDict.get('author_id', [False, ''])
+            bodyMessage = messageDict.get('body', '')
+            write_date = messageDict.get('write_date', '')
+            attachment_ids = messageDict.get('attachment_ids', [])
+            
+            labelUser = QtGui.QLabel(userName)
+            labelDate = QtGui.QLabel(write_date)
+            labelBody = QtGui.QTextEdit()
+            labelBody.setFrameShape(QtGui.QFrame.NoFrame)
+            labelBody.setText(bodyMessage)
+            labelBody.setReadOnly(True)
+            
+            hlayUser = QtGui.QHBoxLayout()
+            hlayUser.addWidget(labelUser)
+            hlayUser.addWidget(labelDate)
+            
+            mainVLay = QtGui.QVBoxLayout()
+            mainVLay.addLayout(hlayUser)
+            mainVLay.addWidget(labelBody)
+            
+            attachmentLay = QtGui.QHBoxLayout()
+            if attachment_ids:
+                res = connectionObj.read('ir.attachment', ['datas'], attachment_ids)
+                for attachDict in res:
+                    imageLay = QtGui.QVBoxLayout()
+                    labelImage = utilsUi.getQtImageFromContent(attachDict.get('datas', ''), imageWidth=120, imageHeight=120)
+                    imageLay.addWidget(labelImage)
+                    buttonDownloadImage = QtGui.QPushButton('Download')
+                    buttonDownloadImage.setStyleSheet(constants.BUTTON_STYLE + 'max-width: 100px;')
+                    buttonDownloadImage.clicked.connect(partial(self.downloadImage, attachDict.get('datas', '')))
+                    imageLay.addWidget(buttonDownloadImage)
+                    attachmentLay.addLayout(imageLay)
+                attachmentLay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding))
+            mainVLay.addLayout(attachmentLay)
+            mainWidget = QtGui.QWidget()
+            mainWidget.setLayout(mainVLay)
+            labelUser.setStyleSheet('font-weight: bold;')
+            mainWidget.setStyleSheet('background-color: #cccbcb;')
+            self.messaggesLay.addWidget(mainWidget)
 
+    def downloadImage(self, content):
+        fileCleanContent = base64.b64decode(content)
+        filePath = utilsUi.getDirectoryFileToSaveSystem(None, fileType='*.png')
+        if filePath:
+            with open(filePath, 'w') as writeFile:
+                writeFile.write(fileCleanContent)
+            utils.openByDefaultEditor(filePath)
+        
     def createAndAdd(self):
         try:
             def acceptDial():
@@ -229,17 +280,9 @@ class One2many(OdooFieldTemplate):
     def setValue(self, relIds):
         self.currentValue = relIds
         if self.odooWidgetType == 'mail_followers':
-            self.followersButton = QtGui.QPushButton('Show Followers')
-            self.followersButton.setStyleSheet(constants.BUTTON_STYLE)
-            self.followersButton.clicked.connect(self.showFollowers)
-            self.followersOpened = False
-            self.widgetLyQtObject.addWidget(self.followersButton)
+            return 
         elif self.odooWidgetType == 'mail_thread':
-            messaggesButton = QtGui.QPushButton('Show Messagges')
-            messaggesButton.setStyleSheet(constants.BUTTON_STYLE)
-            messaggesButton.clicked.connect(self.showMessagges)
-            self.widgetLyQtObject.addWidget(messaggesButton)
-            self.widgetLyQtObject.addLayout(self.messaggesLay)
+            return 
         else:
             self.treeViewObj.loadIds(relIds, {}, {}, {})
             self.widgetQtObj = self.treeViewObj.treeObj.tableWidget
@@ -254,6 +297,7 @@ class One2many(OdooFieldTemplate):
             self.widgetLyQtObject.addLayout(self.mainLay)
             self.widgetQtObj.setHorizontalHeaderItem(self.widgetQtObj.columnCount() - 1, QtGui.QTableWidgetItem('Remove'))
             self.widgetQtObj.resizeColumnsToContents()
+        self.widgetLyQtObject.addSpacerItem(QtGui.QSpacerItem(20,20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding))
 
     def setupTableWidgetLay(self, tableWidget):
         tableWidget.resizeColumnsToContents()
