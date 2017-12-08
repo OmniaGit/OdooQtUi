@@ -160,18 +160,27 @@ class FormView(QtCore.QObject, object):
         return mainVLay
 
     def computeChatter(self, divVlay, childElement):
+        hlay = QtGui.QHBoxLayout()
+        count = 0
         for fieldObj in childElement.getchildren():
             if fieldObj.tag == 'field':
                 pyObject = self.computeField(fieldObj)
                 if pyObject:
                     fieldQt = pyObject.qtObject
                     if isinstance(fieldQt, QtGui.QLayout):
-                        divVlay.addLayout(fieldQt)
+                        hlay.addLayout(fieldQt)
+                        if count == 0:
+                            hlay.addSpacerItem(QtGui.QSpacerItem(20,20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum))
+                            count = count + 1
                     elif isinstance(fieldQt, QtGui.QWidget):
-                        divVlay.addWidget(fieldQt)
+                        hlay.addWidget(fieldQt)
+                        if count == 0:
+                            hlay.addSpacerItem(QtGui.QSpacerItem(20,20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum))
+                            count = count + 1
                     self.appendToglobalMapping('field_' + pyObject.fieldName, pyObject)
             else:
                 utils.logMessage('warning', 'Unable to compute tag in chatter %r' % (fieldObj.tag), 'computeChatter')
+        divVlay.addLayout(hlay)
         
     def computeArchRecursion(self, parent):
         widgetContents = QtGui.QWidget()

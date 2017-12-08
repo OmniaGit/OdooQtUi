@@ -102,6 +102,7 @@ class TemplateFormView(TemplateView):
                 self.formVals = formVals[0]
                 for fieldName, fieldVal in self.formVals.items():
                     self.setValueField(fieldName, fieldVal)
+                    self.setFieldParentAttrs(fieldName)
                 self.skipOnChange = False
         else:
             self.setDefaults(fieldsToRead)
@@ -114,6 +115,13 @@ class TemplateFormView(TemplateView):
             self.setInvisibleField(invisibleField, fieldAttr)
         self._setButtonsModifiers()
         self.objectsInit = copy.copy(self.fields)
+
+    def setFieldParentAttrs(self, fieldName):
+        fieldObj = self.interfaceFieldsDict.get(fieldName, None)
+        if not fieldObj:
+            utils.logMessage('warning', 'Field %r not found in the local fields' % (fieldName), 'setValueField')
+        else:
+            fieldObj.setParentAttrs(self.activeIds, self.model)
 
     def _setFieldModifiers(self):
         fieldDict = self.interfaceFieldsDict
