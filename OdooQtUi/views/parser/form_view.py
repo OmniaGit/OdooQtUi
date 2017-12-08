@@ -170,7 +170,7 @@ class FormView(QtCore.QObject, object):
                     if isinstance(fieldQt, QtGui.QLayout):
                         hlay.insertLayout(0, fieldQt)
                         if count == 0:
-                            hlay.insertSpacerItem(0, QtGui.QSpacerItem(20,20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum))
+                            hlay.insertSpacerItem(0, QtGui.QSpacerItem(20,20, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum))
                             count = count + 1
                     elif isinstance(fieldQt, QtGui.QWidget):
                         hlay.insertWidget(0, fieldQt)

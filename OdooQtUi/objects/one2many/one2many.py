@@ -49,18 +49,20 @@ class One2many(OdooFieldTemplate):
         if self.odooWidgetType == 'mail_followers':
             self.followersButton = QtGui.QPushButton('Show Followers')
             self.followersButton.setStyleSheet(constants.BUTTON_STYLE)
+            self.followersButton.setSizePolicy(QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum)
             self.followersButton.clicked.connect(self.showFollowers)
             self.followersOpened = False
             self.widgetLyQtObject.addWidget(self.followersButton)
             self.widgetLyQtObject.addLayout(self.messaggesLay)
-            self.widgetLyQtObject.addSpacerItem(QtGui.QSpacerItem(100,100, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding))
+            self.widgetLyQtObject.addSpacerItem(QtGui.QSpacerItem(100,100, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding))
         elif self.odooWidgetType == 'mail_thread':
             self.messaggesButton = QtGui.QPushButton('Show Chatter')
-            self.messaggesButton.setStyleSheet(constants.BUTTON_STYLE + 'width:900%;')
+            self.messaggesButton.setStyleSheet(constants.BUTTON_STYLE)
+            self.messaggesButton.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
             self.messaggesButton.clicked.connect(self.showMessagges)
             self.widgetLyQtObject.addWidget(self.messaggesButton)
             self.widgetLyQtObject.addLayout(self.messaggesLay)
-            self.widgetLyQtObject.addSpacerItem(QtGui.QSpacerItem(20,20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding))
+            self.widgetLyQtObject.addSpacerItem(QtGui.QSpacerItem(20,20, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding))
         else:
             buttonsLay = QtGui.QHBoxLayout()
             self.labelQtObj = QtGui.QLabel(self.labelString)
@@ -181,7 +183,7 @@ class One2many(OdooFieldTemplate):
         
     def showMessagges(self):
         self.messaggesButton.setEnabled(False)
-        self.messaggesButton.setStyleSheet(constants.BUTTON_STYLE + 'width:900%; background-color: #d3d0d0;')
+        self.messaggesButton.setStyleSheet(constants.BUTTON_STYLE + 'background-color: #d3d0d0;')
         messages = connectionObj.read(self.relation, [], self.currentValue)
         for messageDict in messages:
             _userId, userName = messageDict.get('author_id', [False, ''])
