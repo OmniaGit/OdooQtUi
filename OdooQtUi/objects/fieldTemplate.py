@@ -19,6 +19,8 @@ class OdooFieldTemplate(QtCore.QObject, object):
     def __init__(self, xmlField, fieldsDefinition, rpc):
         self.rpc = rpc
         self.fieldXmlAttributes = xmlField.attrib
+        self.parentId = False
+        self.parentModel = ''
         self.fieldName = self.fieldXmlAttributes.get('name', '')
         self.modifiers = json.loads(self.fieldXmlAttributes.get('modifiers', '{}'))
         self.on_change = self.fieldXmlAttributes.get('on_change', '')
@@ -48,6 +50,10 @@ class OdooFieldTemplate(QtCore.QObject, object):
         self.translateButton = False
         self.invisibleConditions, self.readonlyConditions = utils.evaluateModifiers(self.modifiers)
         return super(OdooFieldTemplate, self).__init__()
+
+    def setParentAttrs(self, parentId, parentModel):
+        self.parentId = parentId
+        self.parentModel = parentModel
 
     @property
     def qtObject(self):
