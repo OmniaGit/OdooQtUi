@@ -222,6 +222,7 @@ if __name__ == '__main__':
         dialog.exec_()
         time.sleep(2)
         dialog.exec_()
-    do_test()
+    while 1:
+        do_test()
 
     app.exec_()

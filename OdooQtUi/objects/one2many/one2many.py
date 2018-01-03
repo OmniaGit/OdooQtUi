@@ -20,6 +20,7 @@ class One2many(OdooFieldTemplate):
         self.labelQtObj = False
         self.widgetQtObj = False
         self.treeViewObj = False
+        self.currentMessType = 'NOTE'
         self.odooConnector = odooConnector
         self.relation = self.fieldPyDefinition.get('relation', '')
         self.canCreate = json.loads(self.fieldXmlAttributes.get('can_create', 'true'))
@@ -29,6 +30,7 @@ class One2many(OdooFieldTemplate):
         self.evaluatedIds = {}
         self.currentValue = []
         self.messaggesLay = QtGui.QVBoxLayout()
+        self.messaggesLay.setSpacing(30)
         if self.odooWidgetType == 'mail_followers':
             self.widgetLyQtObject = QtGui.QVBoxLayout()
             self.treeViewObj = QtGui.QWidget()
@@ -60,7 +62,14 @@ class One2many(OdooFieldTemplate):
             self.messaggesButton.setStyleSheet(constants.BUTTON_STYLE)
             self.messaggesButton.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
             self.messaggesButton.clicked.connect(self.showMessagges)
+            self.messaggesButtLay = QtGui.QHBoxLayout()
+            self.populateMessButtLay()
+            self.noteLay = QtGui.QVBoxLayout()
+            self.populateNoteLay()
+            
             self.widgetLyQtObject.addWidget(self.messaggesButton)
+            self.widgetLyQtObject.addLayout(self.messaggesButtLay)
+            self.widgetLyQtObject.addLayout(self.noteLay)
             self.widgetLyQtObject.addLayout(self.messaggesLay)
             self.widgetLyQtObject.addSpacerItem(QtGui.QSpacerItem(20,20, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding))
         else:
@@ -74,6 +83,81 @@ class One2many(OdooFieldTemplate):
             self.createButt.clicked.connect(self.createAndAdd)
             buttonsLay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding))
             self.mainLay.addLayout(buttonsLay)
+
+    def populateNoteLay(self):
+        self.textEditMess = QtGui.QTextEdit()
+        self.sendButtonMess = QtGui.QPushButton('Send')
+        self.sendButtonMess.setStyleSheet(constants.BUTTON_STYLE_MANY_2_ONE__2)
+        self.noteLay.addWidget(self.textEditMess)
+        lay = QtGui.QHBoxLayout()
+        lay.addWidget(self.sendButtonMess)
+        lay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding))
+        self.noteLay.addLayout(lay)
+        self.textEditMess.setStyleSheet(constants.TEXT_STYLE)
+        self.sendButtonMess.clicked.connect(self.sendMessNote)
+        self.showNoteLay(False)
+
+    def sendMessNote(self):
+        body = unicode(self.textEditMess.toPlainText())
+        if self.currentMessType == 'NOTE':
+            self._logNote(body)
+        else:
+            self._sendMessage(body)
+        self.showNoteLay(False)
+
+    def showNoteLay(self, visible=False):
+        self.textEditMess.setHidden(not visible)
+        self.sendButtonMess.setHidden(not visible)
+        
+    def populateMessButtLay(self):
+        self.buttSendMessage = QtGui.QPushButton('Send Message')
+        self.buttLogNote = QtGui.QPushButton('Log Note')
+        self.buttSendMessage.setStyleSheet(constants.BUTTON_STYLE_MANY_2_ONE__2)
+        self.buttLogNote.setStyleSheet(constants.BUTTON_STYLE_MANY_2_ONE__2)
+        self.messaggesButtLay.addWidget(self.buttSendMessage)
+        self.messaggesButtLay.addWidget(self.buttLogNote)
+        self.messaggesButtLay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding))
+        
+        self.buttSendMessage.clicked.connect(self.sendMessage)
+        self.buttLogNote.clicked.connect(self.logNote)
+        self.buttSendMessage.setHidden(True)
+        self.buttLogNote.setHidden(True)
+        
+    def sendMessage(self):
+        self.showNoteLay(True)
+        self.currentMessType = 'MESSAGE'
+        
+    def _sendMessage(self, body=''):
+        parameters = self.parentId
+        kwargParameters = {}
+        context = {}
+        kwargParameters['body'] = body
+        kwargParameters['subject'] = False
+        kwargParameters['message_type'] = 'comment'
+        kwargParameters['subtype'] = 'mail.mt_comment'
+        kwargParameters['parent_id'] = False
+        kwargParameters['attachments'] = []
+        kwargParameters['content_subtype'] = 'html'
+        context['thread_model'] = 'product.product'
+        connectionObj.callCustomMethod('mail.thread', 'message_post', parameters, kwargParameters, context=context)
+    
+    def logNote(self):
+        self.showNoteLay(True)
+        self.currentMessType = 'NOTE'
+    
+    def _logNote(self, body=''):
+        parameters = self.parentId
+        kwargParameters = {}
+        context = {}
+        kwargParameters['body'] = body
+        kwargParameters['subject'] = False
+        kwargParameters['message_type'] = 'comment'
+        kwargParameters['subtype'] = 'mail.mt_note'
+        kwargParameters['parent_id'] = False
+        kwargParameters['attachments'] = []
+        kwargParameters['content_subtype'] = 'html'
+        context['thread_model'] = 'product.product'
+        connectionObj.callCustomMethod('mail.thread', 'message_post', parameters, kwargParameters, context=context)
 
     def showFollowers(self):
         self.followersButton.setHidden(True)
@@ -182,6 +266,8 @@ class One2many(OdooFieldTemplate):
                 self._addFollower(partnerId)
         
     def showMessagges(self):
+        self.buttSendMessage.setHidden(False)
+        self.buttLogNote.setHidden(False)
         self.messaggesButton.setEnabled(False)
         self.messaggesButton.setStyleSheet(constants.BUTTON_STYLE + 'background-color: #d3d0d0;')
         messages = connectionObj.read(self.relation, [], self.currentValue)
