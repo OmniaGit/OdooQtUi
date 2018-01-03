@@ -67,6 +67,7 @@ class One2many(OdooFieldTemplate):
             self.noteLay = QtGui.QVBoxLayout()
             self.populateNoteLay()
             
+            self.widgetLyQtObject.setSpacing(30)
             self.widgetLyQtObject.addWidget(self.messaggesButton)
             self.widgetLyQtObject.addLayout(self.messaggesButtLay)
             self.widgetLyQtObject.addLayout(self.noteLay)
@@ -99,11 +100,17 @@ class One2many(OdooFieldTemplate):
 
     def sendMessNote(self):
         body = unicode(self.textEditMess.toPlainText())
+        res = False
         if self.currentMessType == 'NOTE':
-            self._logNote(body)
+            res = self._logNote(body)
         else:
-            self._sendMessage(body)
+            res = self._sendMessage(body)
         self.showNoteLay(False)
+        for i in reversed(range(self.messaggesLay.count())): 
+            self.messaggesLay.itemAt(i).widget().deleteLater()
+        if res:
+            self.currentValue.insert(0, res)
+        self.showMessagges()
 
     def showNoteLay(self, visible=False):
         self.textEditMess.setHidden(not visible)
@@ -139,7 +146,7 @@ class One2many(OdooFieldTemplate):
         kwargParameters['attachments'] = []
         kwargParameters['content_subtype'] = 'html'
         context['thread_model'] = 'product.product'
-        connectionObj.callCustomMethod('mail.thread', 'message_post', parameters, kwargParameters, context=context)
+        return connectionObj.callCustomMethod('mail.thread', 'message_post', parameters, kwargParameters, context=context)
     
     def logNote(self):
         self.showNoteLay(True)
@@ -157,7 +164,7 @@ class One2many(OdooFieldTemplate):
         kwargParameters['attachments'] = []
         kwargParameters['content_subtype'] = 'html'
         context['thread_model'] = 'product.product'
-        connectionObj.callCustomMethod('mail.thread', 'message_post', parameters, kwargParameters, context=context)
+        return connectionObj.callCustomMethod('mail.thread', 'message_post', parameters, kwargParameters, context=context)
 
     def showFollowers(self):
         self.followersButton.setHidden(True)
