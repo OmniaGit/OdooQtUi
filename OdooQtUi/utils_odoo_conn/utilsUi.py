@@ -20,6 +20,19 @@ from OdooQtUi.utils_odoo_conn import utils
 
 DEFAULT_ICON_PATH = ''
 
+
+def getQtImageFromContent(content, imageWidth=100, imageHeight=100):
+    label = QtGui.QLabel()
+    pixmap = QtGui.QPixmap()
+    pixmap.loadFromData(base64.b64decode(content))
+    pixmap = pixmap.scaled(imageWidth,
+                         imageHeight,
+                         aspectRatioMode=QtCore.Qt.IgnoreAspectRatio,
+                         transformMode=QtCore.Qt.FastTransformation)
+    label.setPixmap(pixmap)
+    label.resize(imageWidth, imageHeight)
+    return label
+    
 def setDefaultIconPath(iconPath):
     global DEFAULT_ICON_PATH
     DEFAULT_ICON_PATH = iconPath
@@ -109,7 +122,6 @@ def getDirectoryFileToSaveSystem(parent, statingPath='', fileType=''):
     filename = QtGui.QFileDialog.getSaveFileName(None, "Save file", statingPath, fileType)
     logging.info('[getDirectoryFileToSaveSystem] filename: %s' % filename)
     return filename
-
 
 def getButtonBox(spacer='right'):
     mainLay = QtGui.QHBoxLayout()

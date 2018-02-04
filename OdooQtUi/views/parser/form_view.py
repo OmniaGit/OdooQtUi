@@ -168,15 +168,12 @@ class FormView(QtCore.QObject, object):
                 if pyObject:
                     fieldQt = pyObject.qtObject
                     if isinstance(fieldQt, QtGui.QLayout):
-                        hlay.addLayout(fieldQt)
+                        hlay.insertLayout(0, fieldQt)
                         if count == 0:
-                            hlay.addSpacerItem(QtGui.QSpacerItem(20,20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum))
+                            hlay.insertSpacerItem(0, QtGui.QSpacerItem(20,20, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum))
                             count = count + 1
                     elif isinstance(fieldQt, QtGui.QWidget):
-                        hlay.addWidget(fieldQt)
-                        if count == 0:
-                            hlay.addSpacerItem(QtGui.QSpacerItem(20,20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum))
-                            count = count + 1
+                        hlay.insertWidget(0, fieldQt)
                     self.appendToglobalMapping('field_' + pyObject.fieldName, pyObject)
             else:
                 utils.logMessage('warning', 'Unable to compute tag in chatter %r' % (fieldObj.tag), 'computeChatter')
