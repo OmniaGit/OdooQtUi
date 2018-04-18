@@ -66,8 +66,8 @@ class LoginDial(QtGui.QDialog, Ui_dialog_login):
         self.pushButton_back.setHidden(True)
         self.comboBox_conn_type.setEditable(True)
         self.comboBox_database.setEditable(True)
-        self.page.layout().setMargin(70)
-        self.page_2.layout().setMargin(70)
+        #self.page.layout().setMargin(70)
+        #self.page_2.layout().setMargin(70)
         
         self.lineEdit_password.setText(userpass)
         self.lineEdit_port.setText(str(serverPort))
