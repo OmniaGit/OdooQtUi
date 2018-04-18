@@ -11,6 +11,7 @@ from OdooQtUi.utils_odoo_conn import constants
 from functools import partial
 from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
 from OdooQtUi.RPC.rpc import connectionObj
+import base64
 
 
 class One2many(OdooFieldTemplate):
@@ -19,18 +20,22 @@ class One2many(OdooFieldTemplate):
         self.labelQtObj = False
         self.widgetQtObj = False
         self.treeViewObj = False
+        self.currentMessType = 'NOTE'
         self.odooConnector = odooConnector
         self.relation = self.fieldPyDefinition.get('relation', '')
         self.canCreate = json.loads(self.fieldXmlAttributes.get('can_create', 'true'))
         self.canWrite = json.loads(self.fieldXmlAttributes.get('can_write', 'true'))
         self.odooWidgetType = self.fieldXmlAttributes.get('widget', '')
         self.mainLay = QtGui.QVBoxLayout()
-        #self.getQtObject()
         self.evaluatedIds = {}
         self.currentValue = []
+        self.messaggesLay = QtGui.QVBoxLayout()
+        self.messaggesLay.setSpacing(30)
         if self.odooWidgetType == 'mail_followers':
+            self.widgetLyQtObject = QtGui.QVBoxLayout()
             self.treeViewObj = QtGui.QWidget()
         elif self.odooWidgetType == 'mail_thread':
+            self.widgetLyQtObject = QtGui.QVBoxLayout()
             self.treeViewObj = QtGui.QWidget()
         else:
             self.treeViewObj = self.odooConnector.initTreeListViewObject(odooObjectName=self.relation,
@@ -40,19 +45,34 @@ class One2many(OdooFieldTemplate):
                                                                          activeLanguage='',
                                                                          viewCheckBoxes={},
                                                                          viewFilter=False)
+        self.getQtObject()
 
     def getQtObject(self):
         if self.odooWidgetType == 'mail_followers':
             self.followersButton = QtGui.QPushButton('Show Followers')
             self.followersButton.setStyleSheet(constants.BUTTON_STYLE)
+            self.followersButton.setSizePolicy(QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum)
             self.followersButton.clicked.connect(self.showFollowers)
             self.followersOpened = False
-            self.mainLay.addWidget(self.followersButton)
+            self.widgetLyQtObject.addWidget(self.followersButton)
+            self.widgetLyQtObject.addLayout(self.messaggesLay)
+            self.widgetLyQtObject.addSpacerItem(QtGui.QSpacerItem(100,100, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding))
         elif self.odooWidgetType == 'mail_thread':
-            messaggesButton = QtGui.QPushButton('Show Messagges')
-            messaggesButton.setStyleSheet(constants.BUTTON_STYLE)
-            messaggesButton.clicked.connect(self.showMessagges)
-            self.mainLay.addWidget(messaggesButton)
+            self.messaggesButton = QtGui.QPushButton('Show Chatter')
+            self.messaggesButton.setStyleSheet(constants.BUTTON_STYLE)
+            self.messaggesButton.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+            self.messaggesButton.clicked.connect(self.showMessagges)
+            self.messaggesButtLay = QtGui.QHBoxLayout()
+            self.populateMessButtLay()
+            self.noteLay = QtGui.QVBoxLayout()
+            self.populateNoteLay()
+            
+            self.widgetLyQtObject.setSpacing(30)
+            self.widgetLyQtObject.addWidget(self.messaggesButton)
+            self.widgetLyQtObject.addLayout(self.messaggesButtLay)
+            self.widgetLyQtObject.addLayout(self.noteLay)
+            self.widgetLyQtObject.addLayout(self.messaggesLay)
+            self.widgetLyQtObject.addSpacerItem(QtGui.QSpacerItem(20,20, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding))
         else:
             buttonsLay = QtGui.QHBoxLayout()
             self.labelQtObj = QtGui.QLabel(self.labelString)
@@ -62,32 +82,120 @@ class One2many(OdooFieldTemplate):
             self.createButt.setStyleSheet(constants.BUTTON_STYLE)
             buttonsLay.addWidget(self.createButt)
             self.createButt.clicked.connect(self.createAndAdd)
-            buttonsLay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum))
+            buttonsLay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding))
             self.mainLay.addLayout(buttonsLay)
+
+    def populateNoteLay(self):
+        self.textEditMess = QtGui.QTextEdit()
+        self.sendButtonMess = QtGui.QPushButton('Send')
+        self.sendButtonMess.setStyleSheet(constants.BUTTON_STYLE_MANY_2_ONE__2)
+        self.noteLay.addWidget(self.textEditMess)
+        lay = QtGui.QHBoxLayout()
+        lay.addWidget(self.sendButtonMess)
+        lay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding))
+        self.noteLay.addLayout(lay)
+        self.textEditMess.setStyleSheet(constants.TEXT_STYLE)
+        self.sendButtonMess.clicked.connect(self.sendMessNote)
+        self.showNoteLay(False)
+
+    def sendMessNote(self):
+        body = unicode(self.textEditMess.toPlainText())
+        res = False
+        if self.currentMessType == 'NOTE':
+            res = self._logNote(body)
+        else:
+            res = self._sendMessage(body)
+        self.showNoteLay(False)
+        for i in reversed(range(self.messaggesLay.count())): 
+            self.messaggesLay.itemAt(i).widget().deleteLater()
+        if res:
+            self.currentValue.insert(0, res)
+        self.showMessagges()
+
+    def showNoteLay(self, visible=False):
+        self.textEditMess.setHidden(not visible)
+        self.sendButtonMess.setHidden(not visible)
+        
+    def populateMessButtLay(self):
+        self.buttSendMessage = QtGui.QPushButton('Send Message')
+        self.buttLogNote = QtGui.QPushButton('Log Note')
+        self.buttSendMessage.setStyleSheet(constants.BUTTON_STYLE_MANY_2_ONE__2)
+        self.buttLogNote.setStyleSheet(constants.BUTTON_STYLE_MANY_2_ONE__2)
+        self.messaggesButtLay.addWidget(self.buttSendMessage)
+        self.messaggesButtLay.addWidget(self.buttLogNote)
+        self.messaggesButtLay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding))
+        
+        self.buttSendMessage.clicked.connect(self.sendMessage)
+        self.buttLogNote.clicked.connect(self.logNote)
+        self.buttSendMessage.setHidden(True)
+        self.buttLogNote.setHidden(True)
+        
+    def sendMessage(self):
+        self.showNoteLay(True)
+        self.currentMessType = 'MESSAGE'
+        
+    def _sendMessage(self, body=''):
+        parameters = self.parentId
+        kwargParameters = {}
+        context = {}
+        kwargParameters['body'] = body
+        kwargParameters['subject'] = False
+        kwargParameters['message_type'] = 'comment'
+        kwargParameters['subtype'] = 'mail.mt_comment'
+        kwargParameters['parent_id'] = False
+        kwargParameters['attachments'] = []
+        kwargParameters['content_subtype'] = 'html'
+        context['thread_model'] = 'product.product'
+        return connectionObj.callCustomMethod('mail.thread', 'message_post', parameters, kwargParameters, context=context)
+    
+    def logNote(self):
+        self.showNoteLay(True)
+        self.currentMessType = 'NOTE'
+    
+    def _logNote(self, body=''):
+        parameters = self.parentId
+        kwargParameters = {}
+        context = {}
+        kwargParameters['body'] = body
+        kwargParameters['subject'] = False
+        kwargParameters['message_type'] = 'comment'
+        kwargParameters['subtype'] = 'mail.mt_note'
+        kwargParameters['parent_id'] = False
+        kwargParameters['attachments'] = []
+        kwargParameters['content_subtype'] = 'html'
+        context['thread_model'] = 'product.product'
+        return connectionObj.callCustomMethod('mail.thread', 'message_post', parameters, kwargParameters, context=context)
 
     def showFollowers(self):
         self.followersButton.setHidden(True)
         if not self.followersOpened:
             lay = QtGui.QHBoxLayout()
-            self.followButton = QtGui.QPushButton('Following')
+            self.followButton = QtGui.QPushButton('UnFollowing')
             self.followButton.clicked.connect(self.followClicked)
-            self.followButton.setStyleSheet(constants.BUTTON_STYLE)
+            self.setUnfolloWingButton()
             lay.addWidget(self.followButton)
-            buttonFollowersCount = QtGui.QToolButton()
-            buttonFollowersCount.setText(unicode(len(self.currentValue)))
+            self.buttonFollowersCount = QtGui.QToolButton()
+            self.buttonFollowersCount.setText(unicode(len(self.currentValue)))
             self.toolmenu = QtGui.QMenu()
-            self.populateMenu()
-            buttonFollowersCount.setMenu(self.toolmenu)
-            buttonFollowersCount.setPopupMode(QtGui.QToolButton.InstantPopup) 
-            buttonFollowersCount.setStyleSheet(constants.BUTTON_STYLE)
-            lay.addWidget(buttonFollowersCount)
-            self.widgetLyQtObject.addLayout(lay)
+            res = self.populateMenu()
+            for obj in res:
+                currentPartnerId, _partnerName = self.getPartnerIdFromUserId()
+                partnerRes = obj.get('partner_id')
+                if partnerRes and partnerRes[0] == currentPartnerId:
+                    self.setFollowingButton()
+            self.buttonFollowersCount.setMenu(self.toolmenu)
+            self.buttonFollowersCount.setPopupMode(QtGui.QToolButton.InstantPopup) 
+            self.buttonFollowersCount.setStyleSheet(constants.BUTTON_STYLE)
+            lay.addWidget(self.buttonFollowersCount)
+            self.messaggesLay.addLayout(lay)
         else:
             pass
 
     def populateMenu(self):
-        self.toolmenu.addAction('Add Followers')
-        self.toolmenu.addAction('Add Channels')
+        followerAction = self.toolmenu.addAction('Add Followers')
+        followerAction.changed.connect(self.addFollower)
+        channelAction = self.toolmenu.addAction('Add Channels')
+        channelAction.changed.connect(self.addChannel)
         self.toolmenu.addSeparator()
         res = connectionObj.read(self.relation, [], self.currentValue)
         for elem in res:
@@ -95,20 +203,130 @@ class One2many(OdooFieldTemplate):
             if not name or name == 'False':
                 vals = elem.get('channel_id', ['', ''])
                 if vals:
-                    name = vals[-1]
-            self.toolmenu.addAction(name)
+                    name = 'Channel: ' + vals[-1]
+            else:
+                name = 'User: ' + name
+            act = self.toolmenu.addAction(name)
+            act.setCheckable(True)
+            act.setChecked(True)
+            act.toggled.connect(partial(self.removeFollowerChannel, elem.get('id')))
+        return res
+
+    def addFollower(self):
+        utils.logMessage('warning', 'Not implemented add follower', 'addFollower')
+    
+    def addChannel(self):
+        utils.logMessage('warning', 'Not implemented add channel', 'addChannel')
+
+    def removeFollowerChannel(self, resId):
+        if resId:
+            connectionObj.write(self.parentModel, {self.fieldName: [(2, resId, False)]}, self.parentId)
+            self.currentValue.remove(resId)
+            self.toolmenu.clear()
+            self.populateMenu()
+            self.buttonFollowersCount.setText(unicode(len(self.currentValue)))
+            currentPartnerId, _partnerName = self.getPartnerIdFromUserId()
+            if self.parentId == currentPartnerId:
+                self.setFollowingButton()
+            else:
+                self.setUnfolloWingButton()
+
+    def setUnfolloWingButton(self):
+        self.followButton.setText('UnFollowing')
+        self.followButton.setStyleSheet(constants.BUTTON_STYLE + 'background-color: red;')
+
+    def setFollowingButton(self):
+        self.followButton.setText('Following')
+        self.followButton.setStyleSheet(constants.BUTTON_STYLE)
         
+    def _addFollower(self, partnerId):
+        if partnerId:
+            values = {'res_model': self.parentModel,
+                      'partner_id': partnerId,
+                      'res_id': self.parentId[0]}
+            resId = connectionObj.create(self.relation, values)
+            connectionObj.write(self.parentModel, {self.fieldName: [(4, resId, False)]}, self.parentId)
+            self.currentValue.append(resId)
+            self.toolmenu.clear()
+            self.populateMenu()
+            self.buttonFollowersCount.setText(unicode(len(self.currentValue)))
+            self.setFollowingButton()
+
+    def getPartnerIdFromUserId(self, userId=False):
+        if not userId:
+            userId = connectionObj.userId
+        partnerId, partnerName = False, ''
+        res = connectionObj.read('res.users', ['partner_id'], userId)
+        for elem in res:
+            partnerId, partnerName = elem.get('partner_id', [False, ''])
+        return partnerId, partnerName
         
     def followClicked(self):
         currText = unicode(self.followButton.text())
-        if currText == 'Following':
-            self.followButton.setText('Unfollow')
-        else:
-            self.followButton.setText('Following')
+        partnerId, _partnerName = self.getPartnerIdFromUserId()
+        if partnerId:
+            if currText == 'Following':
+                res = connectionObj.search(self.relation, [('partner_id', '=', partnerId), ('res_id', '=', self.parentId)])
+                for objId in res:
+                    self.removeFollowerChannel(objId)
+            else:
+                self._addFollower(partnerId)
         
     def showMessagges(self):
-        pass
+        self.buttSendMessage.setHidden(False)
+        self.buttLogNote.setHidden(False)
+        self.messaggesButton.setEnabled(False)
+        self.messaggesButton.setStyleSheet(constants.BUTTON_STYLE + 'background-color: #d3d0d0;')
+        messages = connectionObj.read(self.relation, [], self.currentValue)
+        for messageDict in messages:
+            _userId, userName = messageDict.get('author_id', [False, ''])
+            bodyMessage = messageDict.get('body', '')
+            write_date = messageDict.get('write_date', '')
+            attachment_ids = messageDict.get('attachment_ids', [])
+            
+            labelUser = QtGui.QLabel(userName)
+            labelDate = QtGui.QLabel(write_date)
+            labelBody = QtGui.QTextEdit()
+            labelBody.setFrameShape(QtGui.QFrame.NoFrame)
+            labelBody.setText(bodyMessage)
+            labelBody.setReadOnly(True)
+            
+            hlayUser = QtGui.QHBoxLayout()
+            hlayUser.addWidget(labelUser)
+            hlayUser.addWidget(labelDate)
+            
+            mainVLay = QtGui.QVBoxLayout()
+            mainVLay.addLayout(hlayUser)
+            mainVLay.addWidget(labelBody)
+            
+            attachmentLay = QtGui.QHBoxLayout()
+            if attachment_ids:
+                res = connectionObj.read('ir.attachment', ['datas'], attachment_ids)
+                for attachDict in res:
+                    imageLay = QtGui.QVBoxLayout()
+                    labelImage = utilsUi.getQtImageFromContent(attachDict.get('datas', ''), imageWidth=120, imageHeight=120)
+                    imageLay.addWidget(labelImage)
+                    buttonDownloadImage = QtGui.QPushButton('Download')
+                    buttonDownloadImage.setStyleSheet(constants.BUTTON_STYLE + 'max-width: 100px;')
+                    buttonDownloadImage.clicked.connect(partial(self.downloadImage, attachDict.get('datas', '')))
+                    imageLay.addWidget(buttonDownloadImage)
+                    attachmentLay.addLayout(imageLay)
+                attachmentLay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding))
+            mainVLay.addLayout(attachmentLay)
+            mainWidget = QtGui.QWidget()
+            mainWidget.setLayout(mainVLay)
+            labelUser.setStyleSheet('font-weight: bold;')
+            mainWidget.setStyleSheet('background-color: #cccbcb;')
+            self.messaggesLay.addWidget(mainWidget)
 
+    def downloadImage(self, content):
+        fileCleanContent = base64.b64decode(content)
+        filePath = utilsUi.getDirectoryFileToSaveSystem(None, fileType='*.png')
+        if filePath:
+            with open(filePath, 'w') as writeFile:
+                writeFile.write(fileCleanContent)
+            utils.openByDefaultEditor(filePath)
+        
     def createAndAdd(self):
         try:
             def acceptDial():
@@ -157,16 +375,9 @@ class One2many(OdooFieldTemplate):
     def setValue(self, relIds):
         self.currentValue = relIds
         if self.odooWidgetType == 'mail_followers':
-            self.followersButton = QtGui.QPushButton('Show Followers')
-            self.followersButton.setStyleSheet(constants.BUTTON_STYLE)
-            self.followersButton.clicked.connect(self.showFollowers)
-            self.followersOpened = False
-            self.widgetLyQtObject.addWidget(self.followersButton)
+            return 
         elif self.odooWidgetType == 'mail_thread':
-            messaggesButton = QtGui.QPushButton('Show Messagges')
-            messaggesButton.setStyleSheet(constants.BUTTON_STYLE)
-            messaggesButton.clicked.connect(self.showMessagges)
-            self.widgetLyQtObject.addWidget(messaggesButton)
+            return 
         else:
             self.treeViewObj.loadIds(relIds, {}, {}, {})
             self.widgetQtObj = self.treeViewObj.treeObj.tableWidget
@@ -181,6 +392,7 @@ class One2many(OdooFieldTemplate):
             self.widgetLyQtObject.addLayout(self.mainLay)
             self.widgetQtObj.setHorizontalHeaderItem(self.widgetQtObj.columnCount() - 1, QtGui.QTableWidgetItem('Remove'))
             self.widgetQtObj.resizeColumnsToContents()
+        self.widgetLyQtObject.addSpacerItem(QtGui.QSpacerItem(20,20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding))
 
     def setupTableWidgetLay(self, tableWidget):
         tableWidget.resizeColumnsToContents()

@@ -233,7 +233,6 @@ def packFile(filePath):
         raise Exception("PackFile : broken stream on file : %r." % (filePath))
     return content
 
-
 def unpackFile(content, toFile):
     """
        Unpack the content into a file
