@@ -7,8 +7,12 @@ import json
 import logging
 import xml.etree.cElementTree as ElementTree
 
-from PyQt4 import QtGui
-from PyQt4 import QtCore
+try:
+    from PySide import QtGui
+    from PySide import QtCore
+except Exception as ex:
+    from PyQt4 import QtGui
+    from PyQt4 import QtCore
 
 from OdooQtUi.utils_odoo_conn import utils, utilsUi
 from OdooQtUi.utils_odoo_conn import constants
@@ -29,7 +33,10 @@ from OdooQtUi.objects.text.text import Text
 
 class FormView(QtCore.QObject, object):
 
-    nootebook_changed_signal = QtCore.pyqtSignal(int)
+    try:
+        nootebook_changed_signal = QtCore.Signal(int)
+    except Exception as ex:
+        nootebook_changed_signal = QtCore.pyqtSignal(int)
 
     def __init__(self, arch, fieldsNameTypeRel, rpc, useHeader=False, useChatter=False, odooConnector=None):
         super(FormView, self).__init__()
@@ -122,7 +129,7 @@ class FormView(QtCore.QObject, object):
                 logging.warning('Buttons not implemented at first level of form')
                 continue
                 buttonObj = button.Button(childElement)
-                key = 'button_' + unicode(buttonObj.buttonString).replace(' ', '_')
+                key = 'button_' + str(buttonObj.buttonString).replace(' ', '_')
                 self.appendToglobalMapping(key, buttonObj)
                 mainVLay.addWidget(buttonObj.qtObject)
                 divClass = parent.attrib.get('class', '')
@@ -195,14 +202,14 @@ class FormView(QtCore.QObject, object):
     def computeGroup(self, groupXmlObj, nootebookIndex=0):
         def computeCol(val):
             try:
-                if isinstance(val, (str, unicode)):
+                if isinstance(val, (str, str)):
                     val = json.loads(val)
                 if val % 2 == 0:
                     return val / 2
                 if val == 1:
                     return 1
                 return (val - 1) / 2
-            except Exception, ex:
+            except Exception as ex:
                 utils.logMessage('error', 'Error during computing col and colspan %r' % (ex), 'computeCol')
                 return 1
 
@@ -276,7 +283,7 @@ class FormView(QtCore.QObject, object):
             elif childTag == 'button':
                 buttonObj = button.Button(childElement)
                 globalLay.addWidget(buttonObj.qtObject, rowCount, colCount, 1, childColSpan)
-                key = 'button_' + unicode(buttonObj.buttonString).replace(' ', '_')
+                key = 'button_' + str(buttonObj.buttonString).replace(' ', '_')
                 self.appendToglobalMapping(key, buttonObj)
                 colCount = colCount + childColSpan
             else:
@@ -336,7 +343,7 @@ class FormView(QtCore.QObject, object):
             if xmlObj.tag == 'button':
                 buttonObj = button.Button(xmlObj)
                 headerLayout.addWidget(buttonObj.qtObject)
-                commonAppend('button_header_' + unicode(buttonObj.buttonString).replace(' ', '_'), buttonObj)
+                commonAppend('button_header_' + str(buttonObj.buttonString).replace(' ', '_'), buttonObj)
             elif xmlObj.tag == 'field':
                 fieldObj = self.computeField(xmlObj)
                 fieldQt = fieldObj.qtObject
@@ -351,7 +358,7 @@ class FormView(QtCore.QObject, object):
                 else:
                     utils.logMessage('warning', 'Field %r could not be added to layout' % (fieldName), 'computeHeader')
                     continue
-                commonAppend('field_header_' + unicode(fieldName), fieldObj)
+                commonAppend('field_header_' + str(fieldName), fieldObj)
             else:
                 pass
         return mapping, headerLayout

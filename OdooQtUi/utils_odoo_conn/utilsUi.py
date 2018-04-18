@@ -13,7 +13,12 @@ import logging
 import datetime
 import traceback
 
-from PyQt4 import QtGui, QtCore
+try:
+    from PySide import QtGui
+    from PySide import QtCore
+except Exception as ex:
+    from PyQt4 import QtGui
+    from PyQt4 import QtCore
 from os.path import expanduser
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.utils_odoo_conn import utils
@@ -42,7 +47,7 @@ def launchMessage(message='', msgType='message'):
     messBox = QtGui.QMessageBox()
     messBox.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
     messBox.setWindowTitle('Odoo Plm Connector')
-    messBox.setText(unicode(message))
+    messBox.setText(str(message))
     if msgType == 'message':
         messBox.setIcon(QtGui.QMessageBox.Information)
         messBox.setStandardBuunicodttons(QtGui.QMessageBox.Ok)
@@ -108,13 +113,13 @@ def commonPopulateTable(headers, values, tableWidget, flags={}, add=False, fontS
 
 
 def getDirectoryFromSystem(parent, pathToOpen=''):
-    return unicode(QtGui.QFileDialog.getExistingDirectory(parent, "Select Directory", pathToOpen))
+    return str(QtGui.QFileDialog.getExistingDirectory(parent, "Select Directory", pathToOpen))
 
 
 def getFileFromSystem(desc='Open', startPath='/home/'):
     fileName = QtGui.QFileDialog.getOpenFileName(None, desc, startPath)
     if os.path.exists(fileName):
-        return unicode(fileName)
+        return str(fileName)
     return ''
 
 

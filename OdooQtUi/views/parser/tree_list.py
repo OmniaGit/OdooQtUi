@@ -4,7 +4,12 @@ Created on 3 Feb 2017
 @author: Daniel Smerghetto
 '''
 import xml.etree.cElementTree as ElementTree
-from PyQt4 import QtGui
+try:
+    from PySide import QtGui
+    from PySide import QtCore
+except Exception as ex:
+    from PyQt4 import QtGui
+    from PyQt4 import QtCore
 from OdooQtUi.utils_odoo_conn import constants, utilsUi
 from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.objects.selection.selection import Selection

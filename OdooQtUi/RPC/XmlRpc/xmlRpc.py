@@ -6,8 +6,8 @@ Created on 3 Feb 2017
 
 from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.utils_odoo_conn import utilsUi
-import xmlrpclib
-import httplib
+import xmlrpc.client
+import http
 import socket
 
 
@@ -32,9 +32,9 @@ class XmlRpcConnection(object):
         try:
             t = TimeoutTransport()
             t.set_timeout(2.5)
-            # server = xmlrpclib.Server('http://time.xmlrpc.com/RPC2', transport=t)
-            self.socketNoLogin = xmlrpclib.ServerProxy(self.urlNoLogin, transport=t)
-        except Exception, ex:
+            # server = xmlrpc.Server('http://time.xmlrpc.com/RPC2', transport=t)
+            self.socketNoLogin = xmlrpc.ServerProxy(self.urlNoLogin, transport=t)
+        except Exception as ex:
             utils.logMessage('error', 'Error during login without user: %r' % (ex), 'loginNoUser')
             return False
         utils.logMessage('info', 'Successfull connection to Odoo using login No User', 'loginNoUser')
@@ -47,14 +47,14 @@ class XmlRpcConnection(object):
             self.userId = self.socketNoLogin.login(self.databaseName, self.userName, self.userPassword)
             if not self.userId:
                 return False
-        except Exception, ex:
+        except Exception as ex:
             utils.logMessage('error', 'Error during login with user: %r' % (ex), 'loginWithUser')
             return False
         try:
             t = TimeoutTransport()
             t.set_timeout(2.5)
-            self.socketYesLogin = xmlrpclib.ServerProxy(self.urlYesLogin, transport=t)
-        except Exception, ex:
+            self.socketYesLogin = xmlrpc.ServerProxy(self.urlYesLogin, transport=t)
+        except Exception as ex:
             utils.logMessage('error', 'Error getting server proxy: %r' % (ex), 'loginWithUser')
             return False
         utils.logMessage('info', 'Successfull connection to Odoo with user %r and database %r' % (self.userName, self.databaseName), 'loginNoUser')
@@ -64,8 +64,8 @@ class XmlRpcConnection(object):
         try:
             t = TimeoutTransport()
             t.set_timeout(2.5)
-            return xmlrpclib.ServerProxy(self.urlListDB, transport=t).list()
-        except Exception, ex:
+            return xmlrpc.ServerProxy(self.urlListDB, transport=t).list()
+        except Exception as ex:
             utils.logMessage('warning', 'Unable to list database. EX: %r' % (ex), 'listDb')
             utilsUi.launchMessage('Unable to get database list, please check your login settings.', 'warning')
         return False
@@ -78,7 +78,7 @@ class XmlRpcConnection(object):
             if offset or offset == 0:
                 kargs['offset'] = offset
             return self.callOdooFunction(obj, 'search', [filterList], kargs)
-        except Exception, ex:
+        except Exception as ex:
             utils.logMessage('error', 'Error during search with values: object %r, filter %r, parameters %r. Error: %r' % (obj, filterList, kargs, ex), 'search')
         return []
 
@@ -86,7 +86,7 @@ class XmlRpcConnection(object):
         try:
             kargs = {'context': context}
             return self.callOdooFunction(obj, 'read', [ids, fields], kargs)
-        except Exception, ex:
+        except Exception as ex:
             utils.logMessage('error', 'Error during read with values: object %r, fields %r, ids %r. Error: %r' % (obj, fields, ids, ex), 'read')
         return []
 
@@ -97,7 +97,7 @@ class XmlRpcConnection(object):
         try:
             kargs = {'attributes': attributesToRead, 'context': context}
             return self.callOdooFunction(obj, 'fields_get', [], kargs)
-        except Exception, ex:
+        except Exception as ex:
             utils.logMessage('error', 'Error during reading fields with values: object %r, kargs %r. Error: %r' % (obj, kargs, ex), 'fieldsGet')
         return {}
 
@@ -108,7 +108,7 @@ class XmlRpcConnection(object):
         try:
             kargs = {'context': context}
             return self.callOdooFunction(obj, 'default_get', [fieldsToRead], kargs)
-        except Exception, ex:
+        except Exception as ex:
             utils.logMessage('error', 'Error during reading fields with values: object %r, kargs %r. Error: %r' % (obj, kargs, ex), 'fieldsGet')
         return {}
 
@@ -116,7 +116,7 @@ class XmlRpcConnection(object):
         try:
             kargs = {'fields': fields, 'context': context}
             return self.callOdooFunction(obj, 'search_read', [filterList], kargs)
-        except Exception, ex:
+        except Exception as ex:
             utils.logMessage('error', 'Error during reading fields with values: object %r, kargs %r, filterList %r. Error: %r' % (obj, kargs, filterList, ex), 'readSearch')
         return []
 
@@ -124,7 +124,7 @@ class XmlRpcConnection(object):
         try:
             kargs = {'context': context}
             return self.callOdooFunction(obj, 'create', [values], kargs)
-        except Exception, ex:
+        except Exception as ex:
             utils.logMessage('error', 'Error during create with values: object %r, kargs %r, filterList %r. Error: %r' % (obj, kargs, values, ex), 'create')
         return []
 
@@ -132,7 +132,7 @@ class XmlRpcConnection(object):
         try:
             kargs = {'context': context}
             return self.callOdooFunction(obj, 'write', [idsToWrite, values], kargs)
-        except Exception, ex:
+        except Exception as ex:
             utils.logMessage('error', 'Error during create with values: object %r, kargs %r, filterList %r. Error: %r' % (obj, kargs, values, ex), 'write')
         return []
 
@@ -140,7 +140,7 @@ class XmlRpcConnection(object):
         try:
             kargs = {'context': context}
             return self.callOdooFunction(obj, 'unlink', [idsToDelete], kargs)
-        except Exception, ex:
+        except Exception as ex:
             utils.logMessage('error', 'Error during create with values: object %r, kargs %r, idsToDelete %r. Error: %r' % (obj, kargs, idsToDelete, ex), 'delete')
         return []
 
@@ -148,7 +148,7 @@ class XmlRpcConnection(object):
         try:
             kargs = {'context': context}
             return self.callOdooFunction(obj, 'search_count', [filterList], kargs)
-        except Exception, ex:
+        except Exception as ex:
             utils.logMessage('error', 'Error during create with values: object %r, kargs %r, filterList %r. Error: %r' % (obj, kargs, filterList, ex), 'searchCount')
         return []
 
@@ -158,7 +158,7 @@ class XmlRpcConnection(object):
                 view_id = False
             kwargParameters = {'context': context}
             return self.callOdooFunction(odooObj, 'fields_view_get', [view_id, view_type], kwargParameters)
-        except Exception, ex:
+        except Exception as ex:
             utils.logMessage('error', 'Error during fields view get: %r' % (ex), 'fieldsViewGet')
         return {}
 
@@ -169,7 +169,7 @@ class XmlRpcConnection(object):
             if not res:
                 return {}
             return res
-        except Exception, ex:
+        except Exception as ex:
             utils.logMessage('error', 'Wrong on_change call with odooObj: %r, fieldName: %r, activeIds: %r, context: %r. Error: %r' % (odooObj, fieldName, activeIds, context, ex), 'on_change')
         return {}
 
@@ -186,7 +186,7 @@ class XmlRpcConnection(object):
                                                functionName,
                                                parameters,
                                                kwargParameters)
-        except Exception, ex:
+        except Exception as ex:
             utils.logMessage('error', ex, 'execute')
             utils.logMessage('error', 'Error during call Odoo Function execute with arguments: %r, %r, %r, %r' % (obj, method, args), 'execute')
             return False
@@ -205,30 +205,30 @@ class XmlRpcConnection(object):
                                                   functionName,
                                                   parameters,
                                                   kwargParameters)
-        except socket.error, err:
+        except socket.error as err:
             message = 'Unable to communicate with the server: %r' % err
             utilsUi.launchMessage(message, 'error')
             utils.logMessage('error', message, 'callOdooFunction')
-        except xmlrpclib.Fault, err:
+        except xmlrpc.client.Fault as err:
             try:
                 return self.socketYesLogin.execute(self.databaseName, self.userId, self.userPassword, odooObj, functionName, parameters)
-            except Exception, ex:
+            except Exception as ex:
                 message = 'Unable to communicate with the server: %r' % ex.faultCode
                 utilsUi.launchMessage(message, 'error')
                 utils.logMessage('error', message, 'callOdooFunction')
-        except Exception, ex:
+        except Exception as ex:
             utilsUi.launchMessage(ex, 'error')
             utils.logMessage('error', ex, 'callOdooFunction')
             utils.logMessage('error', 'Error during call Odoo Function with arguments: %r, %r, %r, %r' % (odooObj, functionName, parameters, kwargParameters), 'callOdooFunction')
         return False
 
 
-class TimeoutTransport(xmlrpclib.Transport):
+class TimeoutTransport(xmlrpc.client.Transport):
     timeout = 5.0
 
     def set_timeout(self, timeout):
         self.timeout = timeout
 
     def make_connection(self, host):
-        h = httplib.HTTPConnection(host, timeout=self.timeout)
+        h = http.HTTPConnection(host, timeout=self.timeout)
         return h

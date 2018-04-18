@@ -4,7 +4,12 @@ Created on 7 Feb 2017
 @author: dsmerghetto
 '''
 
-from PyQt4 import QtGui
+try:
+    from PySide import QtGui
+    from PySide import QtCore
+except Exception as ex:
+    from PyQt4 import QtGui
+    from PyQt4 import QtCore
 from OdooQtUi.utils_odoo_conn import utils, utilsUi
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
@@ -35,7 +40,7 @@ class Charachter(OdooFieldTemplate):
             utilsUi.setRequiredBackground(self.widgetQtObj, constants.CHAR_STYLE)
 
     def valueChanged(self):
-        self.currentValue = unicode(self.widgetQtObj.text())
+        self.currentValue = str(self.widgetQtObj.text())
         self.valueTemplateChanged()
 
     def setValue(self, newVal):

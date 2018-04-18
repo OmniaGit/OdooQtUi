@@ -5,9 +5,13 @@ Created on Mar 28, 2017
 '''
 import json
 from OdooQtUi.RPC.rpc import connectionObj
-from ui.ui_login import Ui_dialog_login
-from PyQt4 import QtGui
-from PyQt4 import QtCore
+from .ui.ui_login import Ui_dialog_login
+try:
+    from PySide import QtGui
+    from PySide import QtCore
+except Exception as ex:
+    from PyQt4 import QtGui
+    from PyQt4 import QtCore
 from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.utils_odoo_conn import constants
 
@@ -66,7 +70,7 @@ class LoginDial(QtGui.QDialog, Ui_dialog_login):
         self.page_2.layout().setMargin(70)
         
         self.lineEdit_password.setText(userpass)
-        self.lineEdit_port.setText(unicode(serverPort))
+        self.lineEdit_port.setText(str(serverPort))
         self.lineEdit_scheme.setText(scheme)
         self.lineEdit_server.setText(serverIp)
         self.lineEdit_username.setText(username)
@@ -105,13 +109,13 @@ class LoginDial(QtGui.QDialog, Ui_dialog_login):
         self.reject()
 
     def acceptDial(self):
-        self.dbName = unicode(self.comboBox_database.currentText())
-        self.username = unicode(self.lineEdit_username.text())
-        self.userpass = unicode(self.lineEdit_password.text())
-        self.serverIp = unicode(self.lineEdit_server.text())
-        self.serverPort = unicode(self.lineEdit_port.text())
-        self.scheme = unicode(self.lineEdit_scheme.text())
-        self.connType = unicode(self.comboBox_conn_type.currentText())
+        self.dbName = str(self.comboBox_database.currentText())
+        self.username = str(self.lineEdit_username.text())
+        self.userpass = str(self.lineEdit_password.text())
+        self.serverIp = str(self.lineEdit_server.text())
+        self.serverPort = str(self.lineEdit_port.text())
+        self.scheme = str(self.lineEdit_scheme.text())
+        self.connType = str(self.comboBox_conn_type.currentText())
         
     def acceptDialForce(self):
         self.accept()
@@ -196,10 +200,10 @@ connection type=%r\n
             self.interfaceDial.label_status.setStyleSheet('color: red;')
 
     def nextPage(self):
-        xmlrpcServerIP = unicode(self.interfaceDial.lineEdit_server.text())
-        xmlrpcPort = unicode(self.interfaceDial.lineEdit_port.text())
-        scheme = unicode(self.interfaceDial.lineEdit_scheme.text())
-        loginType = unicode(self.interfaceDial.comboBox_conn_type.currentText())
+        xmlrpcServerIP = str(self.interfaceDial.lineEdit_server.text())
+        xmlrpcPort = str(self.interfaceDial.lineEdit_port.text())
+        scheme = str(self.interfaceDial.lineEdit_scheme.text())
+        loginType = str(self.interfaceDial.comboBox_conn_type.currentText())
         connectionObj.initConnection(loginType,
                                      '',
                                      '',

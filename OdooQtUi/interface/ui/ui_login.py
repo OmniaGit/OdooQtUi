@@ -7,10 +7,15 @@
 #
 # WARNING! All changes made in this file will be lost!
 
-from PyQt4 import QtCore, QtGui
+try:
+    from PySide import QtGui
+    from PySide import QtCore
+except Exception as ex:
+    from PyQt4 import QtGui
+    from PyQt4 import QtCore
 
 try:
-    _fromUtf8 = QtCore.QString.fromUtf8
+    _fromUtf8 = str.fromUtf8
 except AttributeError:
     def _fromUtf8(s):
         return s

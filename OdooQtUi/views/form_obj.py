@@ -4,15 +4,19 @@ Created on 24 Mar 2017
 @author: dsmerghetto
 '''
 import copy
-from PyQt4 import QtGui
-from PyQt4 import QtCore
+try:
+    from PySide import QtGui
+    from PySide import QtCore
+except Exception as ex:
+    from PyQt4 import QtGui
+    from PyQt4 import QtCore
 
 
 from OdooQtUi.views.parser.form_view import FormView
 from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.utils_odoo_conn import utilsUi
 from OdooQtUi.views.parser.search_view import FieldObj
-from templateView import TemplateView
+from .templateView import TemplateView
 
 
 class TemplateFormView(TemplateView):
@@ -49,7 +53,7 @@ class TemplateFormView(TemplateView):
             utils.logMessage('warning', 'Unable to get fields view definition!', '_initViewObj')
 
     def updateDataStructure(self, pageIndex=0):
-        print 'compute Nootebook fields: %r' % (pageIndex)
+        print ('compute Nootebook fields: %r' % (pageIndex))
         if pageIndex > 0 and pageIndex in self.formObj.nootebookFieldsToCompute:
             dictFieldsToUpdate = self.formObj.nootebookFieldsToCompute[pageIndex]
             fieldNamesToUpdate = dictFieldsToUpdate.keys()
@@ -210,14 +214,14 @@ class TemplateFormView(TemplateView):
         return True
 
     def _valueChanged(self, fieldName):
-        fieldName = unicode(fieldName)
+        fieldName = str(fieldName)
         fieldObj = self.interfaceFieldsDict.get(fieldName)
         if not fieldObj:
             utils.logMessage('warning', 'Field %r not found in interfacefieldsdict' % (fieldName), '_valueChanged')
         changeResult = self._on_change(fieldObj.fieldName)
         changedValues = changeResult.get('value', {})
         for fieldNameFromServer, fieldValueFromServer in changedValues.items():
-            fieldObj1 = self.interfaceFieldsDict.get(unicode(fieldNameFromServer))
+            fieldObj1 = self.interfaceFieldsDict.get(str(fieldNameFromServer))
             fieldObj1.setValue(fieldValueFromServer)
         self.fieldsChanged[fieldName] = fieldObj
         self._setFieldModifiers()
@@ -226,7 +230,7 @@ class TemplateFormView(TemplateView):
         if not self.activeIds:
             utilsUi.launchMessage('Translations are available only on already created records.', 'warning')
             return
-        fieldName = unicode(fieldName)
+        fieldName = str(fieldName)
         fieldObj = self.interfaceFieldsDict.get(fieldName)
 
         def acceptTransDial():
@@ -241,7 +245,7 @@ class TemplateFormView(TemplateView):
         model = self.model
         if model == 'product.product':
             model = 'product.template'
-        translationName = unicode(model + ',' + fieldName)
+        translationName = str(model + ',' + fieldName)
         filterList = [('res_id', '=', self.activeIds[0]),
                       ('name', '=', translationName)
                       ]
@@ -289,9 +293,9 @@ class TemplateFormView(TemplateView):
             rowsDict = utils.getRowsFromTableWidget(tableWidget, 'dict', fieldNames)
             for rowDict in rowsDict.values():
                 elemId = False
-                translated = unicode(rowDict.get('translated', ''))
-                source = unicode(rowDict.get('source', ''))
-                lang = unicode(rowDict.get('lang', ''))
+                translated = str(rowDict.get('translated', ''))
+                source = str(rowDict.get('source', ''))
+                lang = str(rowDict.get('lang', ''))
                 for elem in res:
                     sourceRel = elem.get('src', '')
                     langRel = elem.get('lang', '')

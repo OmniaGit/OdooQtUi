@@ -5,7 +5,12 @@ Created on 06 feb 2017
 '''
 import json
 
-from PyQt4 import QtGui
+try:
+    from PySide import QtGui
+    from PySide import QtCore
+except Exception as ex:
+    from PyQt4 import QtGui
+    from PyQt4 import QtCore
 from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.utils_odoo_conn import constants
 

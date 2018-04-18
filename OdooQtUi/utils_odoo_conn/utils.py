@@ -13,7 +13,12 @@ import logging
 import datetime
 import traceback
 
-from PyQt4 import QtGui
+try:
+    from PySide import QtGui
+    from PySide import QtCore
+except Exception as ex:
+    from PyQt4 import QtGui
+    from PyQt4 import QtCore
 from os.path import expanduser
 from OdooQtUi.utils_odoo_conn import constants
 
@@ -48,7 +53,7 @@ def launchTryIconMessage(title, message, level='info'):
 
 
 def startUpEnable(pathFrom, startUpflag=False):
-    '''
+    r'''
         C:\Users\Daniel\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\MineSweeper.exe
     '''
     try:
@@ -286,7 +291,7 @@ def logMessage(msgType='DEBUG', message='', functionName=''):
         logging.error(msg)
     else:
         logging.debug(msg)
-    print msg
+    print (msg)
 
 
 def convertJpgToPng(jpgPath, savePngPath=''):
@@ -498,8 +503,8 @@ def timeit(method):
         result = method(*args, **kw)
         te = time.time()
 
-        print '%2.2f sec, %r par: %r' % \
-              (te - ts, method.__name__, args[1:])
+        print ('%2.2f sec, %r par: %r' % \
+              (te - ts, method.__name__, args[1:]))
         return result
 
     return timed

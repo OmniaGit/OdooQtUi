@@ -7,7 +7,12 @@ import os
 import base64
 import tempfile
 
-from PyQt4 import QtGui, QtCore
+try:
+    from PySide import QtGui
+    from PySide import QtCore
+except Exception as ex:
+    from PyQt4 import QtGui
+    from PyQt4 import QtCore
 from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.utils_odoo_conn import utilsUi
 from OdooQtUi.utils_odoo_conn import constants
@@ -27,7 +32,7 @@ class Binary(OdooFieldTemplate):
         try:
             self.imageWidth = eval(self.fieldXmlAttributes.get('img_width'))
             self.imageHeight = eval(self.fieldXmlAttributes.get('img_height'))
-        except Exception, _ex:
+        except Exception as _ex:
             pass
         self.getQtObject()
 
@@ -85,7 +90,7 @@ class Binary(OdooFieldTemplate):
         if not self.currentValue:
             utilsUi.launchMessage('Unable to save the file!', 'warning')
             utils.logMessage('warning', 'Empty file content in binary field', 'downloadFile')
-        filePath = unicode(newFilePath)
+        filePath = str(newFilePath)
         utils.unpackFile(self.currentValue, filePath)
         return filePath
 
@@ -93,7 +98,7 @@ class Binary(OdooFieldTemplate):
         filePath = utilsUi.getFileFromSystem('Open', '')
         if not filePath:
             return
-        fileContent = utils.packFile(unicode(filePath))
+        fileContent = utils.packFile(str(filePath))
         self.currentValue = fileContent
         self.fieldStringInterface = os.path.split(filePath)[1]
         self.widgetQtObj.setText(self.fieldStringInterface)
@@ -104,7 +109,7 @@ class Binary(OdooFieldTemplate):
         self.widgetQtObj.setText('')
 
     def valueChanged(self, val):
-        print 'To implement valueChanged changed for binary'
+        print ('To implement valueChanged changed for binary')
         self.valueTemplateChanged()
 
     def setValue(self, newVal):

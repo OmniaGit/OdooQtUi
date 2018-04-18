@@ -5,7 +5,12 @@ Created on 02 feb 2017
 '''
 import json
 
-from PyQt4 import QtGui, QtCore
+try:
+    from PySide import QtGui
+    from PySide import QtCore
+except Exception as ex:
+    from PyQt4 import QtGui
+    from PyQt4 import QtCore
 from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.utils_odoo_conn import utilsUi
 from OdooQtUi.utils_odoo_conn import constants
@@ -13,8 +18,12 @@ from OdooQtUi.utils_odoo_conn import constants
 
 class OdooFieldTemplate(QtCore.QObject, object):
 
-    value_changed_signal = QtCore.pyqtSignal(QtCore.QString)
-    translation_clicked = QtCore.pyqtSignal(QtCore.QString)
+    try:
+        value_changed_signal = QtCore.Signal(str)
+        translation_clicked = QtCore.Signal(str)
+    except Exception as ex:
+        value_changed_signal = QtCore.pyqtSignal(str)
+        translation_clicked = QtCore.pyqtSignal(str)
 
     def __init__(self, xmlField, fieldsDefinition, rpc):
         self.rpc = rpc

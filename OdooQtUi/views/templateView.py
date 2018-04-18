@@ -4,7 +4,12 @@ Created on 3 Feb 2017
 @author: Daniel Smerghetto
 '''
 import copy
-from PyQt4 import QtGui
+try:
+    from PySide import QtGui
+    from PySide import QtCore
+except Exception as ex:
+    from PyQt4 import QtGui
+    from PyQt4 import QtCore
 from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.RPC.rpc import connectionObj
 
@@ -102,8 +107,8 @@ class TemplateView(QtGui.QWidget):
                 for fieldObj in self.interfaceFieldsDict.values():
                     if fieldObj:
                         fieldObj.eraseValue()
-        except Exception, ex:
-            utils.logMessage("error", unicode(ex), 'cleanFields')
+        except Exception as ex:
+            utils.logMessage("error", str(ex), 'cleanFields')
 
     def setFieldValues(self, fieldsDict):
         for fieldName, fieldVal in fieldsDict.items():

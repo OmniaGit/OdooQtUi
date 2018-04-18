@@ -4,7 +4,12 @@ Created on 7 Feb 2017
 @author: dsmerghetto
 '''
 import json
-from PyQt4 import QtGui, QtCore
+try:
+    from PySide import QtGui
+    from PySide import QtCore
+except Exception as ex:
+    from PyQt4 import QtGui
+    from PyQt4 import QtCore
 from functools import partial
 from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.utils_odoo_conn import utilsUi
@@ -83,7 +88,7 @@ class Many2many(OdooFieldTemplate):
                 if objId:
                     self.currentValue.append(objId)
                     self.setValue(self.currentValue)
-        except Exception, ex:
+        except Exception as ex:
             utils.logMessage('error', '%r' % (ex), 'createAndAdd')
 
     def setValue(self, relIds):
@@ -142,7 +147,7 @@ class Many2many(OdooFieldTemplate):
                     if len(val) < 1:
                         val = ''
                     val = val[1]
-                recordValList.append(unicode(val))
+                recordValList.append(str(val))
             recordValList.append('')
             values.append(recordValList)
         if checkBox:
@@ -164,7 +169,7 @@ class Many2many(OdooFieldTemplate):
             elif found:
                 del self.treeViewObj.idLineRel[rowInd]
                 self.treeViewObj.idLineRel[rowInd - 1] = objId
-        print self.treeViewObj.idLineRel
+        print (self.treeViewObj.idLineRel)
 
     def addAnItem(self):
         def acceptDial():
@@ -220,7 +225,7 @@ class Many2many(OdooFieldTemplate):
                         localIndexId[rowIndex] = objId
                     checkedRows.append(rowIndex)
             self.setValue(self.currentValue)
-        print self.treeViewObj.idLineRel
+        print (self.treeViewObj.idLineRel)
 
     def valueChanged(self):
         self.valueTemplateChanged()

@@ -3,9 +3,14 @@ Created on 24 Mar 2017
 
 @author: dsmerghetto
 '''
-from PyQt4 import QtGui
-from parser.tree_list import TreeViewList
-from templateView import TemplateView
+try:
+    from PySide import QtGui
+    from PySide import QtCore
+except Exception as ex:
+    from PyQt4 import QtGui
+    from PyQt4 import QtCore
+from .parser.tree_list import TreeViewList
+from .templateView import TemplateView
 from OdooQtUi.views.search_obj import TemplateSearchView
 from OdooQtUi.utils_odoo_conn import utils, utilsUi
 from OdooQtUi.utils_odoo_conn import constants
@@ -128,7 +133,7 @@ class TemplateTreeListView(TemplateView):
                         val = ''
                     else:
                         val = val[1]
-                localList.append(unicode(fieldObj.valueInterface))
+                localList.append(str(fieldObj.valueInterface))
             valuesList.append(localList)
             recordId = record.get('id', False)
             self.idValsRel[recordId] = record
@@ -162,7 +167,7 @@ class TemplateTreeListView(TemplateView):
         return recordObj
 
     def _valueChanged(self, fieldName):
-        fieldName = unicode(fieldName)
+        fieldName = str(fieldName)
         fieldObj = self.interfaceFieldsDict.get(fieldName)
         self.fieldsChanged[fieldName] = fieldObj
 

@@ -5,7 +5,12 @@ Created on 7 Feb 2017
 '''
 import json
 
-from PyQt4 import QtGui, QtCore
+try:
+    from PySide import QtGui
+    from PySide import QtCore
+except Exception as ex:
+    from PyQt4 import QtGui
+    from PyQt4 import QtCore
 from OdooQtUi.utils_odoo_conn import utils, utilsUi
 from OdooQtUi.utils_odoo_conn import constants
 from functools import partial
@@ -99,7 +104,7 @@ class One2many(OdooFieldTemplate):
         self.showNoteLay(False)
 
     def sendMessNote(self):
-        body = unicode(self.textEditMess.toPlainText())
+        body = str(self.textEditMess.toPlainText())
         res = False
         if self.currentMessType == 'NOTE':
             res = self._logNote(body)
@@ -175,7 +180,7 @@ class One2many(OdooFieldTemplate):
             self.setUnfolloWingButton()
             lay.addWidget(self.followButton)
             self.buttonFollowersCount = QtGui.QToolButton()
-            self.buttonFollowersCount.setText(unicode(len(self.currentValue)))
+            self.buttonFollowersCount.setText(str(len(self.currentValue)))
             self.toolmenu = QtGui.QMenu()
             res = self.populateMenu()
             for obj in res:
@@ -224,7 +229,7 @@ class One2many(OdooFieldTemplate):
             self.currentValue.remove(resId)
             self.toolmenu.clear()
             self.populateMenu()
-            self.buttonFollowersCount.setText(unicode(len(self.currentValue)))
+            self.buttonFollowersCount.setText(str(len(self.currentValue)))
             currentPartnerId, _partnerName = self.getPartnerIdFromUserId()
             if self.parentId == currentPartnerId:
                 self.setFollowingButton()
@@ -249,7 +254,7 @@ class One2many(OdooFieldTemplate):
             self.currentValue.append(resId)
             self.toolmenu.clear()
             self.populateMenu()
-            self.buttonFollowersCount.setText(unicode(len(self.currentValue)))
+            self.buttonFollowersCount.setText(str(len(self.currentValue)))
             self.setFollowingButton()
 
     def getPartnerIdFromUserId(self, userId=False):
@@ -262,7 +267,7 @@ class One2many(OdooFieldTemplate):
         return partnerId, partnerName
         
     def followClicked(self):
-        currText = unicode(self.followButton.text())
+        currText = str(self.followButton.text())
         partnerId, _partnerName = self.getPartnerIdFromUserId()
         if partnerId:
             if currText == 'Following':
@@ -357,7 +362,7 @@ class One2many(OdooFieldTemplate):
                 if objId:
                     self.currentValue.append(objId)
                     self.setValue(self.currentValue)
-        except Exception, ex:
+        except Exception as ex:
             utils.logMessage('error', '%r' % (ex), 'createAndAdd')
 
     def computeFieldVal(self, val):
@@ -368,8 +373,8 @@ class One2many(OdooFieldTemplate):
             outStrVal = ''
         elif isinstance(val, int):
             outStrVal = ''
-        elif isinstance(val, (str, unicode, QtCore.QString)):
-            outStrVal = unicode(val)
+        elif isinstance(val, (str)):
+            outStrVal = str(val)
         return outStrVal
 
     def setValue(self, relIds):
@@ -423,7 +428,7 @@ class One2many(OdooFieldTemplate):
             elif found:
                 del self.treeViewObj.idLineRel[rowInd]
                 self.treeViewObj.idLineRel[rowInd - 1] = objId
-        print self.treeViewObj.idLineRel
+        print (self.treeViewObj.idLineRel)
 
     def valueChanged(self):
         self.valueTemplateChanged()

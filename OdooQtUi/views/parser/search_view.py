@@ -8,8 +8,12 @@ import logging
 
 
 import xml.etree.cElementTree as ElementTree
-from PyQt4 import QtGui
-from PyQt4 import QtCore
+try:
+    from PySide import QtGui
+    from PySide import QtCore
+except Exception as ex:
+    from PyQt4 import QtGui
+    from PyQt4 import QtCore
 from functools import partial
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.utils_odoo_conn import utils
@@ -48,7 +52,7 @@ class SearchView(object):
         outFilters = []
         for conditionObj in self.globalCondition:
             outFilters.extend(conditionObj.condition)
-        print 'OutCondition %r' % (unicode(outFilters))
+        print ('OutCondition %r' % (str(outFilters)))
         if self.parent:
             self.parent.filter_changed_signal.emit(outFilters)
 
@@ -59,7 +63,7 @@ class SearchView(object):
         lineEditList = [self.linedit]
         lineEditList.extend(self.tmpLineEdits)
         for lineEdit in lineEditList:
-            text = unicode(lineEdit.text())
+            text = str(lineEdit.text())
             fieldObj = self.getTmpField(text)
             conditionList.append(fieldObj.condition)
             operators.append('|')
@@ -198,7 +202,7 @@ class SearchView(object):
         try:
             evalDomain = eval(fieldAttributes.get('domain', ''))
             evalDomain = self.evaluateCondition(evalDomain)
-        except Exception, ex:
+        except Exception as ex:
             logging.error('Unable to compute domain %r. EX: %r' % (fieldAttributes.get('domain', ''), ex))
         operators = []
         conds = []
@@ -226,7 +230,7 @@ class SearchView(object):
         if not actionChange:
             logging.warning('Action not found')
             return
-        stringOption = unicode(actionChange.iconText())
+        stringOption = str(actionChange.iconText())
         filterObj = self.checkFilter(stringOption)
         if filterObj:
             if not newVal:  # Uncheck the filter
@@ -254,7 +258,7 @@ class SearchView(object):
             @fields: List of field objects
             @filters: List of filter objects
         '''
-        currentVal = unicode(currentVal)
+        currentVal = str(currentVal)
         stringList = []
         self.tmpFields = [] # Do not remove this clear or search without selecting a value will be break
         if currentVal:
@@ -272,9 +276,9 @@ class SearchView(object):
         self.filterListModel.setStringList(stringList)
 
     def textChangedEvent(self, newText=''):
-        newText = unicode(newText)
+        newText = str(newText)
         if newText:
-            self.populateCombo(currentVal=unicode(newText))
+            self.populateCombo(currentVal=str(newText))
 
     def returnPressedLocal(self):
         if self.orPressed:
@@ -300,7 +304,7 @@ class SearchView(object):
                 layout.removeWidget(elem)
     
     def delayedAddFieldFilter(self):
-        filterText = unicode(self.linedit.text())
+        filterText = str(self.linedit.text())
         tmpField = self.getTmpField(filterText)
         if not tmpField:
             return
@@ -491,7 +495,7 @@ class SearchView(object):
         
     def checkFilter(self, val):
         for filterObj in self.filters:
-            if unicode(filterObj.string.strip()) == unicode(val):
+            if str(filterObj.string.strip()) == str(val):
                 return filterObj
         return False
 
@@ -525,12 +529,12 @@ class SearchView(object):
         outFilter = []
         operators = []
         for elem in conditions:
-            if isinstance(elem, (str, unicode)):
+            if isinstance(elem, (str, str)):
                 if not operators:
                     operators.append(elem)
             elif isinstance(elem, (tuple, list)):
                 if not operators:
-                    if outFilter and not isinstance(outFilter[-1], (str, unicode)):
+                    if outFilter and not isinstance(outFilter[-1], (str, str)):
                         outFilter.append('&')
                     outFilter.append(elem)
                 else:
@@ -563,7 +567,7 @@ class CustomQCompleter(QtGui.QCompleter):
             def filterAcceptsRow(self, sourceRow, sourceParent):
                 index0 = self.sourceModel().index(sourceRow, 0, sourceParent)
                 searchStr = local_completion_prefix.lower()
-                modelStr = unicode(self.sourceModel().data(index0, QtCore.Qt.DisplayRole).toString().toLower())
+                modelStr = str(self.sourceModel().data(index0, QtCore.Qt.DisplayRole).toString().toLower())
                 return searchStr in modelStr
 
         proxy_model = InnerProxyModel()
@@ -712,20 +716,20 @@ class QVBoxLayCustom(QtGui.QVBoxLayout):
 
     def getValue(self, fieldType):
         if fieldType in ['char', 'many2one', 'text', 'one2many', 'many2many']:
-            return unicode(self.mainLineEditWidget.text())
+            return str(self.mainLineEditWidget.text())
         elif fieldType == 'boolean':
             return ''
         elif fieldType == 'date':
-            return unicode(self.dateWidget.date().toPyDate())
+            return str(self.dateWidget.date().toPyDate())
         elif fieldType == 'datetime':
-            return unicode(self.datetimeWidget.dateTime().toPyDateTime())
+            return str(self.datetimeWidget.dateTime().toPyDateTime())
         elif fieldType == 'integer':
             return self.integerSpinboxWidget.value()
         elif fieldType == 'float':
             try:
-                return float(unicode(self.mainLineEditWidget.text()))
-            except Exception, ex:
-                utils.logMessage('warning', unicode(ex), 'getValue')
+                return float(str(self.mainLineEditWidget.text()))
+            except Exception as ex:
+                utils.logMessage('warning', str(ex), 'getValue')
                 utilsUi.launchMessage('Wrong value for float field!', 'warning')
                 return 0
 
