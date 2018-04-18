@@ -26,7 +26,7 @@ try:
     import win32ui
     import win32com.client
     from win32com.client import Dispatch
-except Exception, ex:
+except Exception as ex:
     logging.error('Windows imports cannot be loaded')
     logging.error(ex)
 # C:\Users\Daniel\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup
@@ -76,7 +76,7 @@ def startUpEnable(pathFrom, startUpflag=False):
         else:
             if os.path.exists(linkPath):
                 os.remove(linkPath)
-    except Exception, ex:
+    except Exception as ex:
         logging.error(ex)
 
 
@@ -133,7 +133,7 @@ def getExeFromPath(startingPath='', extension='.exe'):
                     mode = st.st_mode
                     if mode & executable:
                         outExeList.append(fileCompletePath)
-            except Exception, ex:
+            except Exception as ex:
                 logging.error('Error during path generation, startingPath:%r' % (startingPath))
                 logging.error(ex)
     return outExeList
@@ -228,7 +228,7 @@ def packFile(filePath):
     try:
         with open(filePath, "rb") as filedata:
             content = base64.encodestring("".join(filedata.readlines()))
-    except Exception, ex:
+    except Exception as ex:
         logging.warning("PackFile : broken stream on file : %r. Err: %r" % (filePath, ex))
         raise Exception("PackFile : broken stream on file : %r." % (filePath))
     return content
@@ -245,7 +245,7 @@ def unpackFile(content, toFile):
     try:
         value = base64.decodestring(content)
         filedata.write(value)
-    except Exception, ex:
+    except Exception as ex:
         logging.warning("UnpackFile : broken stream on file : %r Error: %r" % (toFile, ex))
         raise ex
     filedata.close()
@@ -258,7 +258,7 @@ def openByDefaultEditor(path):
         toOpen = '"%s"' % (path).encode(sys.getfilesystemencoding())
         logMessage('debug', '[openCommon] toOpen: %s' % (toOpen), 'openCommon')
         os.startfile(toOpen)
-    except Exception, ex:
+    except Exception as ex:
         logMessage('error', 'error during opening file with default editor %r' % (ex), 'openByDefaultEditor')
         return False
     return True
@@ -276,7 +276,7 @@ def getOS():
 
 
 def logMessage(msgType='DEBUG', message='', functionName=''):
-    msg = '%s[%s] %s: %s' % (unicode(datetime.datetime.now()), functionName, unicode(msgType).upper(), message)
+    msg = '%s[%s] %s: %s' % (str(datetime.datetime.now()), functionName, str(msgType).upper(), message)
     if msgType.upper() == 'DEBUG':
         logging.debug(msg)
     elif msgType.upper() == 'INFO':
@@ -302,7 +302,7 @@ def convertJpgToPng(jpgPath, savePngPath=''):
         if not os.path.exists(savePngPath):
             logMessage('WARNING', 'Failed to convert image. Png %s path does not exists' % (savePngPath))
         return savePngPath
-    except Exception, ex:
+    except Exception as ex:
         logMessage('error', 'Error during converting image: %r' % (ex), 'convertJpgToPng')
         return ''
 
@@ -314,17 +314,17 @@ def getRowsFromListWidget(listWidget):
         listItem = listWidget.item(index)
         cellValue = ''
         if listItem:
-            cellValue = unicode(listItem.text())
+            cellValue = str(listItem.text())
         outList.append(cellValue)
     return outList
 
 
 def evalValue(val):
-    val = unicode(val)
+    val = str(val)
     try:
         return eval(val)
-    except Exception, ex:
-        logging.warning(unicode(ex))
+    except Exception as ex:
+        logging.warning(str(ex))
         return val
 
 
@@ -377,13 +377,13 @@ def getRowsFromTableWidget(tableWidget, outType='list', fieldNames=[], rowsIndex
 
 def getSelectedRowsFromListWidget(listWidget):
     itemsSelected = listWidget.selectedItems()
-    return [unicode(item.text()) for item in itemsSelected]
+    return [str(item.text()) for item in itemsSelected]
 
 
 def evaluateBoolean(val):
     if isinstance(val, bool):
         return val
-    elif isinstance(val, (unicode, str)):
+    elif isinstance(val, (str, str)):
         invisible = eval(val)
         if invisible:
             return True
@@ -396,7 +396,7 @@ def evaluateBoolean(val):
 
 
 def evaluateModifiers(modifiers):
-    if isinstance(modifiers, (unicode, str)):
+    if isinstance(modifiers, (str, str)):
         modifiers = json.loads(modifiers)
     invisibleConditions = modifiers.get('invisible', {})
     readonlyConditions = modifiers.get('readonly', {})
@@ -438,12 +438,12 @@ def evaluateAttrs(fieldsDict, toCompute):
                 return False
             return fieldVal not in valToCompare
         elif operator == 'like':
-            if not isinstance(valToCompare, (unicode, str)):
+            if not isinstance(valToCompare, (str, str)):
                 logMessage('warning', 'valToCompare: %r is not a char for operator: %r' % (valToCompare, operator), 'evalSingleCondition')
                 return False
             return fieldVal in valToCompare
         elif operator == 'ilike':
-            if not isinstance(valToCompare, (unicode, str)):
+            if not isinstance(valToCompare, (str, str)):
                 logMessage('warning', 'valToCompare: %r is not a char for operator: %r' % (valToCompare, operator), 'evalSingleCondition')
                 return False
             return fieldVal.lower() in valToCompare.lower()
@@ -456,7 +456,7 @@ def evaluateAttrs(fieldsDict, toCompute):
     conditions = []
     operators = []
     for singleCompute in toCompute:
-        if isinstance(singleCompute, (unicode, str)):
+        if isinstance(singleCompute, (str, str)):
             if singleCompute == '|':
                 operators.append(singleCompute)
                 continue
