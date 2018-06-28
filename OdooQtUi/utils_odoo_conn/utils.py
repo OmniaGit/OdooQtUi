@@ -297,7 +297,6 @@ def logMessage(msgType='DEBUG', message='', functionName=''):
         logging.error(msg)
     else:
         logging.debug(msg)
-    print msg
 
 
 def convertJpgToPng(jpgPath, savePngPath=''):
@@ -509,8 +508,7 @@ def timeit(method):
         result = method(*args, **kw)
         te = time.time()
 
-        print '%2.2f sec, %r par: %r' % \
-              (te - ts, method.__name__, args[1:])
+        logDebug('%2.2f sec, %r par: %r' % (te - ts, method.__name__, args[1:]), 'timeit')
         return result
 
     return timed

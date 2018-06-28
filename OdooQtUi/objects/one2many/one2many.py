@@ -423,7 +423,6 @@ class One2many(OdooFieldTemplate):
             elif found:
                 del self.treeViewObj.idLineRel[rowInd]
                 self.treeViewObj.idLineRel[rowInd - 1] = objId
-        print self.treeViewObj.idLineRel
 
     def valueChanged(self):
         self.valueTemplateChanged()

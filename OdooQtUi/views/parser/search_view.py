@@ -48,7 +48,7 @@ class SearchView(object):
         outFilters = []
         for conditionObj in self.globalCondition:
             outFilters.extend(conditionObj.condition)
-        print 'OutCondition %r' % (unicode(outFilters))
+        utils.logDebug('OutCondition %r' % (unicode(outFilters)), 'launchFilterChanged')
         if self.parent:
             self.parent.filter_changed_signal.emit(outFilters)
 

@@ -104,7 +104,7 @@ class Binary(OdooFieldTemplate):
         self.widgetQtObj.setText('')
 
     def valueChanged(self, val):
-        print 'To implement valueChanged changed for binary'
+        utils.logDebug('To implement valueChanged changed for binary', 'valueChanged')
         self.valueTemplateChanged()
 
     def setValue(self, newVal):

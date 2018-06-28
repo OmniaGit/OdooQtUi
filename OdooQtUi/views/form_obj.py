@@ -49,7 +49,7 @@ class TemplateFormView(TemplateView):
             utils.logMessage('warning', 'Unable to get fields view definition!', '_initViewObj')
 
     def updateDataStructure(self, pageIndex=0):
-        print 'compute Nootebook fields: %r' % (pageIndex)
+        utils.logDebug('compute Nootebook fields: %r' % (pageIndex), 'updateDataStructure')
         if pageIndex > 0 and pageIndex in self.formObj.nootebookFieldsToCompute:
             dictFieldsToUpdate = self.formObj.nootebookFieldsToCompute[pageIndex]
             fieldNamesToUpdate = dictFieldsToUpdate.keys()

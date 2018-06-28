@@ -164,7 +164,6 @@ class Many2many(OdooFieldTemplate):
             elif found:
                 del self.treeViewObj.idLineRel[rowInd]
                 self.treeViewObj.idLineRel[rowInd - 1] = objId
-        print self.treeViewObj.idLineRel
 
     def addAnItem(self):
         def acceptDial():
@@ -220,7 +219,6 @@ class Many2many(OdooFieldTemplate):
                         localIndexId[rowIndex] = objId
                     checkedRows.append(rowIndex)
             self.setValue(self.currentValue)
-        print self.treeViewObj.idLineRel
 
     def valueChanged(self):
         self.valueTemplateChanged()
