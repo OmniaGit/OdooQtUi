@@ -13,10 +13,14 @@ import logging
 import datetime
 import traceback
 
-from PyQt4 import QtGui, QtCore
 from os.path import expanduser
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.utils_odoo_conn import utils
+
+try:
+    from PyQt4 import QtGui, QtCore
+except Exception as ex:
+    utils.logError('Unable to import Qt')
 
 DEFAULT_ICON_PATH = ''
 

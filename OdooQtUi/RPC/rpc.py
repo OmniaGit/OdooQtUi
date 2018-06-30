@@ -15,6 +15,7 @@ class RpcConnection(object):
         self.sockInstance = False
         self.contextUser = {}
         self.userLogged = False
+        self.useInterface = True
         return super(RpcConnection, self).__init__()
 
     def initConnection(self, connectionType, userName, userPassword, databaseName, xmlrpcPort=8069, scheme='http', xmlrpcServerIP='127.0.0.1'):
@@ -27,6 +28,7 @@ class RpcConnection(object):
         self.connectionType = connectionType
         if connectionType == 'xmlrpc':
             self.sockInstance = XmlRpcConnection(userName, userPassword, databaseName, xmlrpcPort, scheme, xmlrpcServerIP)
+            self.sockInstance.useInterface = self.useInterface
 
     def getLoginInfos(self):
         return [self.userName,
