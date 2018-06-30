@@ -1,13 +1,11 @@
 '''
 Created on 02 feb 2017
 
-@author: Daniel
+@author: Daniel Smerghetto
 '''
 import sys
 import logging
 
-from PyQt4 import QtGui
-from PyQt4 import QtCore
 from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.RPC.rpc import connectionObj
@@ -16,6 +14,13 @@ from OdooQtUi.views.form_obj import TemplateFormView
 from OdooQtUi.views.tree_tree_obj import TemplateTreeTreeView
 from OdooQtUi.views.tree_list_obj import TemplateTreeListView
 from OdooQtUi.interface.login import LoginDialComplete
+
+try:
+    from PySide import QtGui
+    from PySide import QtCore
+except Exception as ex:
+    from PyQt4 import QtGui
+    from PyQt4 import QtCore
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)

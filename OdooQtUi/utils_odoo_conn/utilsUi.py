@@ -20,7 +20,11 @@ from OdooQtUi.utils_odoo_conn import utils
 try:
     from PyQt4 import QtGui, QtCore
 except Exception as ex:
+<<<<<<< HEAD
     utils.logError('Unable to import Qt')
+=======
+    logging.warning('Unable to load PyQt due to error %r' % (ex))
+>>>>>>> branch 'master' of https://senza_nome@bitbucket.org/senza_nome/tray_odoo_connector.git
 
 DEFAULT_ICON_PATH = ''
 
