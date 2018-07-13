@@ -3,7 +3,7 @@ Created on 17 Feb 2017
 
 @author: dsmerghetto
 '''
-FONT_SIZE = "font-size: 10px;"
+FONT_SIZE = "font-size: 11px;"
 # Form color
 #old_violet = #875a7b
 VIOLET_BACKGROUND = 'background-color:#875a7b;'

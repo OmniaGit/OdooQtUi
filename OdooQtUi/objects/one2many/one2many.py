@@ -4,7 +4,7 @@ Created on 7 Feb 2017
 @author: dsmerghetto
 '''
 import json
-
+import os
 from PyQt4 import QtGui, QtCore
 from OdooQtUi.utils_odoo_conn import utils, utilsUi
 from OdooQtUi.utils_odoo_conn import constants
@@ -30,7 +30,7 @@ class One2many(OdooFieldTemplate):
         self.evaluatedIds = {}
         self.currentValue = []
         self.messaggesLay = QtGui.QVBoxLayout()
-        self.messaggesLay.setSpacing(30)
+        self.messaggesLay.setSpacing(15)
         if self.odooWidgetType == 'mail_followers':
             self.widgetLyQtObject = QtGui.QVBoxLayout()
             self.treeViewObj = QtGui.QWidget()
@@ -67,12 +67,12 @@ class One2many(OdooFieldTemplate):
             self.noteLay = QtGui.QVBoxLayout()
             self.populateNoteLay()
             
-            self.widgetLyQtObject.setSpacing(30)
+            self.widgetLyQtObject.setSpacing(15)
             self.widgetLyQtObject.addWidget(self.messaggesButton)
             self.widgetLyQtObject.addLayout(self.messaggesButtLay)
             self.widgetLyQtObject.addLayout(self.noteLay)
             self.widgetLyQtObject.addLayout(self.messaggesLay)
-            self.widgetLyQtObject.addSpacerItem(QtGui.QSpacerItem(20,20, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding))
+            self.widgetLyQtObject.addSpacerItem(QtGui.QSpacerItem(10,10, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding))
         else:
             buttonsLay = QtGui.QHBoxLayout()
             self.labelQtObj = QtGui.QLabel(self.labelString)
@@ -111,6 +111,7 @@ class One2many(OdooFieldTemplate):
         if res:
             self.currentValue.insert(0, res)
         self.showMessagges()
+        self.textEditMess.setText('')
 
     def showNoteLay(self, visible=False):
         self.textEditMess.setHidden(not visible)
@@ -288,7 +289,8 @@ class One2many(OdooFieldTemplate):
             labelDate = QtGui.QLabel(write_date)
             labelBody = QtGui.QTextEdit()
             labelBody.setFrameShape(QtGui.QFrame.NoFrame)
-            labelBody.setText(bodyMessage)
+            #labelBody.setText(bodyMessage)
+            labelBody.insertHtml(bodyMessage)
             labelBody.setReadOnly(True)
             
             hlayUser = QtGui.QHBoxLayout()
@@ -301,14 +303,16 @@ class One2many(OdooFieldTemplate):
             
             attachmentLay = QtGui.QHBoxLayout()
             if attachment_ids:
-                res = connectionObj.read('ir.attachment', ['datas'], attachment_ids)
+                res = connectionObj.read('ir.attachment', ['datas', 'datas_fname'], attachment_ids)
                 for attachDict in res:
+                    fileContent = attachDict.get('datas', '')
+                    fileName = attachDict.get('datas_fname', '')
                     imageLay = QtGui.QVBoxLayout()
-                    labelImage = utilsUi.getQtImageFromContent(attachDict.get('datas', ''), imageWidth=120, imageHeight=120)
+                    labelImage = utilsUi.getQtImageFromContent(fileContent, imageWidth=120, imageHeight=120)
                     imageLay.addWidget(labelImage)
                     buttonDownloadImage = QtGui.QPushButton('Download')
                     buttonDownloadImage.setStyleSheet(constants.BUTTON_STYLE + 'max-width: 100px;')
-                    buttonDownloadImage.clicked.connect(partial(self.downloadImage, attachDict.get('datas', '')))
+                    buttonDownloadImage.clicked.connect(partial(self.downloadImage, fileContent, fileName))
                     imageLay.addWidget(buttonDownloadImage)
                     attachmentLay.addLayout(imageLay)
                 attachmentLay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding))
@@ -319,11 +323,13 @@ class One2many(OdooFieldTemplate):
             mainWidget.setStyleSheet('background-color: #cccbcb;')
             self.messaggesLay.addWidget(mainWidget)
 
-    def downloadImage(self, content):
+    def downloadImage(self, content, fileName):
         fileCleanContent = base64.b64decode(content)
-        filePath = utilsUi.getDirectoryFileToSaveSystem(None, fileType='*.png')
+        cleanFname, extension = os.path.splitext(fileName)
+        filePath = utilsUi.getDirectoryFileToSaveSystem(None, cleanFname, fileType='*%s' % (extension))
         if filePath:
-            with open(filePath, 'w') as writeFile:
+            filePath = unicode(filePath)
+            with open(filePath, 'wb') as writeFile:
                 writeFile.write(fileCleanContent)
             utils.openByDefaultEditor(filePath)
         
