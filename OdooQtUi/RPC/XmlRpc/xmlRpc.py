@@ -33,11 +33,14 @@ class XmlRpcConnection(object):
         try:
             t = TimeoutTransport()
             t.set_timeout(2.5)
-            # server = xmlrpclib.Server('http://time.xmlrpc.com/RPC2', transport=t)
             self.socketNoLogin = xmlrpclib.ServerProxy(self.urlNoLogin, transport=t)
         except Exception, ex:
             utils.logMessage('error', 'Error during login without user: %r' % (ex), 'loginNoUser')
-            return False
+            try:
+                self.socketNoLogin = xmlrpclib.ServerProxy(self.urlNoLogin)
+            except Exception as ex:
+                utils.logMessage('error', 'Error during login without user on second try: %r' % (ex), 'loginNoUser')
+                return False
         utils.logMessage('info', 'Successfull connection to Odoo using login No User', 'loginNoUser')
         return True
 
@@ -57,7 +60,11 @@ class XmlRpcConnection(object):
             self.socketYesLogin = xmlrpclib.ServerProxy(self.urlYesLogin, transport=t)
         except Exception, ex:
             utils.logMessage('error', 'Error getting server proxy: %r' % (ex), 'loginWithUser')
-            return False
+            try:
+                self.socketYesLogin = xmlrpclib.ServerProxy(self.urlYesLogin) 
+            except Exception as ex:
+                utils.logMessage('error', 'Unable to login with user on second try', 'loginWithUser')
+                return False
         utils.logMessage('info', 'Successfull connection to Odoo with user %r and database %r' % (self.userName, self.databaseName), 'loginNoUser')
         return True
 
