@@ -11,7 +11,7 @@ class RpcConnection(object):
 
     def __init__(self):
         self.userId = False
-        self.availableConnTypes = ['xmlrpc']
+        self.availableConnTypes = ['xmlrpc', 'secure-xmlrpc']
         self.sockInstance = False
         self.contextUser = {}
         self.userLogged = False
@@ -28,6 +28,9 @@ class RpcConnection(object):
         self.connectionType = connectionType
         if connectionType == 'xmlrpc':
             self.sockInstance = XmlRpcConnection(userName, userPassword, databaseName, xmlrpcPort, scheme, xmlrpcServerIP)
+            self.sockInstance.useInterface = self.useInterface
+        elif connectionType == 'secure-xmlrpc':
+            self.sockInstance = XmlRpcConnection(userName, userPassword, databaseName, xmlrpcPort, scheme, xmlrpcServerIP, secure=True)
             self.sockInstance.useInterface = self.useInterface
 
     def getLoginInfos(self):
