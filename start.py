@@ -216,7 +216,7 @@ if __name__ == '__main__':
             return tmplViewObj
 
         # tmplViewObj = tryForm('product.product', idToLoad=284, useChatter=True)
-        tmplViewObj = tryForm('product.product', idToLoad=1, useChatter=True)
+        tmplViewObj = tryForm('product.product', idToLoad=1, useChatter=False)
         # viewCheckBoxes = {0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled}
         dialog = QtGui.QDialog()
         lay = QtGui.QVBoxLayout()

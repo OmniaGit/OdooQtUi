@@ -434,27 +434,33 @@ class One2many(OdooFieldTemplate):
         self.valueTemplateChanged()
 
     def setReadonly(self, val=False):
-        if self.widgetQtObj:
-            self.widgetQtObj.setDisabled(val)
-        if self.treeViewObj:
-            self.treeViewObj.treeObj.tableWidget.setDisabled(val)
-            self.treeViewObj.buttToLeft.setDisabled(val)
-            self.treeViewObj.buttToRight.setDisabled(val)
-            self.treeViewObj.treeObj.widgetContents.setDisabled(val)
-        self.createButt.setDisabled(val)
-        super(One2many, self).setReadonly(val)
+        try:
+            if self.widgetQtObj:
+                self.widgetQtObj.setDisabled(val)
+            if self.treeViewObj:
+                self.treeViewObj.treeObj.tableWidget.setDisabled(val)
+                self.treeViewObj.buttToLeft.setDisabled(val)
+                self.treeViewObj.buttToRight.setDisabled(val)
+                self.treeViewObj.treeObj.widgetContents.setDisabled(val)
+            self.createButt.setDisabled(val)
+            super(One2many, self).setReadonly(val)
+        except Exception as ex:
+            utils.logError(ex, 'setReadonly')
 
     def setInvisible(self, val=False):
-        if self.widgetQtObj:
-            self.widgetQtObj.setHidden(val)
-        if self.treeViewObj:
-            self.treeViewObj.buttToLeft.setHidden(val)
-            self.treeViewObj.buttToRight.setHidden(val)
-            self.treeViewObj.treeObj.tableWidget.setHidden(val)
-            self.treeViewObj.treeObj.widgetContents.setHidden(val)
-        self.labelQtObj.setHidden(val)
-        self.createButt.setHidden(val)
-        super(One2many, self).setInvisible(val)
+        try:
+            if self.widgetQtObj:
+                self.widgetQtObj.setHidden(val)
+            if self.treeViewObj:
+                self.treeViewObj.buttToLeft.setHidden(val)
+                self.treeViewObj.buttToRight.setHidden(val)
+                self.treeViewObj.treeObj.tableWidget.setHidden(val)
+                self.treeViewObj.treeObj.widgetContents.setHidden(val)
+            self.labelQtObj.setHidden(val)
+            self.createButt.setHidden(val)
+            super(One2many, self).setInvisible(val)
+        except Exception as ex:
+            utils.logError(ex, 'setInvisible')
 
     @property
     def value(self):

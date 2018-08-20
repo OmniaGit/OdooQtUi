@@ -20,16 +20,33 @@ class XmlRpcConnection(object):
         self.xmlrpcPort = xmlrpcPort
         self.scheme = scheme
         self.xmlrpcServerIP = xmlrpcServerIP
-        self.urlCommon = self.scheme + '://' + str(self.xmlrpcServerIP) + ':' + str(self.xmlrpcPort) + '/xmlrpc/'
-        self.urlNoLogin = self.urlCommon + 'common'
-        self.urlListDB = self.urlCommon + 'db'
-        self.urlYesLogin = self.urlCommon + 'object'
+        self.xmlrpcType = '/xmlrpc/' # '/xmlrpc/2/' (no login is available)
+        # self.urlCommon = self.scheme + '://' + str(self.xmlrpcServerIP) + ':' + str(self.xmlrpcPort) + self.xmlrpcType
+        # self.urlNoLogin = self.urlCommon + 'common'
+        # self.urlListDB = self.urlCommon + 'db'
+        # self.urlYesLogin = self.urlCommon + 'object'
         self.socketNoLogin = False
         self.socketYesLogin = False
         self.userId = False
         self.useInterface = True
         self.secure = secure
 
+    @property
+    def urlNoLogin(self):
+        return self.urlCommon + 'common'
+
+    @property
+    def urlListDB(self):
+        return self.urlCommon + 'db'
+
+    @property
+    def urlYesLogin(self):
+        return self.urlCommon + 'object'
+
+    @property
+    def urlCommon(self):
+        return self.scheme + '://' + str(self.xmlrpcServerIP) + ':' + str(self.xmlrpcPort) + self.xmlrpcType
+        
     def loginNoUser(self):
         if not self.secure:
             try:
@@ -71,7 +88,14 @@ class XmlRpcConnection(object):
                 self.socketYesLogin = xmlrpclib.ServerProxy(self.urlYesLogin) 
             except Exception as ex:
                 utils.logMessage('error', 'Unable to login with user on secure', 'loginWithUser')
-                return False
+                try:
+                    self.xmlrpcType = '/xmlrpc/2/'
+                    self.socketNoLogin = xmlrpclib.ServerProxy(self.urlCommon)
+                    self.userId = self.socketNoLogin.authenticate(self.databaseName, self.userName, self.userPassword, {})
+                    self.socketYesLogin = xmlrpclib.ServerProxy(self.urlYesLogin)
+                except Exception as ex:
+                    utils.logMessage('error', 'Unable to login with user on secure with autenticate', 'loginWithUser')
+                    return False
         utils.logMessage('info', 'Successfull connection to Odoo with user %r and database %r' % (self.userName, self.databaseName), 'loginNoUser')
         return True
 

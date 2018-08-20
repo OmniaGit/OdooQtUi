@@ -45,12 +45,18 @@ class RpcConnection(object):
     def url(self):
         return self.sockInstance.urlYesLogin
 
-    def loginNoUser(self):
+    def loginNoUser(self, connectionType, userName, userPassword, databaseName, xmlrpcPort=8069, scheme='http', xmlrpcServerIP='127.0.0.1'):
+        if not self.sockInstance:
+            self.initConnection(connectionType, userName, userPassword, databaseName, xmlrpcPort, scheme, xmlrpcServerIP)
+            if not self.sockInstance:
+                return False
         return self.sockInstance.loginNoUser()
 
-    def loginWithUser(self):
+    def loginWithUser(self, connectionType, userName, userPassword, databaseName, xmlrpcPort=8069, scheme='http', xmlrpcServerIP='127.0.0.1'):
         if not self.sockInstance:
-            return False
+            self.initConnection(connectionType, userName, userPassword, databaseName, xmlrpcPort, scheme, xmlrpcServerIP)
+            if not self.sockInstance:
+                return False
         res = self.sockInstance.loginWithUser()
         self.userId = self.sockInstance.userId
         if self.userId:
