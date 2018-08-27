@@ -26,6 +26,7 @@ class XmlRpcConnection(object):
         self.urlYesLogin = self.urlCommon + 'object'
         self.socketNoLogin = False
         self.socketYesLogin = False
+        self.useInterface = True
         self.userId = False
 
     def loginNoUser(self):
@@ -67,7 +68,8 @@ class XmlRpcConnection(object):
             return xmlrpc.client.ServerProxy(self.urlListDB, transport=t).list()
         except Exception as ex:
             utils.logMessage('warning', 'Unable to list database. EX: %r' % (ex), 'listDb')
-            utilsUi.launchMessage('Unable to get database list, please check your login settings.', 'warning')
+            if self.useInterface:
+                utilsUi.launchMessage('Unable to get database list, please check your login settings.', 'warning')
         return False
 
     def search(self, obj, filterList, limit=False, offset=False, context={}):
@@ -207,17 +209,20 @@ class XmlRpcConnection(object):
                                                   kwargParameters)
         except socket.error as err:
             message = 'Unable to communicate with the server: %r' % err
-            utilsUi.launchMessage(message, 'error')
+            if self.useInterface:
+                utilsUi.launchMessage(message, 'error')
             utils.logMessage('error', message, 'callOdooFunction')
         except xmlrpc.client.Fault as err:
             try:
                 return self.socketYesLogin.execute(self.databaseName, self.userId, self.userPassword, odooObj, functionName, parameters)
             except Exception as ex:
                 message = 'Unable to communicate with the server: %r' % ex.faultCode
-                utilsUi.launchMessage(message, 'error')
+                if self.useInterface:
+                    utilsUi.launchMessage(message, 'error')
                 utils.logMessage('error', message, 'callOdooFunction')
         except Exception as ex:
-            utilsUi.launchMessage(ex, 'error')
+            if self.useInterface:
+                utilsUi.launchMessage(ex, 'error')
             utils.logMessage('error', ex, 'callOdooFunction')
             utils.logMessage('error', 'Error during call Odoo Function with arguments: %r, %r, %r, %r' % (odooObj, functionName, parameters, kwargParameters), 'callOdooFunction')
         return False
