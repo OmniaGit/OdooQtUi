@@ -17,8 +17,11 @@ try:
     from PySide import QtGui
     from PySide import QtCore
 except Exception as ex:
-    from PyQt4 import QtGui
-    from PyQt4 import QtCore
+    try:
+        from PyQt4 import QtGui
+        from PyQt4 import QtCore
+    except Exception as ex:
+        logging.warning('Unable to load interface')
 from os.path import expanduser
 from OdooQtUi.utils_odoo_conn import constants
 

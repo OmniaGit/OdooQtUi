@@ -33,7 +33,7 @@ class XmlRpcConnection(object):
             t = TimeoutTransport()
             t.set_timeout(2.5)
             # server = xmlrpc.Server('http://time.xmlrpc.com/RPC2', transport=t)
-            self.socketNoLogin = xmlrpc.ServerProxy(self.urlNoLogin, transport=t)
+            self.socketNoLogin = xmlrpc.client.ServerProxy(self.urlNoLogin, transport=t)
         except Exception as ex:
             utils.logMessage('error', 'Error during login without user: %r' % (ex), 'loginNoUser')
             return False
@@ -53,7 +53,7 @@ class XmlRpcConnection(object):
         try:
             t = TimeoutTransport()
             t.set_timeout(2.5)
-            self.socketYesLogin = xmlrpc.ServerProxy(self.urlYesLogin, transport=t)
+            self.socketYesLogin = xmlrpc.client.ServerProxy(self.urlYesLogin, transport=t)
         except Exception as ex:
             utils.logMessage('error', 'Error getting server proxy: %r' % (ex), 'loginWithUser')
             return False
@@ -64,7 +64,7 @@ class XmlRpcConnection(object):
         try:
             t = TimeoutTransport()
             t.set_timeout(2.5)
-            return xmlrpc.ServerProxy(self.urlListDB, transport=t).list()
+            return xmlrpc.client.ServerProxy(self.urlListDB, transport=t).list()
         except Exception as ex:
             utils.logMessage('warning', 'Unable to list database. EX: %r' % (ex), 'listDb')
             utilsUi.launchMessage('Unable to get database list, please check your login settings.', 'warning')
@@ -230,5 +230,5 @@ class TimeoutTransport(xmlrpc.client.Transport):
         self.timeout = timeout
 
     def make_connection(self, host):
-        h = http.HTTPConnection(host, timeout=self.timeout)
+        h = http.client.HTTPConnection(host, timeout=self.timeout)
         return h
