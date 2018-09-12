@@ -19,7 +19,7 @@ class Integer(OdooFieldTemplate):
         self.getQtObject()
 
     def getQtObject(self):
-        self.labelQtObj = QtGui.QLabel(self.labelString)
+        self.labelQtObj = QtGui.QLabel(self.fieldStringInterface)
         self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
         self.widgetQtObj = QtGui.QSpinBox()
         self.widgetQtObj.setStyleSheet(constants.INTEGER_STYLE)

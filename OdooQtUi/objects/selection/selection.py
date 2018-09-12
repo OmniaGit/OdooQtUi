@@ -53,7 +53,7 @@ class Selection(OdooFieldTemplate):
     def getQtObject(self):
         if self.widget == 'statusbar':
             return self.statusBar()
-        self.labelQtObj = QtGui.QLabel(self.labelString)
+        self.labelQtObj = QtGui.QLabel(self.fieldStringInterface)
         self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
         self.widgetQtObj = QtGui.QComboBox()
         self.widgetQtObj.setStyleSheet(constants.SELECTION_STYLE)

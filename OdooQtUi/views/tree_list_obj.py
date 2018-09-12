@@ -110,7 +110,7 @@ class TemplateTreeListView(TemplateView):
                 if fieldObj.fieldType in ['many2many', 'one2many']:
                     fieldsToRemove.append(fieldName)
                     continue
-                self.labelsOrdered.append(fieldObj.labelString)
+                self.labelsOrdered.append(fieldObj.fieldStringInterface)
             else:
                 self.labelsOrdered.append(fieldName)
         fields = [item for item in fields if item not in fieldsToRemove]

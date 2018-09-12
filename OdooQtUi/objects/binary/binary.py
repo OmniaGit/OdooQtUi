@@ -43,7 +43,7 @@ class Binary(OdooFieldTemplate):
             self.widgetQtObj.resize(self.imageWidth, self.imageHeight)
             self.widgetQtObj.setText('aaa')
         else:
-            self.labelQtObj = QtGui.QLabel(self.labelString)
+            self.labelQtObj = QtGui.QLabel(self.fieldStringInterface)
             self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
             self.widgetQtObj = QtGui.QLineEdit()
             self.widgetQtObj.setToolTip(self.tooltip)

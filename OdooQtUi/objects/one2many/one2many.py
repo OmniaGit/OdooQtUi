@@ -75,7 +75,7 @@ class One2many(OdooFieldTemplate):
             self.widgetLyQtObject.addSpacerItem(QtGui.QSpacerItem(10,10, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding))
         else:
             buttonsLay = QtGui.QHBoxLayout()
-            self.labelQtObj = QtGui.QLabel(self.labelString)
+            self.labelQtObj = QtGui.QLabel(self.fieldStringInterface)
             self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
             buttonsLay.addWidget(self.labelQtObj)
             self.createButt = QtGui.QPushButton('Create')

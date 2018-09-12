@@ -15,7 +15,7 @@ class Datetime(OdooFieldTemplate):
         self.getQtObject()
 
     def getQtObject(self):
-        self.labelQtObj = QtGui.QLabel(self.labelString)
+        self.labelQtObj = QtGui.QLabel(self.fieldStringInterface)
         self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
         self.widgetQtObj = QtGui.QDateTimeEdit()
         self.widgetQtObj.setStyleSheet(constants.DATE_STYLE)
