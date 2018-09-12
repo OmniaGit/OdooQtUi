@@ -359,4 +359,4 @@ class FormView(QtCore.QObject, object):
     @utils.timeit
     def computeArch(self):
         if self.arch:
-            return self.computeArchRecursion(ElementTree.XML(self.arch))
+            return self.computeArchRecursion(ElementTree.XML(self.arch.encode('utf-8')))
