@@ -274,6 +274,10 @@ class SearchView(object):
     def textChangedEvent(self, newText=''):
         newText = unicode(newText)
         if newText:
+            for tmpField in self.tmpFields:
+                if unicode(tmpField.interfaceStringWithValue) == unicode(newText):
+                    self.populateCombo(currentVal=unicode(tmpField.value))
+                    return
             self.populateCombo(currentVal=unicode(newText))
 
     def returnPressedLocal(self):
