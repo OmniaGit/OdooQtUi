@@ -100,13 +100,13 @@ class MainConnector(object):
         utils.logMessage('info', 'Loading view %s' % (viewObj), '_initView')
         return viewObj, localLang, rpcObj
 
-    def initTreeListViewObject(self, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', viewCheckBoxes={}, viewFilter=False):
+    def initTreeListViewObject(self, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', viewCheckBoxes={}, viewFilter=False, deafult_filter=[]):
         viewObjSearch = None
         viewObj, localLang, rpcObj = self._initView('tree_list', rpcObj, activeLanguage, odooObjectName, viewName, view_id, viewFilter, viewCheckBoxes)
         if viewFilter:
             allFieldsDef = rpcObj.fieldsGet(odooObjectName)
             viewObjSearch = self.initSearchViewObj(odooObjectName, viewName='', view_id='', rpcObj=rpcObj, activeLanguage=activeLanguage, allFieldsDef=allFieldsDef)
-        return TemplateTreeListView(rpcObj, viewObj, localLang, viewObjSearch, self)
+        return TemplateTreeListView(rpcObj, viewObj, localLang, viewObjSearch, self, deafult_filter)
 
     def initSearchViewObj(self, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', searchMode='ilike', allFieldsDef={}):
         viewObj, localLang, rpcObj = self._initView('search', rpcObj, activeLanguage, odooObjectName, viewName, view_id, searchMode=searchMode)
