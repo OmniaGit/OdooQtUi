@@ -424,7 +424,7 @@ def evaluateAttrs(fieldsDict, toCompute):
             #logMessage('warning', 'No field obj found for name %r' % (fieldName), 'evalSingleCondition')
             return False
         fieldVal = fieldObj.currentValue
-        if operator == '=':
+        if operator == '=' or operator == '==':
             return fieldVal == valToCompare
         elif operator == '!=':
             return fieldVal != valToCompare
@@ -456,6 +456,7 @@ def evaluateAttrs(fieldsDict, toCompute):
                 logMessage('warning', 'valToCompare: %r is not a char for operator: %r' % (valToCompare, operator), 'evalSingleCondition')
                 return False
             return fieldVal.lower() in valToCompare.lower()
+        return False
 
     if isinstance(toCompute, bool):
         return toCompute

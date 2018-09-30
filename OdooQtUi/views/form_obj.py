@@ -44,6 +44,9 @@ class TemplateFormView(TemplateView):
             self.mappingInterface = self.formObj.globalMapping
             self.addToObject()
             self._setFieldModifiers()
+            oldLay = self.layout()
+            if oldLay:
+                del oldLay
             self.setLayout(layout)
         else:
             utils.logMessage('warning', 'Unable to get fields view definition!', '_initViewObj')

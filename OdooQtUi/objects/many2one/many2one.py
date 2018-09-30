@@ -212,7 +212,7 @@ class Many2one(OdooFieldTemplate):
 
             self.setViewObject()
             self.viewObj.loadIds([])
-            mainLay = self.viewObj.QtInterface
+            mainLay = self.viewObj.layout()
             lay, okButt, cancelButt = utilsUi.getButtonBox()
             okButt.clicked.connect(accept)
             cancelButt.clicked.connect(reject)

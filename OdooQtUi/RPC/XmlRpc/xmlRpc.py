@@ -261,6 +261,9 @@ class XmlRpcConnection(object):
             utils.logMessage('error', message, 'callOdooFunction')
         except xmlrpclib.Fault, err:
             try:
+                if err.faultString:
+                    if self.useInterface:
+                        utilsUi.launchMessage(err.faultString, 'error')
                 return self.socketYesLogin.execute(self.databaseName, self.userId, self.userPassword, odooObj, functionName, parameters)
             except Exception, ex:
                 message = 'Unable to communicate with the server: %r' % ex.faultCode
