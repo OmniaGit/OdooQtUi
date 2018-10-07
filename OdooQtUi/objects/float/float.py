@@ -20,7 +20,7 @@ class Float(OdooFieldTemplate):
         self.getQtObject()
 
     def getQtObject(self):
-        self.labelQtObj = QtGui.QLabel(self.labelString)
+        self.labelQtObj = QtGui.QLabel(self.fieldStringInterface)
         self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
         self.widgetQtObj = QtGui.QDoubleSpinBox()
         self.widgetQtObj.setStyleSheet(constants.FLOAT_STYLE)

@@ -4,9 +4,14 @@ Created on 24 Mar 2017
 @author: dsmerghetto
 '''
 
-from PySide import QtCore
-from PySide.QtCore import QObject
+try:
+    from PySide import QtCore
+    from PySide.QtCore import QObject
+except Exception as ex:
+    from PyQt4 import QtCore
+    from PyQt4.QtCore import QObject
 
+from OdooQtUi.utils_odoo_conn import utils
 from parser.search_view import SearchView
 from templateView import TemplateView
 
@@ -31,6 +36,5 @@ class TemplateSearchView(TemplateView, QObject):
         self.setLayout(layout)
 
     def _filterChanged(self, filterList):
-        print 'New filter %r' % (filterList)
+        utils.logDebug('New filter %r' % (filterList), '_filterChanged')
         self.out_filter_change_signal.emit(filterList)
-

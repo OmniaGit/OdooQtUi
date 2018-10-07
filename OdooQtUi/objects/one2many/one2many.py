@@ -4,9 +4,15 @@ Created on 7 Feb 2017
 @author: dsmerghetto
 '''
 import json
+import os
+import logging
+try:
+    from PySide import QtGui
+    from PySide import QtCore
+except Exception as ex:
+    logging.warning("Unable to py side it try py qt")
+    from PyQt4 import QtGui, QtCore
 
-from PySide import QtGui
-from PySide import QtCore
 from OdooQtUi.utils_odoo_conn import utils, utilsUi
 from OdooQtUi.utils_odoo_conn import constants
 from functools import partial
@@ -31,7 +37,7 @@ class One2many(OdooFieldTemplate):
         self.evaluatedIds = {}
         self.currentValue = []
         self.messaggesLay = QtGui.QVBoxLayout()
-        self.messaggesLay.setSpacing(30)
+        self.messaggesLay.setSpacing(15)
         if self.odooWidgetType == 'mail_followers':
             self.widgetLyQtObject = QtGui.QVBoxLayout()
             self.treeViewObj = QtGui.QWidget()
@@ -57,7 +63,7 @@ class One2many(OdooFieldTemplate):
             self.followersOpened = False
             self.widgetLyQtObject.addWidget(self.followersButton)
             self.widgetLyQtObject.addLayout(self.messaggesLay)
-            self.widgetLyQtObject.addSpacerItem(QtGui.QSpacerItem(100,100, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding))
+            self.widgetLyQtObject.addSpacerItem(QtGui.QSpacerItem(100, 100, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding))
         elif self.odooWidgetType == 'mail_thread':
             self.messaggesButton = QtGui.QPushButton('Show Chatter')
             self.messaggesButton.setStyleSheet(constants.BUTTON_STYLE)
@@ -67,16 +73,15 @@ class One2many(OdooFieldTemplate):
             self.populateMessButtLay()
             self.noteLay = QtGui.QVBoxLayout()
             self.populateNoteLay()
-            
-            self.widgetLyQtObject.setSpacing(30)
+            self.widgetLyQtObject.setSpacing(15)
             self.widgetLyQtObject.addWidget(self.messaggesButton)
             self.widgetLyQtObject.addLayout(self.messaggesButtLay)
             self.widgetLyQtObject.addLayout(self.noteLay)
             self.widgetLyQtObject.addLayout(self.messaggesLay)
-            self.widgetLyQtObject.addSpacerItem(QtGui.QSpacerItem(20,20, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding))
+            self.widgetLyQtObject.addSpacerItem(QtGui.QSpacerItem(10, 10, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding))
         else:
             buttonsLay = QtGui.QHBoxLayout()
-            self.labelQtObj = QtGui.QLabel(self.labelString)
+            self.labelQtObj = QtGui.QLabel(self.fieldStringInterface)
             self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
             buttonsLay.addWidget(self.labelQtObj)
             self.createButt = QtGui.QPushButton('Create')
@@ -112,6 +117,7 @@ class One2many(OdooFieldTemplate):
         if res:
             self.currentValue.insert(0, res)
         self.showMessagges()
+        self.textEditMess.setText('')
 
     def showNoteLay(self, visible=False):
         self.textEditMess.setHidden(not visible)
@@ -133,7 +139,7 @@ class One2many(OdooFieldTemplate):
     def sendMessage(self):
         self.showNoteLay(True)
         self.currentMessType = 'MESSAGE'
-        
+
     def _sendMessage(self, body=''):
         parameters = self.parentId
         kwargParameters = {}
@@ -147,11 +153,11 @@ class One2many(OdooFieldTemplate):
         kwargParameters['content_subtype'] = 'html'
         context['thread_model'] = 'product.product'
         return connectionObj.callCustomMethod('mail.thread', 'message_post', parameters, kwargParameters, context=context)
-    
+
     def logNote(self):
         self.showNoteLay(True)
         self.currentMessType = 'NOTE'
-    
+
     def _logNote(self, body=''):
         parameters = self.parentId
         kwargParameters = {}
@@ -184,7 +190,7 @@ class One2many(OdooFieldTemplate):
                 if partnerRes and partnerRes[0] == currentPartnerId:
                     self.setFollowingButton()
             self.buttonFollowersCount.setMenu(self.toolmenu)
-            self.buttonFollowersCount.setPopupMode(QtGui.QToolButton.InstantPopup) 
+            self.buttonFollowersCount.setPopupMode(QtGui.QToolButton.InstantPopup)
             self.buttonFollowersCount.setStyleSheet(constants.BUTTON_STYLE)
             lay.addWidget(self.buttonFollowersCount)
             self.messaggesLay.addLayout(lay)
@@ -214,7 +220,7 @@ class One2many(OdooFieldTemplate):
 
     def addFollower(self):
         utils.logMessage('warning', 'Not implemented add follower', 'addFollower')
-    
+
     def addChannel(self):
         utils.logMessage('warning', 'Not implemented add channel', 'addChannel')
 
@@ -238,7 +244,7 @@ class One2many(OdooFieldTemplate):
     def setFollowingButton(self):
         self.followButton.setText('Following')
         self.followButton.setStyleSheet(constants.BUTTON_STYLE)
-        
+
     def _addFollower(self, partnerId):
         if partnerId:
             values = {'res_model': self.parentModel,
@@ -260,18 +266,20 @@ class One2many(OdooFieldTemplate):
         for elem in res:
             partnerId, partnerName = elem.get('partner_id', [False, ''])
         return partnerId, partnerName
-        
+
     def followClicked(self):
         currText = unicode(self.followButton.text())
         partnerId, _partnerName = self.getPartnerIdFromUserId()
         if partnerId:
             if currText == 'Following':
-                res = connectionObj.search(self.relation, [('partner_id', '=', partnerId), ('res_id', '=', self.parentId)])
+                res = connectionObj.search(self.relation,
+                                           [('partner_id', '=', partnerId),
+                                            ('res_id', '=', self.parentId)])
                 for objId in res:
                     self.removeFollowerChannel(objId)
             else:
                 self._addFollower(partnerId)
-        
+
     def showMessagges(self):
         self.buttSendMessage.setHidden(False)
         self.buttLogNote.setHidden(False)
@@ -287,7 +295,7 @@ class One2many(OdooFieldTemplate):
             labelDate = QtGui.QLabel(write_date)
             labelBody = QtGui.QTextEdit()
             labelBody.setFrameShape(QtGui.QFrame.NoFrame)
-            labelBody.setText(bodyMessage)
+            labelBody.insertHtml(bodyMessage)
             labelBody.setReadOnly(True)
             hlayUser = QtGui.QHBoxLayout()
             hlayUser.addWidget(labelUser)
@@ -297,14 +305,16 @@ class One2many(OdooFieldTemplate):
             mainVLay.addWidget(labelBody)
             attachmentLay = QtGui.QHBoxLayout()
             if attachment_ids:
-                res = connectionObj.read('ir.attachment', ['datas'], attachment_ids)
+                res = connectionObj.read('ir.attachment', ['datas', 'datas_fname'], attachment_ids)
                 for attachDict in res:
+                    fileContent = attachDict.get('datas', '')
+                    fileName = attachDict.get('datas_fname', '')
                     imageLay = QtGui.QVBoxLayout()
-                    labelImage = utilsUi.getQtImageFromContent(attachDict.get('datas', ''), imageWidth=120, imageHeight=120)
+                    labelImage = utilsUi.getQtImageFromContent(fileContent, imageWidth=120, imageHeight=120)
                     imageLay.addWidget(labelImage)
                     buttonDownloadImage = QtGui.QPushButton('Download')
                     buttonDownloadImage.setStyleSheet(constants.BUTTON_STYLE + 'max-width: 100px;')
-                    buttonDownloadImage.clicked.connect(partial(self.downloadImage, attachDict.get('datas', '')))
+                    buttonDownloadImage.clicked.connect(partial(self.downloadImage, fileContent, fileName))
                     imageLay.addWidget(buttonDownloadImage)
                     attachmentLay.addLayout(imageLay)
                 attachmentLay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding))
@@ -315,22 +325,24 @@ class One2many(OdooFieldTemplate):
             mainWidget.setStyleSheet('background-color: #cccbcb;')
             self.messaggesLay.addWidget(mainWidget)
 
-    def downloadImage(self, content):
+    def downloadImage(self, content, fileName):
         fileCleanContent = base64.b64decode(content)
-        filePath = utilsUi.getDirectoryFileToSaveSystem(None, fileType='*.png')
+        cleanFname, extension = os.path.splitext(fileName)
+        filePath = utilsUi.getDirectoryFileToSaveSystem(None, cleanFname, fileType='*%s' % (extension))
         if filePath:
-            with open(filePath, 'w') as writeFile:
+            filePath = unicode(filePath)
+            with open(filePath, 'wb') as writeFile:
                 writeFile.write(fileCleanContent)
             utils.openByDefaultEditor(filePath)
-        
+
     def createAndAdd(self):
         try:
             def acceptDial():
                 dialog.accept()
-    
+
             def rejectDial():
                 dialog.reject()
-    
+
             dialog = QtGui.QDialog()
             mainLay = QtGui.QVBoxLayout()
             viewObjForm = self.odooConnector.initFormViewObj(self.relation, rpcObj=self.rpc)
@@ -371,9 +383,9 @@ class One2many(OdooFieldTemplate):
     def setValue(self, relIds):
         self.currentValue = relIds
         if self.odooWidgetType == 'mail_followers':
-            return 
+            return
         elif self.odooWidgetType == 'mail_thread':
-            return 
+            return
         else:
             self.treeViewObj.loadIds(relIds, {}, {}, {})
             self.widgetQtObj = self.treeViewObj.treeObj.tableWidget
@@ -419,33 +431,38 @@ class One2many(OdooFieldTemplate):
             elif found:
                 del self.treeViewObj.idLineRel[rowInd]
                 self.treeViewObj.idLineRel[rowInd - 1] = objId
-        print self.treeViewObj.idLineRel
 
     def valueChanged(self):
         self.valueTemplateChanged()
 
     def setReadonly(self, val=False):
-        if self.widgetQtObj:
-            self.widgetQtObj.setDisabled(val)
-        if self.treeViewObj:
-            self.treeViewObj.treeObj.tableWidget.setDisabled(val)
-            self.treeViewObj.buttToLeft.setDisabled(val)
-            self.treeViewObj.buttToRight.setDisabled(val)
-            self.treeViewObj.treeObj.widgetContents.setDisabled(val)
-        self.createButt.setDisabled(val)
-        super(One2many, self).setReadonly(val)
+        try:
+            if self.widgetQtObj:
+                self.widgetQtObj.setDisabled(val)
+            if self.treeViewObj:
+                self.treeViewObj.treeObj.tableWidget.setDisabled(val)
+                self.treeViewObj.buttToLeft.setDisabled(val)
+                self.treeViewObj.buttToRight.setDisabled(val)
+                self.treeViewObj.treeObj.widgetContents.setDisabled(val)
+            self.createButt.setDisabled(val)
+            super(One2many, self).setReadonly(val)
+        except Exception as ex:
+            utils.logError(ex, 'setReadonly')
 
     def setInvisible(self, val=False):
-        if self.widgetQtObj:
-            self.widgetQtObj.setHidden(val)
-        if self.treeViewObj:
-            self.treeViewObj.buttToLeft.setHidden(val)
-            self.treeViewObj.buttToRight.setHidden(val)
-            self.treeViewObj.treeObj.tableWidget.setHidden(val)
-            self.treeViewObj.treeObj.widgetContents.setHidden(val)
-        self.labelQtObj.setHidden(val)
-        self.createButt.setHidden(val)
-        super(One2many, self).setInvisible(val)
+        try:
+            if self.widgetQtObj:
+                self.widgetQtObj.setHidden(val)
+            if self.treeViewObj:
+                self.treeViewObj.buttToLeft.setHidden(val)
+                self.treeViewObj.buttToRight.setHidden(val)
+                self.treeViewObj.treeObj.tableWidget.setHidden(val)
+                self.treeViewObj.treeObj.widgetContents.setHidden(val)
+            self.labelQtObj.setHidden(val)
+            self.createButt.setHidden(val)
+            super(One2many, self).setInvisible(val)
+        except Exception as ex:
+            utils.logError(ex, 'setInvisible')
 
     @property
     def value(self):

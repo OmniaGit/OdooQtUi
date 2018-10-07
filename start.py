@@ -1,13 +1,11 @@
 '''
 Created on 02 feb 2017
 
-@author: Daniel
+@author: Daniel Smerghetto
 '''
 import sys
 import logging
 
-from PySide import QtCore
-from PySide import QtGui
 from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.RPC.rpc import connectionObj
@@ -16,6 +14,13 @@ from OdooQtUi.views.form_obj import TemplateFormView
 from OdooQtUi.views.tree_tree_obj import TemplateTreeTreeView
 from OdooQtUi.views.tree_list_obj import TemplateTreeListView
 from OdooQtUi.interface.login import LoginDialComplete
+
+try:
+    from PySide import QtGui
+    from PySide import QtCore
+except Exception as ex:
+    from PyQt4 import QtGui
+    from PyQt4 import QtCore
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
@@ -95,13 +100,13 @@ class MainConnector(object):
         utils.logMessage('info', 'Loading view %s' % (viewObj), '_initView')
         return viewObj, localLang, rpcObj
 
-    def initTreeListViewObject(self, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', viewCheckBoxes={}, viewFilter=False):
+    def initTreeListViewObject(self, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', viewCheckBoxes={}, viewFilter=False, deafult_filter=[]):
         viewObjSearch = None
         viewObj, localLang, rpcObj = self._initView('tree_list', rpcObj, activeLanguage, odooObjectName, viewName, view_id, viewFilter, viewCheckBoxes)
         if viewFilter:
             allFieldsDef = rpcObj.fieldsGet(odooObjectName)
             viewObjSearch = self.initSearchViewObj(odooObjectName, viewName='', view_id='', rpcObj=rpcObj, activeLanguage=activeLanguage, allFieldsDef=allFieldsDef)
-        return TemplateTreeListView(rpcObj, viewObj, localLang, viewObjSearch, self)
+        return TemplateTreeListView(rpcObj, viewObj, localLang, viewObjSearch, self, deafult_filter)
 
     def initSearchViewObj(self, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', searchMode='ilike', allFieldsDef={}):
         viewObj, localLang, rpcObj = self._initView('search', rpcObj, activeLanguage, odooObjectName, viewName, view_id, searchMode=searchMode)
@@ -189,7 +194,8 @@ if __name__ == '__main__':
     @utils.timeit
     def do_test():
         connectorObj = MainConnector()
-        connectorObj.loginWithUser('admin', 'admin', 'RDS', '127.0.0.1', '8069')
+        connectorObj.loginWithDial()
+        # connectorObj.loginWithUser('admin', 'admin', 'odoo-11', '127.0.0.1', '8069')
         # connectorObj.loginWithUser('admin', 'admin', 'v11_all', '192.168.99.16', '8069')
 
         def tryForm(odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', useHeader=False, useChatter=False, idToLoad=False):
@@ -210,7 +216,7 @@ if __name__ == '__main__':
             return tmplViewObj
 
         # tmplViewObj = tryForm('product.product', idToLoad=284, useChatter=True)
-        tmplViewObj = tryForm('product.product', idToLoad=1, useChatter=True)
+        tmplViewObj = tryForm('product.product', idToLoad=1, useChatter=False)
         # viewCheckBoxes = {0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled}
         dialog = QtGui.QDialog()
         lay = QtGui.QVBoxLayout()

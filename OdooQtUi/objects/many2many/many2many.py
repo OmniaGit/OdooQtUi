@@ -38,7 +38,7 @@ class Many2many(OdooFieldTemplate):
     def getQtObject(self):
         self.mainLay = QtGui.QVBoxLayout()
         buttonsLay = QtGui.QHBoxLayout()
-        self.labelQtObj = QtGui.QLabel(self.labelString)
+        self.labelQtObj = QtGui.QLabel(self.fieldStringInterface)
         self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
         buttonsLay.addWidget(self.labelQtObj)
         self.createButt = QtGui.QPushButton('Create')
@@ -55,7 +55,7 @@ class Many2many(OdooFieldTemplate):
             for requiredFieldStr, requiredFieldObj in tmpviewObjForm.requiredFields.items():
                 fieldVal = fieldVals.get(requiredFieldStr, '')
                 if not fieldVal and not isinstance(fieldVal, (int, float)):
-                    utilsUi.launchMessage('Field %r need a value' % (requiredFieldObj.labelString), 'error')
+                    utilsUi.launchMessage('Field %r need a value' % (requiredFieldObj.fieldStringInterface), 'error')
                     return
             formdialog.accept()
             
@@ -126,7 +126,7 @@ class Many2many(OdooFieldTemplate):
         for fieldName in orderedFields:
             fieldObj = fieldsDict.get(fieldName, None)
             if fieldObj:
-                labelsOrdered.append(fieldObj.labelString)
+                labelsOrdered.append(fieldObj.fieldStringInterface)
             else:
                 labelsOrdered.append(fieldName)
         labelsOrdered.append('')
@@ -165,7 +165,6 @@ class Many2many(OdooFieldTemplate):
             elif found:
                 del self.treeViewObj.idLineRel[rowInd]
                 self.treeViewObj.idLineRel[rowInd - 1] = objId
-        print self.treeViewObj.idLineRel
 
     def addAnItem(self):
         def acceptDial():
@@ -221,7 +220,6 @@ class Many2many(OdooFieldTemplate):
                         localIndexId[rowIndex] = objId
                     checkedRows.append(rowIndex)
             self.setValue(self.currentValue)
-        print self.treeViewObj.idLineRel
 
     def valueChanged(self):
         self.valueTemplateChanged()

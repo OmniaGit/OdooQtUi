@@ -13,7 +13,8 @@ from OdooQtUi.RPC.rpc import connectionObj
 
 
 class TemplateTreeListView(TemplateView):
-    def __init__(self, rpcObject, viewObj, activeLanguageCode='en_US', searchObj=None, odooConnector=None):
+
+    def __init__(self, rpcObject, viewObj, activeLanguageCode='en_US', searchObj=None, odooConnector=None, deafult_filter=[]):
         super(TemplateTreeListView, self).__init__(rpcObject, viewObj, activeLanguageCode)
         self.readonly = True
         self.activeIds = []
@@ -22,6 +23,7 @@ class TemplateTreeListView(TemplateView):
         self.odooConnector = odooConnector
         self.searchObj = searchObj
         self.labelsOrdered = []
+        self.deafult_filter = deafult_filter
         self.currentRange = [0, 40]
         self.passRange = 40
         self._initViewObj()
@@ -62,6 +64,8 @@ class TemplateTreeListView(TemplateView):
         return switchRecordsLay
 
     def filterChanged(self, newFilter):
+        if self.deafult_filter:
+            newFilter.extend(self.deafult_filter)
         objIds = connectionObj.search(self.model, newFilter, limit=self.passRange, offset=self.currentRange[0])
         self._loadIds(objIds)
 
@@ -87,7 +91,10 @@ class TemplateTreeListView(TemplateView):
 
     @utils.timeit
     def loadForceEmptyIds(self, forceFieldValues={}, readonlyFields={}, invisibleFields={}):
-        objIds = connectionObj.search(self.model, [], self.passRange) # to check with many records if 40 stop will work, 40)
+        searchFilter = []
+        if self.deafult_filter:
+            searchFilter = self.deafult_filter
+        objIds = connectionObj.search(self.model, searchFilter, self.passRange)  # to check with many records if 40 stop will work, 40)
         return self._loadIds(objIds, forceFieldValues, readonlyFields, invisibleFields)
 
     @utils.timeit
@@ -108,7 +115,7 @@ class TemplateTreeListView(TemplateView):
                 if fieldObj.fieldType in ['many2many', 'one2many']:
                     fieldsToRemove.append(fieldName)
                     continue
-                self.labelsOrdered.append(fieldObj.labelString)
+                self.labelsOrdered.append(fieldObj.fieldStringInterface)
             else:
                 self.labelsOrdered.append(fieldName)
         fields = [item for item in fields if item not in fieldsToRemove]
@@ -141,19 +148,19 @@ class TemplateTreeListView(TemplateView):
 
     def refreshColumns(self):
         self.treeObj.tableWidget.resizeColumnsToContents()
-        
+
     def setRowSelected(self, rowIndex):
         self.treeObj.tableWidget.selectRow(rowIndex)
-    
+
     def setColumnSelected(self, colIndex):
         self.treeObj.tableWidget.selectColumn()
-    
+
     def clearSelection(self):
         self.treeObj.tableWidget.clearSelection()
-    
+
     def setAllItemsSelected(self):
         self.treeObj.tableWidget.selectAll()
-        
+
     def getLineValues(self, lineIndex):
         recordId = self.idLineRel[lineIndex]
         recordObj = self.idValsRel.get(recordId, {})

@@ -19,7 +19,7 @@ class Date(OdooFieldTemplate):
         self.getQtObject()
 
     def getQtObject(self):
-        self.labelQtObj = QtGui.QLabel(self.labelString)
+        self.labelQtObj = QtGui.QLabel(self.fieldStringInterface)
         self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
         self.widgetQtObj = QtGui.QDateEdit()
         self.widgetQtObj.setStyleSheet(constants.DATE_STYLE)

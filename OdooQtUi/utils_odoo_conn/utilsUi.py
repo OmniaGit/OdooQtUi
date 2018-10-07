@@ -13,10 +13,18 @@ import logging
 import datetime
 import traceback
 
-from PySide import QtGui
-from PySide import QtCore
+try:
+    from PySide import QtGui
+    from PySide import QtCore
+except Exception as ex:
+    logging.warning("Unable to pyside it")
+    from PyQt4 import QtGui, QtCore
+
+from os.path import expanduser
+
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.utils_odoo_conn import utils
+
 
 DEFAULT_ICON_PATH = ''
 
@@ -124,6 +132,7 @@ def getDirectoryFileToSaveSystem(parent, statingPath='', fileType=''):
     logging.info('[getDirectoryFileToSaveSystem] filename: %s' % filename)
     return filename
 
+
 def getButtonBox(spacer='right'):
     mainLay = QtGui.QHBoxLayout()
     okButt = QtGui.QPushButton('Ok')
@@ -148,6 +157,6 @@ def exceptionManagement(ex, message=''):
 def setRequiredBackground(widgetQtObj, baseBackground):
     widgetQtObj.setStyleSheet(baseBackground + constants.COMMON_FIELDS_REQUIRED_BACKGROUND)
 
+
 def setLayoutMarginAndSpacing(lay):
     lay.setSpacing(5)
-    #lay.setMargin(0)

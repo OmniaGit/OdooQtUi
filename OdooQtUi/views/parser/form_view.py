@@ -170,7 +170,7 @@ class FormView(QtCore.QObject, object):
                     if isinstance(fieldQt, QtGui.QLayout):
                         hlay.insertLayout(0, fieldQt)
                         if count == 0:
-                            hlay.insertSpacerItem(0, QtGui.QSpacerItem(20, 20, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum))
+                            hlay.insertSpacerItem(0, QtGui.QSpacerItem(10, 10, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum))
                             count = count + 1
                     elif isinstance(fieldQt, QtGui.QWidget):
                         hlay.insertWidget(0, fieldQt)
@@ -183,7 +183,6 @@ class FormView(QtCore.QObject, object):
         widgetContents = QtGui.QWidget()
         mainVLay = self.computeRecursion(parent)
         widgetContents.setStyleSheet('background-color:#ffffff;')
-        #mainVLay.setMargin(40)
         widgetContents.setLayout(mainVLay)
         scroll = QtGui.QScrollArea()
         scroll.setWidget(widgetContents)
@@ -360,4 +359,4 @@ class FormView(QtCore.QObject, object):
     @utils.timeit
     def computeArch(self):
         if self.arch:
-            return self.computeArchRecursion(ElementTree.XML(self.arch))
+            return self.computeArchRecursion(ElementTree.XML(self.arch.encode('utf-8')))

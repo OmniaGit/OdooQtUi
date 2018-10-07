@@ -30,7 +30,6 @@ class Many2one(OdooFieldTemplate):
     def getItems(self, search=False):
         outVal = ['']
         if self.relation and search:
-            print 'search for values'
             for singleDict in self.rpc.readSearch(self.relation, ['name']):
                 val = singleDict.get('name', '')
                 if val:
@@ -41,7 +40,7 @@ class Many2one(OdooFieldTemplate):
         return outVal
 
     def getQtObject(self):
-        self.labelQtObj = QtGui.QLabel(self.labelString)
+        self.labelQtObj = QtGui.QLabel(self.fieldStringInterface)
         self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
 
         self.widgetQtObj = QtGui.QWidget()
@@ -72,7 +71,6 @@ class Many2one(OdooFieldTemplate):
 
     def comboActivated(self, val=False):
         if not self.skipSearch:
-            print 'combo activated, %r, val %r, self.skipSearch:%r' % (self.availableItems, val, self.skipSearch)
             self.skipSearch = True
             newItems = self.getItems(True)
             self.widgetQtObj2.clear()
@@ -214,7 +212,7 @@ class Many2one(OdooFieldTemplate):
 
             self.setViewObject()
             self.viewObj.loadIds([])
-            mainLay = self.viewObj.QtInterface
+            mainLay = self.viewObj.layout()
             lay, okButt, cancelButt = utilsUi.getButtonBox()
             okButt.clicked.connect(accept)
             cancelButt.clicked.connect(reject)
@@ -258,7 +256,6 @@ class Many2one(OdooFieldTemplate):
 
     def eventFilter(self, object, event):
         if event.type() == QtCore.QEvent.MouseButtonPress and not self.skipSearch:
-            print 'event filter'
             self.comboActivated()
         return super(Many2one, self).eventFilter(object, event)
 

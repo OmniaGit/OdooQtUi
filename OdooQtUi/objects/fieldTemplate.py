@@ -32,7 +32,7 @@ class OdooFieldTemplate(QtCore.QObject, object):
         self.tooltip = self.fieldPyDefinition.get('help', '')
         self.fieldType = self.fieldPyDefinition.get('type', '')
         self.labelString = self.fieldPyDefinition.get('string', '')
-        self.fieldStringInterface = self.labelString
+        self.fieldStringInterface = self.fieldXmlAttributes.get('string', self.labelString)
         self.change_default = utils.evaluateBoolean(self.fieldPyDefinition.get('change_default', False))
         self.searchable = utils.evaluateBoolean(self.fieldPyDefinition.get('searchable', True))
         self.manual = utils.evaluateBoolean(self.fieldPyDefinition.get('manual', False))

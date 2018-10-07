@@ -42,7 +42,7 @@ class Binary(OdooFieldTemplate):
             self.widgetQtObj.resize(self.imageWidth, self.imageHeight)
             self.widgetQtObj.setText('aaa')
         else:
-            self.labelQtObj = QtGui.QLabel(self.labelString)
+            self.labelQtObj = QtGui.QLabel(self.fieldStringInterface)
             self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
             self.widgetQtObj = QtGui.QLineEdit()
             self.widgetQtObj.setToolTip(self.tooltip)
@@ -103,7 +103,7 @@ class Binary(OdooFieldTemplate):
         self.widgetQtObj.setText('')
 
     def valueChanged(self, val):
-        print 'To implement valueChanged changed for binary'
+        utils.logDebug('To implement valueChanged changed for binary', 'valueChanged')
         self.valueTemplateChanged()
 
     def setValue(self, newVal):

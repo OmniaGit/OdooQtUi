@@ -48,7 +48,7 @@ class SearchView(object):
         outFilters = []
         for conditionObj in self.globalCondition:
             outFilters.extend(conditionObj.condition)
-        print 'OutCondition %r' % (unicode(outFilters))
+        utils.logDebug('OutCondition %r' % (unicode(outFilters)), 'launchFilterChanged')
         if self.parent:
             self.parent.filter_changed_signal.emit(outFilters)
 
@@ -274,6 +274,10 @@ class SearchView(object):
     def textChangedEvent(self, newText=''):
         newText = unicode(newText)
         if newText:
+            for tmpField in self.tmpFields:
+                if unicode(tmpField.interfaceStringWithValue) == unicode(newText):
+                    self.populateCombo(currentVal=unicode(tmpField.value))
+                    return
             self.populateCombo(currentVal=unicode(newText))
 
     def returnPressedLocal(self):
@@ -543,7 +547,7 @@ class SearchView(object):
 
     def computeArch(self):
         if self.arch:
-            return self.computeArchRecursion(ElementTree.XML(self.arch))
+            return self.computeArchRecursion(ElementTree.XML(self.arch.encode('utf-8')))
 
 
 class CustomQCompleter(QtGui.QCompleter):

@@ -44,12 +44,15 @@ class TemplateFormView(TemplateView):
             self.mappingInterface = self.formObj.globalMapping
             self.addToObject()
             self._setFieldModifiers()
+            oldLay = self.layout()
+            if oldLay:
+                del oldLay
             self.setLayout(layout)
         else:
             utils.logMessage('warning', 'Unable to get fields view definition!', '_initViewObj')
 
     def updateDataStructure(self, pageIndex=0):
-        print 'compute Nootebook fields: %r' % (pageIndex)
+        utils.logDebug('compute Nootebook fields: %r' % (pageIndex), 'updateDataStructure')
         if pageIndex > 0 and pageIndex in self.formObj.nootebookFieldsToCompute:
             dictFieldsToUpdate = self.formObj.nootebookFieldsToCompute[pageIndex]
             fieldNamesToUpdate = dictFieldsToUpdate.keys()
