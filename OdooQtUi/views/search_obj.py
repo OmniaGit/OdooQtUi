@@ -4,12 +4,10 @@ Created on 24 Mar 2017
 @author: dsmerghetto
 '''
 
-try:
-    from PySide import QtCore
-    from PySide.QtCore import QObject
-except Exception as ex:
-    from PyQt4 import QtCore
-    from PyQt4.QtCore import QObject
+
+from PySide import QtCore
+from PySide.QtCore import QObject
+
 
 from OdooQtUi.utils_odoo_conn import utils
 from parser.search_view import SearchView

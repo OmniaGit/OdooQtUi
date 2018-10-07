@@ -6,12 +6,10 @@ Created on 7 Feb 2017
 import json
 import os
 import logging
-try:
-    from PySide import QtGui
-    from PySide import QtCore
-except Exception as ex:
-    logging.warning("Unable to py side it try py qt")
-    from PyQt4 import QtGui, QtCore
+
+from PySide import QtGui
+from PySide import QtCore
+
 
 from OdooQtUi.utils_odoo_conn import utils, utilsUi
 from OdooQtUi.utils_odoo_conn import constants

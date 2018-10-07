@@ -15,12 +15,9 @@ from OdooQtUi.views.tree_tree_obj import TemplateTreeTreeView
 from OdooQtUi.views.tree_list_obj import TemplateTreeListView
 from OdooQtUi.interface.login import LoginDialComplete
 
-try:
-    from PySide import QtGui
-    from PySide import QtCore
-except Exception as ex:
-    from PyQt4 import QtGui
-    from PyQt4 import QtCore
+from PySide import QtGui
+from PySide import QtCore
+
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
