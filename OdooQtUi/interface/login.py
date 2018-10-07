@@ -6,11 +6,10 @@ Created on Mar 28, 2017
 import json
 from OdooQtUi.RPC.rpc import connectionObj
 from ui.ui_login import Ui_dialog_login
-from PyQt4 import QtGui
-from PyQt4 import QtCore
+from PySide import QtGui
+from PySide import QtCore
 from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.utils_odoo_conn import constants
-
 
 
 class LoginDial(QtGui.QDialog, Ui_dialog_login):
@@ -62,8 +61,8 @@ class LoginDial(QtGui.QDialog, Ui_dialog_login):
         self.pushButton_back.setHidden(True)
         self.comboBox_conn_type.setEditable(True)
         self.comboBox_database.setEditable(True)
-        self.page.layout().setMargin(70)
-        self.page_2.layout().setMargin(70)
+        #self.page.layout().setMargin(70)
+        #self.page_2.layout().setMargin(70)
         
         self.lineEdit_password.setText(userpass)
         self.lineEdit_port.setText(unicode(serverPort))

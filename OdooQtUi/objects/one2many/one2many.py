@@ -5,7 +5,8 @@ Created on 7 Feb 2017
 '''
 import json
 
-from PyQt4 import QtGui, QtCore
+from PySide import QtGui
+from PySide import QtCore
 from OdooQtUi.utils_odoo_conn import utils, utilsUi
 from OdooQtUi.utils_odoo_conn import constants
 from functools import partial
@@ -106,7 +107,7 @@ class One2many(OdooFieldTemplate):
         else:
             res = self._sendMessage(body)
         self.showNoteLay(False)
-        for i in reversed(range(self.messaggesLay.count())): 
+        for i in reversed(range(self.messaggesLay.count())):
             self.messaggesLay.itemAt(i).widget().deleteLater()
         if res:
             self.currentValue.insert(0, res)
@@ -115,7 +116,7 @@ class One2many(OdooFieldTemplate):
     def showNoteLay(self, visible=False):
         self.textEditMess.setHidden(not visible)
         self.sendButtonMess.setHidden(not visible)
-        
+
     def populateMessButtLay(self):
         self.buttSendMessage = QtGui.QPushButton('Send Message')
         self.buttLogNote = QtGui.QPushButton('Log Note')
@@ -124,12 +125,11 @@ class One2many(OdooFieldTemplate):
         self.messaggesButtLay.addWidget(self.buttSendMessage)
         self.messaggesButtLay.addWidget(self.buttLogNote)
         self.messaggesButtLay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding))
-        
         self.buttSendMessage.clicked.connect(self.sendMessage)
         self.buttLogNote.clicked.connect(self.logNote)
         self.buttSendMessage.setHidden(True)
         self.buttLogNote.setHidden(True)
-        
+
     def sendMessage(self):
         self.showNoteLay(True)
         self.currentMessType = 'MESSAGE'
@@ -283,22 +283,18 @@ class One2many(OdooFieldTemplate):
             bodyMessage = messageDict.get('body', '')
             write_date = messageDict.get('write_date', '')
             attachment_ids = messageDict.get('attachment_ids', [])
-            
             labelUser = QtGui.QLabel(userName)
             labelDate = QtGui.QLabel(write_date)
             labelBody = QtGui.QTextEdit()
             labelBody.setFrameShape(QtGui.QFrame.NoFrame)
             labelBody.setText(bodyMessage)
             labelBody.setReadOnly(True)
-            
             hlayUser = QtGui.QHBoxLayout()
             hlayUser.addWidget(labelUser)
             hlayUser.addWidget(labelDate)
-            
             mainVLay = QtGui.QVBoxLayout()
             mainVLay.addLayout(hlayUser)
             mainVLay.addWidget(labelBody)
-            
             attachmentLay = QtGui.QHBoxLayout()
             if attachment_ids:
                 res = connectionObj.read('ir.attachment', ['datas'], attachment_ids)

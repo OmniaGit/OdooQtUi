@@ -4,8 +4,8 @@ Created on 24 Mar 2017
 @author: dsmerghetto
 '''
 
-from PyQt4 import QtCore
-from PyQt4.QtCore import QObject
+from PySide import QtCore
+from PySide.QtCore import QObject
 
 from parser.search_view import SearchView
 from templateView import TemplateView
@@ -13,8 +13,8 @@ from templateView import TemplateView
 
 class TemplateSearchView(TemplateView, QObject):
 
-    filter_changed_signal = QtCore.pyqtSignal(list)         # Used by "SearchView" to return current filter
-    out_filter_change_signal = QtCore.pyqtSignal(list)      # Used by parent view to get the current odoo list filter
+    filter_changed_signal = QtCore.Signal(list)         # Used by "SearchView" to return current filter
+    out_filter_change_signal = QtCore.Signal(list)      # Used by parent view to get the current odoo list filter
 
     def __init__(self, rpcObject, viewObject, activeLanguageCode='en_US', allFieldsDef={}):
         super(TemplateSearchView, self).__init__(rpcObject, viewObject, activeLanguageCode)

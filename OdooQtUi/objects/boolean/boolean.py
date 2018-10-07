@@ -4,8 +4,9 @@ Created on 7 Feb 2017
 @author: dsmerghetto
 '''
 
-from PyQt4 import QtGui, QtCore
-from OdooQtUi.utils_odoo_conn import utils, utilsUi
+from PySide import QtGui
+from PySide import QtCore
+from OdooQtUi.utils_odoo_conn import utilsUi
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
 

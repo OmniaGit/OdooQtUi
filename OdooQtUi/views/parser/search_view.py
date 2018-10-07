@@ -8,8 +8,8 @@ import logging
 
 
 import xml.etree.cElementTree as ElementTree
-from PyQt4 import QtGui
-from PyQt4 import QtCore
+from PySide import QtGui
+from PySide import QtCore
 from functools import partial
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.utils_odoo_conn import utils

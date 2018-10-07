@@ -7,21 +7,24 @@
 #
 # WARNING! All changes made in this file will be lost!
 
-from PyQt4 import QtCore, QtGui
+from PySide import QtCore
+from PySide import QtGui
 
 try:
-    _fromUtf8 = QtCore.QString.fromUtf8
+    _fromUtf8 = QtCore.QObject.fromUtf8
 except AttributeError:
     def _fromUtf8(s):
         return s
 
 try:
     _encoding = QtGui.QApplication.UnicodeUTF8
+
     def _translate(context, text, disambig):
         return QtGui.QApplication.translate(context, text, disambig, _encoding)
 except AttributeError:
     def _translate(context, text, disambig):
         return QtGui.QApplication.translate(context, text, disambig)
+
 
 class Ui_dialog_login(object):
     def setupUi(self, dialog_login):
@@ -141,4 +144,3 @@ class Ui_dialog_login(object):
         self.pushButton_next.setText(_translate("dialog_login", "Next", None))
         self.pushButton_ok.setText(_translate("dialog_login", "Login", None))
         self.pushButton_cancel.setText(_translate("dialog_login", "Cancel", None))
-

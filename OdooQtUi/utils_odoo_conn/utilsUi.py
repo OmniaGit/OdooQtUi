@@ -13,8 +13,8 @@ import logging
 import datetime
 import traceback
 
-from PyQt4 import QtGui, QtCore
-from os.path import expanduser
+from PySide import QtGui
+from PySide import QtCore
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.utils_odoo_conn import utils
 
@@ -26,17 +26,19 @@ def getQtImageFromContent(content, imageWidth=100, imageHeight=100):
     pixmap = QtGui.QPixmap()
     pixmap.loadFromData(base64.b64decode(content))
     pixmap = pixmap.scaled(imageWidth,
-                         imageHeight,
-                         aspectRatioMode=QtCore.Qt.IgnoreAspectRatio,
-                         transformMode=QtCore.Qt.FastTransformation)
+                           imageHeight,
+                           aspectRatioMode=QtCore.Qt.IgnoreAspectRatio,
+                           transformMode=QtCore.Qt.FastTransformation)
     label.setPixmap(pixmap)
     label.resize(imageWidth, imageHeight)
     return label
-    
+
+
 def setDefaultIconPath(iconPath):
     global DEFAULT_ICON_PATH
     DEFAULT_ICON_PATH = iconPath
-    
+
+
 def launchMessage(message='', msgType='message'):
     utils.logMessage('info', message, 'launchMessage')
     messBox = QtGui.QMessageBox()
@@ -56,7 +58,6 @@ def launchMessage(message='', msgType='message'):
         messBox.setIcon(QtGui.QMessageBox.Question)
         messBox.setStandardButtons(QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel)
     messBox.setWindowIcon(QtGui.QIcon(DEFAULT_ICON_PATH))
-    
     if (messBox.exec_() == QtGui.QMessageBox.Ok):
         messBox.accept()
         return True
@@ -149,5 +150,4 @@ def setRequiredBackground(widgetQtObj, baseBackground):
 
 def setLayoutMarginAndSpacing(lay):
     lay.setSpacing(5)
-    lay.setMargin(0)
-    
+    #lay.setMargin(0)

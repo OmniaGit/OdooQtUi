@@ -5,9 +5,8 @@ Created on 7 Feb 2017
 '''
 import os
 import base64
-import tempfile
-
-from PyQt4 import QtGui, QtCore
+from PySide import QtGui
+from PySide import QtCore
 from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.utils_odoo_conn import utilsUi
 from OdooQtUi.utils_odoo_conn import constants
@@ -23,7 +22,7 @@ class Binary(OdooFieldTemplate):
         self.xmlWidget = self.fieldXmlAttributes.get('widget')
         self.imageWidth = 100
         self.imageHeight = 100
-        self.fileName = self.fieldXmlAttributes.get('filename') # File name has to be take here
+        self.fileName = self.fieldXmlAttributes.get('filename')  # File name has to be take here
         try:
             self.imageWidth = eval(self.fieldXmlAttributes.get('img_width'))
             self.imageHeight = eval(self.fieldXmlAttributes.get('img_height'))

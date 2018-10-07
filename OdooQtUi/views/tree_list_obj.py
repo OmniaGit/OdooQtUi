@@ -3,7 +3,7 @@ Created on 24 Mar 2017
 
 @author: dsmerghetto
 '''
-from PyQt4 import QtGui
+from PySide import QtGui
 from parser.tree_list import TreeViewList
 from templateView import TemplateView
 from OdooQtUi.views.search_obj import TemplateSearchView
@@ -12,9 +12,7 @@ from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.RPC.rpc import connectionObj
 
 
-
 class TemplateTreeListView(TemplateView):
-
     def __init__(self, rpcObject, viewObj, activeLanguageCode='en_US', searchObj=None, odooConnector=None):
         super(TemplateTreeListView, self).__init__(rpcObject, viewObj, activeLanguageCode)
         self.readonly = True

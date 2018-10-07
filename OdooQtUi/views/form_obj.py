@@ -4,8 +4,8 @@ Created on 24 Mar 2017
 @author: dsmerghetto
 '''
 import copy
-from PyQt4 import QtGui
-from PyQt4 import QtCore
+from PySide import QtGui
+from PySide import QtCore
 
 
 from OdooQtUi.views.parser.form_view import FormView

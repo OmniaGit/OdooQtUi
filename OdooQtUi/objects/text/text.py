@@ -4,7 +4,7 @@ Created on 7 Feb 2017
 @author: dsmerghetto
 '''
 
-from PyQt4 import QtGui
+from PySide import QtGui
 from OdooQtUi.utils_odoo_conn import utils, utilsUi
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
@@ -24,13 +24,13 @@ class Text(OdooFieldTemplate):
         self.widgetQtObj = QtGui.QTextEdit()
         self.widgetQtObj.setStyleSheet(constants.TEXT_STYLE)
         self.widgetQtObj.setToolTip(self.tooltip)
-        self.widgetQtObj.textChanged.connect(self.valueChanged)
         if self.required:
             utilsUi.setRequiredBackground(self.widgetQtObj, constants.TEXT_STYLE)
         self.widgetLyQtObject.addWidget(self.widgetQtObj)
         if self.translatable:
             self.connectTranslationButton()
             self.widgetLyQtObject.addWidget(self.translateButton)
+        self.widgetQtObj.textChanged.connect(self.valueChanged)
 
     def valueChanged(self):
         self.currentValue = unicode(self.widgetQtObj.toPlainText())

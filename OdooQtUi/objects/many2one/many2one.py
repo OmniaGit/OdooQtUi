@@ -4,8 +4,8 @@ Created on 7 Feb 2017
 @author: dsmerghetto
 '''
 import json
-from PyQt4 import QtGui
-from PyQt4 import QtCore
+from PySide import QtGui
+from PySide import QtCore
 from OdooQtUi.utils_odoo_conn import utils, utilsUi
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
@@ -48,12 +48,12 @@ class Many2one(OdooFieldTemplate):
         self.childLay = QtGui.QHBoxLayout()
         utilsUi.setLayoutMarginAndSpacing(self.childLay)
         self.widgetQtObj2 = QtGui.QComboBox()
-        self.widgetQtObj2.currentIndexChanged.connect(self.indexChanged)
         self.widgetQtObj2.setStyleSheet(constants.SELECTION_STYLE)
         self.widgetQtObj2.addItems(self.availableItems)
         self.widgetQtObj2.setToolTip(self.tooltip)
         self.widgetQtObj2.editTextChanged.connect(self.comboActivated)
         self.widgetQtObj2.installEventFilter(self)
+        self.widgetQtObj2.currentIndexChanged.connect(self.indexChanged)
         if self.required:
             utilsUi.setRequiredBackground(self.widgetQtObj2, constants.SELECTION_STYLE)
         self.childLay.addWidget(self.widgetQtObj2)
@@ -200,7 +200,7 @@ class Many2one(OdooFieldTemplate):
 
     def setViewObject(self):
         self.viewObj = self.odooConnector.initFormViewObj(self.relation, rpcObj=self.rpc)
-        
+
     def indexChanged(self, res=False):
         currText = unicode(self.widgetQtObj2.currentText())
         if currText == 'Create and Edit...':

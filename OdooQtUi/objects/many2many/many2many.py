@@ -4,7 +4,8 @@ Created on 7 Feb 2017
 @author: dsmerghetto
 '''
 import json
-from PyQt4 import QtGui, QtCore
+from PySide  import QtGui
+from PySide  import QtCore
 from functools import partial
 from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.utils_odoo_conn import utilsUi

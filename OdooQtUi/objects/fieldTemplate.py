@@ -5,18 +5,19 @@ Created on 02 feb 2017
 '''
 import json
 
-from PyQt4 import QtGui, QtCore
+from PySide import QtGui
+from PySide import QtCore
 from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.utils_odoo_conn import utilsUi
 from OdooQtUi.utils_odoo_conn import constants
 
 
 class OdooFieldTemplate(QtCore.QObject, object):
-
-    value_changed_signal = QtCore.pyqtSignal(QtCore.QString)
-    translation_clicked = QtCore.pyqtSignal(QtCore.QString)
+    value_changed_signal = QtCore.Signal((str,))
+    translation_clicked = QtCore.Signal((str,))
 
     def __init__(self, xmlField, fieldsDefinition, rpc):
+        super(OdooFieldTemplate, self).__init__()
         self.rpc = rpc
         self.fieldXmlAttributes = xmlField.attrib
         self.parentId = False
@@ -49,7 +50,7 @@ class OdooFieldTemplate(QtCore.QObject, object):
         utilsUi.setLayoutMarginAndSpacing(self.widgetLyQtObject)
         self.translateButton = False
         self.invisibleConditions, self.readonlyConditions = utils.evaluateModifiers(self.modifiers)
-        return super(OdooFieldTemplate, self).__init__()
+        return self
 
     def setParentAttrs(self, parentId, parentModel):
         self.parentId = parentId

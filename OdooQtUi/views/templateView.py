@@ -4,9 +4,8 @@ Created on 3 Feb 2017
 @author: Daniel Smerghetto
 '''
 import copy
-from PyQt4 import QtGui
+from PySide import QtGui
 from OdooQtUi.utils_odoo_conn import utils
-from OdooQtUi.RPC.rpc import connectionObj
 
 
 class TemplateView(QtGui.QWidget):
@@ -25,11 +24,11 @@ class TemplateView(QtGui.QWidget):
     @property
     def viewFilter(self):
         return self.viewObj.localViewFilter
-    
+
     @property
     def model(self):
         return self.viewObj.odooModel
-        
+
     @property
     def arch(self):
         return self.viewObj.odooArch
@@ -65,24 +64,6 @@ class TemplateView(QtGui.QWidget):
     @property
     def useChatter(self):
         return self.viewObj.useChatter
-    
-#     def searchForView(self, model, viewName):
-#         viewIds = connectionObj.search('ir.ui.view', [('name', '=', viewName), ('model', '=', model), ('type', '=', self.viewType)])
-#         if viewIds:
-#             return viewIds[0]
-#         utils.logMessage('warning', 'View with name %r and model %r nor found' % (viewName, model), 'searchForView')
-#         return False
-
-#     def initViewObj(self, odooObjectName, viewName='', view_id=False):
-#         if not view_id and viewName:
-#             view_id = self.searchForView(odooObjectName, viewName)
-#         self.fieldsViewDefinition = self.rpcObject.fieldsViewGet(odooObjectName, view_id, self.viewType)
-#         if self.fieldsViewDefinition:
-#             self.arch = self.fieldsViewDefinition.get('arch', '')
-#             self.model = self.fieldsViewDefinition.get('model', '')
-#             self.viewName = self.fieldsViewDefinition.get('name', '')
-#             self.viewId = self.fieldsViewDefinition.get('view_id', '')
-#             self.fieldsNameTypeRel = self.fieldsViewDefinition.get('fields', '')
 
     def addToObject(self):
         fieldIdentifier = 'field_'

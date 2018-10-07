@@ -13,7 +13,7 @@ import logging
 import datetime
 import traceback
 
-from PyQt4 import QtGui
+from PySide import QtGui
 from os.path import expanduser
 from OdooQtUi.utils_odoo_conn import constants
 

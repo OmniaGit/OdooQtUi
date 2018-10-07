@@ -7,8 +7,8 @@ import json
 import logging
 import xml.etree.cElementTree as ElementTree
 
-from PyQt4 import QtGui
-from PyQt4 import QtCore
+from PySide import QtGui
+from PySide import QtCore
 
 from OdooQtUi.utils_odoo_conn import utils, utilsUi
 from OdooQtUi.utils_odoo_conn import constants
@@ -29,7 +29,7 @@ from OdooQtUi.objects.text.text import Text
 
 class FormView(QtCore.QObject, object):
 
-    nootebook_changed_signal = QtCore.pyqtSignal(int)
+    nootebook_changed_signal = QtCore.Signal(int)
 
     def __init__(self, arch, fieldsNameTypeRel, rpc, useHeader=False, useChatter=False, odooConnector=None):
         super(FormView, self).__init__()
@@ -49,7 +49,7 @@ class FormView(QtCore.QObject, object):
         if values:
             del self.notebookTabsNotComputed[pageIndex]
             self.nootebook_changed_signal.emit(pageIndex)
-        
+
     def computeRecursion(self, parent, nootebookIndex=0):
         # TODO:    div name <div name="button_box" class="oe_button_box">
         mainVLay = QtGui.QVBoxLayout()
@@ -170,7 +170,7 @@ class FormView(QtCore.QObject, object):
                     if isinstance(fieldQt, QtGui.QLayout):
                         hlay.insertLayout(0, fieldQt)
                         if count == 0:
-                            hlay.insertSpacerItem(0, QtGui.QSpacerItem(20,20, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum))
+                            hlay.insertSpacerItem(0, QtGui.QSpacerItem(20, 20, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum))
                             count = count + 1
                     elif isinstance(fieldQt, QtGui.QWidget):
                         hlay.insertWidget(0, fieldQt)
@@ -178,12 +178,12 @@ class FormView(QtCore.QObject, object):
             else:
                 utils.logMessage('warning', 'Unable to compute tag in chatter %r' % (fieldObj.tag), 'computeChatter')
         divVlay.addLayout(hlay)
-        
+
     def computeArchRecursion(self, parent):
         widgetContents = QtGui.QWidget()
         mainVLay = self.computeRecursion(parent)
         widgetContents.setStyleSheet('background-color:#ffffff;')
-        mainVLay.setMargin(40)
+        #mainVLay.setMargin(40)
         widgetContents.setLayout(mainVLay)
         scroll = QtGui.QScrollArea()
         scroll.setWidget(widgetContents)
@@ -218,6 +218,7 @@ class FormView(QtCore.QObject, object):
                 rowCount = rowCount + 1
             childTag = childElement.tag
             childAttrs = childElement.attrib
+            utils.logMessage('info', 'create filed: %r' % (childAttrs.get('name')))
             childColSpan = int(childAttrs.get('colspan', 2))
             if childTag == 'group' or childTag == 'h1' or childTag == 'div':
                 groupString = childAttrs.get('string', '')

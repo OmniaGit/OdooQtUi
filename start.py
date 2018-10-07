@@ -6,8 +6,8 @@ Created on 02 feb 2017
 import sys
 import logging
 
-from PyQt4 import QtGui
-from PyQt4 import QtCore
+from PySide import QtCore
+from PySide import QtGui
 from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.RPC.rpc import connectionObj
@@ -189,7 +189,7 @@ if __name__ == '__main__':
     @utils.timeit
     def do_test():
         connectorObj = MainConnector()
-        connectorObj.loginWithUser('admin', 'admin', 'odoo-11', '127.0.0.1', '8069')
+        connectorObj.loginWithUser('admin', 'admin', 'RDS', '127.0.0.1', '8069')
         # connectorObj.loginWithUser('admin', 'admin', 'v11_all', '192.168.99.16', '8069')
 
         def tryForm(odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', useHeader=False, useChatter=False, idToLoad=False):
