@@ -181,6 +181,12 @@ class TemplateView(QtGui.QWidget):
             outDict[fieldName] = fieldObject.value
         return outDict
 
+    def getFieldValue(self, fieldName):
+        fieldObj = self.interfaceFieldsDict.get(fieldName)
+        if fieldObj:
+            return fieldObj.value
+        return ''
+
     def getAllRequiredFieldsValues(self):
         outDict = {}
         for fieldName, fieldObject in self.requiredFields.items():

@@ -116,9 +116,11 @@ class Many2one(OdooFieldTemplate):
             self.availableItems.append(newTextVal)
             self.widgetQtObj2.clear()
             self.widgetQtObj2.addItems(self.availableItems)
-            indexToSet = self.availableItems.index(newTextVal)
+            if newTextVal in self.availableItems:
+                indexToSet = self.availableItems.index(newTextVal)
         self.skipSearch = True
-        self.widgetQtObj2.setCurrentIndex(indexToSet)
+        if isinstance(indexToSet, (int, float)):
+            self.widgetQtObj2.setCurrentIndex(indexToSet)
         self.skipSearch = False
 
     def setReadonly(self, val=False):

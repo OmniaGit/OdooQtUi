@@ -72,13 +72,15 @@ class XmlRpcConnection(object):
                 utilsUi.launchMessage('Unable to get database list, please check your login settings.', 'warning')
         return False
 
-    def search(self, obj, filterList, limit=False, offset=False, context={}):
+    def search(self, obj, filterList, limit=False, offset=False, order='', context={}):
         try:
             kargs = {'context': context}
             if limit or limit == 0:
                 kargs['limit'] = limit
             if offset or offset == 0:
                 kargs['offset'] = offset
+            if order:
+                kargs['order'] = order
             return self.callOdooFunction(obj, 'search', [filterList], kargs)
         except Exception as ex:
             utils.logMessage('error', 'Error during search with values: object %r, filter %r, parameters %r. Error: %r' % (obj, filterList, kargs, ex), 'search')
@@ -114,9 +116,11 @@ class XmlRpcConnection(object):
             utils.logMessage('error', 'Error during reading fields with values: object %r, kargs %r. Error: %r' % (obj, kargs, ex), 'fieldsGet')
         return {}
 
-    def readSearch(self, obj, fields, filterList, limit=False, context={}):
+    def readSearch(self, obj, fields, filterList, limit=False, order='', context={}):
         try:
             kargs = {'fields': fields, 'context': context}
+            if order:
+                kargs['order'] = order
             return self.callOdooFunction(obj, 'search_read', [filterList], kargs)
         except Exception as ex:
             utils.logMessage('error', 'Error during reading fields with values: object %r, kargs %r, filterList %r. Error: %r' % (obj, kargs, filterList, ex), 'readSearch')

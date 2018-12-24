@@ -182,7 +182,7 @@ class TemplateFormView(TemplateView):
         for fieldName, fieldObject in self.interfaceFieldsDict.items():
             outDict[fieldName] = fieldObject.on_change
         return outDict
-
+    
     def _on_change(self, fieldName):
         '''
             [
@@ -213,6 +213,12 @@ class TemplateFormView(TemplateView):
                 self.buttons.__dict__[newKey] = obj
         return True
 
+    def _valueChangedExt(self, fieldName):
+        '''
+            To allow external oveload
+        '''
+        pass
+
     def _valueChanged(self, fieldName):
         fieldName = str(fieldName)
         fieldObj = self.interfaceFieldsDict.get(fieldName)
@@ -225,6 +231,7 @@ class TemplateFormView(TemplateView):
             fieldObj1.setValue(fieldValueFromServer)
         self.fieldsChanged[fieldName] = fieldObj
         self._setFieldModifiers()
+        self._valueChangedExt(fieldName)
 
     def translationDial(self, fieldName):
         if not self.activeIds:
