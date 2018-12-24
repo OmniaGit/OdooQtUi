@@ -157,5 +157,8 @@ def setRequiredBackground(widgetQtObj, baseBackground):
 
 def setLayoutMarginAndSpacing(lay):
     lay.setSpacing(5)
-    lay.setMargin(0)
+    try:
+        lay.setMargin(0)
+    except Exception as ex:
+        logging.error(ex)
     

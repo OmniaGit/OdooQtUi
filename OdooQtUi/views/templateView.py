@@ -163,7 +163,7 @@ class TemplateView(QtGui.QWidget):
     def loadIds(self, objIds=[], forceFieldValues={}, readonlyFields={}, invisibleFields={}, fieldsToRead=[], skipRemoveNootebook=False):
         self.activeIds = objIds
         if not fieldsToRead:
-            fieldsToRead = self.interfaceFieldsDict.keys()
+            fieldsToRead = list(self.interfaceFieldsDict.keys())
         self.objectsInit = copy.copy(self.fields)
 
     def isReadonly(self):

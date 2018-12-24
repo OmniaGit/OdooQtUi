@@ -56,12 +56,12 @@ class TemplateFormView(TemplateView):
         print ('compute Nootebook fields: %r' % (pageIndex))
         if pageIndex > 0 and pageIndex in self.formObj.nootebookFieldsToCompute:
             dictFieldsToUpdate = self.formObj.nootebookFieldsToCompute[pageIndex]
-            fieldNamesToUpdate = dictFieldsToUpdate.keys()
+            fieldNamesToUpdate = list(dictFieldsToUpdate.keys())
             self.loadIds(self.activeIds, {}, {}, {}, fieldNamesToUpdate, True)
 
     def setDefaults(self, fieldsToRead=[]):
         if not fieldsToRead:
-            fieldsToRead = self.interfaceFieldsDict.keys()
+            fieldsToRead = list(self.interfaceFieldsDict.keys())
         self.fieldDefaultVals = self.rpcObject.defaultGet(self.model, fieldsToRead)
         self.skipOnChange = True
         for fieldName, fieldVal in self.fieldDefaultVals.items():
@@ -85,7 +85,7 @@ class TemplateFormView(TemplateView):
             objIds = [objIds]
         self.activeIds = objIds
         if not fieldsToRead:
-            fieldsToRead = self.interfaceFieldsDict.keys()
+            fieldsToRead = list(self.interfaceFieldsDict.keys())
         if not skipRemoveNootebook:
             fieldsToRead = self.removeNootebookFields(fieldsToRead)
         if len(objIds) > 1:
@@ -174,7 +174,7 @@ class TemplateFormView(TemplateView):
         if val:
             localDict[fieldObj.fieldName] = fieldObj
         else:
-            if fieldObj.fieldName in localDict.keys():
+            if fieldObj.fieldName in list(localDict.keys()):
                 del localDict[fieldObj.fieldName]
 
     def getAllOnChange(self):

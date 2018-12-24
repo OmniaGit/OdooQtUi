@@ -64,7 +64,7 @@ class Selection(OdooFieldTemplate):
         selectionVals = [('', '')]
         selectionVals.extend(self.fieldPyDefinition.get('selection', []))
         self.populateMapping(selectionVals)
-        self.widgetQtObj.addItems(self.selectionMappingReverse.keys())
+        self.widgetQtObj.addItems(list(self.selectionMappingReverse.keys()))
         self.widgetQtObj.setToolTip(self.tooltip)
         self.widgetQtObj.currentIndexChanged.connect(self.valueChanged)
         if self.required:

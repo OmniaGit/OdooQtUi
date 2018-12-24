@@ -187,13 +187,17 @@ class FormView(QtCore.QObject, object):
         divVlay.addLayout(hlay)
         
     def computeArchRecursion(self, parent):
-        widgetContents = QtGui.QWidget()
+        self.widgetContents = QtGui.QWidget()
         mainVLay = self.computeRecursion(parent)
-        widgetContents.setStyleSheet('background-color:#ffffff;')
-        mainVLay.setMargin(40)
-        widgetContents.setLayout(mainVLay)
+        self.widgetContents.setStyleSheet('background-color:#FFFFFF;')
+        try:
+            mainVLay.setMargin(30)
+        except Exception as ex:
+            mainVLay.setContentsMargins(30,30,30,30)
+            logging.error(ex)
+        self.widgetContents.setLayout(mainVLay)
         scroll = QtGui.QScrollArea()
-        scroll.setWidget(widgetContents)
+        scroll.setWidget(self.widgetContents)
         scroll.setWidgetResizable(True)
         self.outLay = QtGui.QVBoxLayout()
         self.outLay.addWidget(scroll)
