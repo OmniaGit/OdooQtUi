@@ -25,6 +25,7 @@ class Selection(OdooFieldTemplate):
         self.labelQtObj = False
         self.widgetQtObj = False
         self.currentValue = ''
+        self.orderedItems = []
         self.widget = self.fieldXmlAttributes.get('widget', '')
         if self.widget == 'statusbar':
             self.statusbar_colors = json.loads(self.fieldXmlAttributes.get('statusbar_colors', ''))
@@ -64,7 +65,8 @@ class Selection(OdooFieldTemplate):
         selectionVals = [('', '')]
         selectionVals.extend(self.fieldPyDefinition.get('selection', []))
         self.populateMapping(selectionVals)
-        self.widgetQtObj.addItems(list(self.selectionMappingReverse.keys()))
+        self.orderedItems = list(self.selectionMappingReverse.keys())
+        self.widgetQtObj.addItems(self.orderedItems)
         self.widgetQtObj.setToolTip(self.tooltip)
         self.widgetQtObj.currentIndexChanged.connect(self.valueChanged)
         if self.required:
@@ -96,7 +98,8 @@ class Selection(OdooFieldTemplate):
         if newVal not in allItems:
             utils.logMessage('warning', '[%r] Value %r not found in values: %r' % (self.fieldName, newVal, allItems), 'setValue')
             return
-        newIndex = allItems.index(newVal)
+        interfaceVal = self.selectionMapping.get(newVal)
+        newIndex = self.orderedItems.index(interfaceVal)
         if newIndex:
             self.widgetQtObj.setCurrentIndex(newIndex)
         self.currentValue = newVal
