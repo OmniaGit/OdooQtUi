@@ -36,7 +36,10 @@ class Datetime(OdooFieldTemplate):
         pyqtDateTime = QtCore.QDateTime()
         if newVal:
             # year, month, day, hour, minute, second
-            datetimeVal = datetime.strptime(newVal, '%Y-%m-%d %H:%M:%S')
+            if not isinstance(newVal, str):
+                datetimeVal = datetime.strptime(newVal.value, '%Y%m%dT%H:%M:%S')
+            else:
+                datetimeVal = datetime.strptime(newVal, '%Y-%m-%d %H:%M:%S')
             self.currentValue = datetimeVal
             pyqtDateTime = QtCore.QDateTime(datetimeVal.year, datetimeVal.month, datetimeVal.day, datetimeVal.hour, datetimeVal.minute, datetimeVal.second)
         self.widgetQtObj.setDateTime(pyqtDateTime)
