@@ -5,7 +5,7 @@ Created on Jan 18, 2019
 '''
 import sys
 import logging
-from PySide import QtGui
+from PySide2 import QtWidgets
 from OdooQtUi.connector import MainConnector
 
 logger = logging.getLogger()
@@ -16,7 +16,7 @@ if __name__ == '__main__':
     odooConnector = MainConnector()
     import time
     ts = time.time()
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
 
     def do_test():
         connectorObj = MainConnector()

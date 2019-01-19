@@ -10,14 +10,15 @@ import logging
 import xml.etree.cElementTree as ElementTree
 from PySide2 import QtGui
 from PySide2 import QtCore
+from PySide2 import QtWidgets
 from functools import partial
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.utils_odoo_conn import utilsUi
 
 # Do not delete these, are necessary to compute filters coming from server
-import datetime
-from dateutil.relativedelta import relativedelta
+#import datetime
+#from dateutil.relativedelta import relativedelta
 
 SEARCH_FOR_STRING = 'Search "%s" for: "'
 
@@ -48,7 +49,7 @@ class SearchView(object):
         outFilters = []
         for conditionObj in self.globalCondition:
             outFilters.extend(conditionObj.condition)
-        utils.logDebug('OutCondition %r' % (unicode(outFilters)), 'launchFilterChanged')
+        utils.logDebug('OutCondition %r' % (str(outFilters)), 'launchFilterChanged')
         if self.parent:
             self.parent.filter_changed_signal.emit(outFilters)
 
@@ -59,7 +60,7 @@ class SearchView(object):
         lineEditList = [self.linedit]
         lineEditList.extend(self.tmpLineEdits)
         for lineEdit in lineEditList:
-            text = unicode(lineEdit.text())
+            text = str(lineEdit.text())
             fieldObj = self.getTmpField(text)
             conditionList.append(fieldObj.condition)
             operators.append('|')
@@ -193,7 +194,7 @@ class SearchView(object):
         try:
             evalDomain = eval(fieldAttributes.get('domain', ''))
             evalDomain = self.evaluateCondition(evalDomain)
-        except Exception, ex:
+        except Exception as ex:
             logging.error('Unable to compute domain %r. EX: %r' % (fieldAttributes.get('domain', ''), ex))
         operators = []
         conds = []
@@ -221,7 +222,7 @@ class SearchView(object):
         if not actionChange:
             logging.warning('Action not found')
             return
-        stringOption = unicode(actionChange.iconText())
+        stringOption = str(actionChange.iconText())
         filterObj = self.checkFilter(stringOption)
         if filterObj:
             if not newVal:  # Uncheck the filter
@@ -249,7 +250,7 @@ class SearchView(object):
             @fields: List of field objects
             @filters: List of filter objects
         '''
-        currentVal = unicode(currentVal)
+        currentVal = str(currentVal)
         stringList = []
         self.tmpFields = []  # Do not remove this clear or search without selecting a value will be break
         if currentVal:
@@ -267,13 +268,13 @@ class SearchView(object):
         self.filterListModel.setStringList(stringList)
 
     def textChangedEvent(self, newText=''):
-        newText = unicode(newText)
+        newText = str(newText)
         if newText:
             for tmpField in self.tmpFields:
-                if unicode(tmpField.interfaceStringWithValue) == unicode(newText):
-                    self.populateCombo(currentVal=unicode(tmpField.value))
+                if str(tmpField.interfaceStringWithValue) == str(newText):
+                    self.populateCombo(currentVal=str(tmpField.value))
                     return
-            self.populateCombo(currentVal=unicode(newText))
+            self.populateCombo(currentVal=str(newText))
 
     def returnPressedLocal(self):
         if self.orPressed:
@@ -284,7 +285,7 @@ class SearchView(object):
         timer.start(500)
 
     def clearQLayoutChildren(self, layout):
-        for i in reversed(range(layout.count())):
+        for i in reversed(list(range(layout.count()))):
             childLay = layout.itemAt(i)
             widget = childLay.widget()
             if widget:
@@ -299,7 +300,7 @@ class SearchView(object):
                 layout.removeWidget(elem)
 
     def delayedAddFieldFilter(self):
-        filterText = unicode(self.linedit.text())
+        filterText = str(self.linedit.text())
         tmpField = self.getTmpField(filterText)
         if not tmpField:
             return
@@ -486,7 +487,7 @@ class SearchView(object):
 
     def checkFilter(self, val):
         for filterObj in self.filters:
-            if unicode(filterObj.string.strip()) == unicode(val):
+            if str(filterObj.string.strip()) == str(val):
                 return filterObj
         return False
 
@@ -519,12 +520,12 @@ class SearchView(object):
         outFilter = []
         operators = []
         for elem in conditions:
-            if isinstance(elem, (str, unicode)):
+            if isinstance(elem, str):
                 if not operators:
                     operators.append(elem)
             elif isinstance(elem, (tuple, list)):
                 if not operators:
-                    if outFilter and not isinstance(outFilter[-1], (str, unicode)):
+                    if outFilter and not isinstance(outFilter[-1], str):
                         outFilter.append('&')
                     outFilter.append(elem)
                 else:
@@ -540,7 +541,7 @@ class SearchView(object):
             return self.computeArchRecursion(ElementTree.XML(self.arch.encode('utf-8')))
 
 
-class CustomQCompleter(QtGui.QCompleter):
+class CustomQCompleter(QtWidgets.QCompleter):
     def __init__(self, parent=None):
         super(CustomQCompleter, self).__init__(parent)
         self.local_completion_prefix = ""
@@ -557,7 +558,7 @@ class CustomQCompleter(QtGui.QCompleter):
             def filterAcceptsRow(self, sourceRow, sourceParent):
                 index0 = self.sourceModel().index(sourceRow, 0, sourceParent)
                 searchStr = local_completion_prefix.lower()
-                modelStr = unicode(self.sourceModel().data(index0, QtCore.Qt.DisplayRole).toString().toLower())
+                modelStr = str(self.sourceModel().data(index0, QtCore.Qt.DisplayRole).toString().toLower())
                 return searchStr in modelStr
 
         proxy_model = InnerProxyModel()
@@ -606,7 +607,7 @@ class Condition():
         self.intString = ''
 
 
-class QVBoxLayCustom(QtGui.QVBoxLayout):
+class QVBoxLayCustom(QtWidgets.QVBoxLayout):
     def __init__(self, advancedFilterFields):
         super(QVBoxLayCustom, self).__init__()
         self.mainWidget = QtGui.QWidget()
@@ -714,20 +715,20 @@ class QVBoxLayCustom(QtGui.QVBoxLayout):
 
     def getValue(self, fieldType):
         if fieldType in ['char', 'many2one', 'text', 'one2many', 'many2many']:
-            return unicode(self.mainLineEditWidget.text())
+            return str(self.mainLineEditWidget.text())
         elif fieldType == 'boolean':
             return ''
         elif fieldType == 'date':
-            return unicode(self.dateWidget.date().toPyDate())
+            return str(self.dateWidget.date().toPyDate())
         elif fieldType == 'datetime':
-            return unicode(self.datetimeWidget.dateTime().toPyDateTime())
+            return str(self.datetimeWidget.dateTime().toPyDateTime())
         elif fieldType == 'integer':
             return self.integerSpinboxWidget.value()
         elif fieldType == 'float':
             try:
-                return float(unicode(self.mainLineEditWidget.text()))
-            except Exception, ex:
-                utils.logMessage('warning', unicode(ex), 'getValue')
+                return float(str(self.mainLineEditWidget.text()))
+            except Exception as ex:
+                utils.logMessage('warning', str(ex), 'getValue')
                 utilsUi.launchMessage('Wrong value for float field!', 'warning')
                 return 0
 
@@ -749,7 +750,7 @@ class QVBoxLayCustom(QtGui.QVBoxLayout):
         comboAllFields = QtGui.QComboBox()
         comboAllFields.setStyleSheet(constants.LOGIN_COMBO_STYLE)
 
-        for fieldName in self.advancedFilterFields.keys():
+        for fieldName in list(self.advancedFilterFields.keys()):
             fieldDefinition = self.advancedFilterFields.get(fieldName)
             fieldString = fieldDefinition.get('string', '')
             fieldType = fieldDefinition.get('type', '')
@@ -870,7 +871,7 @@ class QVBoxLayCustom(QtGui.QVBoxLayout):
         return []
 
 
-class CustomLineEdit(QtGui.QLineEdit):
+class CustomLineEdit(QtWidgets.QLineEdit):
     def __init__(self, parentClass):
         self.parentClass = parentClass
         return super(CustomLineEdit, self).__init__()

@@ -5,13 +5,13 @@ Created on 24 Mar 2017
 '''
 
 
-from PySide import QtCore
-from PySide.QtCore import QObject
+from PySide2 import QtCore
+from PySide2.QtCore import QObject
 
 
 from OdooQtUi.utils_odoo_conn import utils
-from parser.search_view import SearchView
-from templateView import TemplateView
+from OdooQtUi.views.parser.search_view import SearchView
+from OdooQtUi.views.templateView import TemplateView
 
 
 class TemplateSearchView(TemplateView, QObject):

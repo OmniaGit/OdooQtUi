@@ -4,11 +4,11 @@ Created on 3 Feb 2017
 @author: Daniel Smerghetto
 '''
 import copy
-from PySide import QtGui
+from PySide2 import QtWidgets
 from OdooQtUi.utils_odoo_conn import utils
 
 
-class TemplateView(QtGui.QWidget):
+class TemplateView(QtWidgets.QWidget):
 
     def __init__(self, rpcObject, viewObj, activeLanguageCode='en_US'):
         super(TemplateView, self).__init__()
@@ -68,7 +68,7 @@ class TemplateView(QtGui.QWidget):
     def addToObject(self):
         fieldIdentifier = 'field_'
         buttonIdentifier = 'button_'
-        for key, obj in self.mappingInterface.items():
+        for key, obj in list(self.mappingInterface.items()):
             if key.startswith(fieldIdentifier):
                 newKey = key.replace(fieldIdentifier, '')
                 self.interfaceFieldsDict[newKey] = obj
@@ -80,14 +80,14 @@ class TemplateView(QtGui.QWidget):
     def cleanFields(self, fieldsToClean=[]):
         try:
             if not fieldsToClean:
-                for fieldObj in self.interfaceFieldsDict.values():
+                for fieldObj in list(self.interfaceFieldsDict.values()):
                     if fieldObj:
                         fieldObj.eraseValue()
-        except Exception, ex:
-            utils.logMessage("error", unicode(ex), 'cleanFields')
+        except Exception as ex:
+            utils.logMessage("error", str(ex), 'cleanFields')
 
     def setFieldValues(self, fieldsDict):
-        for fieldName, fieldVal in fieldsDict.items():
+        for fieldName, fieldVal in list(fieldsDict.items()):
             self.setValueField(fieldName, fieldVal)
 
     def setValueField(self, fieldName, fieldVal):
@@ -117,7 +117,7 @@ class TemplateView(QtGui.QWidget):
 
     def _setFieldModifiers(self):
         fieldDict = self.interfaceFieldsDict
-        for fieldObj in fieldDict.values():
+        for fieldObj in list(fieldDict.values()):
             readonlyModif = fieldObj.modifiers.get('readonly', {})
             invisibleModif = fieldObj.modifiers.get('invisible', {})
             if readonlyModif:
@@ -127,7 +127,7 @@ class TemplateView(QtGui.QWidget):
 
     def _setButtonsModifiers(self):
         fieldDict = self.interfaceFieldsDict
-        for buttonObj in self.buttons.__dict__.values():
+        for buttonObj in list(self.buttons.__dict__.values()):
             readonlyModif = buttonObj.modifiers.get('readonly', {})
             invisibleModif = buttonObj.modifiers.get('invisible', {})
             if readonlyModif:
@@ -139,27 +139,27 @@ class TemplateView(QtGui.QWidget):
     def loadIds(self, objIds=[], forceFieldValues={}, readonlyFields={}, invisibleFields={}, fieldsToRead=[], skipRemoveNootebook=False):
         self.activeIds = objIds
         if not fieldsToRead:
-            fieldsToRead = self.interfaceFieldsDict.keys()
+            fieldsToRead = list(self.interfaceFieldsDict.keys())
         self.objectsInit = copy.copy(self.fields)
 
     def isReadonly(self):
         return self.readonly
 
     def setReadonly(self, val=False):
-        for fieldObj in self.interfaceFieldsDict.values():
+        for fieldObj in list(self.interfaceFieldsDict.values()):
             fieldObj.setReadonly(val)
         if not val:
             self._setFieldModifiers()
 
     def getAllFieldsValues(self):
         outDict = {}
-        for fieldName, fieldObject in self.interfaceFieldsDict.items():
+        for fieldName, fieldObject in list(self.interfaceFieldsDict.items()):
             outDict[fieldName] = fieldObject.value
         return outDict
 
     def getAllRequiredFieldsValues(self):
         outDict = {}
-        for fieldName, fieldObject in self.requiredFields.items():
+        for fieldName, fieldObject in list(self.requiredFields.items()):
             outDict[fieldName] = fieldObject.value
         return outDict
 

@@ -4,7 +4,7 @@ Created on 7 Feb 2017
 @author: dsmerghetto
 '''
 
-from PySide import QtGui
+from PySide2 import QtGui
 from OdooQtUi.utils_odoo_conn import utils, utilsUi
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
@@ -35,7 +35,7 @@ class Charachter(OdooFieldTemplate):
             utilsUi.setRequiredBackground(self.widgetQtObj, constants.CHAR_STYLE)
 
     def valueChanged(self):
-        self.currentValue = unicode(self.widgetQtObj.text())
+        self.currentValue = str(self.widgetQtObj.text())
         self.valueTemplateChanged()
 
     def setValue(self, newVal):

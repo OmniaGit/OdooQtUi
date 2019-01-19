@@ -7,8 +7,8 @@ import json
 import os
 import logging
 
-from PySide import QtGui
-from PySide import QtCore
+from PySide2 import QtGui
+from PySide2 import QtCore
 
 
 from OdooQtUi.utils_odoo_conn import utils, utilsUi
@@ -103,14 +103,14 @@ class One2many(OdooFieldTemplate):
         self.showNoteLay(False)
 
     def sendMessNote(self):
-        body = unicode(self.textEditMess.toPlainText())
+        body = str(self.textEditMess.toPlainText())
         res = False
         if self.currentMessType == 'NOTE':
             res = self._logNote(body)
         else:
             res = self._sendMessage(body)
         self.showNoteLay(False)
-        for i in reversed(range(self.messaggesLay.count())):
+        for i in reversed(list(range(self.messaggesLay.count()))):
             self.messaggesLay.itemAt(i).widget().deleteLater()
         if res:
             self.currentValue.insert(0, res)
@@ -179,7 +179,7 @@ class One2many(OdooFieldTemplate):
             self.setUnfolloWingButton()
             lay.addWidget(self.followButton)
             self.buttonFollowersCount = QtGui.QToolButton()
-            self.buttonFollowersCount.setText(unicode(len(self.currentValue)))
+            self.buttonFollowersCount.setText(str(len(self.currentValue)))
             self.toolmenu = QtGui.QMenu()
             res = self.populateMenu()
             for obj in res:
@@ -228,7 +228,7 @@ class One2many(OdooFieldTemplate):
             self.currentValue.remove(resId)
             self.toolmenu.clear()
             self.populateMenu()
-            self.buttonFollowersCount.setText(unicode(len(self.currentValue)))
+            self.buttonFollowersCount.setText(str(len(self.currentValue)))
             currentPartnerId, _partnerName = self.getPartnerIdFromUserId()
             if self.parentId == currentPartnerId:
                 self.setFollowingButton()
@@ -253,7 +253,7 @@ class One2many(OdooFieldTemplate):
             self.currentValue.append(resId)
             self.toolmenu.clear()
             self.populateMenu()
-            self.buttonFollowersCount.setText(unicode(len(self.currentValue)))
+            self.buttonFollowersCount.setText(str(len(self.currentValue)))
             self.setFollowingButton()
 
     def getPartnerIdFromUserId(self, userId=False):
@@ -266,7 +266,7 @@ class One2many(OdooFieldTemplate):
         return partnerId, partnerName
 
     def followClicked(self):
-        currText = unicode(self.followButton.text())
+        currText = str(self.followButton.text())
         partnerId, _partnerName = self.getPartnerIdFromUserId()
         if partnerId:
             if currText == 'Following':
@@ -328,7 +328,7 @@ class One2many(OdooFieldTemplate):
         cleanFname, extension = os.path.splitext(fileName)
         filePath = utilsUi.getDirectoryFileToSaveSystem(None, cleanFname, fileType='*%s' % (extension))
         if filePath:
-            filePath = unicode(filePath)
+            filePath = str(filePath)
             with open(filePath, 'wb') as writeFile:
                 writeFile.write(fileCleanContent)
             utils.openByDefaultEditor(filePath)
@@ -363,7 +363,7 @@ class One2many(OdooFieldTemplate):
                 if objId:
                     self.currentValue.append(objId)
                     self.setValue(self.currentValue)
-        except Exception, ex:
+        except Exception as ex:
             utils.logMessage('error', '%r' % (ex), 'createAndAdd')
 
     def computeFieldVal(self, val):
@@ -374,8 +374,8 @@ class One2many(OdooFieldTemplate):
             outStrVal = ''
         elif isinstance(val, int):
             outStrVal = ''
-        elif isinstance(val, (str, unicode, QtCore.QString)):
-            outStrVal = unicode(val)
+        elif isinstance(val, (str, QtCore.QString)):
+            outStrVal = str(val)
         return outStrVal
 
     def setValue(self, relIds):
@@ -416,7 +416,7 @@ class One2many(OdooFieldTemplate):
 
     def removeItem(self, rowIndex):
         found = False
-        rowIndexes = self.treeViewObj.idLineRel.keys()
+        rowIndexes = list(self.treeViewObj.idLineRel.keys())
         for rowInd in rowIndexes:
             objId = self.treeViewObj.idLineRel[rowInd]
             if rowInd == rowIndex:

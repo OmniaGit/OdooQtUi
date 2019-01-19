@@ -4,8 +4,8 @@ Created on 3 Feb 2017
 @author: Daniel Smerghetto
 '''
 import xml.etree.cElementTree as ElementTree
-from PySide import QtGui
-from PySide import QtCore
+from PySide2 import QtGui
+from PySide2 import QtCore
 from functools import partial
 from utils_odoo_conn import constants
 from utils_odoo_conn import utils
@@ -219,7 +219,7 @@ class SearchView(object):
         comboAvailableFields = QtGui.QComboBox()
         comboAvailableFields.setStyleSheet(constants.LOGIN_COMBO_STYLE)
         
-        for fieldName in self.advancedFilterFields.keys():
+        for fieldName in list(self.advancedFilterFields.keys()):
             fieldDefinition = self.advancedFilterFields.get(fieldName)
             fieldString = fieldDefinition.get('string', '')
             fieldType = fieldDefinition.get('type', '')
@@ -274,7 +274,7 @@ class SearchView(object):
             fieldName = stringFieldRel.get(fieldString)
             fieldDefinition = self.advancedFilterFields[fieldName]
             fieldType = fieldDefinition.get('type', '')
-            value = unicode(mainLineEditWidget.text())
+            value = str(mainLineEditWidget.text())
             odooCondition = []
             if fieldType in ['char', 'many2one', 'text', 'one2many', 'many2many']:
                 operatorIndex = comboCharOperator.currentIndex()
@@ -326,7 +326,7 @@ class SearchView(object):
                     odooCondition = [(fieldName,'=', False), '|', (fieldName, '=', 0)]
                 value = floatVal
             elif fieldType == 'date':
-                value = unicode(dateWidget.date().toPyDate())
+                value = str(dateWidget.date().toPyDate())
                 operatorIndex = comboDatetimeOperator.currentIndex()
                 interfaceVal = comboDatetimeValues[operatorIndex]
                 if interfaceVal == 'Is equal to':
@@ -347,7 +347,7 @@ class SearchView(object):
                     odooCondition = [(fieldName,'=', False), '|', (fieldName, '=', 0)]
             elif fieldType == 'datetime':
                 operatorIndex = comboDatetimeOperator.currentIndex()
-                value = unicode(datetimeWidget.dateTime().toPyDateTime())
+                value = str(datetimeWidget.dateTime().toPyDateTime())
                 interfaceVal = comboDatetimeValues[operatorIndex]
                 if interfaceVal == 'Is equal to':
                     odooCondition = [(fieldName,'=', value)]
@@ -447,7 +447,7 @@ class SearchView(object):
         if not actionChange:
             logging.warning('Action not found')
             return
-        stringOption = unicode(actionChange.iconText())
+        stringOption = str(actionChange.iconText())
         filterObj = self.checkFilter(stringOption)
         if filterObj:
             if not newVal:  # Uncheck the filter
@@ -503,12 +503,12 @@ class SearchView(object):
 
     def checkFilter(self, val):
         for filterObj in self.filters:
-            if unicode(filterObj.string.strip()) == unicode(val):
+            if str(filterObj.string.strip()) == str(val):
                 return filterObj
         return False
 
     def clearQLayoutChildren(self, layout):
-        for i in reversed(range(layout.count())): 
+        for i in reversed(list(range(layout.count()))): 
             childLay = layout.itemAt(i)
             widget = childLay.widget()
             if widget:
@@ -601,7 +601,7 @@ class SearchView(object):
         self.launchFilterChanged()
     
     def orCondition(self):
-        self.addFieldFilter(unicode(self.linedit.text()), 'Or')
+        self.addFieldFilter(str(self.linedit.text()), 'Or')
         self.linedit.setText('')
 
     def removeFieldFilter(self, filterTuple):
@@ -629,7 +629,7 @@ class SearchView(object):
             if outFilters:
                 outFilters.append('&')
             for elem in self.conditionFilters:
-                if isinstance(elem, (str, unicode)):
+                if isinstance(elem, str):
                     outFilters.append(elem)
                 elif isinstance(elem, FilterObj):
                     outFilters.extend(elem.domain)
@@ -645,7 +645,7 @@ class SearchView(object):
         timer.start(500)
 
     def delayedAddFieldFilter(self):
-        filterText = unicode(self.linedit.text())
+        filterText = str(self.linedit.text())
         self.addFieldFilter(filterText)
         self.linedit.setText('')
         for timer in self.timers:
@@ -673,20 +673,20 @@ class SearchView(object):
         self.filterListModel.setStringList(stringList)
 
     def textChangedEvent(self, newText=''):
-        newText = unicode(newText)
+        newText = str(newText)
         if newText:
-            self.populateCombo(currentVal=unicode(newText))
+            self.populateCombo(currentVal=str(newText))
 
     def evaluateCondition(self, conditions):
         outFilter = []
         operators = []
         for elem in conditions:
-            if isinstance(elem, (str, unicode)):
+            if isinstance(elem, str):
                 if not operators:
                     operators.append(elem)
             elif isinstance(elem, (tuple, list)):
                 if not operators:
-                    if outFilter and not isinstance(outFilter[-1], (str, unicode)):
+                    if outFilter and not isinstance(outFilter[-1], str):
                         outFilter.append('&')
                     outFilter.append(elem)
                 else:
@@ -704,7 +704,7 @@ class SearchView(object):
         try:
             evalDomain = eval(fieldAttributes.get('domain', ''))
             evalDomain = self.evaluateCondition(evalDomain)
-        except Exception, ex:
+        except Exception as ex:
             logging.error('Unable to compute domain %r. EX: %r' % (fieldAttributes.get('domain', ''), ex))
         filterObj.domain = evalDomain
         filterObj.string = fieldAttributes.get('string', '')
@@ -745,7 +745,7 @@ class CustomQCompleter(QtGui.QCompleter):
             def filterAcceptsRow(self, sourceRow, sourceParent):
                 index0 = self.sourceModel().index(sourceRow, 0, sourceParent)
                 searchStr = local_completion_prefix.lower()
-                modelStr = unicode(self.sourceModel().data(index0, QtCore.Qt.DisplayRole).toString().toLower())
+                modelStr = str(self.sourceModel().data(index0, QtCore.Qt.DisplayRole).toString().toLower())
                 return searchStr in modelStr
 
         proxy_model = InnerProxyModel()

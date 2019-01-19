@@ -11,11 +11,8 @@ import time
 import base64
 import logging
 import datetime
-import traceback
 
-from PySide import QtGui
 from os.path import expanduser
-from OdooQtUi.utils_odoo_conn import constants
 
 
 try:
@@ -49,7 +46,6 @@ def launchTryIconMessage(title, message, level='info'):
 
 def startUpEnable(pathFrom, startUpflag=False):
     '''
-        C:\Users\Daniel\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\MineSweeper.exe
     '''
     try:
         if not pathFrom:
@@ -352,7 +348,7 @@ def getRowsFromTableWidget(tableWidget, outType='list', fieldNames=[], rowsIndex
         outList = []
         rowIndexes = rowsIndexesToGet
         if not rowIndexes:
-            rowIndexes = range(0, rowCount)
+            rowIndexes = list(range(0, rowCount))
         for rowIndex in rowIndexes:
             rowList = []
             for colIndex in range(0, columnCount):
@@ -367,7 +363,7 @@ def getRowsFromTableWidget(tableWidget, outType='list', fieldNames=[], rowsIndex
         outDict = {}
         rowIndexes = rowsIndexesToGet
         if not rowIndexes:
-            rowIndexes = range(0, rowCount)
+            rowIndexes = list(range(0, rowCount))
         for rowIndex in rowIndexes:
             for colIndex in range(0, columnCount):
                 if colIndex >= len(fieldNames):
@@ -392,7 +388,7 @@ def getSelectedRowsFromListWidget(listWidget):
 def evaluateBoolean(val):
     if isinstance(val, bool):
         return val
-    elif isinstance(val, (str, str)):
+    elif isinstance(val, str):
         invisible = eval(val)
         if invisible:
             return True
@@ -405,7 +401,7 @@ def evaluateBoolean(val):
 
 
 def evaluateModifiers(modifiers):
-    if isinstance(modifiers, (str, str)):
+    if isinstance(modifiers, str):
         modifiers = json.loads(modifiers)
     invisibleConditions = modifiers.get('invisible', {})
     readonlyConditions = modifiers.get('readonly', {})
@@ -447,12 +443,12 @@ def evaluateAttrs(fieldsDict, toCompute):
                 return False
             return fieldVal not in valToCompare
         elif operator == 'like':
-            if not isinstance(valToCompare, (str, str)):
+            if not isinstance(valToCompare, str):
                 logMessage('warning', 'valToCompare: %r is not a char for operator: %r' % (valToCompare, operator), 'evalSingleCondition')
                 return False
             return fieldVal in valToCompare
         elif operator == 'ilike':
-            if not isinstance(valToCompare, (str, str)):
+            if not isinstance(valToCompare, str):
                 logMessage('warning', 'valToCompare: %r is not a char for operator: %r' % (valToCompare, operator), 'evalSingleCondition')
                 return False
             return fieldVal.lower() in valToCompare.lower()
@@ -466,7 +462,7 @@ def evaluateAttrs(fieldsDict, toCompute):
     conditions = []
     operators = []
     for singleCompute in toCompute:
-        if isinstance(singleCompute, (str, str)):
+        if isinstance(singleCompute, str):
             if singleCompute == '|':
                 operators.append(singleCompute)
                 continue

@@ -3,7 +3,7 @@ Created on 24 Mar 2017
 
 @author: dsmerghetto
 '''
-from templateView import TemplateView
+from .templateView import TemplateView
 
 
 class TemplateTreeTreeView(TemplateView):

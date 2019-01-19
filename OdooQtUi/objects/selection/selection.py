@@ -5,8 +5,8 @@ Created on 06 feb 2017
 '''
 import json
 
-from PySide import QtGui
-from PySide import QtCore
+from PySide2 import QtGui
+from PySide2 import QtCore
 from OdooQtUi.utils_odoo_conn import utils, utilsUi
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
@@ -34,8 +34,8 @@ class Selection(OdooFieldTemplate):
 
     def populateMapping(self, items):
         for odooName, interfaceName in items:
-            odooName = unicode(odooName)
-            interfaceName = unicode(interfaceName)
+            odooName = str(odooName)
+            interfaceName = str(interfaceName)
             self.selectionMapping[odooName] = interfaceName
             self.selectionMappingReverse[interfaceName] = odooName
 
@@ -60,7 +60,7 @@ class Selection(OdooFieldTemplate):
         selectionVals = [('', '')]
         selectionVals.extend(self.fieldPyDefinition.get('selection', []))
         self.populateMapping(selectionVals)
-        self.widgetQtObj.addItems(self.selectionMappingReverse.keys())
+        self.widgetQtObj.addItems(list(self.selectionMappingReverse.keys()))
         self.widgetQtObj.setToolTip(self.tooltip)
         self.widgetQtObj.currentIndexChanged.connect(self.valueChanged)
         if self.required:
@@ -71,7 +71,7 @@ class Selection(OdooFieldTemplate):
             self.widgetLyQtObject.addWidget(self.translateButton)
 
     def valueChanged(self, newIndex):
-        currentValue = unicode(self.widgetQtObj.currentText())
+        currentValue = str(self.widgetQtObj.currentText())
         self.currentValue = self.selectionMappingReverse.get(currentValue)
         self.valueTemplateChanged()
 
@@ -85,7 +85,7 @@ class Selection(OdooFieldTemplate):
 
         if self.widget == 'statusbar':
             for label in self.labels:
-                if unicode(label.text()).upper() == unicode(newVal).upper():
+                if str(label.text()).upper() == str(newVal).upper():
                     label.setStyleSheet(constants.LABEL_STYLE_STATUSBAR_ACTIVE)
                     return
         allItems = tuple(self.selectionMapping.keys())

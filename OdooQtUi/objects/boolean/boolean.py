@@ -4,8 +4,8 @@ Created on 7 Feb 2017
 @author: dsmerghetto
 '''
 
-from PySide import QtGui
-from PySide import QtCore
+from PySide2 import QtGui
+from PySide2 import QtCore
 from OdooQtUi.utils_odoo_conn import utilsUi
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
@@ -42,7 +42,7 @@ class Boolean(OdooFieldTemplate):
         self.valueTemplateChanged()
 
     def setValue(self, newVal):
-        newVal = eval(unicode(newVal))
+        newVal = eval(str(newVal))
         self.widgetQtObj.setChecked(newVal)
         self.currentValue = newVal
 

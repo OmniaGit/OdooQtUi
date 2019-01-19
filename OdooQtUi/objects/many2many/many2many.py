@@ -4,8 +4,8 @@ Created on 7 Feb 2017
 @author: dsmerghetto
 '''
 import json
-from PySide  import QtGui
-from PySide  import QtCore
+from PySide2  import QtGui
+from PySide2  import QtCore
 from functools import partial
 from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.utils_odoo_conn import utilsUi
@@ -52,7 +52,7 @@ class Many2many(OdooFieldTemplate):
     def createAndAdd(self):
         def acceptFormDial():
             fieldVals = tmpviewObjForm.getAllFieldsValues()
-            for requiredFieldStr, requiredFieldObj in tmpviewObjForm.requiredFields.items():
+            for requiredFieldStr, requiredFieldObj in list(tmpviewObjForm.requiredFields.items()):
                 fieldVal = fieldVals.get(requiredFieldStr, '')
                 if not fieldVal and not isinstance(fieldVal, (int, float)):
                     utilsUi.launchMessage('Field %r need a value' % (requiredFieldObj.fieldStringInterface), 'error')
@@ -84,7 +84,7 @@ class Many2many(OdooFieldTemplate):
                 if objId:
                     self.currentValue.append(objId)
                     self.setValue(self.currentValue)
-        except Exception, ex:
+        except Exception as ex:
             utils.logMessage('error', '%r' % (ex), 'createAndAdd')
 
     def setValue(self, relIds):
@@ -143,7 +143,7 @@ class Many2many(OdooFieldTemplate):
                     if len(val) < 1:
                         val = ''
                     val = val[1]
-                recordValList.append(unicode(val))
+                recordValList.append(str(val))
             recordValList.append('')
             values.append(recordValList)
         if checkBox:
@@ -152,7 +152,7 @@ class Many2many(OdooFieldTemplate):
 
     def removeItem(self, rowIndex):
         found = False
-        rowIndexes = self.treeViewObj.idLineRel.keys()
+        rowIndexes = list(self.treeViewObj.idLineRel.keys())
         for rowInd in rowIndexes:
             objId = self.treeViewObj.idLineRel[rowInd]
             if rowInd == rowIndex:
@@ -176,7 +176,7 @@ class Many2many(OdooFieldTemplate):
         def commonMove():
             currRange = viewObj.currentRange
             currRangeTuple = tuple(currRange)
-            if currRangeTuple not in self.evaluatedIds.keys():
+            if currRangeTuple not in list(self.evaluatedIds.keys()):
                 resIds = self.rpc.search(self.relation, [], limit=viewObj.passRange, offset=currRange[-1])
                 self.evaluatedIds[currRangeTuple] = resIds
             else:

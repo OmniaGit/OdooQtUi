@@ -4,7 +4,7 @@ Created on 7 Feb 2017
 @author: dsmerghetto
 '''
 
-from PySide import QtGui
+from PySide2 import QtGui
 from OdooQtUi.utils_odoo_conn import utilsUi
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
@@ -33,11 +33,11 @@ class Integer(OdooFieldTemplate):
             self.widgetLyQtObject.addWidget(self.translateButton)
 
     def valueChanged(self, newValue):
-        self.currentValue = int(unicode(newValue))
+        self.currentValue = int(str(newValue))
         self.valueTemplateChanged()
 
     def setValue(self, newVal):
-        newVal = int(unicode(newVal))
+        newVal = int(str(newVal))
         self.widgetQtObj.setValue(newVal)
         self.currentValue = newVal
 

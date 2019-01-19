@@ -4,7 +4,7 @@ Created on 7 Feb 2017
 @author: dsmerghetto
 '''
 
-from PySide import QtGui
+from PySide2 import QtGui
 from OdooQtUi.utils_odoo_conn import utils, utilsUi
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
@@ -33,7 +33,7 @@ class Text(OdooFieldTemplate):
         self.widgetQtObj.textChanged.connect(self.valueChanged)
 
     def valueChanged(self):
-        self.currentValue = unicode(self.widgetQtObj.toPlainText())
+        self.currentValue = str(self.widgetQtObj.toPlainText())
         self.valueTemplateChanged()
 
     def setValue(self, newVal):

@@ -4,15 +4,15 @@ Created on 24 Mar 2017
 @author: dsmerghetto
 '''
 import copy
-from PySide import QtGui
-from PySide import QtCore
+from PySide2 import QtGui
+from PySide2 import QtCore
 
 
 from OdooQtUi.views.parser.form_view import FormView
 from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.utils_odoo_conn import utilsUi
 from OdooQtUi.views.parser.search_view import FieldObj
-from templateView import TemplateView
+from .templateView import TemplateView
 
 
 class TemplateFormView(TemplateView):
@@ -55,23 +55,23 @@ class TemplateFormView(TemplateView):
         utils.logDebug('compute Nootebook fields: %r' % (pageIndex), 'updateDataStructure')
         if pageIndex > 0 and pageIndex in self.formObj.nootebookFieldsToCompute:
             dictFieldsToUpdate = self.formObj.nootebookFieldsToCompute[pageIndex]
-            fieldNamesToUpdate = dictFieldsToUpdate.keys()
+            fieldNamesToUpdate = list(dictFieldsToUpdate.keys())
             self.loadIds(self.activeIds, {}, {}, {}, fieldNamesToUpdate, True)
 
     def setDefaults(self, fieldsToRead=[]):
         if not fieldsToRead:
-            fieldsToRead = self.interfaceFieldsDict.keys()
+            fieldsToRead = list(self.interfaceFieldsDict.keys())
         self.fieldDefaultVals = self.rpcObject.defaultGet(self.model, fieldsToRead)
         self.skipOnChange = True
-        for fieldName, fieldVal in self.fieldDefaultVals.items():
+        for fieldName, fieldVal in list(self.fieldDefaultVals.items()):
             self.setValueField(fieldName, fieldVal)
         self.skipOnChange = False
 
     def removeNootebookFields(self, fieldsToRead):
         mainDict = {}
-        for fieldsDict in self.formObj.nootebookFieldsToCompute.values():
+        for fieldsDict in list(self.formObj.nootebookFieldsToCompute.values()):
             mainDict.update(fieldsDict)
-        for fieldName in mainDict.keys():
+        for fieldName in list(mainDict.keys()):
             if fieldName in fieldsToRead:
                 fieldsToRead.remove(fieldName)
         return fieldsToRead
@@ -84,7 +84,7 @@ class TemplateFormView(TemplateView):
             objIds = [objIds]
         self.activeIds = objIds
         if not fieldsToRead:
-            fieldsToRead = self.interfaceFieldsDict.keys()
+            fieldsToRead = list(self.interfaceFieldsDict.keys())
         if not skipRemoveNootebook:
             fieldsToRead = self.removeNootebookFields(fieldsToRead)
         if len(objIds) > 1:
@@ -103,18 +103,18 @@ class TemplateFormView(TemplateView):
             else:
                 self.skipOnChange = True
                 self.formVals = formVals[0]
-                for fieldName, fieldVal in self.formVals.items():
+                for fieldName, fieldVal in list(self.formVals.items()):
                     self.setValueField(fieldName, fieldVal)
                     self.setFieldParentAttrs(fieldName)
                 self.skipOnChange = False
         else:
             self.setDefaults(fieldsToRead)
-        for fieldName, fieldVal in forceFieldValues.items():
+        for fieldName, fieldVal in list(forceFieldValues.items()):
             self.setValueField(fieldName, fieldVal)
         self._setFieldModifiers()
-        for readonlyField, fieldAttr in readonlyFields.items():
+        for readonlyField, fieldAttr in list(readonlyFields.items()):
             self.setReadonlyField(readonlyField, fieldAttr)
-        for invisibleField, fieldAttr in invisibleFields.items():
+        for invisibleField, fieldAttr in list(invisibleFields.items()):
             self.setInvisibleField(invisibleField, fieldAttr)
         self._setButtonsModifiers()
         self.objectsInit = copy.copy(self.fields)
@@ -128,7 +128,7 @@ class TemplateFormView(TemplateView):
 
     def _setFieldModifiers(self):
         fieldDict = self.interfaceFieldsDict
-        for fieldObj in fieldDict.values():
+        for fieldObj in list(fieldDict.values()):
             readonlyModif = fieldObj.modifiers.get('readonly', {})
             invisibleModif = fieldObj.modifiers.get('invisible', {})
             if readonlyModif:
@@ -145,7 +145,7 @@ class TemplateFormView(TemplateView):
     def checkRequiredFieldsEvaluated(self, showMessage=False):
         fieldsToEvaluate = []
         message = 'These required fields needs to be evaluated:'
-        for fieldObject in self.requiredFields.values():
+        for fieldObject in list(self.requiredFields.values()):
             if not fieldObject.value and not isinstance(fieldObject.value, (int, float)):
                 fieldsToEvaluate.append(fieldObject.fieldStringInterface)
                 message = message + '\n %r' % (fieldObject.fieldStringInterface)
@@ -173,12 +173,12 @@ class TemplateFormView(TemplateView):
         if val:
             localDict[fieldObj.fieldName] = fieldObj
         else:
-            if fieldObj.fieldName in localDict.keys():
+            if fieldObj.fieldName in list(localDict.keys()):
                 del localDict[fieldObj.fieldName]
 
     def getAllOnChange(self):
         outDict = {}
-        for fieldName, fieldObject in self.interfaceFieldsDict.items():
+        for fieldName, fieldObject in list(self.interfaceFieldsDict.items()):
             outDict[fieldName] = fieldObject.on_change
         return outDict
 
@@ -201,7 +201,7 @@ class TemplateFormView(TemplateView):
     def addToObject(self):
         fieldIdentifier = 'field_'
         buttonIdentifier = 'button_'
-        for key, obj in self.mappingInterface.items():
+        for key, obj in list(self.mappingInterface.items()):
             if key.startswith(fieldIdentifier):
                 newKey = key.replace(fieldIdentifier, '')
                 self.interfaceFieldsDict[newKey] = obj
@@ -213,14 +213,14 @@ class TemplateFormView(TemplateView):
         return True
 
     def _valueChanged(self, fieldName):
-        fieldName = unicode(fieldName)
+        fieldName = str(fieldName)
         fieldObj = self.interfaceFieldsDict.get(fieldName)
         if not fieldObj:
             utils.logMessage('warning', 'Field %r not found in interfacefieldsdict' % (fieldName), '_valueChanged')
         changeResult = self._on_change(fieldObj.fieldName)
         changedValues = changeResult.get('value', {})
-        for fieldNameFromServer, fieldValueFromServer in changedValues.items():
-            fieldObj1 = self.interfaceFieldsDict.get(unicode(fieldNameFromServer))
+        for fieldNameFromServer, fieldValueFromServer in list(changedValues.items()):
+            fieldObj1 = self.interfaceFieldsDict.get(str(fieldNameFromServer))
             fieldObj1.setValue(fieldValueFromServer)
         self.fieldsChanged[fieldName] = fieldObj
         self._setFieldModifiers()
@@ -229,7 +229,7 @@ class TemplateFormView(TemplateView):
         if not self.activeIds:
             utilsUi.launchMessage('Translations are available only on already created records.', 'warning')
             return
-        fieldName = unicode(fieldName)
+        fieldName = str(fieldName)
         fieldObj = self.interfaceFieldsDict.get(fieldName)
 
         def acceptTransDial():
@@ -244,7 +244,7 @@ class TemplateFormView(TemplateView):
         model = self.model
         if model == 'product.product':
             model = 'product.template'
-        translationName = unicode(model + ',' + fieldName)
+        translationName = str(model + ',' + fieldName)
         filterList = [('res_id', '=', self.activeIds[0]),
                       ('name', '=', translationName)
                       ]
@@ -290,11 +290,11 @@ class TemplateFormView(TemplateView):
         tableWidget.horizontalHeader().setStretchLastSection(True)
         if translationDial.exec_() == QtGui.QDialog.Accepted:
             rowsDict = utils.getRowsFromTableWidget(tableWidget, 'dict', fieldNames)
-            for rowDict in rowsDict.values():
+            for rowDict in list(rowsDict.values()):
                 elemId = False
-                translated = unicode(rowDict.get('translated', ''))
-                source = unicode(rowDict.get('source', ''))
-                lang = unicode(rowDict.get('lang', ''))
+                translated = str(rowDict.get('translated', ''))
+                source = str(rowDict.get('source', ''))
+                lang = str(rowDict.get('lang', ''))
                 for elem in res:
                     sourceRel = elem.get('src', '')
                     langRel = elem.get('lang', '')

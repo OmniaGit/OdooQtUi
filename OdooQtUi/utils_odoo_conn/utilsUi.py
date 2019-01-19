@@ -13,19 +13,19 @@ import logging
 import datetime
 import traceback
 
-from PySide import QtGui
-from PySide import QtCore
+from PySide2 import QtGui
+from PySide2 import QtCore
+from PySide2 import QtWidgets
 from os.path import expanduser
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.utils_odoo_conn import utils
-
 
 DEFAULT_ICON_PATH = ''
 
 
 def getQtImageFromContent(content, imageWidth=100, imageHeight=100):
-    label = QtGui.QLabel()
-    pixmap = QtGui.QPixmap()
+    label = QtWidgets.QLabel()
+    pixmap = QtWidgets.QPixmap()
     pixmap.loadFromData(base64.b64decode(content))
     pixmap = pixmap.scaled(imageWidth,
                            imageHeight,
@@ -43,24 +43,24 @@ def setDefaultIconPath(iconPath):
 
 def launchMessage(message='', msgType='message'):
     utils.logMessage('info', message, 'launchMessage')
-    messBox = QtGui.QMessageBox()
+    messBox = QtWidgets.QMessageBox()
     messBox.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
     messBox.setWindowTitle('Odoo Plm Connector')
-    messBox.setText(unicode(message))
+    messBox.setText(str(message))
     if msgType == 'message':
-        messBox.setIcon(QtGui.QMessageBox.Information)
-        messBox.setStandardBuunicodttons(QtGui.QMessageBox.Ok)
+        messBox.setIcon(QtWidgets.QMessageBox.Information)
+        messBox.setStandardBuunicodttons(QtWidgets.QMessageBox.Ok)
     if msgType == 'warning':
-        messBox.setIcon(QtGui.QMessageBox.Warning)
-        messBox.setStandardButtons(QtGui.QMessageBox.Ok)
+        messBox.setIcon(QtWidgets.QMessageBox.Warning)
+        messBox.setStandardButtons(QtWidgets.QMessageBox.Ok)
     if msgType == 'error':
-        messBox.setIcon(QtGui.QMessageBox.Critical)
-        messBox.setStandardButtons(QtGui.QMessageBox.Ok)
+        messBox.setIcon(QtWidgets.QMessageBox.Critical)
+        messBox.setStandardButtons(QtWidgets.QMessageBox.Ok)
     elif msgType == 'question':
-        messBox.setIcon(QtGui.QMessageBox.Question)
-        messBox.setStandardButtons(QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel)
+        messBox.setIcon(QtWidgets.QMessageBox.Question)
+        messBox.setStandardButtons(QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel)
     messBox.setWindowIcon(QtGui.QIcon(DEFAULT_ICON_PATH))
-    if (messBox.exec_() == QtGui.QMessageBox.Ok):
+    if (messBox.exec_() == QtWidgets.QMessageBox.Ok):
         messBox.accept()
         return True
     else:
@@ -78,7 +78,7 @@ def commonPopulateTable(headers, values, tableWidget, flags={}, add=False, fontS
         tableWidget.setRowCount(0)
     outDict = {}
     colCount = len(headers)
-    colIndexList = range(0, colCount)
+    colIndexList = list(range(0, colCount))
     tableWidget.setColumnCount(colCount)
     tableWidget.setHorizontalHeaderLabels(headers)
     rowPosition = tableWidget.rowCount()
@@ -92,9 +92,9 @@ def commonPopulateTable(headers, values, tableWidget, flags={}, add=False, fontS
             else:
                 colVal = menuObj.__dict__.get(colName, '')
             rowDict[colName] = colVal
-            twItem = QtGui.QTableWidgetItem(colVal)
+            twItem = QtWidgets.QTableWidgetItem(colVal)
             if fontSize:
-                font = QtGui.QFont()
+                font = QtWidgets.QFont()
                 font.setPointSize(fontSize)
                 twItem.setFont(font)
             if colIndex in flags:
@@ -111,32 +111,32 @@ def commonPopulateTable(headers, values, tableWidget, flags={}, add=False, fontS
 
 
 def getDirectoryFromSystem(parent, pathToOpen=''):
-    return unicode(QtGui.QFileDialog.getExistingDirectory(parent, "Select Directory", pathToOpen))
+    return str(QtWidgets.QFileDialog.getExistingDirectory(parent, "Select Directory", pathToOpen))
 
 
 def getFileFromSystem(desc='Open', startPath='/home/'):
-    fileName = QtGui.QFileDialog.getOpenFileName(None, desc, startPath)
+    fileName = QtWidgets.QFileDialog.getOpenFileName(None, desc, startPath)
     if os.path.exists(fileName):
-        return unicode(fileName)
+        return str(fileName)
     return ''
 
 
 def getDirectoryFileToSaveSystem(parent, statingPath='', fileType=''):
-    filename = QtGui.QFileDialog.getSaveFileName(None, "Save file", statingPath, fileType)
+    filename = QtWidgets.QFileDialog.getSaveFileName(None, "Save file", statingPath, fileType)
     logging.info('[getDirectoryFileToSaveSystem] filename: %s' % filename)
     return filename
 
 
 def getButtonBox(spacer='right'):
-    mainLay = QtGui.QHBoxLayout()
-    okButt = QtGui.QPushButton('Ok')
-    cancelButt = QtGui.QPushButton('Cancel')
+    mainLay = QtWidgets.QHBoxLayout()
+    okButt = QtWidgets.QPushButton('Ok')
+    cancelButt = QtWidgets.QPushButton('Cancel')
     if spacer == 'right':
-        mainLay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum))
+        mainLay.addSpacerItem(QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum))
     mainLay.addWidget(okButt)
     mainLay.addWidget(cancelButt)
     if spacer == 'left':
-        mainLay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum))
+        mainLay.addSpacerItem(QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum))
     return mainLay, okButt, cancelButt
 
 

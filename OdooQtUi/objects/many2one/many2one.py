@@ -4,8 +4,8 @@ Created on 7 Feb 2017
 @author: dsmerghetto
 '''
 import json
-from PySide import QtGui
-from PySide import QtCore
+from PySide2 import QtGui
+from PySide2 import QtCore
 from OdooQtUi.utils_odoo_conn import utils, utilsUi
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
@@ -90,7 +90,7 @@ class Many2one(OdooFieldTemplate):
             return
         elif isinstance(val, int):
             found = False
-            for text, objId in self.itemToIdRel.items():
+            for text, objId in list(self.itemToIdRel.items()):
                 if objId == val:
                     found = True
                     newTextVal = text
@@ -102,7 +102,7 @@ class Many2one(OdooFieldTemplate):
                     newTextVal = relDict.get('name', '')
                     self.itemToIdRel[newTextVal] = relDict.get('id', False)
                     self.currentValue = [relDict.get('id', False), newTextVal]
-        elif isinstance(val, (unicode, str)):
+        elif isinstance(val, str):
             newTextVal = val
         if newTextVal in self.availableItems:
             indexToSet = self.availableItems.index(newTextVal)
@@ -177,17 +177,17 @@ class Many2one(OdooFieldTemplate):
         dialog.resize(1000, 750)
         if dialog.exec_() == QtGui.QDialog.Accepted:
             valuesToUpdate = {}
-            for fieldName, fieldObj in self.viewObj.fieldsChanged.items():
+            for fieldName, fieldObj in list(self.viewObj.fieldsChanged.items()):
                 valuesToUpdate[fieldName] = fieldObj.value
             self.rpc.write(self.relation, valuesToUpdate, self.currentValue[0])
             if 'name' in valuesToUpdate:
                 oldName = ''
-                for val, objId in self.itemToIdRel.items():
+                for val, objId in list(self.itemToIdRel.items()):
                     if objId == self.currentValue[0]:
                         oldName = val
                         break
                 indexToReplace = self.availableItems.index(oldName)
-                valToUpdate = unicode(valuesToUpdate['name'])
+                valToUpdate = str(valuesToUpdate['name'])
                 self.availableItems[indexToReplace] = valToUpdate
                 del self.itemToIdRel[oldName]
                 self.itemToIdRel[valToUpdate] = self.currentValue[0]
@@ -200,7 +200,7 @@ class Many2one(OdooFieldTemplate):
         self.viewObj = self.odooConnector.initFormViewObj(self.relation, rpcObj=self.rpc)
 
     def indexChanged(self, res=False):
-        currText = unicode(self.widgetQtObj2.currentText())
+        currText = str(self.widgetQtObj2.currentText())
         if currText == 'Create and Edit...':
             dialog = QtGui.QDialog()
 
@@ -226,11 +226,11 @@ class Many2one(OdooFieldTemplate):
             dialog.resize(800, dialog.height())
             if dialog.exec_() == QtGui.QDialog.Accepted:
                 valuesToCreate = {}
-                for fieldName, fieldObj in self.viewObj.interfaceFieldsDict.items():
+                for fieldName, fieldObj in list(self.viewObj.interfaceFieldsDict.items()):
                     valuesToCreate[fieldName] = fieldObj.value
                 res = self.rpc.create(self.relation, valuesToCreate)
                 if res:
-                    name = unicode(valuesToCreate.get('name', ''))
+                    name = str(valuesToCreate.get('name', ''))
                     self.itemToIdRel[name] = res
                     self.availableItems = self.getItems(search=True)
                     self.widgetQtObj2.clear()
@@ -267,7 +267,7 @@ class Many2one(OdooFieldTemplate):
             if self.currentValue:
                 return self.currentValue[0]
             return self.currentValue
-        except Exception, ex:
+        except Exception as ex:
             utils.logMessage('error', 'Error during getting value from many2one field %r: %r' % (self.fieldName, ex), 'value')
 
     @property

@@ -20,6 +20,6 @@ for pydir, _, pyfiles in os.walk(cur_path):
                                totalpath.split(cur_path)[1]) )
 
 for linenumbercount, filename in loclist: 
-    print "%d lines in %s" % (linenumbercount, filename)
+    print("%d lines in %s" % (linenumbercount, filename))
 
-print "\nTotal: %s lines (%s)" %(sum([x[0] for x in loclist]), cur_path)
+print("\nTotal: %s lines (%s)" %(sum([x[0] for x in loclist]), cur_path))
