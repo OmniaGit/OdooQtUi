@@ -7,6 +7,7 @@ import json
 
 from PySide2 import QtGui
 from PySide2 import QtCore
+from PySide2 import QtWidgets
 from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.utils_odoo_conn import utilsUi
 from OdooQtUi.utils_odoo_conn import constants
@@ -46,7 +47,7 @@ class OdooFieldTemplate(QtCore.QObject, object):
         self.widgetQtObj = None
         self.initVal = ''
         self.changed = False
-        self.widgetLyQtObject = QtGui.QHBoxLayout()
+        self.widgetLyQtObject = QtWidgets.QHBoxLayout()
         utilsUi.setLayoutMarginAndSpacing(self.widgetLyQtObject)
         self.translateButton = False
         self.invisibleConditions, self.readonlyConditions = utils.evaluateModifiers(self.modifiers)
@@ -61,7 +62,7 @@ class OdooFieldTemplate(QtCore.QObject, object):
         return self.widgetLyQtObject
 
     def connectTranslationButton(self):
-        self.translateButton = QtGui.QPushButton('Translate')
+        self.translateButton = QtWidgets.QPushButton('Translate')
         self.translateButton.setStyleSheet(constants.BUTTON_STYLE)
         self.translateButton.clicked.connect(self.translateDialog)
         self.widgetLyQtObject.setSpacing(10)

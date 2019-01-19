@@ -6,6 +6,7 @@ Created on 7 Feb 2017
 
 from PySide2 import QtGui
 from PySide2 import QtCore
+from PySide2 import QtWidgets
 from OdooQtUi.utils_odoo_conn import utilsUi
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
@@ -20,9 +21,9 @@ class Boolean(OdooFieldTemplate):
         self.getQtObject()
 
     def getQtObject(self):
-        self.labelQtObj = QtGui.QLabel(self.fieldStringInterface)
+        self.labelQtObj = QtWidgets.QLabel(self.fieldStringInterface)
         self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
-        self.widgetQtObj = QtGui.QCheckBox()
+        self.widgetQtObj = QtWidgets.QCheckBox()
         self.widgetQtObj.setToolTip(self.tooltip)
         self.widgetQtObj.stateChanged.connect(self.valueChanged)
         if self.required:

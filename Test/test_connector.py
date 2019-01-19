@@ -6,6 +6,7 @@ Created on Jan 18, 2019
 import sys
 import logging
 from PySide2 import QtWidgets
+from PySide2 import QtGui
 from OdooQtUi.connector import MainConnector
 
 logger = logging.getLogger()
@@ -39,12 +40,12 @@ if __name__ == '__main__':
                 tmplViewObj.loadForceEmptyIds(forceFieldValues, readonlyFields, invisibleFields)
             return tmplViewObj
 
-        # tmplViewObj = tryForm('product.product', idToLoad=284, useChatter=True)
-       # tmplViewObj = tryForm('product.product', idToLoad=1345, useChatter=False)
+        tmplViewObj = tryForm('product.product', idToLoad=284, useChatter=True)
+        # tmplViewObj = tryForm('product.product', idToLoad=1345, useChatter=False)
         # viewCheckBoxes = {0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled}
-        tmplViewObj = tryListView('product.template', viewFilter=True)
-        dialog = QtGui.QDialog()
-        lay = QtGui.QVBoxLayout()
+        #tmplViewObj = tryListView('product.template', viewFilter=True)
+        dialog = QtWidgets.QDialog()
+        lay = QtWidgets.QVBoxLayout()
         lay.addWidget(tmplViewObj)
         dialog.setLayout(lay)
         dialog.resize(1200, 600)
@@ -53,6 +54,5 @@ if __name__ == '__main__':
         dialog.exec_()
         time.sleep(2)
         dialog.exec_()
-    while 1:
-        do_test()
+    do_test()
     app.exec_()

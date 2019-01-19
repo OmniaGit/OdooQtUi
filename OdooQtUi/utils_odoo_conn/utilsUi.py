@@ -73,6 +73,9 @@ def commonPopulateTable(headers, values, tableWidget, flags={}, add=False, fontS
         @flags: {'colIndex': flags}
         @values: [[val1, val2, ...], ...] or [obj1, obj2, ...]
     '''
+    if not tableWidget:
+        logging.warning("No table widget set")
+        return {}
     if not add:
         tableWidget.clear()
         tableWidget.setRowCount(0)
@@ -94,7 +97,7 @@ def commonPopulateTable(headers, values, tableWidget, flags={}, add=False, fontS
             rowDict[colName] = colVal
             twItem = QtWidgets.QTableWidgetItem(colVal)
             if fontSize:
-                font = QtWidgets.QFont()
+                font = QtGui.QFont()
                 font.setPointSize(fontSize)
                 twItem.setFont(font)
             if colIndex in flags:

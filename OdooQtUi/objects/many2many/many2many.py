@@ -4,8 +4,9 @@ Created on 7 Feb 2017
 @author: dsmerghetto
 '''
 import json
-from PySide2  import QtGui
-from PySide2  import QtCore
+from PySide2 import QtGui
+from PySide2 import QtCore
+from PySide2 import QtWidgets
 from functools import partial
 from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.utils_odoo_conn import utilsUi
@@ -36,16 +37,16 @@ class Many2many(OdooFieldTemplate):
                                                   viewFilter=False)
 
     def getQtObject(self):
-        self.mainLay = QtGui.QVBoxLayout()
-        buttonsLay = QtGui.QHBoxLayout()
-        self.labelQtObj = QtGui.QLabel(self.fieldStringInterface)
+        self.mainLay = QtWidgets.QVBoxLayout()
+        buttonsLay = QtWidgets.QHBoxLayout()
+        self.labelQtObj = QtWidgets.QLabel(self.fieldStringInterface)
         self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
         buttonsLay.addWidget(self.labelQtObj)
-        self.createButt = QtGui.QPushButton('Create')
+        self.createButt = QtWidgets.QPushButton('Create')
         self.createButt.setStyleSheet(constants.BUTTON_STYLE)
         self.createButt.clicked.connect(self.createAndAdd)
         buttonsLay.addWidget(self.createButt)
-        buttonsLay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum))
+        buttonsLay.addSpacerItem(QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum))
         self.mainLay.addLayout(buttonsLay)
         utilsUi.setLayoutMarginAndSpacing(self.mainLay)
 
@@ -65,8 +66,8 @@ class Many2many(OdooFieldTemplate):
         try:
             tmpviewObjForm = self.odooConnector.initFormViewObj(self.relation, rpcObj=self.rpc)
             tmpviewObjForm.loadIds([])
-            formdialog = QtGui.QDialog()
-            mainLay = QtGui.QVBoxLayout()
+            formdialog = QtWidgets.QDialog()
+            mainLay = QtWidgets.QVBoxLayout()
             mainLay.addWidget(tmpviewObjForm)
             formdialog.setStyleSheet(constants.VIOLET_BACKGROUND)
             formdialog.resize(1200, 600)
@@ -78,7 +79,7 @@ class Many2many(OdooFieldTemplate):
             cancelButt.clicked.connect(rejectFormDial)
             okButt.setStyleSheet(constants.BUTTON_STYLE_OK)
             cancelButt.setStyleSheet(constants.BUTTON_STYLE_CANCEL)
-            if formdialog.exec_() == QtGui.QDialog.Accepted:
+            if formdialog.exec_() == QtWidgets.QDialog.Accepted:
                 fieldVals = tmpviewObjForm.getAllFieldsValues()
                 objId = self.rpc.create(self.relation, fieldVals)
                 if objId:
@@ -97,12 +98,12 @@ class Many2many(OdooFieldTemplate):
         if self.required:
             utilsUi.setRequiredBackground(self.widgetQtObj, '')
         if not self.btnAddAnItem:
-            self.btnAddAnItem = QtGui.QPushButton('Add an item')
+            self.btnAddAnItem = QtWidgets.QPushButton('Add an item')
             self.btnAddAnItem.setStyleSheet(constants.BUTTON_ADD_AN_ITEM)
             self.btnAddAnItem.clicked.connect(self.addAnItem)
-            addAnItemLay = QtGui.QHBoxLayout()
+            addAnItemLay = QtWidgets.QHBoxLayout()
             addAnItemLay.addWidget(self.btnAddAnItem)
-            addAnItemLay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum))
+            addAnItemLay.addSpacerItem(QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum))
             self.mainLay.addLayout(addAnItemLay)
             self.widgetLyQtObject.addLayout(self.mainLay)
         self.mainLay.addWidget(self.treeViewObj)
@@ -110,13 +111,13 @@ class Many2many(OdooFieldTemplate):
     def setupTableWidgetLay(self, tableWidget):
         tableWidget.resizeColumnsToContents()
         tableWidget.setShowGrid(False)
-        tableWidget.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        tableWidget.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
 
     def setRemoveButtons(self, tableWidget):
         rowCount = tableWidget.rowCount()
         colCount = tableWidget.columnCount()
         for rowCount in range(0, rowCount):
-            btn = QtGui.QPushButton('Remove')
+            btn = QtWidgets.QPushButton('Remove')
             btn.setStyleSheet(constants.BUTTON_ADD_AN_ITEM)
             tableWidget.setCellWidget(rowCount, colCount - 1, btn)
             btn.clicked.connect(partial(self.removeItem, rowCount))
@@ -195,8 +196,8 @@ class Many2many(OdooFieldTemplate):
         viewObj.buttToRight.clicked.connect(toRight)
         resIds = self.rpc.search(self.relation, [], limit=viewObj.currentRange[-1], offset=viewObj.currentRange[0])
         viewObj.loadIds(resIds, {}, {}, {})
-        dial = QtGui.QDialog()
-        vlay = QtGui.QVBoxLayout()
+        dial = QtWidgets.QDialog()
+        vlay = QtWidgets.QVBoxLayout()
         utilsUi.setLayoutMarginAndSpacing(vlay)
         layButt, okButt, cancelButt = utilsUi.getButtonBox('right')
         okButt.setStyleSheet(constants.BUTTON_STYLE_OK)
@@ -208,7 +209,7 @@ class Many2many(OdooFieldTemplate):
         dial.setLayout(vlay)
         dial.setStyleSheet(constants.VIOLET_BACKGROUND)
         dial.resize(800, 500)
-        if dial.exec_() == QtGui.QDialog.Accepted:
+        if dial.exec_() == QtWidgets.QDialog.Accepted:
             checkedRows = []
             localIndexId = {}
             table = viewObj.treeObj.tableWidget

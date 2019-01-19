@@ -6,6 +6,7 @@ Created on 06 feb 2017
 import json
 
 from PySide2 import QtGui
+from PySide2 import QtWidgets
 from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.utils_odoo_conn import constants
 
@@ -38,7 +39,7 @@ class Button(object):
         return self.buttonObj
 
     def getQtObject(self):
-        self.buttonObj = QtGui.QPushButton(self.buttonString)
+        self.buttonObj = QtWidgets.QPushButton(self.buttonString)
         self.buttonObj.setMaximumWidth(200)
         return self.buttonObj
 

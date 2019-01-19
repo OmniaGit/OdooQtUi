@@ -5,6 +5,8 @@ Created on 3 Feb 2017
 '''
 import xml.etree.cElementTree as ElementTree
 from PySide2 import QtGui
+from PySide2 import QtCore
+from PySide2 import QtWidgets
 from OdooQtUi.utils_odoo_conn import constants, utilsUi
 from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.objects.selection.selection import Selection
@@ -20,9 +22,7 @@ from OdooQtUi.objects.text.text import Text
 from OdooQtUi.objects.one2many.one2many import One2many
 
 
-
 class TreeViewList(object):
-
     def __init__(self, arch, fieldsNameTypeRel, rpc, viewCheckBoxes={}, odooConnector=None):
         self.arch = arch
         self.odooConnector = odooConnector
@@ -34,7 +34,7 @@ class TreeViewList(object):
         self.rpc = rpc
 
     def computeRecursion(self, parent):
-        mainVLay = QtGui.QVBoxLayout()
+        mainVLay = QtWidgets.QVBoxLayout()
         for childElement in parent.getchildren():
             childTag = childElement.tag
             if childTag == 'field':
@@ -42,14 +42,14 @@ class TreeViewList(object):
                 if fieldObj:
                     self.orderedFields.append(fieldObj.fieldName)
                     self.appendToglobalMapping('field_' + fieldObj.fieldName, fieldObj)
-        self.tableWidget = QtGui.QTableWidget()
+        self.tableWidget = QtWidgets.QTableWidget()
         self.tableWidget.horizontalHeader().setStretchLastSection(True)
         flagsDict = {}
         if self.viewCheckBoxes:
             flagsDict = self.viewCheckBoxes
         utilsUi.commonPopulateTable(self.orderedFields, [], self.tableWidget, flagsDict)
         mainVLay.addWidget(self.tableWidget)
-        self.tableWidget.horizontalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        self.tableWidget.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
         self.tableWidget.horizontalHeader().setStyleSheet('::section {background-color:#a2b0ff;color:black;font-weight:bold;}')
         return mainVLay
 
@@ -88,10 +88,10 @@ class TreeViewList(object):
 
     def computeArchRecursion(self, parent):
         mainVLay = self.computeRecursion(parent)
-        self.widgetContents = QtGui.QWidget()
+        self.widgetContents = QtWidgets.QWidget()
         self.widgetContents.setStyleSheet(constants.TREE_LIST_BACKGROUND_COLOR)
         self.widgetContents.setLayout(mainVLay)
-        outLay = QtGui.QVBoxLayout()
+        outLay = QtWidgets.QVBoxLayout()
         outLay.addWidget(self.widgetContents)
         return outLay
 

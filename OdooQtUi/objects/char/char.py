@@ -5,6 +5,7 @@ Created on 7 Feb 2017
 '''
 
 from PySide2 import QtGui
+from PySide2 import QtWidgets
 from OdooQtUi.utils_odoo_conn import utils, utilsUi
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
@@ -20,9 +21,9 @@ class Charachter(OdooFieldTemplate):
         self.getQtObject()
 
     def getQtObject(self):
-        self.labelQtObj = QtGui.QLabel(self.fieldStringInterface)
+        self.labelQtObj = QtWidgets.QLabel(self.fieldStringInterface)
         self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
-        self.widgetQtObj = QtGui.QLineEdit()
+        self.widgetQtObj = QtWidgets.QLineEdit()
         self.widgetQtObj.setStyleSheet(constants.CHAR_STYLE)
         self.widgetQtObj.setToolTip(self.tooltip)
         self.widgetQtObj.editingFinished.connect(self.valueChanged)

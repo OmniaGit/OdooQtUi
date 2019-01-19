@@ -6,6 +6,7 @@ Created on 7 Feb 2017
 import json
 from PySide2 import QtGui
 from PySide2 import QtCore
+from PySide2 import QtWidgets
 from OdooQtUi.utils_odoo_conn import utils, utilsUi
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
@@ -40,13 +41,13 @@ class Many2one(OdooFieldTemplate):
         return outVal
 
     def getQtObject(self):
-        self.labelQtObj = QtGui.QLabel(self.fieldStringInterface)
+        self.labelQtObj = QtWidgets.QLabel(self.fieldStringInterface)
         self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
 
-        self.widgetQtObj = QtGui.QWidget()
-        self.childLay = QtGui.QHBoxLayout()
+        self.widgetQtObj = QtWidgets.QWidget()
+        self.childLay = QtWidgets.QHBoxLayout()
         utilsUi.setLayoutMarginAndSpacing(self.childLay)
-        self.widgetQtObj2 = QtGui.QComboBox()
+        self.widgetQtObj2 = QtWidgets.QComboBox()
         self.widgetQtObj2.setStyleSheet(constants.SELECTION_STYLE)
         self.widgetQtObj2.addItems(self.availableItems)
         self.widgetQtObj2.setToolTip(self.tooltip)
@@ -57,7 +58,7 @@ class Many2one(OdooFieldTemplate):
             utilsUi.setRequiredBackground(self.widgetQtObj2, constants.SELECTION_STYLE)
         self.childLay.addWidget(self.widgetQtObj2)
         if self.canWrite:
-            self.editButton = QtGui.QPushButton('Edit')
+            self.editButton = QtWidgets.QPushButton('Edit')
             self.editButton.clicked.connect(self.editItem)
             self.editButton.setStyleSheet(constants.BUTTON_STYLE_MANY_2_ONE)
             self.childLay.addWidget(self.editButton)
@@ -151,7 +152,7 @@ class Many2one(OdooFieldTemplate):
     def editItem(self, res=False):
         if not self.currentValue:
             return
-        dialog = QtGui.QDialog()
+        dialog = QtWidgets.QDialog()
 
         def accept():
             dialog.accept()
@@ -161,7 +162,7 @@ class Many2one(OdooFieldTemplate):
 
         self.setViewObject()
         self.viewObj.loadIds([self.currentValue[0]])
-        mainLay = QtGui.QVBoxLayout()
+        mainLay = QtWidgets.QVBoxLayout()
         utilsUi.setLayoutMarginAndSpacing(mainLay)
         mainLay.addWidget(self.viewObj)
         lay, okButt, cancelButt = utilsUi.getButtonBox()
@@ -175,7 +176,7 @@ class Many2one(OdooFieldTemplate):
         dialog.setStyleSheet(constants.VIOLET_BACKGROUND)
         dialog.adjustSize()
         dialog.resize(1000, 750)
-        if dialog.exec_() == QtGui.QDialog.Accepted:
+        if dialog.exec_() == QtWidgets.QDialog.Accepted:
             valuesToUpdate = {}
             for fieldName, fieldObj in list(self.viewObj.fieldsChanged.items()):
                 valuesToUpdate[fieldName] = fieldObj.value
@@ -202,7 +203,7 @@ class Many2one(OdooFieldTemplate):
     def indexChanged(self, res=False):
         currText = str(self.widgetQtObj2.currentText())
         if currText == 'Create and Edit...':
-            dialog = QtGui.QDialog()
+            dialog = QtWidgets.QDialog()
 
             def accept():
                 dialog.accept()
@@ -224,7 +225,7 @@ class Many2one(OdooFieldTemplate):
             dialog.setStyleSheet(constants.VIOLET_BACKGROUND)
             dialog.adjustSize()
             dialog.resize(800, dialog.height())
-            if dialog.exec_() == QtGui.QDialog.Accepted:
+            if dialog.exec_() == QtWidgets.QDialog.Accepted:
                 valuesToCreate = {}
                 for fieldName, fieldObj in list(self.viewObj.interfaceFieldsDict.items()):
                     valuesToCreate[fieldName] = fieldObj.value

@@ -4,6 +4,7 @@ Created on 24 Mar 2017
 @author: dsmerghetto
 '''
 from PySide2 import QtGui
+from PySide2 import QtWidgets
 from .parser.tree_list import TreeViewList
 from .templateView import TemplateView
 from OdooQtUi.views.search_obj import TemplateSearchView
@@ -29,7 +30,7 @@ class TemplateTreeListView(TemplateView):
         self._initViewObj()
 
     def _initViewObj(self):
-        mainLay = QtGui.QVBoxLayout()
+        mainLay = QtWidgets.QVBoxLayout()
         # Add arrow buttons
         switchRecordsLay = self._setupArrowButtons()
         mainLay.addLayout(switchRecordsLay, 0)
@@ -43,16 +44,17 @@ class TemplateTreeListView(TemplateView):
         mainLay.addLayout(self.treeObj.computeArch())
         self.mappingInterface = self.treeObj.globalMapping
         self.addToObject()
-        self.treeObj.tableWidget.setStyleSheet(constants.TABLE_LIST_LIST)
-        self.treeObj.tableWidget.setMinimumHeight(200)
+        if self.treeObj.tableWidget:
+            self.treeObj.tableWidget.setStyleSheet(constants.TABLE_LIST_LIST)
+            self.treeObj.tableWidget.setMinimumHeight(200)
         self.setLayout(mainLay)
 
     def _setupArrowButtons(self):
         self.currentRange = [0, 40]
-        switchRecordsLay = QtGui.QHBoxLayout()
-        self.buttToLeft = QtGui.QPushButton('<')
-        self.buttToRight = QtGui.QPushButton('>')
-        switchRecordsLay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum))
+        switchRecordsLay = QtWidgets.QHBoxLayout()
+        self.buttToLeft = QtWidgets.QPushButton('<')
+        self.buttToRight = QtWidgets.QPushButton('>')
+        switchRecordsLay.addSpacerItem(QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum))
         switchRecordsLay.addWidget(self.buttToLeft)
         switchRecordsLay.addWidget(self.buttToRight)
         self.buttToLeft.setStyleSheet(constants.BUTTON_STYLE)
@@ -139,15 +141,17 @@ class TemplateTreeListView(TemplateView):
             self.idValsRel[recordId] = record
             self.idLineRel[records.index(record)] = recordId
         utilsUi.commonPopulateTable(self.labelsOrdered, valuesList, self.treeObj.tableWidget, flagsDict, fontSize=constants.FONT_SIZE_LIST_WIDGET)
-        self.treeObj.tableWidget.setShowGrid(False)
-        self.treeObj.tableWidget.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-        self.treeObj.tableWidget.horizontalHeader().setStyleSheet(constants.MANY_2_MANY_H_HEADER)
-        self.treeObj.tableWidget.verticalHeader().setVisible(False)
-        self.treeObj.tableWidget.horizontalHeader().setStyleSheet('::section {background-color:#a2b0ff;color:black;font-weight:bold;}')
+        if self.treeObj.tableWidget:
+            self.treeObj.tableWidget.setShowGrid(False)
+            self.treeObj.tableWidget.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+            self.treeObj.tableWidget.horizontalHeader().setStyleSheet(constants.MANY_2_MANY_H_HEADER)
+            self.treeObj.tableWidget.verticalHeader().setVisible(False)
+            self.treeObj.tableWidget.horizontalHeader().setStyleSheet('::section {background-color:#a2b0ff;color:black;font-weight:bold;}')
         self.refreshColumns()
 
     def refreshColumns(self):
-        self.treeObj.tableWidget.resizeColumnsToContents()
+        if self.treeObj.tableWidget:
+            self.treeObj.tableWidget.resizeColumnsToContents()
 
     def setRowSelected(self, rowIndex):
         self.treeObj.tableWidget.selectRow(rowIndex)

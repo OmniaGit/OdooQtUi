@@ -9,6 +9,7 @@ import xml.etree.cElementTree as ElementTree
 
 from PySide2 import QtGui
 from PySide2 import QtCore
+from PySide2 import QtWidgets
 
 from OdooQtUi.utils_odoo_conn import utils, utilsUi
 from OdooQtUi.utils_odoo_conn import constants
@@ -52,11 +53,11 @@ class FormView(QtCore.QObject, object):
 
     def computeRecursion(self, parent, nootebookIndex=0):
         # TODO:    div name <div name="button_box" class="oe_button_box">
-        mainVLay = QtGui.QVBoxLayout()
+        mainVLay = QtWidgets.QVBoxLayout()
         for childElement in parent.getchildren():
             childTag = childElement.tag
             if childTag == 'sheet':
-                sheetLay = QtGui.QVBoxLayout()
+                sheetLay = QtWidgets.QVBoxLayout()
                 utilsUi.setLayoutMarginAndSpacing(sheetLay)
                 layout = self.computeRecursion(childElement)
                 if layout:
@@ -76,7 +77,7 @@ class FormView(QtCore.QObject, object):
             elif childTag == 'div':
                 divAttrib = childElement.attrib
                 divClass = divAttrib.get('class', '')
-                divVlay = QtGui.QVBoxLayout()
+                divVlay = QtWidgets.QVBoxLayout()
                 utilsUi.setLayoutMarginAndSpacing(divVlay)
                 if divClass == 'oe_chatter':
                     if not self.useChatter:
@@ -85,14 +86,14 @@ class FormView(QtCore.QObject, object):
                     else:
                         self.computeChatter(divVlay, childElement)
                 elif childElement.text:
-                    label = QtGui.QLabel(childElement.text)
+                    label = QtWidgets.QLabel(childElement.text)
                     label.setStyleSheet(constants.LABEL_SEPARATOR)
                     divVlay.addWidget(label)
                     childLay = self.computeRecursion(childElement)
                     divVlay.addLayout(childLay)
                 mainVLay.addLayout(divVlay)
             elif childTag == 'notebook':
-                self.tabWidget = QtGui.QTabWidget()
+                self.tabWidget = QtWidgets.QTabWidget()
                 self.tabWidget.setStyleSheet(constants.NOOTEBOOK_STYLE)
                 self.tabWidgetBar = self.tabWidget.tabBar()
                 self.tabWidgetBar.setStyleSheet(constants.NOOTEBOOK_TABBAR_STYLE)
@@ -103,7 +104,7 @@ class FormView(QtCore.QObject, object):
                     modifInvisible, modifReadonly = utils.evaluateModifiers(page.attrib.get('modifiers', {}))
                     if invisible or modifInvisible:
                         continue
-                    pageWidget = QtGui.QWidget()
+                    pageWidget = QtWidgets.QWidget()
                     if modifReadonly:
                         pageWidget.setDisabled(True)
                     if nootebookIndex != 0:
@@ -132,16 +133,16 @@ class FormView(QtCore.QObject, object):
                 childAttrs = childElement.attrib
                 separatorVal = childAttrs.get('string', '')
                 if separatorVal:
-                    labelObj = QtGui.QLabel(separatorVal)
+                    labelObj = QtWidgets.QLabel(separatorVal)
                     labelObj.setStyleSheet(constants.LABEL_SEPARATOR)
                     mainVLay.addWidget(labelObj)
             elif childTag == 'field':
                 fieldObj = self.computeField(childElement)
                 if fieldObj:
                     fieldQt = fieldObj.qtObject
-                    if isinstance(fieldQt, QtGui.QLayout):
+                    if isinstance(fieldQt, QtWidgets.QLayout):
                         mainVLay.addLayout(fieldQt)
-                    elif isinstance(fieldQt, QtGui.QWidget):
+                    elif isinstance(fieldQt, QtWidgets.QWidget):
                         mainVLay.addWidget(fieldQt)
                     self.appendToglobalMapping('field_' + fieldObj.fieldName, fieldObj)
             elif childTag == 'h1':
@@ -150,7 +151,7 @@ class FormView(QtCore.QObject, object):
             elif childTag == 'label':
                 childAttrs = childElement.attrib
                 fieldRelated = childAttrs.get('for', '')
-                labelObj = QtGui.QLabel()
+                labelObj = QtWidgets.QLabel()
                 labelObj.setStyleSheet(constants.LABEL_STYLE)
                 self.aloneLabels[fieldRelated] = labelObj
                 mainVLay.addWidget(labelObj)
@@ -160,19 +161,19 @@ class FormView(QtCore.QObject, object):
         return mainVLay
 
     def computeChatter(self, divVlay, childElement):
-        hlay = QtGui.QHBoxLayout()
+        hlay = QtWidgets.QHBoxLayout()
         count = 0
         for fieldObj in childElement.getchildren():
             if fieldObj.tag == 'field':
                 pyObject = self.computeField(fieldObj)
                 if pyObject:
                     fieldQt = pyObject.qtObject
-                    if isinstance(fieldQt, QtGui.QLayout):
+                    if isinstance(fieldQt, QtWidgets.QLayout):
                         hlay.insertLayout(0, fieldQt)
                         if count == 0:
-                            hlay.insertSpacerItem(0, QtGui.QSpacerItem(10, 10, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum))
+                            hlay.insertSpacerItem(0, QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum))
                             count = count + 1
-                    elif isinstance(fieldQt, QtGui.QWidget):
+                    elif isinstance(fieldQt, QtWidgets.QWidget):
                         hlay.insertWidget(0, fieldQt)
                     self.appendToglobalMapping('field_' + pyObject.fieldName, pyObject)
             else:
@@ -180,14 +181,14 @@ class FormView(QtCore.QObject, object):
         divVlay.addLayout(hlay)
 
     def computeArchRecursion(self, parent):
-        widgetContents = QtGui.QWidget()
+        widgetContents = QtWidgets.QWidget()
         mainVLay = self.computeRecursion(parent)
         widgetContents.setStyleSheet('background-color:#ffffff;')
         widgetContents.setLayout(mainVLay)
-        scroll = QtGui.QScrollArea()
+        scroll = QtWidgets.QScrollArea()
         scroll.setWidget(widgetContents)
         scroll.setWidgetResizable(True)
-        self.outLay = QtGui.QVBoxLayout()
+        self.outLay = QtWidgets.QVBoxLayout()
         self.outLay.addWidget(scroll)
         return self.outLay
 
@@ -207,7 +208,7 @@ class FormView(QtCore.QObject, object):
 
         childColCount = computeCol(groupXmlObj.attrib.get('col', 2))
         childColCount = childColCount * 2
-        globalLay = QtGui.QGridLayout()
+        globalLay = QtWidgets.QGridLayout()
         globalLay.setHorizontalSpacing(40)
         colCount = 0
         rowCount = 0
@@ -222,7 +223,7 @@ class FormView(QtCore.QObject, object):
             if childTag == 'group' or childTag == 'h1' or childTag == 'div':
                 groupString = childAttrs.get('string', '')
                 if groupString:
-                    label = QtGui.QLabel(groupString)
+                    label = QtWidgets.QLabel(groupString)
                     label.setStyleSheet(constants.LABEL_SEPARATOR + 'font-size:17px;margin-top:20px;')
                     globalLay.addWidget(label, rowCount, colCount, 1, childColSpan)
                     rowCount = rowCount + 1
@@ -261,14 +262,14 @@ class FormView(QtCore.QObject, object):
             elif childTag == 'separator':
                 separatorVal = childAttrs.get('string', '')
                 if separatorVal:
-                    labelObj = QtGui.QLabel(separatorVal)
+                    labelObj = QtWidgets.QLabel(separatorVal)
                     labelObj.setStyleSheet(constants.LABEL_SEPARATOR)
                     globalLay.addWidget(labelObj, rowCount, colCount, 1, childColSpan)
                     colCount = 0
                     rowCount = rowCount + 1
             elif childTag == 'label':
                 fieldRelated = childAttrs.get('for', '')
-                labelObj = QtGui.QLabel()
+                labelObj = QtWidgets.QLabel()
                 labelObj.setStyleSheet(constants.LABEL_STYLE)
                 self.aloneLabels[fieldRelated] = labelObj
                 globalLay.addWidget(labelObj, rowCount, colCount, 1, childColSpan)
@@ -330,7 +331,7 @@ class FormView(QtCore.QObject, object):
             else:
                 utils.logMessage('warning', 'multiple widgets with the same key: %r' % (key), 'computeHeader')
 
-        headerLayout = QtGui.QHBoxLayout()
+        headerLayout = QtWidgets.QHBoxLayout()
         utilsUi.setLayoutMarginAndSpacing(headerLayout)
         for xmlObj in archHeader.getchildren():
             if xmlObj.tag == 'button':
@@ -344,9 +345,9 @@ class FormView(QtCore.QObject, object):
                 if not fieldQt:
                     utils.logMessage('warning', 'Qt field %r could not be loaded' % (fieldName), 'computeHeader')
                     continue
-                if isinstance(fieldQt, QtGui.QLayout):
+                if isinstance(fieldQt, QtWidgets.QLayout):
                     headerLayout.addLayout(fieldQt)
-                elif isinstance(fieldQt, QtGui.QWidget):
+                elif isinstance(fieldQt, QtWidgets.QWidget):
                     headerLayout.addWidget(fieldQt)
                 else:
                     utils.logMessage('warning', 'Field %r could not be added to layout' % (fieldName), 'computeHeader')

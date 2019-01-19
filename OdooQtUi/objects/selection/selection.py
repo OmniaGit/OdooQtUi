@@ -7,6 +7,7 @@ import json
 
 from PySide2 import QtGui
 from PySide2 import QtCore
+from PySide2 import QtWidgets
 from OdooQtUi.utils_odoo_conn import utils, utilsUi
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
@@ -42,7 +43,7 @@ class Selection(OdooFieldTemplate):
     def statusBar(self):
         self.labels = []
         for visibleText in self.statusbar_visible:
-            labelQtObj = QtGui.QLabel(visibleText.title())
+            labelQtObj = QtWidgets.QLabel(visibleText.title())
             labelQtObj.setStyleSheet(constants.LABEL_STYLE_STATUSBAR)
             labelQtObj.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
             self.widgetLyQtObject.addWidget(labelQtObj)
@@ -53,9 +54,9 @@ class Selection(OdooFieldTemplate):
     def getQtObject(self):
         if self.widget == 'statusbar':
             return self.statusBar()
-        self.labelQtObj = QtGui.QLabel(self.fieldStringInterface)
+        self.labelQtObj = QtWidgets.QLabel(self.fieldStringInterface)
         self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
-        self.widgetQtObj = QtGui.QComboBox()
+        self.widgetQtObj = QtWidgets.QComboBox()
         self.widgetQtObj.setStyleSheet(constants.SELECTION_STYLE)
         selectionVals = [('', '')]
         selectionVals.extend(self.fieldPyDefinition.get('selection', []))

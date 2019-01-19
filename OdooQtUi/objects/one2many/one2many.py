@@ -9,7 +9,7 @@ import logging
 
 from PySide2 import QtGui
 from PySide2 import QtCore
-
+from PySide2 import QtWidgets
 
 from OdooQtUi.utils_odoo_conn import utils, utilsUi
 from OdooQtUi.utils_odoo_conn import constants
@@ -31,17 +31,17 @@ class One2many(OdooFieldTemplate):
         self.canCreate = json.loads(self.fieldXmlAttributes.get('can_create', 'true'))
         self.canWrite = json.loads(self.fieldXmlAttributes.get('can_write', 'true'))
         self.odooWidgetType = self.fieldXmlAttributes.get('widget', '')
-        self.mainLay = QtGui.QVBoxLayout()
+        self.mainLay = QtWidgets.QVBoxLayout()
         self.evaluatedIds = {}
         self.currentValue = []
-        self.messaggesLay = QtGui.QVBoxLayout()
+        self.messaggesLay = QtWidgets.QVBoxLayout()
         self.messaggesLay.setSpacing(15)
         if self.odooWidgetType == 'mail_followers':
-            self.widgetLyQtObject = QtGui.QVBoxLayout()
-            self.treeViewObj = QtGui.QWidget()
+            self.widgetLyQtObject = QtWidgets.QVBoxLayout()
+            self.treeViewObj = QtWidgets.QWidget()
         elif self.odooWidgetType == 'mail_thread':
-            self.widgetLyQtObject = QtGui.QVBoxLayout()
-            self.treeViewObj = QtGui.QWidget()
+            self.widgetLyQtObject = QtWidgets.QVBoxLayout()
+            self.treeViewObj = QtWidgets.QWidget()
         else:
             self.treeViewObj = self.odooConnector.initTreeListViewObject(odooObjectName=self.relation,
                                                                          viewName='',
@@ -54,49 +54,49 @@ class One2many(OdooFieldTemplate):
 
     def getQtObject(self):
         if self.odooWidgetType == 'mail_followers':
-            self.followersButton = QtGui.QPushButton('Show Followers')
+            self.followersButton = QtWidgets.QPushButton('Show Followers')
             self.followersButton.setStyleSheet(constants.BUTTON_STYLE)
-            self.followersButton.setSizePolicy(QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum)
+            self.followersButton.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
             self.followersButton.clicked.connect(self.showFollowers)
             self.followersOpened = False
             self.widgetLyQtObject.addWidget(self.followersButton)
             self.widgetLyQtObject.addLayout(self.messaggesLay)
-            self.widgetLyQtObject.addSpacerItem(QtGui.QSpacerItem(100, 100, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding))
+            self.widgetLyQtObject.addSpacerItem(QtWidgets.QSpacerItem(100, 100, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding))
         elif self.odooWidgetType == 'mail_thread':
-            self.messaggesButton = QtGui.QPushButton('Show Chatter')
+            self.messaggesButton = QtWidgets.QPushButton('Show Chatter')
             self.messaggesButton.setStyleSheet(constants.BUTTON_STYLE)
-            self.messaggesButton.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+            self.messaggesButton.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
             self.messaggesButton.clicked.connect(self.showMessagges)
-            self.messaggesButtLay = QtGui.QHBoxLayout()
+            self.messaggesButtLay = QtWidgets.QHBoxLayout()
             self.populateMessButtLay()
-            self.noteLay = QtGui.QVBoxLayout()
+            self.noteLay = QtWidgets.QVBoxLayout()
             self.populateNoteLay()
             self.widgetLyQtObject.setSpacing(15)
             self.widgetLyQtObject.addWidget(self.messaggesButton)
             self.widgetLyQtObject.addLayout(self.messaggesButtLay)
             self.widgetLyQtObject.addLayout(self.noteLay)
             self.widgetLyQtObject.addLayout(self.messaggesLay)
-            self.widgetLyQtObject.addSpacerItem(QtGui.QSpacerItem(10, 10, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding))
+            self.widgetLyQtObject.addSpacerItem(QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding))
         else:
-            buttonsLay = QtGui.QHBoxLayout()
-            self.labelQtObj = QtGui.QLabel(self.fieldStringInterface)
+            buttonsLay = QtWidgets.QHBoxLayout()
+            self.labelQtObj = QtWidgets.QLabel(self.fieldStringInterface)
             self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
             buttonsLay.addWidget(self.labelQtObj)
-            self.createButt = QtGui.QPushButton('Create')
+            self.createButt = QtWidgets.QPushButton('Create')
             self.createButt.setStyleSheet(constants.BUTTON_STYLE)
             buttonsLay.addWidget(self.createButt)
             self.createButt.clicked.connect(self.createAndAdd)
-            buttonsLay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding))
+            buttonsLay.addSpacerItem(QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding))
             self.mainLay.addLayout(buttonsLay)
 
     def populateNoteLay(self):
-        self.textEditMess = QtGui.QTextEdit()
-        self.sendButtonMess = QtGui.QPushButton('Send')
+        self.textEditMess = QtWidgets.QTextEdit()
+        self.sendButtonMess = QtWidgets.QPushButton('Send')
         self.sendButtonMess.setStyleSheet(constants.BUTTON_STYLE_MANY_2_ONE__2)
         self.noteLay.addWidget(self.textEditMess)
-        lay = QtGui.QHBoxLayout()
+        lay = QtWidgets.QHBoxLayout()
         lay.addWidget(self.sendButtonMess)
-        lay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding))
+        lay.addSpacerItem(QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding))
         self.noteLay.addLayout(lay)
         self.textEditMess.setStyleSheet(constants.TEXT_STYLE)
         self.sendButtonMess.clicked.connect(self.sendMessNote)
@@ -122,13 +122,13 @@ class One2many(OdooFieldTemplate):
         self.sendButtonMess.setHidden(not visible)
 
     def populateMessButtLay(self):
-        self.buttSendMessage = QtGui.QPushButton('Send Message')
-        self.buttLogNote = QtGui.QPushButton('Log Note')
+        self.buttSendMessage = QtWidgets.QPushButton('Send Message')
+        self.buttLogNote = QtWidgets.QPushButton('Log Note')
         self.buttSendMessage.setStyleSheet(constants.BUTTON_STYLE_MANY_2_ONE__2)
         self.buttLogNote.setStyleSheet(constants.BUTTON_STYLE_MANY_2_ONE__2)
         self.messaggesButtLay.addWidget(self.buttSendMessage)
         self.messaggesButtLay.addWidget(self.buttLogNote)
-        self.messaggesButtLay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding))
+        self.messaggesButtLay.addSpacerItem(QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding))
         self.buttSendMessage.clicked.connect(self.sendMessage)
         self.buttLogNote.clicked.connect(self.logNote)
         self.buttSendMessage.setHidden(True)
@@ -173,14 +173,14 @@ class One2many(OdooFieldTemplate):
     def showFollowers(self):
         self.followersButton.setHidden(True)
         if not self.followersOpened:
-            lay = QtGui.QHBoxLayout()
-            self.followButton = QtGui.QPushButton('UnFollowing')
+            lay = QtWidgets.QHBoxLayout()
+            self.followButton = QtWidgets.QPushButton('UnFollowing')
             self.followButton.clicked.connect(self.followClicked)
             self.setUnfolloWingButton()
             lay.addWidget(self.followButton)
-            self.buttonFollowersCount = QtGui.QToolButton()
+            self.buttonFollowersCount = QtWidgets.QToolButton()
             self.buttonFollowersCount.setText(str(len(self.currentValue)))
-            self.toolmenu = QtGui.QMenu()
+            self.toolmenu = QtWidgets.QMenu()
             res = self.populateMenu()
             for obj in res:
                 currentPartnerId, _partnerName = self.getPartnerIdFromUserId()
@@ -188,7 +188,7 @@ class One2many(OdooFieldTemplate):
                 if partnerRes and partnerRes[0] == currentPartnerId:
                     self.setFollowingButton()
             self.buttonFollowersCount.setMenu(self.toolmenu)
-            self.buttonFollowersCount.setPopupMode(QtGui.QToolButton.InstantPopup)
+            self.buttonFollowersCount.setPopupMode(QtWidgets.QToolButton.InstantPopup)
             self.buttonFollowersCount.setStyleSheet(constants.BUTTON_STYLE)
             lay.addWidget(self.buttonFollowersCount)
             self.messaggesLay.addLayout(lay)
@@ -289,35 +289,35 @@ class One2many(OdooFieldTemplate):
             bodyMessage = messageDict.get('body', '')
             write_date = messageDict.get('write_date', '')
             attachment_ids = messageDict.get('attachment_ids', [])
-            labelUser = QtGui.QLabel(userName)
-            labelDate = QtGui.QLabel(write_date)
-            labelBody = QtGui.QTextEdit()
-            labelBody.setFrameShape(QtGui.QFrame.NoFrame)
+            labelUser = QtWidgets.QLabel(userName)
+            labelDate = QtWidgets.QLabel(write_date)
+            labelBody = QtWidgets.QTextEdit()
+            labelBody.setFrameShape(QtWidgets.QFrame.NoFrame)
             labelBody.insertHtml(bodyMessage)
             labelBody.setReadOnly(True)
-            hlayUser = QtGui.QHBoxLayout()
+            hlayUser = QtWidgets.QHBoxLayout()
             hlayUser.addWidget(labelUser)
             hlayUser.addWidget(labelDate)
-            mainVLay = QtGui.QVBoxLayout()
+            mainVLay = QtWidgets.QVBoxLayout()
             mainVLay.addLayout(hlayUser)
             mainVLay.addWidget(labelBody)
-            attachmentLay = QtGui.QHBoxLayout()
+            attachmentLay = QtWidgets.QHBoxLayout()
             if attachment_ids:
                 res = connectionObj.read('ir.attachment', ['datas', 'datas_fname'], attachment_ids)
                 for attachDict in res:
                     fileContent = attachDict.get('datas', '')
                     fileName = attachDict.get('datas_fname', '')
-                    imageLay = QtGui.QVBoxLayout()
+                    imageLay = QtWidgets.QVBoxLayout()
                     labelImage = utilsUi.getQtImageFromContent(fileContent, imageWidth=120, imageHeight=120)
                     imageLay.addWidget(labelImage)
-                    buttonDownloadImage = QtGui.QPushButton('Download')
+                    buttonDownloadImage = QtWidgets.QPushButton('Download')
                     buttonDownloadImage.setStyleSheet(constants.BUTTON_STYLE + 'max-width: 100px;')
                     buttonDownloadImage.clicked.connect(partial(self.downloadImage, fileContent, fileName))
                     imageLay.addWidget(buttonDownloadImage)
                     attachmentLay.addLayout(imageLay)
-                attachmentLay.addSpacerItem(QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding))
+                attachmentLay.addSpacerItem(QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding))
             mainVLay.addLayout(attachmentLay)
-            mainWidget = QtGui.QWidget()
+            mainWidget = QtWidgets.QWidget()
             mainWidget.setLayout(mainVLay)
             labelUser.setStyleSheet('font-weight: bold;')
             mainWidget.setStyleSheet('background-color: #cccbcb;')
@@ -341,8 +341,8 @@ class One2many(OdooFieldTemplate):
             def rejectDial():
                 dialog.reject()
 
-            dialog = QtGui.QDialog()
-            mainLay = QtGui.QVBoxLayout()
+            dialog = QtWidgets.QDialog()
+            mainLay = QtWidgets.QVBoxLayout()
             viewObjForm = self.odooConnector.initFormViewObj(self.relation, rpcObj=self.rpc)
             mainLay.addWidget(viewObjForm)
             dialog.setStyleSheet(constants.VIOLET_BACKGROUND)
@@ -357,7 +357,7 @@ class One2many(OdooFieldTemplate):
             cancelButt.setStyleSheet(constants.BUTTON_STYLE_CANCEL)
             dialog.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
             utilsUi.setLayoutMarginAndSpacing(mainLay)
-            if dialog.exec_() == QtGui.QDialog.Accepted:
+            if dialog.exec_() == QtWidgets.QDialog.Accepted:
                 fieldVals = viewObjForm.getAllFieldsValues()
                 objId = self.rpc.create(self.relation, fieldVals)
                 if objId:
@@ -396,20 +396,20 @@ class One2many(OdooFieldTemplate):
                 utilsUi.setRequiredBackground(self.widgetQtObj, '')
             self.mainLay.addWidget(self.treeViewObj)
             self.widgetLyQtObject.addLayout(self.mainLay)
-            self.widgetQtObj.setHorizontalHeaderItem(self.widgetQtObj.columnCount() - 1, QtGui.QTableWidgetItem('Remove'))
+            self.widgetQtObj.setHorizontalHeaderItem(self.widgetQtObj.columnCount() - 1, QtWidgets.QTableWidgetItem('Remove'))
             self.widgetQtObj.resizeColumnsToContents()
-        self.widgetLyQtObject.addSpacerItem(QtGui.QSpacerItem(20,20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding))
+        self.widgetLyQtObject.addSpacerItem(QtWidgets.QSpacerItem(20,20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding))
 
     def setupTableWidgetLay(self, tableWidget):
         tableWidget.resizeColumnsToContents()
         tableWidget.setShowGrid(False)
-        tableWidget.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        tableWidget.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
 
     def setRemoveButtons(self, tableWidget):
         rowCount = tableWidget.rowCount()
         colCount = tableWidget.columnCount()
         for rowCount in range(0, rowCount):
-            btn = QtGui.QPushButton('Remove')
+            btn = QtWidgets.QPushButton('Remove')
             btn.setStyleSheet(constants.BUTTON_ADD_AN_ITEM)
             tableWidget.setCellWidget(rowCount, colCount - 1, btn)
             btn.clicked.connect(partial(self.removeItem, rowCount))

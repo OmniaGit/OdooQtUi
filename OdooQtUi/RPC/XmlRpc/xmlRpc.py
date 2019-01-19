@@ -6,7 +6,7 @@ Created on 3 Feb 2017
 
 from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.utils_odoo_conn import utilsUi
-import xmlrpc
+import xmlrpc.client as xmlrpc
 import http.client as httplib
 import socket
 
@@ -278,7 +278,7 @@ class XmlRpcConnection(object):
         return False
 
 
-class TimeoutTransport(xmlrpc.client.Transport):
+class TimeoutTransport(xmlrpc.Transport):
     timeout = 5.0
 
     def set_timeout(self, timeout):

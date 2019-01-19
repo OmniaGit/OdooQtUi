@@ -7,6 +7,7 @@ import os
 import base64
 from PySide2 import QtGui
 from PySide2 import QtCore
+from PySide2 import QtWidgets
 from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.utils_odoo_conn import utilsUi
 from OdooQtUi.utils_odoo_conn import constants
@@ -32,7 +33,7 @@ class Binary(OdooFieldTemplate):
 
     def getQtObject(self):
         if self.xmlWidget == 'image':
-            self.widgetQtObj = QtGui.QLabel()
+            self.widgetQtObj = QtWidgets.QLabel()
             self.pixmap = QtGui.QPixmap()
             self.pixmap = self.pixmap.scaled(self.imageWidth,
                                              self.imageHeight,
@@ -42,22 +43,22 @@ class Binary(OdooFieldTemplate):
             self.widgetQtObj.resize(self.imageWidth, self.imageHeight)
             self.widgetQtObj.setText('aaa')
         else:
-            self.labelQtObj = QtGui.QLabel(self.fieldStringInterface)
+            self.labelQtObj = QtWidgets.QLabel(self.fieldStringInterface)
             self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
-            self.widgetQtObj = QtGui.QLineEdit()
+            self.widgetQtObj = QtWidgets.QLineEdit()
             self.widgetQtObj.setToolTip(self.tooltip)
             self.widgetQtObj.editingFinished.connect(self.valueChanged)
             self.widgetQtObj.setStyleSheet(constants.CHAR_STYLE)
-            self.buttonEdit = QtGui.QPushButton('Edit')
+            self.buttonEdit = QtWidgets.QPushButton('Edit')
             self.buttonEdit.setStyleSheet(constants.BUTTON_STYLE_MANY_2_ONE)
             self.buttonEdit.clicked.connect(self.editField)
-            self.buttonClear = QtGui.QPushButton('Clear')
+            self.buttonClear = QtWidgets.QPushButton('Clear')
             self.buttonClear.setStyleSheet(constants.BUTTON_STYLE_MANY_2_ONE)
             self.buttonClear.clicked.connect(self.clearField)
-            self.buttonDownload = QtGui.QPushButton('Download')
+            self.buttonDownload = QtWidgets.QPushButton('Download')
             self.buttonDownload.setStyleSheet(constants.BUTTON_STYLE_MANY_2_ONE + 'min-width:100px;')
             self.buttonDownload.clicked.connect(self.downloadFile)
-            self.buttonOpen = QtGui.QPushButton('Open')
+            self.buttonOpen = QtWidgets.QPushButton('Open')
             self.buttonOpen.setStyleSheet(constants.BUTTON_STYLE_MANY_2_ONE + 'min-width:50px;')
             self.buttonOpen.clicked.connect(self.openFile)
             if self.required:
