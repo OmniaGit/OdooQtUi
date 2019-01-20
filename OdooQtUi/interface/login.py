@@ -8,7 +8,6 @@ from OdooQtUi.RPC.rpc import connectionObj
 from .ui.ui_login import Ui_dialog_login
 from PySide2 import QtWidgets
 from PySide2 import QtCore
-from PySide2 import QtGui
 from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.utils_odoo_conn import constants
 
@@ -37,18 +36,18 @@ class LoginDial(QtWidgets.QDialog, Ui_dialog_login):
         self.label_server.setStyleSheet(constants.LOGIN_LABEL)
         self.label_username.setStyleSheet(constants.LOGIN_LABEL)
         self.label_scheme.setStyleSheet(constants.LOGIN_LABEL)
- 
+
         self.lineEdit_password.setStyleSheet(constants.LOGIN_LINEEDIT_STYLE)
         self.lineEdit_port.setStyleSheet(constants.LOGIN_LINEEDIT_STYLE)
         self.lineEdit_scheme.setStyleSheet(constants.LOGIN_LINEEDIT_STYLE)
         self.lineEdit_server.setStyleSheet(constants.LOGIN_LINEEDIT_STYLE)
         self.lineEdit_username.setStyleSheet(constants.LOGIN_LINEEDIT_STYLE)
- 
+
         self.comboBox_conn_type.setStyleSheet(constants.LOGIN_COMBO_STYLE)
         self.comboBox_database.setStyleSheet(constants.LOGIN_COMBO_STYLE)
- 
+
         self.stackedWidget.setStyleSheet(constants.LOGIN_STACKED_WIDGET)
- 
+
         self.pushButton_ok.setStyleSheet(constants.LOGIN_ACCEPT_BUTTON)
         self.pushButton_next.setStyleSheet(constants.LOGIN_NEXT_BACK_BUTTONS)
         self.pushButton_back.setStyleSheet(constants.LOGIN_NEXT_BACK_BUTTONS)
@@ -62,9 +61,9 @@ class LoginDial(QtWidgets.QDialog, Ui_dialog_login):
         self.pushButton_back.setHidden(True)
         self.comboBox_conn_type.setEditable(True)
         self.comboBox_database.setEditable(True)
-        #self.page.layout().setMargin(70)
-        #self.page_2.layout().setMargin(70)
-        
+        # self.page.layout().setMargin(70)
+        # self.page_2.layout().setMargin(70)
+
         self.lineEdit_password.setText(userpass)
         self.lineEdit_port.setText(str(serverPort))
         self.lineEdit_scheme.setText(scheme)
@@ -112,26 +111,24 @@ class LoginDial(QtWidgets.QDialog, Ui_dialog_login):
         self.serverPort = str(self.lineEdit_port.text())
         self.scheme = str(self.lineEdit_scheme.text())
         self.connType = str(self.comboBox_conn_type.currentText())
-        
+
     def acceptDialForce(self):
         self.accept()
 
 
 class LoginDialComplete(object):
-    
     def __init__(self, connType='xmlrpc'):
         self.connType = connType
         self.dbName, self.username, self.userpass, self.serverIp, self.serverPort, self.scheme, self.connType, self.dbList = utils.loadFromFile()
         utils.logMessage('info', '''
-Try login with stored settings:\n 
+Try login with stored settings:\n
 database= %r\n
 user= %r\n
-pass= %r\n
 server= %r\n
 port= %r\n
 scheme= %r\n
 connection type=%r\n
-''' % (self.dbName, self.username, self.userpass, self.serverIp, self.serverPort, self.scheme, self.connType), '__init__')
+''' % (self.dbName, self.username, self.serverIp, self.serverPort, self.scheme, self.connType), '__init__')
         connectionObj.initConnection(self.connType,
                                      '',
                                      '',
@@ -230,12 +227,12 @@ connection type=%r\n
                                      self.scheme,
                                      self.serverIp)
         return connectionObj.loginWithUser(self.connType,
-                                     self.username,
-                                     self.userpass,
-                                     self.dbName,
-                                     self.serverPort,
-                                     self.scheme,
-                                     self.serverIp)
+                                           self.username,
+                                           self.userpass,
+                                           self.dbName,
+                                           self.serverPort,
+                                           self.scheme,
+                                           self.serverIp)
 
     def writeToFile(self):
         toWriteDict = {
@@ -253,4 +250,3 @@ connection type=%r\n
         filePath = utils.getLoginFile()
         with open(filePath, 'w') as outFile:
             outFile.write(toWrite)
-
