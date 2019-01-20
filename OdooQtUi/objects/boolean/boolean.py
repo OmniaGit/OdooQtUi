@@ -23,6 +23,7 @@ class Boolean(OdooFieldTemplate):
     def getQtObject(self):
         self.labelQtObj = QtWidgets.QLabel(self.fieldStringInterface)
         self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
+        self.widgetLyQtObject.addWidget(self.labelQtObj)
         self.widgetQtObj = QtWidgets.QCheckBox()
         self.widgetQtObj.setToolTip(self.tooltip)
         self.widgetQtObj.stateChanged.connect(self.valueChanged)
