@@ -29,12 +29,12 @@ class Many2many(OdooFieldTemplate):
         self.getQtObject()
         self.evaluatedIds = {}
         self.treeViewObj = self.odooConnector.initTreeListViewObject(odooObjectName=self.relation,
-                                                  viewName='',
-                                                  view_id=False,
-                                                  rpcObj=self.rpc,
-                                                  activeLanguage='',
-                                                  viewCheckBoxes={0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled},
-                                                  viewFilter=False)
+                                                                     viewName='',
+                                                                     view_id=False,
+                                                                     rpcObj=self.rpc,
+                                                                     activeLanguage='',
+                                                                     viewCheckBoxes={0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled},
+                                                                     viewFilter=False)
 
     def getQtObject(self):
         self.mainLay = QtWidgets.QVBoxLayout()
@@ -59,7 +59,7 @@ class Many2many(OdooFieldTemplate):
                     utilsUi.launchMessage('Field %r need a value' % (requiredFieldObj.fieldStringInterface), 'error')
                     return
             formdialog.accept()
-            
+
         def rejectFormDial():
             formdialog.reject()
 
