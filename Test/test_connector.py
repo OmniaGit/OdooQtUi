@@ -18,11 +18,10 @@ if __name__ == '__main__':
     import time
     ts = time.time()
     app = QtWidgets.QApplication(sys.argv)
+    connectorObj = MainConnector()
+    connectorObj.loginWithDial()
 
     def do_test():
-        connectorObj = MainConnector()
-        connectorObj.loginWithDial()
-
         def tryForm(odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', useHeader=False, useChatter=False, idToLoad=False):
             tmplViewObj = connectorObj.initFormViewObj(odooObjectName, viewName, view_id, rpcObj, activeLanguage, useHeader, useChatter)
             if idToLoad:
@@ -43,16 +42,14 @@ if __name__ == '__main__':
         tmplViewObj = tryForm('product.product', idToLoad=284, useChatter=True)
         # tmplViewObj = tryForm('product.product', idToLoad=1345, useChatter=False)
         # viewCheckBoxes = {0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled}
-        #tmplViewObj = tryListView('product.template', viewFilter=True)
+        # tmplViewObj = tryListView('product.template', viewFilter=True)
         dialog = QtWidgets.QDialog()
         lay = QtWidgets.QVBoxLayout()
         lay.addWidget(tmplViewObj)
         dialog.setLayout(lay)
         dialog.resize(1200, 600)
         dialog.move(100, 100)
-        dialog.show()
         dialog.exec_()
-        time.sleep(2)
-        dialog.exec_()
+
     do_test()
-    app.exec_()
+    input("DONE")

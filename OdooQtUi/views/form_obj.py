@@ -9,10 +9,9 @@ from PySide2 import QtCore
 
 
 from OdooQtUi.views.parser.form_view import FormView
+from OdooQtUi.views.templateView import TemplateView
 from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.utils_odoo_conn import utilsUi
-from OdooQtUi.views.parser.search_view import FieldObj
-from .templateView import TemplateView
 
 
 class TemplateFormView(TemplateView):
