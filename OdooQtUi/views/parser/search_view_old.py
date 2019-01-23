@@ -44,7 +44,7 @@ class SearchView(object):
         widgetContents = QtGui.QWidget()
         mainLay = QtGui.QVBoxLayout()
         filterListLay = QtGui.QHBoxLayout()
-        mainHLay = self.computeRecursion(xmlElementParent)
+        mainHLay = self.computeRecursion(xmlParent=xmlElementParent)
         widgetContents.setStyleSheet('background-color:#ffffff;')
         mainLay.addLayout(mainHLay)
         mainLay.addLayout(filterListLay)
@@ -69,7 +69,7 @@ class SearchView(object):
         self.buttonCustomFilters.setStyleSheet(constants.SEARCH_FILTER_TOOLBUTTON)
         self.buttonCustomFilters.setHidden(True)
         self.buttonCustomFilters.clicked.connect(self.customAdvancedFilter)
-        
+
         customFiltersLay.addLayout(self.customFiltersTagsLay)
         spacer = QtGui.QSpacerItem(0, 0, QtGui.QSizePolicy.MinimumExpanding)
         customFiltersLay.addSpacerItem(spacer)

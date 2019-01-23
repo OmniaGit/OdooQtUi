@@ -8,12 +8,13 @@ import logging
 from PySide2 import QtWidgets
 from PySide2 import QtGui
 from OdooQtUi.connector import MainConnector
-
+from OdooQtUi.utils_odoo_conn import constants
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
 
 if __name__ == '__main__':
+    constants.DEBUG = False
     odooConnector = MainConnector()
     import time
     ts = time.time()
@@ -39,17 +40,20 @@ if __name__ == '__main__':
                 tmplViewObj.loadForceEmptyIds(forceFieldValues, readonlyFields, invisibleFields)
             return tmplViewObj
 
-        tmplViewObj = tryForm('product.product', idToLoad=284, useChatter=True)
+        tmplViewObj = tryForm('sale.order', idToLoad=100, useChatter=True)
+        #tmplViewObj = tryForm('product.product', 'plm.base.component', idToLoad=3572, useChatter=True)
+        #tmplViewObj = tryListView('product.template', viewFilter=True)
+        scroll = QtWidgets.QScrollArea()
+        scroll.setWidget(tmplViewObj)
+        scroll.setWidgetResizable(True)
         # tmplViewObj = tryForm('product.product', idToLoad=1345, useChatter=False)
         # viewCheckBoxes = {0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled}
-        # tmplViewObj = tryListView('product.template', viewFilter=True)
         dialog = QtWidgets.QDialog()
         lay = QtWidgets.QVBoxLayout()
-        lay.addWidget(tmplViewObj)
+        lay.addWidget(scroll)
         dialog.setLayout(lay)
         dialog.resize(1200, 600)
         dialog.move(100, 100)
         dialog.exec_()
 
     do_test()
-    input("DONE")

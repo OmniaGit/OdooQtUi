@@ -3,8 +3,6 @@ Created on 7 Feb 2017
 
 @author: dsmerghetto
 '''
-
-from PySide2 import QtGui
 from PySide2 import QtCore
 from PySide2 import QtWidgets
 from OdooQtUi.utils_odoo_conn import utilsUi
@@ -13,26 +11,26 @@ from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
 
 
 class Boolean(OdooFieldTemplate):
-    def __init__(self, xmlField, fieldsDefinition, rpc):
-        super(Boolean, self).__init__(xmlField, fieldsDefinition, rpc)
+    def __init__(self, qtParent, xmlField, fieldsDefinition, rpc):
+        super(Boolean, self).__init__(qtParent, xmlField, fieldsDefinition, rpc)
         self.labelQtObj = False
-        self.widgetQtObj = False
+        self.qDoubleSpinBoxValue = False
         self.currentValue = False
         self.getQtObject()
 
     def getQtObject(self):
         self.labelQtObj = QtWidgets.QLabel(self.fieldStringInterface)
         self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
-        self.widgetLyQtObject.addWidget(self.labelQtObj)
-        self.widgetQtObj = QtWidgets.QCheckBox()
-        self.widgetQtObj.setToolTip(self.tooltip)
-        self.widgetQtObj.stateChanged.connect(self.valueChanged)
+        self.qtHorizontalWidget.addWidget(self.labelQtObj)
+        self.qDoubleSpinBoxValue = QtWidgets.QCheckBox()
+        self.qDoubleSpinBoxValue.setToolTip(self.tooltip)
+        self.qDoubleSpinBoxValue.stateChanged.connect(self.valueChanged)
         if self.required:
-            utilsUi.setRequiredBackground(self.widgetQtObj, '')
-        self.widgetLyQtObject.addWidget(self.widgetQtObj)
+            utilsUi.setRequiredBackground(self.qDoubleSpinBoxValue, '')
+        self.qtHorizontalWidget.addWidget(self.qDoubleSpinBoxValue)
         if self.translatable:
             self.connectTranslationButton()
-            self.widgetLyQtObject.addWidget(self.translateButton)
+            self.addWidget(self.translateButton)
 
     def valueChanged(self, val):
         if val == QtCore.Qt.Unchecked:
@@ -45,24 +43,13 @@ class Boolean(OdooFieldTemplate):
 
     def setValue(self, newVal):
         newVal = eval(str(newVal))
-        self.widgetQtObj.setChecked(newVal)
+        self.qDoubleSpinBoxValue.setChecked(newVal)
         self.currentValue = newVal
-
-    def setReadonly(self, val=False):
-        super(Boolean, self).setReadonly(val)
-        self.widgetQtObj.setEnabled(not val)
-        if val:
-            self.widgetQtObj.setStyleSheet(constants.READONLY_STYLE)
-        else:
-            if self.required:
-                utilsUi.setRequiredBackground(self.widgetQtObj, '')
-            else:
-                self.widgetQtObj.setStyleSheet('background-color:white;')
 
     def setInvisible(self, val=False):
         super(Boolean, self).setInvisible(val)
         self.labelQtObj.setHidden(val)
-        self.widgetQtObj.setHidden(val)
+        self.qDoubleSpinBoxValue.setHidden(val)
 
     @property
     def value(self):
@@ -74,4 +61,3 @@ class Boolean(OdooFieldTemplate):
 
     def eraseValue(self):
         self.setValue(False)
-        

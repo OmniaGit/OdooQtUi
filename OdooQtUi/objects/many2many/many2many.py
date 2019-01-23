@@ -15,10 +15,10 @@ from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
 
 
 class Many2many(OdooFieldTemplate):
-    def __init__(self, xmlField, fieldsDefinition, rpc, odooConnector=None):
-        super(Many2many, self).__init__(xmlField, fieldsDefinition, rpc)
+    def __init__(self, qtParent, xmlField, fieldsDefinition, rpc, odooConnector=None):
+        super(Many2many, self).__init__(qtParent, xmlField, fieldsDefinition, rpc)
         self.labelQtObj = False
-        self.widgetQtObj = False
+        self.qDoubleSpinBoxValue = False
         self.treeViewObj = False
         self.btnAddAnItem = None
         self.odooConnector = odooConnector
@@ -26,7 +26,9 @@ class Many2many(OdooFieldTemplate):
         self.relation = self.fieldPyDefinition.get('relation', '')
         self.canCreate = json.loads(self.fieldXmlAttributes.get('can_create', 'true'))
         self.canWrite = json.loads(self.fieldXmlAttributes.get('can_write', 'true'))
-        self.getQtObject()
+        self.qtVBoxLayout = QtWidgets.QVBoxLayout(self)
+        qHl = self.getQtObject()
+        self.qtVBoxLayout.addLayout(qHl)
         self.evaluatedIds = {}
         self.treeViewObj = self.odooConnector.initTreeListViewObject(odooObjectName=self.relation,
                                                                      viewName='',
@@ -35,20 +37,19 @@ class Many2many(OdooFieldTemplate):
                                                                      activeLanguage='',
                                                                      viewCheckBoxes={0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled},
                                                                      viewFilter=False)
+        self.qtVBoxLayout.addWidget(self.treeViewObj)
+        self.qtHorizontalWidget.addLayout(self.qtVBoxLayout)
 
     def getQtObject(self):
-        self.mainLay = QtWidgets.QVBoxLayout()
-        buttonsLay = QtWidgets.QHBoxLayout()
+        qhw = QtWidgets.QHBoxLayout(self)
         self.labelQtObj = QtWidgets.QLabel(self.fieldStringInterface)
         self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
-        buttonsLay.addWidget(self.labelQtObj)
-        self.createButt = QtWidgets.QPushButton('Create')
+        qhw.addWidget(self.labelQtObj)
+        self.createButt = QtWidgets.QPushButton('Create', self)
         self.createButt.setStyleSheet(constants.BUTTON_STYLE)
         self.createButt.clicked.connect(self.createAndAdd)
-        buttonsLay.addWidget(self.createButt)
-        buttonsLay.addSpacerItem(QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum))
-        self.mainLay.addLayout(buttonsLay)
-        utilsUi.setLayoutMarginAndSpacing(self.mainLay)
+        qhw.addWidget(self.createButt)
+        return qhw
 
     def createAndAdd(self):
         def acceptFormDial():
@@ -91,22 +92,18 @@ class Many2many(OdooFieldTemplate):
     def setValue(self, relIds):
         self.currentValue = relIds
         self.treeViewObj.loadIds(relIds, {}, {}, {})
-        self.widgetQtObj = self.treeViewObj.treeObj.tableWidget
+        self.qDoubleSpinBoxValue = self.treeViewObj.treeObj.tableWidget
         self.fieldsToReadOrdered = self.treeViewObj.treeObj.orderedFields
-        self.setRemoveButtons(self.widgetQtObj)
-        self.setupTableWidgetLay(self.widgetQtObj)
+        self.setRemoveButtons(self.qDoubleSpinBoxValue)
+        self.setupTableWidgetLay(self.qDoubleSpinBoxValue)
         if self.required:
-            utilsUi.setRequiredBackground(self.widgetQtObj, '')
+            utilsUi.setRequiredBackground(self.qDoubleSpinBoxValue, '')
         if not self.btnAddAnItem:
             self.btnAddAnItem = QtWidgets.QPushButton('Add an item')
             self.btnAddAnItem.setStyleSheet(constants.BUTTON_ADD_AN_ITEM)
             self.btnAddAnItem.clicked.connect(self.addAnItem)
             addAnItemLay = QtWidgets.QHBoxLayout()
             addAnItemLay.addWidget(self.btnAddAnItem)
-            addAnItemLay.addSpacerItem(QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum))
-            self.mainLay.addLayout(addAnItemLay)
-            self.widgetLyQtObject.addLayout(self.mainLay)
-        self.mainLay.addWidget(self.treeViewObj)
 
     def setupTableWidgetLay(self, tableWidget):
         tableWidget.resizeColumnsToContents()
@@ -159,8 +156,8 @@ class Many2many(OdooFieldTemplate):
             if rowInd == rowIndex:
                 if objId in self.currentValue:
                     self.currentValue.remove(objId)
-                    utils.removeRowFromTableWidget(self.widgetQtObj, rowIndex)
-                    self.setRemoveButtons(self.widgetQtObj)
+                    utils.removeRowFromTableWidget(self.qDoubleSpinBoxValue, rowIndex)
+                    self.setRemoveButtons(self.qDoubleSpinBoxValue)
                     del self.treeViewObj.idLineRel[rowInd]
                     found = True
             elif found:
@@ -224,43 +221,6 @@ class Many2many(OdooFieldTemplate):
 
     def valueChanged(self):
         self.valueTemplateChanged()
-
-    def setReadonly(self, val=False):
-        if self.btnAddAnItem:
-            self.btnAddAnItem.setDisabled(val)
-        if self.widgetQtObj:
-            self.widgetQtObj.setDisabled(val)
-        if self.treeViewObj:
-            self.treeViewObj.treeObj.tableWidget.setDisabled(val)
-            self.treeViewObj.buttToLeft.setDisabled(val)
-            self.treeViewObj.buttToRight.setDisabled(val)
-            self.treeViewObj.treeObj.widgetContents.setDisabled(val)
-        self.createButt.setDisabled(val)
-        super(Many2many, self).setReadonly(val)
-
-    def setInvisible(self, val=False):
-        if self.btnAddAnItem:
-            if val:
-                self.btnAddAnItem.hide()
-            else:
-                self.btnAddAnItem.show()
-        if self.widgetQtObj:
-            self.widgetQtObj.setHidden(val)
-        if self.treeViewObj:
-            if val:
-                self.treeViewObj.buttToLeft.hide()
-                self.treeViewObj.buttToRight.hide()
-            else:
-                self.treeViewObj.buttToLeft.show()
-                self.treeViewObj.buttToRight.show()
-            self.treeViewObj.treeObj.tableWidget.setHidden(val)
-            self.treeViewObj.treeObj.widgetContents.setHidden(val)
-        self.labelQtObj.setHidden(val)
-        if val:
-            self.createButt.hide()
-        else:
-            self.createButt.show()
-        super(Many2many, self).setInvisible(val)
 
     @property
     def value(self):

@@ -20,10 +20,10 @@ import base64
 
 
 class One2many(OdooFieldTemplate):
-    def __init__(self, xmlField, fieldsDefinition, rpc, odooConnector=None):
-        super(One2many, self).__init__(xmlField, fieldsDefinition, rpc)
+    def __init__(self, qtParent, xmlField, fieldsDefinition, rpc, odooConnector=None):
+        super(One2many, self).__init__(qtParent, xmlField, fieldsDefinition, rpc)
         self.labelQtObj = False
-        self.widgetQtObj = False
+        self.qDoubleSpinBoxValue = False
         self.treeViewObj = False
         self.currentMessType = 'NOTE'
         self.odooConnector = odooConnector
@@ -37,10 +37,8 @@ class One2many(OdooFieldTemplate):
         self.messaggesLay = QtWidgets.QVBoxLayout()
         self.messaggesLay.setSpacing(15)
         if self.odooWidgetType == 'mail_followers':
-            self.widgetLyQtObject = QtWidgets.QVBoxLayout()
             self.treeViewObj = QtWidgets.QWidget()
         elif self.odooWidgetType == 'mail_thread':
-            self.widgetLyQtObject = QtWidgets.QVBoxLayout()
             self.treeViewObj = QtWidgets.QWidget()
         else:
             self.treeViewObj = self.odooConnector.initTreeListViewObject(odooObjectName=self.relation,
@@ -52,6 +50,49 @@ class One2many(OdooFieldTemplate):
                                                                          viewFilter=False)
         self.getQtObject()
 
+    def getMessageChatterWidget(self):
+        self.setMinimumSize(100, 250)
+        self.chatterWidget = QtWidgets.QWidget()
+        self.chatterWidget.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        chatterVLayout = QtWidgets.QVBoxLayout()
+        self.messaggesButton = QtWidgets.QPushButton('Show Chatter')
+        self.messaggesButton.setStyleSheet(constants.BUTTON_STYLE)
+        self.messaggesButton.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
+        self.messaggesButton.setMinimumSize(100, 40)
+        self.messaggesButton.clicked.connect(self.showMessagges)
+        chatterVLayout.addWidget(self.messaggesButton)
+        # send message box
+        self.sendMessageBox = QtWidgets.QWidget()
+        sendMessageBoxHLayout = QtWidgets.QHBoxLayout()
+        self.buttSendMessage = QtWidgets.QPushButton('Send Message')
+        self.buttLogNote = QtWidgets.QPushButton('Log Note')
+        self.buttSendMessage.setStyleSheet(constants.BUTTON_STYLE_MANY_2_ONE__2)
+        self.buttLogNote.setStyleSheet(constants.BUTTON_STYLE_MANY_2_ONE__2)
+        self.buttSendMessage.clicked.connect(self.sendMessage)
+        self.buttLogNote.clicked.connect(self.logNote)
+        spacerExpander = QtWidgets.QSpacerItem(40, 100, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        sendMessageBoxHLayout.addWidget(self.buttSendMessage)
+        sendMessageBoxHLayout.addWidget(self.buttLogNote)
+        sendMessageBoxHLayout.addItem(spacerExpander)
+        self.sendMessageBox.setLayout(sendMessageBoxHLayout)
+        self.sendMessageBox.hide()
+        chatterVLayout.addWidget(self.sendMessageBox)
+        # Scroll messages
+        self.messageScroll = QtWidgets.QScrollArea(self.chatterWidget)
+        messageWidget = QtWidgets.QWidget(self.chatterWidget)
+        self.messageVLay = QtWidgets.QVBoxLayout()
+        messageWidget.setLayout(self.messageVLay)
+        self.messageScroll.setWidget(messageWidget)
+        self.messageScroll.setWidgetResizable(True)
+        chatterVLayout.addWidget(self.messageScroll)
+        verticalSpacer = QtWidgets.QSpacerItem(40, 100, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        chatterVLayout.addItem(verticalSpacer)
+        self.messageScroll.hide()
+        self.messageScroll.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        self.chatterWidget.setLayout(chatterVLayout)
+        self.chatterWidget.setMinimumSize(100, 100)
+        return self.chatterWidget
+
     def getQtObject(self):
         if self.odooWidgetType == 'mail_followers':
             self.followersButton = QtWidgets.QPushButton('Show Followers')
@@ -59,10 +100,12 @@ class One2many(OdooFieldTemplate):
             self.followersButton.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
             self.followersButton.clicked.connect(self.showFollowers)
             self.followersOpened = False
-            self.widgetLyQtObject.addWidget(self.followersButton)
-            self.widgetLyQtObject.addLayout(self.messaggesLay)
-            self.widgetLyQtObject.addSpacerItem(QtWidgets.QSpacerItem(100, 100, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding))
+            self.qtHorizontalWidget.addWidget(self.followersButton)
+            self.qtHorizontalWidget.addLayout(self.messaggesLay)
         elif self.odooWidgetType == 'mail_thread':
+            self.qtHorizontalWidget.addWidget(self.getMessageChatterWidget())
+            return
+            #  old chatter
             self.messaggesButton = QtWidgets.QPushButton('Show Chatter')
             self.messaggesButton.setStyleSheet(constants.BUTTON_STYLE)
             self.messaggesButton.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
@@ -71,23 +114,18 @@ class One2many(OdooFieldTemplate):
             self.populateMessButtLay()
             self.noteLay = QtWidgets.QVBoxLayout()
             self.populateNoteLay()
-            self.widgetLyQtObject.setSpacing(15)
-            self.widgetLyQtObject.addWidget(self.messaggesButton)
-            self.widgetLyQtObject.addLayout(self.messaggesButtLay)
-            self.widgetLyQtObject.addLayout(self.noteLay)
-            self.widgetLyQtObject.addLayout(self.messaggesLay)
-            self.widgetLyQtObject.addSpacerItem(QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding))
+            self.qtHorizontalWidget.addWidget(self.messaggesButton)
+            self.qtHorizontalWidget.addLayout(self.messaggesButtLay)
+            self.qtHorizontalWidget.addLayout(self.noteLay)
+            self.qtHorizontalWidget.addLayout(self.messaggesLay)
         else:
-            buttonsLay = QtWidgets.QHBoxLayout()
             self.labelQtObj = QtWidgets.QLabel(self.fieldStringInterface)
             self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
-            buttonsLay.addWidget(self.labelQtObj)
+            self.qtHorizontalWidget.addWidget(self.labelQtObj)
             self.createButt = QtWidgets.QPushButton('Create')
             self.createButt.setStyleSheet(constants.BUTTON_STYLE)
-            buttonsLay.addWidget(self.createButt)
+            self.qtHorizontalWidget.addWidget(self.createButt)
             self.createButt.clicked.connect(self.createAndAdd)
-            buttonsLay.addSpacerItem(QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding))
-            self.mainLay.addLayout(buttonsLay)
 
     def populateNoteLay(self):
         self.textEditMess = QtWidgets.QTextEdit()
@@ -96,7 +134,6 @@ class One2many(OdooFieldTemplate):
         self.noteLay.addWidget(self.textEditMess)
         lay = QtWidgets.QHBoxLayout()
         lay.addWidget(self.sendButtonMess)
-        lay.addSpacerItem(QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding))
         self.noteLay.addLayout(lay)
         self.textEditMess.setStyleSheet(constants.TEXT_STYLE)
         self.sendButtonMess.clicked.connect(self.sendMessNote)
@@ -128,7 +165,7 @@ class One2many(OdooFieldTemplate):
         self.buttLogNote.setStyleSheet(constants.BUTTON_STYLE_MANY_2_ONE__2)
         self.messaggesButtLay.addWidget(self.buttSendMessage)
         self.messaggesButtLay.addWidget(self.buttLogNote)
-        self.messaggesButtLay.addSpacerItem(QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding))
+        #self.messaggesButtLay.addSpacerItem(QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding))
         self.buttSendMessage.clicked.connect(self.sendMessage)
         self.buttLogNote.clicked.connect(self.logNote)
         self.buttSendMessage.setHidden(True)
@@ -279,10 +316,9 @@ class One2many(OdooFieldTemplate):
                 self._addFollower(partnerId)
 
     def showMessagges(self):
-        self.buttSendMessage.setHidden(False)
-        self.buttLogNote.setHidden(False)
-        self.messaggesButton.setEnabled(False)
-        self.messaggesButton.setStyleSheet(constants.BUTTON_STYLE + 'background-color: #d3d0d0;')
+        self.sendMessageBox.show()
+        #self.messaggesButton.setEnabled(False)
+        #self.messaggesButton.setStyleSheet(constants.BUTTON_STYLE + 'background-color: #d3d0d0;')
         messages = connectionObj.read(self.relation, [], self.currentValue)
         for messageDict in messages:
             _userId, userName = messageDict.get('author_id', [False, ''])
@@ -315,13 +351,13 @@ class One2many(OdooFieldTemplate):
                     buttonDownloadImage.clicked.connect(partial(self.downloadImage, fileContent, fileName))
                     imageLay.addWidget(buttonDownloadImage)
                     attachmentLay.addLayout(imageLay)
-                attachmentLay.addSpacerItem(QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding))
             mainVLay.addLayout(attachmentLay)
             mainWidget = QtWidgets.QWidget()
             mainWidget.setLayout(mainVLay)
             labelUser.setStyleSheet('font-weight: bold;')
             mainWidget.setStyleSheet('background-color: #cccbcb;')
-            self.messaggesLay.addWidget(mainWidget)
+            self.messageVLay.addWidget(mainWidget)
+            self.messageScroll.show()
 
     def downloadImage(self, content, fileName):
         fileCleanContent = base64.b64decode(content)
@@ -374,7 +410,7 @@ class One2many(OdooFieldTemplate):
             outStrVal = ''
         elif isinstance(val, int):
             outStrVal = ''
-        elif isinstance(val, (str, QtCore.QString)):
+        elif isinstance(val, (str)):
             outStrVal = str(val)
         return outStrVal
 
@@ -386,19 +422,19 @@ class One2many(OdooFieldTemplate):
             return
         else:
             self.treeViewObj.loadIds(relIds, {}, {}, {})
-            self.widgetQtObj = self.treeViewObj.treeObj.tableWidget
-            self.widgetQtObj.setColumnCount(self.widgetQtObj.columnCount() + 1)
+            self.qDoubleSpinBoxValue = self.treeViewObj.treeObj.tableWidget
+            self.qDoubleSpinBoxValue.setColumnCount(self.qDoubleSpinBoxValue.columnCount() + 1)
             fieldsToReadOrdered = self.treeViewObj.treeObj.orderedFields
             self.fieldsToReadOrdered = fieldsToReadOrdered
-            self.setRemoveButtons(self.widgetQtObj)
-            self.setupTableWidgetLay(self.widgetQtObj)
+            self.setRemoveButtons(self.qDoubleSpinBoxValue)
+            self.setupTableWidgetLay(self.qDoubleSpinBoxValue)
             if self.required:
-                utilsUi.setRequiredBackground(self.widgetQtObj, '')
+                utilsUi.setRequiredBackground(self.qDoubleSpinBoxValue, '')
             self.mainLay.addWidget(self.treeViewObj)
-            self.widgetLyQtObject.addLayout(self.mainLay)
-            self.widgetQtObj.setHorizontalHeaderItem(self.widgetQtObj.columnCount() - 1, QtWidgets.QTableWidgetItem('Remove'))
-            self.widgetQtObj.resizeColumnsToContents()
-        self.widgetLyQtObject.addSpacerItem(QtWidgets.QSpacerItem(20,20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding))
+            self.qtHorizontalWidget.addLayout(self.mainLay)
+            self.qDoubleSpinBoxValue.setHorizontalHeaderItem(self.qDoubleSpinBoxValue.columnCount() - 1, QtWidgets.QTableWidgetItem('Remove'))
+            self.qDoubleSpinBoxValue.resizeColumnsToContents()
+        #self.addSpacerItem(QtWidgets.QSpacerItem(20,20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding))
 
     def setupTableWidgetLay(self, tableWidget):
         tableWidget.resizeColumnsToContents()
@@ -422,8 +458,8 @@ class One2many(OdooFieldTemplate):
             if rowInd == rowIndex:
                 if objId in self.currentValue:
                     self.currentValue.remove(objId)
-                    utils.removeRowFromTableWidget(self.widgetQtObj, rowIndex)
-                    self.setRemoveButtons(self.widgetQtObj)
+                    utils.removeRowFromTableWidget(self.qDoubleSpinBoxValue, rowIndex)
+                    self.setRemoveButtons(self.qDoubleSpinBoxValue)
                     del self.treeViewObj.idLineRel[rowInd]
                     found = True
             elif found:
@@ -432,35 +468,6 @@ class One2many(OdooFieldTemplate):
 
     def valueChanged(self):
         self.valueTemplateChanged()
-
-    def setReadonly(self, val=False):
-        try:
-            if self.widgetQtObj:
-                self.widgetQtObj.setDisabled(val)
-            if self.treeViewObj:
-                self.treeViewObj.treeObj.tableWidget.setDisabled(val)
-                self.treeViewObj.buttToLeft.setDisabled(val)
-                self.treeViewObj.buttToRight.setDisabled(val)
-                self.treeViewObj.treeObj.widgetContents.setDisabled(val)
-            self.createButt.setDisabled(val)
-            super(One2many, self).setReadonly(val)
-        except Exception as ex:
-            utils.logError(ex, 'setReadonly')
-
-    def setInvisible(self, val=False):
-        try:
-            if self.widgetQtObj:
-                self.widgetQtObj.setHidden(val)
-            if self.treeViewObj:
-                self.treeViewObj.buttToLeft.setHidden(val)
-                self.treeViewObj.buttToRight.setHidden(val)
-                self.treeViewObj.treeObj.tableWidget.setHidden(val)
-                self.treeViewObj.treeObj.widgetContents.setHidden(val)
-            self.labelQtObj.setHidden(val)
-            self.createButt.setHidden(val)
-            super(One2many, self).setInvisible(val)
-        except Exception as ex:
-            utils.logError(ex, 'setInvisible')
 
     @property
     def value(self):

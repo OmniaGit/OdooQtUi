@@ -14,9 +14,9 @@ class TemplateView(QtWidgets.QWidget):
         super(TemplateView, self).__init__()
         self.rpcObject = rpcObject
         self.viewObj = viewObj
-        self.fields = Objects()    # fields.fieldName
+        self.fields = Objects()     # fields.fieldName
         self.buttons = Objects()    # buttons.fieldName
-        self.mappingInterface = {}   # {'fieldName' : fieldObj}
+        self.mappingInterface = {}  # {'fieldName' : fieldObj}
         self.activeLanguageCode = activeLanguageCode    # 'en_US'
         self.fieldsChanged = {}     # {'fieldName' : fieldObj}
         self.formVals = {}
@@ -40,11 +40,11 @@ class TemplateView(QtWidgets.QWidget):
     @property
     def viewCheckBoxes(self):
         return self.viewObj.localViewCheckBoxes
-    
+
     @property
     def viewId(self):
         return self.viewObj.odooViewId
-    
+
     @property
     def fieldsNameTypeRel(self):
         return self.viewObj.odooFieldsNameTypeRel
@@ -56,7 +56,7 @@ class TemplateView(QtWidgets.QWidget):
     @property
     def searchMode(self):
         return self.viewObj.localSearchMode
-    
+
     @property
     def useHeader(self):
         return self.viewObj.useHeader

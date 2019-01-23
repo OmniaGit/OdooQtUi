@@ -4,11 +4,9 @@ Created on 3 Feb 2017
 @author: Daniel Smerghetto
 '''
 import xml.etree.cElementTree as ElementTree
-from PySide2 import QtGui
-from PySide2 import QtCore
 from PySide2 import QtWidgets
-from OdooQtUi.utils_odoo_conn import constants, utilsUi
-from OdooQtUi.utils_odoo_conn import utils
+from OdooQtUi.utils_odoo_conn import constants
+from OdooQtUi.utils_odoo_conn import utilsUi
 from OdooQtUi.objects.selection.selection import Selection
 from OdooQtUi.objects.boolean.boolean import Boolean
 from OdooQtUi.objects.char.char import Charachter
@@ -22,8 +20,9 @@ from OdooQtUi.objects.text.text import Text
 from OdooQtUi.objects.one2many.one2many import One2many
 
 
-class TreeViewList(object):
-    def __init__(self, arch, fieldsNameTypeRel, rpc, viewCheckBoxes={}, odooConnector=None):
+class TreeViewList(QtWidgets.QWidget):
+    def __init__(self, qtParent, arch, fieldsNameTypeRel, rpc, viewCheckBoxes={}, odooConnector=None):
+        super(TreeViewList, self).__init__(qtParent)
         self.arch = arch
         self.odooConnector = odooConnector
         self.fieldsNameTypeRel = fieldsNameTypeRel
@@ -63,37 +62,33 @@ class TreeViewList(object):
         fieldType = fieldDefinition.get('type', False)
         fieldObj = None
         if fieldType == 'selection':
-            fieldObj = Selection(xmlObj, self.fieldsNameTypeRel, self.rpc)
+            fieldObj = Selection(self, xmlObj, self.fieldsNameTypeRel, self.rpc)
         elif fieldType == 'char':
-            fieldObj = Charachter(xmlObj, self.fieldsNameTypeRel, self.rpc)
+            fieldObj = Charachter(self, xmlObj, self.fieldsNameTypeRel, self.rpc)
         elif fieldType == 'integer':
-            fieldObj = Integer(xmlObj, self.fieldsNameTypeRel, self.rpc)
+            fieldObj = Integer(self, xmlObj, self.fieldsNameTypeRel, self.rpc)
         elif fieldType == 'float':
-            fieldObj = Float(xmlObj, self.fieldsNameTypeRel, self.rpc)
+            fieldObj = Float(self, xmlObj, self.fieldsNameTypeRel, self.rpc)
         elif fieldType == 'datetime':
-            fieldObj = Datetime(xmlObj, self.fieldsNameTypeRel, self.rpc)
+            fieldObj = Datetime(self, xmlObj, self.fieldsNameTypeRel, self.rpc)
         elif fieldType == 'many2one':
-            fieldObj = Many2one(xmlObj, self.fieldsNameTypeRel, self.rpc, self.odooConnector)
+            fieldObj = Many2one(self, xmlObj, self.fieldsNameTypeRel, self.rpc, self.odooConnector)
         elif fieldType == 'many2many':
-            fieldObj = Many2many(xmlObj, self.fieldsNameTypeRel, self.rpc, self.odooConnector)
+            fieldObj = Many2many(self, xmlObj, self.fieldsNameTypeRel, self.rpc, self.odooConnector)
         elif fieldType == 'one2many':
-            fieldObj = One2many(xmlObj, self.fieldsNameTypeRel, self.rpc, self.odooConnector)
+            fieldObj = One2many(self, xmlObj, self.fieldsNameTypeRel, self.rpc, self.odooConnector)
         elif fieldType == 'text':
-            fieldObj = Text(xmlObj, self.fieldsNameTypeRel, self.rpc)
+            fieldObj = Text(self, xmlObj, self.fieldsNameTypeRel, self.rpc)
         elif fieldType == 'date':
-            fieldObj = Date(xmlObj, self.fieldsNameTypeRel, self.rpc)
+            fieldObj = Date(self, xmlObj, self.fieldsNameTypeRel, self.rpc)
         elif fieldType == 'boolean':
-            fieldObj = Boolean(xmlObj, self.fieldsNameTypeRel, self.rpc)
+            fieldObj = Boolean(self, xmlObj, self.fieldsNameTypeRel, self.rpc)
         return fieldObj
 
     def computeArchRecursion(self, parent):
         mainVLay = self.computeRecursion(parent)
-        self.widgetContents = QtWidgets.QWidget()
-        self.widgetContents.setStyleSheet(constants.TREE_LIST_BACKGROUND_COLOR)
-        self.widgetContents.setLayout(mainVLay)
-        outLay = QtWidgets.QVBoxLayout()
-        outLay.addWidget(self.widgetContents)
-        return outLay
+        self.setStyleSheet(constants.TREE_LIST_BACKGROUND_COLOR)
+        self.setLayout(mainVLay)
 
     def computeArch(self):
         if self.arch:

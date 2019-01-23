@@ -4,56 +4,314 @@ Created on 24 Mar 2017
 @author: dsmerghetto
 '''
 import copy
-from PySide2 import QtGui
+import json
+import xml.etree.cElementTree as ElementTree
+from functools import partial
 from PySide2 import QtCore
+from PySide2 import QtGui
+from PySide2 import QtWidgets
 
-
-from OdooQtUi.views.parser.form_view import FormView
 from OdooQtUi.views.templateView import TemplateView
 from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.utils_odoo_conn import utilsUi
+from OdooQtUi.utils_odoo_conn import constants
+from OdooQtUi.objects.selection.selection import Selection
+from OdooQtUi.objects.boolean.boolean import Boolean
+from OdooQtUi.objects.char.char import Charachter
+from OdooQtUi.objects.date.date import Date
+from OdooQtUi.objects.datetimee.datetimee import Datetime
+from OdooQtUi.objects.float.float import Float
+from OdooQtUi.objects.integer.integer import Integer
+from OdooQtUi.objects.many2many.many2many import Many2many
+from OdooQtUi.objects.many2one.many2one import Many2one
+from OdooQtUi.objects.one2many.one2many import One2many
+from OdooQtUi.objects.binary.binary import Binary
+from OdooQtUi.objects.text.text import Text
+from OdooQtUi.objects import button
 
 
-class TemplateFormView(TemplateView):
+class QtFormView(TemplateView):
+    nootebook_changed_signal = QtCore.Signal(int)
 
     def __init__(self, rpcObject, viewObj, activeLanguageCode='en_US', odooConnector=None):
-        super(TemplateFormView, self).__init__(rpcObject, viewObj, activeLanguageCode)
+        self.globalMapping = {}
+        self.aloneLabels = {}
+        self.notebookTabsNotComputed = {}
+        self.nootebookFieldsToCompute = {}  # {nootebookIndex: {'fieldName': fieldObj}}
         self.requiredFields = {}
         self.readonlyFields = {}
         self.invisibleFields = {}
-        self.odooConnector = odooConnector
-        self.objectsInit = copy.deepcopy(self.fields)
         self.fieldDefaultVals = {}  # {'fieldName' : fieldval}
         self.skipOnChange = False
         self.readonly = False
-        self.activeIds = []     # must be one
+        self.activeIds = []         # must be one
+        super(QtFormView, self).__init__(rpcObject, viewObj, activeLanguageCode)
+        self.odooConnector = odooConnector
+        self.objectsInit = copy.deepcopy(self.fields)
         self._initViewObj()
+        self.nootebook_changed_signal.connect(self.updateDataStructure)
+        self.setMinimumSize(0, 0)
+        self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding))
 
     def _initViewObj(self):
         if self.fieldsNameTypeRel:
             self.startingFieldValues = self.fieldsNameTypeRel.get('fields', {})
-            self.formObj = FormView(self.arch,
-                                    self.fieldsNameTypeRel,
-                                    self.rpcObject,
-                                    self.useHeader,
-                                    self.useChatter,
-                                    self.odooConnector)
-            self.formObj.nootebook_changed_signal.connect(self.updateDataStructure)
-            layout = self.formObj.computeArch()
-            self.mappingInterface = self.formObj.globalMapping
+            self.RenderArch()
+            self.mappingInterface = self.globalMapping
             self.addToObject()
             self._setFieldModifiers()
-            oldLay = self.layout()
-            if oldLay:
-                del oldLay
-            self.setLayout(layout)
         else:
-            utils.logMessage('warning', 'Unable to get fields view definition!', '_initViewObj')
+            utils.logWarning('Unable to get fields view definition!', '_initViewObj')
+
+    @utils.timeit
+    def RenderArch(self):
+        if self.arch:
+            self.setStyleSheet(constants.MAIN_STYLE)
+            vertical_layout = QtWidgets.QVBoxLayout()
+            vertical_layout.setSpacing(0)
+            vertical_layout.setMargin(0)
+            self.computeRecursion(qvboxLayout=vertical_layout,
+                                  xmlParent=ElementTree.XML(self.arch.encode('utf-8')))
+            verticalSpacer = QtWidgets.QSpacerItem(40, 100, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+            vertical_layout.addItem(verticalSpacer)
+            self.setLayout(vertical_layout)
+        else:
+            utils.logWarning('No arch set impossible to compute structure')
+
+    def computeRecursion(self, qvboxLayout=False, xmlParent=None, nootebookIndex=0):
+        # TODO:    div name <div name="button_box" class="oe_button_box">
+        if not qvboxLayout:
+            qvboxLayout = QtWidgets.QVBoxLayout()
+            qvboxLayout.setSpacing(0)
+            qvboxLayout.setMargin(0)
+        if constants.DEBUG:
+            line = QtWidgets.QFrame(self)
+            line.setFrameShape(QtWidgets.QFrame.HLine)
+            line.setFrameShadow(QtWidgets.QFrame.Sunken)
+            line.setLineWidth(100)
+            line.setStyleSheet("color: blue;")
+            qvboxLayout.addWidget(line)
+        for childXlmElement in xmlParent.getchildren():
+            childXmlTag = childXlmElement.tag
+            if childXmlTag == 'sheet':
+                self.computeRecursion(qvboxLayout=qvboxLayout,
+                                      xmlParent=childXlmElement)
+            elif childXmlTag == 'header':
+                utils.logWarning('Header not implemented', 'computeRecursion')
+                continue
+#                 mapping, layout = self.computeHeader(xmlParent=childXlmElement, nootebookIndex=self.useHeader)
+#                 if layout:
+#                     if self.useHeader:
+#                         qvboxLayout.addLayout(layout)
+#                     else:
+#                         layout.deleteLater()
+#                 if mapping:
+#                     self.globalMapping.update(mapping)
+            elif childXmlTag == 'div':
+                divAttrib = childXlmElement.attrib
+                divClass = divAttrib.get('class', '')
+                if divClass == 'oe_chatter':
+                    if not self.useChatter:
+                        utils.logWarning('Chatter not implemented')
+                        continue
+                    else:
+                        self.computeChatter(qvboxLayout, childXlmElement)
+                elif divClass == 'oe_button_box':
+                    pass
+                elif divClass == 'oe_title':
+                    self.computeRecursion(qvboxLayout=qvboxLayout,
+                                          xmlParent=childXlmElement)
+                elif childXlmElement.text and len(childXlmElement.text.strip()) > 0:
+                    label = QtWidgets.QLabel(childXlmElement.text)
+                    label.setStyleSheet(constants.LABEL_SEPARATOR)
+                    qvboxLayout.addWidget(label)
+                    self.computeRecursion(qvboxLayout=qvboxLayout,
+                                          xmlParent=childXlmElement)
+                else:
+                    self.computeRecursion(qvboxLayout=qvboxLayout,
+                                          xmlParent=childXlmElement)
+            elif childXmlTag == 'notebook':
+                tabWidget = QtWidgets.QTabWidget(self)
+                tabWidget.setStyleSheet(constants.NOOTEBOOK_STYLE)
+                tabWidgetBar = tabWidget.tabBar()
+                tabWidgetBar.setStyleSheet(constants.NOOTEBOOK_TABBAR_STYLE)
+                nootebookIndex = 0
+                for page in childXlmElement.getchildren():
+                    pageString = page.attrib.get('string', '')
+                    invisible = page.attrib.get('invisible', False)
+                    modifInvisible, modifReadonly = utils.evaluateModifiers(page.attrib.get('modifiers', {}))
+                    if invisible or modifInvisible:
+                        continue
+                    pageWidget = QtWidgets.QWidget(tabWidget)
+                    pageVboxLayout = QtWidgets.QVBoxLayout()
+                    pageVboxLayout.setSpacing(0)
+                    pageVboxLayout.setMargin(0)
+                    if modifReadonly:
+                        pageWidget.setDisabled(True)
+                    if nootebookIndex != 0:
+                        self.notebookTabsNotComputed[nootebookIndex] = {'xmlPage': page, 'pageWidget': pageWidget}
+                    self.computeRecursion(qvboxLayout=pageVboxLayout,
+                                          xmlParent=page,
+                                          nootebookIndex=nootebookIndex)
+                    pageWidget.setLayout(pageVboxLayout)
+                    tabWidget.addTab(pageWidget, pageString)
+                    nootebookIndex = nootebookIndex + 1
+                qvboxLayout.addWidget(tabWidget)
+                tabWidget.currentChanged.connect(partial(self.computeNooteBookPage, tabWidget))
+            elif childXmlTag == 'group':
+                self.computeRecursion(qvboxLayout=qvboxLayout,
+                                      xmlParent=childXlmElement)
+            elif childXmlTag == 'button':
+                utils.logWarning('Buttons not implemented at first level of form')
+                continue
+#                 buttonObj = button.Button(childXlmElement)
+#                 key = 'button_' + str(buttonObj.buttonString).replace(' ', '_')
+#                 self.appendToglobalMapping(key, buttonObj)
+#                 qvboxLayout.addWidget(buttonObj)
+#                 divClass = parent.attrib.get('class', '')
+#                 if divClass == 'oe_button_box':
+#                     buttonObj.setHidden(True)
+            elif childXmlTag == 'separator':
+                childAttrs = childXlmElement.attrib
+                separatorVal = childAttrs.get('string', '')
+                if separatorVal:
+                    labelObj = QtWidgets.QLabel(separatorVal)
+                    labelObj.setStyleSheet(constants.LABEL_SEPARATOR)
+                    qvboxLayout.addWidget(labelObj)
+            elif childXmlTag == 'field':
+                fieldQHLayout = self.computeField(childXlmElement)
+                if fieldQHLayout:
+                    qvboxLayout.addWidget(fieldQHLayout)
+                    self.appendToglobalMapping('field_' + fieldQHLayout.fieldName, fieldQHLayout)
+            elif childXmlTag == 'h1':
+                self.computeRecursion(qvboxLayout=qvboxLayout,
+                                      xmlParent=childXlmElement)
+            elif childXmlTag == 'label':
+                childAttrs = childXlmElement.attrib
+                fieldRelated = childAttrs.get('for', False)
+                if fieldRelated:
+                    continue
+                labelObj = False
+                if fieldRelated:
+                    labelObj = QtWidgets.QLabel()
+                    self.aloneLabels[fieldRelated] = labelObj
+                fieldRelated = childAttrs.get('string', False)
+                if fieldRelated:
+                    labelObj = QtWidgets.QLabel(fieldRelated)
+                if labelObj:
+                    labelObj.setStyleSheet(constants.LABEL_STYLE)
+                    qvboxLayout.addWidget(labelObj)
+            else:
+                utils.logWarning('Tag %r not supported and not evaluated' % (childXlmElement))
+        if constants.DEBUG:
+            line = QtWidgets.QFrame(self)
+            line.setFrameShape(QtWidgets.QFrame.HLine)
+            line.setFrameShadow(QtWidgets.QFrame.Sunken)
+            line.setLineWidth(300)
+            line.setStyleSheet("color: blue;")
+            qvboxLayout.addWidget(line)
+        return qvboxLayout
+
+    def computeHeader(self, archHeader, useHeader=False):
+        mapping = {}
+
+        def commonAppend(key, vals):
+            if key not in mapping:
+                mapping[key] = vals
+            else:
+                utils.logMessage('warning', 'multiple widgets with the same key: %r' % (key), 'computeHeader')
+
+        headerLayout = QtWidgets.QHBoxLayout()
+        utilsUi.setLayoutMarginAndSpacing(headerLayout)
+        for xmlObj in archHeader.getchildren():
+            if xmlObj.tag == 'button':
+                buttonObj = button.Button(xmlObj)
+                headerLayout.addWidget(buttonObj)
+                commonAppend('button_header_' + str(buttonObj.buttonString).replace(' ', '_'), buttonObj)
+            elif xmlObj.tag == 'field':
+                fieldObj = self.computeField(xmlObj)
+                fieldQt = fieldObj
+                fieldName = fieldObj.fieldName
+                if not fieldQt:
+                    utils.logMessage('warning', 'Qt field %r could not be loaded' % (fieldName), 'computeHeader')
+                    continue
+                if isinstance(fieldQt, QtWidgets.QLayout):
+                    headerLayout.addLayout(fieldQt)
+                elif isinstance(fieldQt, QtWidgets.QWidget):
+                    headerLayout.addWidget(fieldQt)
+                else:
+                    utils.logMessage('warning', 'Field %r could not be added to layout' % (fieldName), 'computeHeader')
+                    continue
+                commonAppend('field_header_' + str(fieldName), fieldObj)
+            else:
+                pass
+        return mapping, headerLayout
+
+    def computeField(self, xmlObj):
+        fieldAttributes = xmlObj.attrib
+        fieldName = fieldAttributes.get('name', '')
+        fieldDefinition = self.fieldsNameTypeRel.get(fieldName, {})
+        fieldType = fieldDefinition.get('type', False)
+        fieldObj = None
+        if fieldType == 'selection':
+            fieldObj = Selection(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject)
+        elif fieldType == 'char':
+            fieldObj = Charachter(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject)
+        elif fieldType == 'integer':
+            fieldObj = Integer(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject)
+        elif fieldType == 'float':
+            fieldObj = Float(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject)
+        elif fieldType == 'datetime':
+            fieldObj = Datetime(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject)
+        elif fieldType == 'many2one':
+            fieldObj = Many2one(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject, self.odooConnector)
+        elif fieldType == 'many2many':
+            fieldObj = Many2many(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject, self.odooConnector)
+        elif fieldType == 'text':
+            fieldObj = Text(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject)
+        elif fieldType == 'date':
+            fieldObj = Date(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject)
+        elif fieldType == 'boolean':
+            fieldObj = Boolean(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject)
+        elif fieldType == 'one2many':
+            fieldObj = One2many(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject, self.odooConnector)
+        elif fieldType == 'binary':
+            fieldObj = Binary(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject)
+        else:
+            utils.logMessage('warning', 'Field %r not supported' % (fieldType), 'computeField')
+        return fieldObj
+
+    def computeNooteBookPage(self, tabObject, pageIndex=False):
+        tabObject.nootebook_changed_signal.emit(pageIndex)
+        return
+        values = tabObject.get(pageIndex, {})
+        if values:
+            del tabObject[pageIndex]
+            self.nootebook_changed_signal.emit(pageIndex)
+
+    def computeChatter(self, divVlay, childElement):
+        hlay = QtWidgets.QHBoxLayout()
+        count = 0
+        for fieldObj in childElement.getchildren():
+            if fieldObj.tag == 'field':
+                qtWidgetField = self.computeField(fieldObj)
+                if qtWidgetField:
+                    if isinstance(qtWidgetField, QtWidgets.QLayout):
+                        hlay.insertLayout(0, qtWidgetField)
+                        if count == 0:
+                            hlay.insertSpacerItem(0, QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum))
+                            count = count + 1
+                    elif isinstance(qtWidgetField, QtWidgets.QWidget):
+                        hlay.insertWidget(0, qtWidgetField)
+                    self.appendToglobalMapping('field_' + qtWidgetField.fieldName, qtWidgetField)
+            else:
+                utils.logMessage('warning', 'Unable to compute tag in chatter %r' % (fieldObj.tag), 'computeChatter')
+        divVlay.addLayout(hlay)
 
     def updateDataStructure(self, pageIndex=0):
-        utils.logDebug('compute Nootebook fields: %r' % (pageIndex), 'updateDataStructure')
-        if pageIndex > 0 and pageIndex in self.formObj.nootebookFieldsToCompute:
-            dictFieldsToUpdate = self.formObj.nootebookFieldsToCompute[pageIndex]
+        utils.logDebug('compute Notebook fields: %r' % (pageIndex), 'updateDataStructure')
+        if pageIndex > 0 and pageIndex in self.nootebookFieldsToCompute:
+            dictFieldsToUpdate = self.nootebookFieldsToCompute[pageIndex]
             fieldNamesToUpdate = list(dictFieldsToUpdate.keys())
             self.loadIds(self.activeIds, {}, {}, {}, fieldNamesToUpdate, True)
 
@@ -68,7 +326,7 @@ class TemplateFormView(TemplateView):
 
     def removeNootebookFields(self, fieldsToRead):
         mainDict = {}
-        for fieldsDict in list(self.formObj.nootebookFieldsToCompute.values()):
+        for fieldsDict in list(self.nootebookFieldsToCompute.values()):
             mainDict.update(fieldsDict)
         for fieldName in list(mainDict.keys()):
             if fieldName in fieldsToRead:
@@ -134,10 +392,14 @@ class TemplateFormView(TemplateView):
                 val = utils.evaluateAttrs(fieldDict, readonlyModif)
                 fieldObj.setReadonly(val)
                 self.commonEval(val, self.readonlyFields, fieldObj)
+            else:
+                fieldObj.setReadonly(fieldObj.readonly)
             if invisibleModif:
                 val = utils.evaluateAttrs(fieldDict, invisibleModif)
                 fieldObj.setInvisible(val)
                 self.commonEval(val, self.invisibleFields, fieldObj)
+            else:
+                fieldObj.setInvisible(fieldObj.invisible)
             if fieldObj.required:
                 self.requiredFields[fieldObj.fieldName] = fieldObj
 
@@ -237,9 +499,9 @@ class TemplateFormView(TemplateView):
         def rejectTransDial():
             translationDial.reject()
 
-        translationDial = QtGui.QDialog()
-        mainLay = QtGui.QVBoxLayout()
-        tableWidget = QtGui.QTableWidget()
+        translationDial = QtWidgets.QDialog()
+        mainLay = QtWidgets.QVBoxLayout()
+        tableWidget = QtWidgets.QTableWidget()
         model = self.model
         if model == 'product.product':
             model = 'product.template'
@@ -287,7 +549,7 @@ class TemplateFormView(TemplateView):
         translationDial.resize(800, 400)
         tableWidget.resizeColumnsToContents()
         tableWidget.horizontalHeader().setStretchLastSection(True)
-        if translationDial.exec_() == QtGui.QDialog.Accepted:
+        if translationDial.exec_() == QtWidgets.QDialog.Accepted:
             rowsDict = utils.getRowsFromTableWidget(tableWidget, 'dict', fieldNames)
             for rowDict in list(rowsDict.values()):
                 elemId = False
@@ -305,3 +567,5 @@ class TemplateFormView(TemplateView):
                     if lang == self.activeLanguageCode:
                         self.setValueField(fieldName, translated)
 
+    def appendToglobalMapping(self, key, value):
+        self.globalMapping.update({key: value})

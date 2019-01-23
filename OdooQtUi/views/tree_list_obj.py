@@ -40,8 +40,9 @@ class TemplateTreeListView(TemplateView):
             else:
                 self.searchObj.out_filter_change_signal.connect(self.filterChanged)
                 mainLay.addWidget(self.searchObj)
-        self.treeObj = TreeViewList(self.arch, self.fieldsNameTypeRel, self.rpcObject, self.viewCheckBoxes, self.odooConnector)
-        mainLay.addLayout(self.treeObj.computeArch())
+        self.treeObj = TreeViewList(self, self.arch, self.fieldsNameTypeRel, self.rpcObject, self.viewCheckBoxes, self.odooConnector)
+        self.treeObj.computeArch()
+        mainLay.addWidget(self.treeObj)
         self.mappingInterface = self.treeObj.globalMapping
         self.addToObject()
         if self.treeObj.tableWidget:

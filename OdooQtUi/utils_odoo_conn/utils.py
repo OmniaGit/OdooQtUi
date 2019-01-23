@@ -229,6 +229,7 @@ def packFile(filePath):
         raise Exception("PackFile : broken stream on file : %r." % (filePath))
     return content
 
+
 def unpackFile(content, toFile):
     """
        Unpack the content into a file
@@ -269,17 +270,22 @@ def getOS():
         logging.warning('Os not found: %s' % (platform))
         return 'UNKNOWN'
 
+
 def logDebug(message='', functionName=''):
     logMessage('DEBUG', message, functionName)
+
 
 def logInfo(message='', functionName=''):
     logMessage('INFO', message, functionName)
 
+
 def logWarning(message='', functionName=''):
     logMessage('WARNING', message, functionName)
 
+
 def logError(message='', functionName=''):
     logMessage('ERROR', message, functionName)
+
 
 def logMessage(msgType='DEBUG', message='', functionName=''):
     msg = '%s[%s] %s: %s' % (str(datetime.datetime.now()), functionName, str(msgType).upper(), message)

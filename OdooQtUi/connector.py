@@ -3,21 +3,15 @@ Created on 02 feb 2017
 
 @author: Daniel Smerghetto
 '''
-import sys
 import logging
 
 from OdooQtUi.utils_odoo_conn import utils
-from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.RPC.rpc import connectionObj
 from OdooQtUi.views.search_obj import TemplateSearchView
-from OdooQtUi.views.form_obj import TemplateFormView
+from OdooQtUi.views.form_obj import QtFormView
 from OdooQtUi.views.tree_tree_obj import TemplateTreeTreeView
 from OdooQtUi.views.tree_list_obj import TemplateTreeListView
 from OdooQtUi.interface.login import LoginDialComplete
-
-from PySide2 import QtGui
-from PySide2 import QtCore
-
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
@@ -115,7 +109,7 @@ class MainConnector(object):
 
     def initFormViewObj(self, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', useHeader=False, useChatter=False):
         viewObj, localLang, rpcObj = self._initView('form', rpcObj, activeLanguage, odooObjectName, viewName, view_id, useHeader=useHeader, useChatter=useChatter)
-        return TemplateFormView(rpcObj, viewObj, localLang, self)
+        return QtFormView(rpcObj, viewObj, localLang, self)
 
     def appendLoadedView(self, viewType, rpcObj, odooObjectName, viewName, view_id, viewFilter=False, viewCheckBoxes={}, searchMode='ilike', useHeader=False, useChatter=False):
         odooArch, odooModel, odooViewName, odooViewId, odooFieldsNameTypeRel = self._getViewDefinition(rpcObj, odooObjectName, viewType, viewName, view_id)

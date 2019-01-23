@@ -25,7 +25,7 @@ DEFAULT_ICON_PATH = ''
 
 def getQtImageFromContent(content, imageWidth=100, imageHeight=100):
     label = QtWidgets.QLabel()
-    pixmap = QtWidgets.QPixmap()
+    pixmap = QtGui.QPixmap()
     pixmap.loadFromData(base64.b64decode(content))
     pixmap = pixmap.scaled(imageWidth,
                            imageHeight,
@@ -156,4 +156,4 @@ def setRequiredBackground(widgetQtObj, baseBackground):
 
 
 def setLayoutMarginAndSpacing(lay):
-    lay.setSpacing(5)
+    lay.setSpacing(constants.LAY_OUT_SPACING)

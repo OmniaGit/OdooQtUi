@@ -558,7 +558,7 @@ class CustomQCompleter(QtWidgets.QCompleter):
             def filterAcceptsRow(self, sourceRow, sourceParent):
                 index0 = self.sourceModel().index(sourceRow, 0, sourceParent)
                 searchStr = local_completion_prefix.lower()
-                modelStr = str(self.sourceModel().data(index0, QtCore.Qt.DisplayRole).toString().toLower())
+                modelStr = self.sourceModel().data(index0, QtCore.Qt.DisplayRole).lower()
                 return searchStr in modelStr
 
         proxy_model = InnerProxyModel()
