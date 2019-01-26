@@ -5,18 +5,13 @@ Created on 20/set/2015
 '''
 import os
 import sys
-import json
-import stat
-import time
 import base64
 import logging
-import datetime
 import traceback
 
 from PySide2 import QtGui
 from PySide2 import QtCore
 from PySide2 import QtWidgets
-from os.path import expanduser
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.utils_odoo_conn import utils
 
