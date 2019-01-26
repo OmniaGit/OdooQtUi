@@ -63,12 +63,12 @@ class Binary(OdooFieldTemplate):
             self.buttonOpen.clicked.connect(self.openFile)
             if self.required:
                 utils.setRequiredBackground(self.qDoubleSpinBoxValue, '')
-            self.addWidget(self.qDoubleSpinBoxValue)
-            self.addWidget(self.buttonEdit)
-            self.addWidget(self.buttonClear)
-            self.addWidget(self.buttonDownload)
-            self.addWidget(self.buttonOpen)
-            self.setSpacing(10)
+            self.qtHorizontalWidget.addWidget(self.qDoubleSpinBoxValue)
+            self.qtHorizontalWidget.addWidget(self.buttonEdit)
+            self.qtHorizontalWidget.addWidget(self.buttonClear)
+            self.qtHorizontalWidget.addWidget(self.buttonDownload)
+            self.qtHorizontalWidget.addWidget(self.buttonOpen)
+            self.qtHorizontalWidget.setSpacing(10)
             if self.translatable:
                 self.connectTranslationButton()
                 self.addWidget(self.translateButton)
