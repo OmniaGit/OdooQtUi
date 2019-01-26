@@ -84,20 +84,28 @@ class MainConnector(object):
         logger.setLevel(logInteger)
 
     def _initView(self, viewType, rpcObj, activeLanguage, odooObjectName, viewName, view_id, viewFilter=False, viewCheckBoxes={}, searchMode='ilike', useHeader=False, useChatter=False):
-        localLang, rpcObj = self._getCommonLangAndRpc(activeLanguage, rpcObj)
-        viewObj = self.checkAlreadyLoadedView(viewType, rpcObj, odooObjectName, viewName, view_id, viewFilter, viewCheckBoxes)
-        if not viewObj:
-            viewObj = self.appendLoadedView(viewType, rpcObj, odooObjectName, viewName, view_id, viewFilter, viewCheckBoxes, searchMode, useHeader, useChatter)
-        utils.logMessage('info', 'Loading view %s' % (viewObj), '_initView')
-        return viewObj, localLang, rpcObj
+        try:
+            localLang, rpcObj = self._getCommonLangAndRpc(activeLanguage, rpcObj)
+            viewObj = self.checkAlreadyLoadedView(viewType, rpcObj, odooObjectName, viewName, view_id, viewFilter, viewCheckBoxes)
+            if not viewObj:
+                viewObj = self.appendLoadedView(viewType, rpcObj, odooObjectName, viewName, view_id, viewFilter, viewCheckBoxes, searchMode, useHeader, useChatter)
+            utils.logMessage('info', 'Loading view %s' % (viewObj), '_initView')
+            return viewObj, localLang, rpcObj
+        except Exception as ex:
+            logging.error("Exception Ex %r" % ex)
+            raise ex
 
     def initTreeListViewObject(self, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', viewCheckBoxes={}, viewFilter=False, deafult_filter=[]):
-        viewObjSearch = None
-        viewObj, localLang, rpcObj = self._initView('tree_list', rpcObj, activeLanguage, odooObjectName, viewName, view_id, viewFilter, viewCheckBoxes)
-        if viewFilter:
-            allFieldsDef = rpcObj.fieldsGet(odooObjectName)
-            viewObjSearch = self.initSearchViewObj(odooObjectName, viewName='', view_id='', rpcObj=rpcObj, activeLanguage=activeLanguage, allFieldsDef=allFieldsDef)
-        return TemplateTreeListView(rpcObj, viewObj, localLang, viewObjSearch, self, deafult_filter)
+        try:
+            viewObjSearch = None
+            viewObj, localLang, rpcObj = self._initView('tree_list', rpcObj, activeLanguage, odooObjectName, viewName, view_id, viewFilter, viewCheckBoxes)
+            if viewFilter:
+                allFieldsDef = rpcObj.fieldsGet(odooObjectName)
+                viewObjSearch = self.initSearchViewObj(odooObjectName, viewName='', view_id='', rpcObj=rpcObj, activeLanguage=activeLanguage, allFieldsDef=allFieldsDef)
+            return TemplateTreeListView(rpcObj, viewObj, localLang, viewObjSearch, self, deafult_filter)
+        except Exception as ex:
+            logging.error("Exception Ex %r" % ex)
+            raise ex
 
     def initSearchViewObj(self, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', searchMode='ilike', allFieldsDef={}):
         viewObj, localLang, rpcObj = self._initView('search', rpcObj, activeLanguage, odooObjectName, viewName, view_id, searchMode=searchMode)
