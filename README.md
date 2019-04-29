@@ -1,8 +1,8 @@
-# Welcome On Odoo Qt Project
+from PySide2 import QtWidgets# Welcome On Odoo Qt Project
 
 The project intend to get a fully qt ui version for odoo, providing form a search view to be used in non web environment, like Allocation extension.
 
-![License Logo](OdooQtUi/images/lgplv3-147x51.png)
+![License Logo](https://bytebucket.org/mboscolo/odoo_qt/raw/7216755696e0cd8e0726fa86239aa8290788be93/OdooQtUi/images/lgplv3-147x51.png)
 
 
 [bitbucket](https://bitbucket.org/mboscolo/odoo_qt.git)
@@ -10,15 +10,16 @@ The project intend to get a fully qt ui version for odoo, providing form a searc
 
 Here's an example of some Python code to show an odoo Login Form:
 
-![Login](OdooQtUi/images/Login.png)
+![Login](https://bytebucket.org/mboscolo/odoo_qt/raw/7216755696e0cd8e0726fa86239aa8290788be93/OdooQtUi/images/Login.png)
 
 
 ```python
 import sys
+from PySide2 import QtWidgets
 from PySide import QtGui
 from OdooQtUi.connector import MainConnector
 
-app = QtGui.QApplication(sys.argv)
+app = QtWidgets.QApplication(sys.argv)
 connectorObj = MainConnector()
 connectorObj.loginWithDial()    # Perform show of the login form
 
@@ -33,18 +34,18 @@ Here's an example of some Python code to show an odoo Form:
 ```python
 
 import sys
-from PySide import QtGui
+from PySide2 import QtWidgets
 from OdooQtUi.connector import MainConnector
 
-app = QtGui.QApplication(sys.argv)
+app = QtWidgets.QApplication(sys.argv)
 connectorObj = MainConnector()
 connectorObj.loginWithDial()    # Perform show of the login form
 
 tmplViewObj = connectorObj.initFormViewObj('product.template')
 tmplViewObj.loadIds([10])   # Edit Form on product.teplate with id =10
 
-dialog = QtGui.QDialog()
-lay = QtGui.QVBoxLayout()
+dialog = QtWidgets.QDialog()
+lay = QtWidgets.QVBoxLayout()
 lay.addWidget(tmplViewObj)
 dialog.setLayout(lay)
 dialog.exec_()
@@ -58,17 +59,17 @@ Here's an example of some Python code to show a odoo tree view:
 
 ```python
 import sys
-from PySide import QtGui
+from PySide2 import QtWidgets
 from OdooQtUi.connector import MainConnector
 
-app = QtGui.QApplication(sys.argv)
+app = QtWidgets.QApplication(sys.argv)
 connectorObj = MainConnector()
 connectorObj.loginWithDial()    # Perform show of the login form
 
 tmplViewObj = tryListView('product.template', viewFilter=True)
 
-dialog = QtGui.QDialog()
-lay = QtGui.QVBoxLayout()
+dialog = QtWidgets.QDialog()
+lay = QtWidgets.QVBoxLayout()
 lay.addWidget(tmplViewObj)
 dialog.setLayout(lay)
 dialog.exec_()
