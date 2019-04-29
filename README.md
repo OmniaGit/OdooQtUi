@@ -16,7 +16,6 @@ Here's an example of some Python code to show an odoo Login Form:
 ```python
 import sys
 from PySide2 import QtWidgets
-from PySide import QtGui
 from OdooQtUi.connector import MainConnector
 
 app = QtWidgets.QApplication(sys.argv)
