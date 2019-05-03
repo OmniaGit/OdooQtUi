@@ -7,7 +7,7 @@ Implementare campo one2many
 Implementare widget radio buttons
 Implementare widget many2many_tags
 Mettere timeout sul login perchè si blocca
-
+ss
 #Link di riferimento https://packaging.python.org/tutorials/packaging-projects/
 # Comandi per compilare e uploade su pip
 #python3 setup.py sdist bdist_wheel
