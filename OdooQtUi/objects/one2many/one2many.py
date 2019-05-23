@@ -23,7 +23,7 @@ class One2many(OdooFieldTemplate):
     def __init__(self, qtParent, xmlField, fieldsDefinition, rpc, odooConnector=None):
         super(One2many, self).__init__(qtParent, xmlField, fieldsDefinition, rpc)
         self.labelQtObj = False
-        self.qDoubleSpinBoxValue = False
+        self.widgetQtObj = False
         self.treeViewObj = False
         self.currentMessType = 'NOTE'
         self.odooConnector = odooConnector
@@ -422,18 +422,18 @@ class One2many(OdooFieldTemplate):
             return
         else:
             self.treeViewObj.loadIds(relIds, {}, {}, {})
-            self.qDoubleSpinBoxValue = self.treeViewObj.treeObj.tableWidget
-            self.qDoubleSpinBoxValue.setColumnCount(self.qDoubleSpinBoxValue.columnCount() + 1)
+            self.widgetQtObj = self.treeViewObj.treeObj.tableWidget
+            self.widgetQtObj.setColumnCount(self.widgetQtObj.columnCount() + 1)
             fieldsToReadOrdered = self.treeViewObj.treeObj.orderedFields
             self.fieldsToReadOrdered = fieldsToReadOrdered
-            self.setRemoveButtons(self.qDoubleSpinBoxValue)
-            self.setupTableWidgetLay(self.qDoubleSpinBoxValue)
+            self.setRemoveButtons(self.widgetQtObj)
+            self.setupTableWidgetLay(self.widgetQtObj)
             if self.required:
-                utilsUi.setRequiredBackground(self.qDoubleSpinBoxValue, '')
+                utilsUi.setRequiredBackground(self.widgetQtObj, '')
             self.mainLay.addWidget(self.treeViewObj)
             self.qtHorizontalWidget.addLayout(self.mainLay)
-            self.qDoubleSpinBoxValue.setHorizontalHeaderItem(self.qDoubleSpinBoxValue.columnCount() - 1, QtWidgets.QTableWidgetItem('Remove'))
-            self.qDoubleSpinBoxValue.resizeColumnsToContents()
+            self.widgetQtObj.setHorizontalHeaderItem(self.widgetQtObj.columnCount() - 1, QtWidgets.QTableWidgetItem('Remove'))
+            self.widgetQtObj.resizeColumnsToContents()
         #self.addSpacerItem(QtWidgets.QSpacerItem(20,20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding))
 
     def setupTableWidgetLay(self, tableWidget):
@@ -458,8 +458,8 @@ class One2many(OdooFieldTemplate):
             if rowInd == rowIndex:
                 if objId in self.currentValue:
                     self.currentValue.remove(objId)
-                    utils.removeRowFromTableWidget(self.qDoubleSpinBoxValue, rowIndex)
-                    self.setRemoveButtons(self.qDoubleSpinBoxValue)
+                    utils.removeRowFromTableWidget(self.widgetQtObj, rowIndex)
+                    self.setRemoveButtons(self.widgetQtObj)
                     del self.treeViewObj.idLineRel[rowInd]
                     found = True
             elif found:
@@ -468,6 +468,35 @@ class One2many(OdooFieldTemplate):
 
     def valueChanged(self):
         self.valueTemplateChanged()
+
+    def setReadonly(self, val=False):
+        try:
+            if self.widgetQtObj:
+                self.widgetQtObj.setDisabled(val)
+            if self.treeViewObj:
+                self.treeViewObj.treeObj.tableWidget.setDisabled(val)
+                self.treeViewObj.buttToLeft.setDisabled(val)
+                self.treeViewObj.buttToRight.setDisabled(val)
+                self.treeViewObj.treeObj.widgetContents.setDisabled(val)
+            self.createButt.setDisabled(val)
+            super(One2many, self).setReadonly(val)
+        except Exception as ex:
+            utils.logError(ex, 'setReadonly')
+
+    def setInvisible(self, val=False):
+        try:
+            if self.widgetQtObj:
+                self.widgetQtObj.setHidden(val)
+            if self.treeViewObj:
+                self.treeViewObj.buttToLeft.setHidden(val)
+                self.treeViewObj.buttToRight.setHidden(val)
+                self.treeViewObj.treeObj.tableWidget.setHidden(val)
+                self.treeViewObj.treeObj.widgetContents.setHidden(val)
+            self.labelQtObj.setHidden(val)
+            self.createButt.setHidden(val)
+            super(One2many, self).setInvisible(val)
+        except Exception as ex:
+            utils.logError(ex, 'setInvisible')
 
     @property
     def value(self):

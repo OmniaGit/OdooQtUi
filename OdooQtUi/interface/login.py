@@ -27,6 +27,30 @@ class LoginDial(QtWidgets.QDialog, Ui_dialog_login):
         self.pushButton_cancel.clicked.connect(self.cancelDial)
         self.pushButton_ok.clicked.connect(self.acceptDial)
         self.pushButton_back.clicked.connect(self.previousPage)
+        self.comboBox_conn_type.currentIndexChanged.connect(self.connTypeChanged)
+        self.lineEdit_scheme.textChanged.connect(self.schemeChanged)
+
+    def schemeChanged(self, newText):
+        strText = str(newText)
+        lowerTxt = strText.lower()
+        self.lineEdit_scheme.setText(lowerTxt)
+        index = None
+        searchItem = ''
+        if lowerTxt == 'http':
+            searchItem = 'xmlrpc'
+        elif lowerTxt == 'https':
+            searchItem = 'secure-xmlrpc'
+        if searchItem in self.comboBox_conn_type._items:
+            index = self.comboBox_conn_type._items.index(searchItem)
+        if index:
+            self.comboBox_conn_type.setCurrentIndex(index)
+        
+    def connTypeChanged(self, index):
+        currentText = str(self.comboBox_conn_type.currentText())
+        if currentText.lower() == 'xmlrpc':
+            self.lineEdit_scheme.setText('http')
+        elif currentText.lower() == 'secure-xmlrpc':
+            self.lineEdit_scheme.setText('https')
 
     def setStyleWidgets(self):
         self.label_conn_type.setStyleSheet(constants.LOGIN_LABEL)
@@ -61,9 +85,9 @@ class LoginDial(QtWidgets.QDialog, Ui_dialog_login):
         self.pushButton_back.setHidden(True)
         self.comboBox_conn_type.setEditable(True)
         self.comboBox_database.setEditable(True)
-        # self.page.layout().setMargin(70)
-        # self.page_2.layout().setMargin(70)
-
+        #self.page.layout().setMargin(70)
+        #self.page_2.layout().setMargin(70)
+        
         self.lineEdit_password.setText(userpass)
         self.lineEdit_port.setText(str(serverPort))
         self.lineEdit_scheme.setText(scheme)
@@ -73,6 +97,7 @@ class LoginDial(QtWidgets.QDialog, Ui_dialog_login):
         items.extend(self.availableConnTypes)
         self.comboBox_conn_type.clear()
         self.comboBox_conn_type.addItems(items)
+        self.comboBox_conn_type._items = items
         if self.connType in items:
             typeIndex = items.index(self.connType)
             self.comboBox_conn_type.setCurrentIndex(typeIndex)
@@ -128,7 +153,7 @@ server= %r\n
 port= %r\n
 scheme= %r\n
 connection type=%r\n
-''' % (self.dbName, self.username, self.serverIp, self.serverPort, self.scheme, self.connType), '__init__')
+''' % (self.dbName, self.username, self.userpass, self.serverIp, self.serverPort, self.scheme, self.connType), '__init__')
         connectionObj.initConnection(self.connType,
                                      '',
                                      '',
@@ -161,6 +186,7 @@ connection type=%r\n
     def setEvents(self):
         self.interfaceDial.pushButton_next.clicked.connect(self.nextPage)
         self.interfaceDial.pushButton_ok.clicked.connect(self.acceptDial)
+        self.interfaceDial.pushButton_cancel.clicked.connect(self.cancelDial)
 
     def initFields(self):
         self.interfaceDial.initFields(connectionObj.userLogged,
@@ -192,6 +218,9 @@ connection type=%r\n
             self.interfaceDial.label_status.setHidden(False)
             self.interfaceDial.label_status.setStyleSheet('color: red;')
 
+    def cancelDial(self):
+        self.loginWithUserDial()
+
     def nextPage(self):
         xmlrpcServerIP = str(self.interfaceDial.lineEdit_server.text())
         xmlrpcPort = str(self.interfaceDial.lineEdit_port.text())
@@ -217,6 +246,14 @@ connection type=%r\n
         self.interfaceDial.pushButton_back.setHidden(False)
         self.interfaceDial.pushButton_next.setHidden(True)
         self.interfaceDial.stackedWidget.setCurrentIndex(1)
+        if self.dbName:
+            if self.dbName in self.dbList:
+                index = self.dbList.index(self.dbName)
+                self.interfaceDial.comboBox_database.setCurrentIndex(index)
+        if self.userpass:
+            self.interfaceDial.lineEdit_password.setText(self.userpass)
+        if self.username:
+            self.interfaceDial.lineEdit_username.setText(self.username)
 
     def loginWithUserDial(self):
         connectionObj.initConnection(self.connType,

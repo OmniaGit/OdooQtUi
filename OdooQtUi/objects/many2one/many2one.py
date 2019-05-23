@@ -16,7 +16,7 @@ class Many2one(OdooFieldTemplate):
     def __init__(self, qtParent, xmlField, fieldsDefinition, rpc, odooConnector=None):
         super(Many2one, self).__init__(qtParent, xmlField, fieldsDefinition, rpc)
         self.labelQtObj = False
-        self.qDoubleSpinBoxValue = False
+        self.widgetQtObj = False
         self.editButton = False
         self.itemToIdRel = {}
         self.skipSearch = False
@@ -28,11 +28,23 @@ class Many2one(OdooFieldTemplate):
         self.availableItems = self.getItems()
         self.getQtObject()
 
+    def getItems(self, search=False):
+        outVal = ['']
+        if self.relation and search:
+            for singleDict in self.rpc.readSearch(self.relation, ['name']):
+                val = singleDict.get('name', '')
+                if val:
+                    outVal.append(val)
+                    self.itemToIdRel[val] = singleDict.get('id', False)
+        if self.canCreate:
+            outVal.append('Create and Edit...')
+        return outVal
+
     def getQtObject(self):
         self.labelQtObj = QtWidgets.QLabel(self.fieldStringInterface)
         self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
         self.qtHorizontalWidget.addWidget(self.labelQtObj)
-        self.qDoubleSpinBoxValue = QtWidgets.QWidget(self)
+        self.widgetQtObj = QtWidgets.QWidget(self)
         self.widgetQtObj2 = QtWidgets.QComboBox(self)
         self.widgetQtObj2.setStyleSheet(constants.SELECTION_STYLE)
         self.widgetQtObj2.addItems(self.availableItems)
@@ -50,23 +62,12 @@ class Many2one(OdooFieldTemplate):
             self.qtHorizontalWidget.addWidget(self.editButton)
             if not self.currentValue:
                 self.editButton.setHidden(True)
-        self.qtHorizontalWidget.addWidget(self.qDoubleSpinBoxValue)
+        self.qtHorizontalWidget.addWidget(self.widgetQtObj)
         self.qtHorizontalWidget.insertSpacerItem(3, QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding))
         if self.translatable:
             self.connectTranslationButton()
             self.addWidget(self.translateButton)
 
-    def getItems(self, search=False):
-        outVal = ['']
-        if self.relation and search:
-            for singleDict in self.rpc.readSearch(self.relation, ['name']):
-                val = singleDict.get('name', '')
-                if val:
-                    outVal.append(val)
-                    self.itemToIdRel[val] = singleDict.get('id', False)
-        if self.canCreate:
-            outVal.append('Create and Edit...')
-        return outVal
 
     def comboActivated(self, val=False):
         if not self.skipSearch:
@@ -113,6 +114,39 @@ class Many2one(OdooFieldTemplate):
         self.skipSearch = True
         self.widgetQtObj2.setCurrentIndex(indexToSet)
         self.skipSearch = False
+
+    def setReadonly(self, val=False):
+        super(Many2one, self).setReadonly(val)
+        self.widgetQtObj2.setEnabled(not val)
+        self.widgetQtObj2.setEditable(not val)
+        self.widgetQtObj2.setDisabled(val)
+        if val:
+            if self.editButton:
+                self.editButton.setHidden(True)
+            self.widgetQtObj2.setStyleSheet(constants.SELECTION_STYLE + constants.READONLY_STYLE)
+        else:
+            if self.currentValue:
+                if self.editButton:
+                    self.editButton.setHidden(False)
+            else:
+                if self.editButton:
+                    self.editButton.setHidden(True)
+            if self.required:
+                utilsUi.setRequiredBackground(self.widgetQtObj2, constants.SELECTION_STYLE)
+            else:
+                self.widgetQtObj2.setStyleSheet(constants.SELECTION_STYLE)
+
+    def setInvisible(self, val=False):
+        super(Many2one, self).setInvisible(val)
+        self.labelQtObj.setHidden(val)
+        if self.widgetQtObj2:
+            self.widgetQtObj2.setHidden(val)
+        if self.currentValue and not val:
+            if self.editButton:
+                self.editButton.show()
+        else:
+            if self.editButton:
+                self.editButton.hide()
 
     def editItem(self, res=False):
         if not self.currentValue:

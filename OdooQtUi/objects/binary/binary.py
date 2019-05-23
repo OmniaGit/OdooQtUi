@@ -18,7 +18,7 @@ class Binary(OdooFieldTemplate):
     def __init__(self, qtParent, xmlField, fieldsDefinition, rpc):
         super(Binary, self).__init__(qtParent, xmlField, fieldsDefinition, rpc)
         self.labelQtObj = False
-        self.qDoubleSpinBoxValue = False
+        self.widgetQtObj = False
         self.currentValue = False
         self.xmlWidget = self.fieldXmlAttributes.get('widget')
         self.imageWidth = 100
@@ -33,22 +33,22 @@ class Binary(OdooFieldTemplate):
 
     def getQtObject(self):
         if self.xmlWidget == 'image':
-            self.qDoubleSpinBoxValue = QtWidgets.QLabel()
+            self.widgetQtObj = QtWidgets.QLabel()
             self.pixmap = QtGui.QPixmap()
             self.pixmap = self.pixmap.scaled(self.imageWidth,
                                              self.imageHeight,
                                              aspectRatioMode=QtCore.Qt.IgnoreAspectRatio,
                                              transformMode=QtCore.Qt.FastTransformation)
-            self.qDoubleSpinBoxValue.setPixmap(self.pixmap)
-            self.qDoubleSpinBoxValue.resize(self.imageWidth, self.imageHeight)
-            self.qDoubleSpinBoxValue.setText('aaa')
+            self.widgetQtObj.setPixmap(self.pixmap)
+            self.widgetQtObj.resize(self.imageWidth, self.imageHeight)
+            self.widgetQtObj.setText('aaa')
         else:
             self.labelQtObj = QtWidgets.QLabel(self.fieldStringInterface)
             self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
-            self.qDoubleSpinBoxValue = QtWidgets.QLineEdit()
-            self.qDoubleSpinBoxValue.setToolTip(self.tooltip)
-            self.qDoubleSpinBoxValue.editingFinished.connect(self.valueChanged)
-            self.qDoubleSpinBoxValue.setStyleSheet(constants.CHAR_STYLE)
+            self.widgetQtObj = QtWidgets.QLineEdit()
+            self.widgetQtObj.setToolTip(self.tooltip)
+            self.widgetQtObj.editingFinished.connect(self.valueChanged)
+            self.widgetQtObj.setStyleSheet(constants.CHAR_STYLE)
             self.buttonEdit = QtWidgets.QPushButton('Edit')
             self.buttonEdit.setStyleSheet(constants.BUTTON_STYLE_MANY_2_ONE)
             self.buttonEdit.clicked.connect(self.editField)
@@ -62,8 +62,8 @@ class Binary(OdooFieldTemplate):
             self.buttonOpen.setStyleSheet(constants.BUTTON_STYLE_MANY_2_ONE + 'min-width:50px;')
             self.buttonOpen.clicked.connect(self.openFile)
             if self.required:
-                utils.setRequiredBackground(self.qDoubleSpinBoxValue, '')
-            self.qtHorizontalWidget.addWidget(self.qDoubleSpinBoxValue)
+                utils.setRequiredBackground(self.widgetQtObj, '')
+            self.qtHorizontalWidget.addWidget(self.widgetQtObj)
             self.qtHorizontalWidget.addWidget(self.buttonEdit)
             self.qtHorizontalWidget.addWidget(self.buttonClear)
             self.qtHorizontalWidget.addWidget(self.buttonDownload)
@@ -72,7 +72,7 @@ class Binary(OdooFieldTemplate):
             if self.translatable:
                 self.connectTranslationButton()
                 self.addWidget(self.translateButton)
-        self.qtHorizontalWidget.addWidget(self.qDoubleSpinBoxValue)
+        self.qtHorizontalWidget.addWidget(self.widgetQtObj)
 
     def openFile(self):
         filePath = self.downloadFile()
@@ -96,12 +96,12 @@ class Binary(OdooFieldTemplate):
         fileContent = utils.packFile(str(filePath))
         self.currentValue = fileContent
         self.fieldStringInterface = os.path.split(filePath)[1]
-        self.qDoubleSpinBoxValue.setText(self.fieldStringInterface)
+        self.widgetQtObj.setText(self.fieldStringInterface)
 
     def clearField(self):
         self.currentValue = ''
         self.fieldStringInterface = ''
-        self.qDoubleSpinBoxValue.setText('')
+        self.widgetQtObj.setText('')
 
     def valueChanged(self, val):
         utils.logDebug('To implement valueChanged changed for binary', 'valueChanged')
@@ -117,8 +117,26 @@ class Binary(OdooFieldTemplate):
                                              self.imageHeight,
                                              aspectRatioMode=QtCore.Qt.IgnoreAspectRatio,
                                              transformMode=QtCore.Qt.FastTransformation)
-            self.qDoubleSpinBoxValue.setPixmap(self.pixmap)
-            self.qDoubleSpinBoxValue.resize(self.imageWidth, self.imageHeight)
+            self.widgetQtObj.setPixmap(self.pixmap)
+            self.widgetQtObj.resize(self.imageWidth, self.imageHeight)
+
+    def setReadonly(self, val=False):
+        if self.xmlWidget != 'image':
+            super(Binary, self).setReadonly(val)
+            self.widgetQtObj.setEnabled(False)
+            self.widgetQtObj.setStyleSheet(constants.CHAR_STYLE + constants.READONLY_STYLE)
+            self.buttonClear.setHidden(val)
+            self.buttonEdit.setHidden(val)
+            if self.required:
+                utils.setRequiredBackground(self.widgetQtObj, constants.CHAR_STYLE)
+
+    def setInvisible(self, val=False):
+        super(Binary, self).setInvisible(val)
+        self.labelQtObj.setHidden(val)
+        self.widgetQtObj.setHidden(val)
+        if self.xmlWidget != 'image':
+            self.buttonClear.setHidden(val)
+            self.buttonEdit.setHidden(val)
 
     @property
     def value(self):
@@ -131,3 +149,4 @@ class Binary(OdooFieldTemplate):
     def eraseValue(self):
         # To clear also datas
         self.setValue('')
+        

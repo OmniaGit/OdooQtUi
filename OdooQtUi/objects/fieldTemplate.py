@@ -45,17 +45,22 @@ class OdooFieldTemplate(QtWidgets.QWidget):
         self.store = utils.evaluateBoolean(self.fieldPyDefinition.get('store', True))
         self.translatable = self.fieldXmlAttributes.get('translate', self.fieldPyDefinition.get('translate', False))
         self.labelQtObj = None
-        self.qDoubleSpinBoxValue = None
+        self.widgetQtObj = None
         self.initVal = ''
         self.changed = False
         self.translateButton = False
         self.invisibleConditions, self.readonlyConditions = utils.evaluateModifiers(self.modifiers)
         self.qtHorizontalWidget = QtWidgets.QHBoxLayout(self)
+        utilsUi.setLayoutMarginAndSpacing(self.qtHorizontalWidget)
         self.hide()
         if constants.DEBUG:
             self.setStyleSheet("border: 2px solid black;")
             self.show()
         return self
+
+    @property
+    def qtObject(self):
+        return self.qtHorizontalWidget
 
     def setParentAttrs(self, parentId, parentModel):
         self.parentId = parentId
@@ -65,12 +70,20 @@ class OdooFieldTemplate(QtWidgets.QWidget):
         self.translateButton = QtWidgets.QPushButton('Translate')
         self.translateButton.setStyleSheet(constants.BUTTON_STYLE)
         self.translateButton.clicked.connect(self.translateDialog)
+        self.qtHorizontalWidget.setSpacing(10)
 
     def valueTemplateChanged(self):
         self.value_changed_signal.emit(self.fieldName)
 
     def setValue(self, newVal):
         utils.logMessage('warning', 'setValue not implemented for field: %r' % (self.fieldName), 'setValue')
+
+
+    def setReadonly(self, val=False):
+        self.hideTranslateButton(val)
+
+    def setInvisible(self, val=False):
+        self.hideTranslateButton(val)
 
     def hideTranslateButton(self, val):
         if self.translateButton:

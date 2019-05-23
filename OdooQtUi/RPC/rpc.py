@@ -60,11 +60,16 @@ class RpcConnection(object):
         res = self.sockInstance.loginWithUser()
         self.userId = self.sockInstance.userId
         if self.userId:
-            self.userLogged = True
             self.computeUserLanguage()
         if not res:
-            self.userLogged = False
+            self.userId = False
         return res
+
+    @property
+    def userLogged(self):
+        if self.userId:
+            return True
+        return False
 
     def listDb(self):
         return self.sockInstance.listDb()

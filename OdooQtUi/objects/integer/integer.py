@@ -15,7 +15,7 @@ class Integer(OdooFieldTemplate):
     def __init__(self, qtParent, xmlField, fieldsDefinition, rpc):
         super(Integer, self).__init__(qtParent, xmlField, fieldsDefinition, rpc)
         self.labelQtObj = False
-        self.qDoubleSpinBoxValue = False
+        self.widgetQtObj = False
         self.currentValue = 0
         self.getQtObject()
 
@@ -23,14 +23,17 @@ class Integer(OdooFieldTemplate):
         self.labelQtObj = QtWidgets.QLabel(self.fieldStringInterface)
         self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
         self.qtHorizontalWidget.addWidget(self.labelQtObj)
-        self.qDoubleSpinBoxValue = QtWidgets.QSpinBox()
-        self.qDoubleSpinBoxValue.setStyleSheet(constants.INTEGER_STYLE)
-        self.qDoubleSpinBoxValue.setToolTip(self.tooltip)
-        self.qDoubleSpinBoxValue.valueChanged.connect(self.valueChanged)
+        self.widgetQtObj = QtWidgets.QSpinBox()
+        self.widgetQtObj.setStyleSheet(constants.INTEGER_STYLE)
+        self.widgetQtObj.setToolTip(self.tooltip)
+        self.widgetQtObj.valueChanged.connect(self.valueChanged)
         if self.required:
-            utilsUi.setRequiredBackground(self.qDoubleSpinBoxValue, constants.INTEGER_STYLE)
-        self.qtHorizontalWidget.addWidget(self.qDoubleSpinBoxValue)
+            utilsUi.setRequiredBackground(self.widgetQtObj, constants.INTEGER_STYLE)
+        self.qtHorizontalWidget.addWidget(self.widgetQtObj)
         self.qtHorizontalWidget.addSpacerItem(QtWidgets.QSpacerItem(40, 40, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding))
+        if self.translatable:
+            self.connectTranslationButton()
+            self.qtHorizontalWidget.addWidget(self.translateButton)
 
     def valueChanged(self, newValue):
         self.currentValue = int(str(newValue))
@@ -38,8 +41,26 @@ class Integer(OdooFieldTemplate):
 
     def setValue(self, newVal):
         newVal = int(str(newVal))
-        self.qDoubleSpinBoxValue.setValue(newVal)
+        self.widgetQtObj.setValue(newVal)
         self.currentValue = newVal
+
+    def setReadonly(self, val=False):
+        super(Integer, self).setReadonly(val)
+        self.widgetQtObj.setEnabled(not val)
+        if val:
+            self.widgetQtObj.setStyleSheet(constants.INTEGER_STYLE + constants.READONLY_STYLE)
+        elif self.required:
+            utilsUi.setRequiredBackground(self.widgetQtObj, constants.INTEGER_STYLE)
+        else:
+            if self.required:
+                utilsUi.setRequiredBackground(self.widgetQtObj, constants.INTEGER_STYLE)
+            else:
+                self.widgetQtObj.setStyleSheet(constants.INTEGER_STYLE)
+
+    def setInvisible(self, val=False):
+        super(Integer, self).setInvisible(val)
+        self.labelQtObj.setHidden(val)
+        self.widgetQtObj.setHidden(val)
 
     @property
     def value(self):

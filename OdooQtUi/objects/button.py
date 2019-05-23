@@ -21,7 +21,7 @@ class Button(OdooFieldTemplate):
         self.buttonType = self.buttonAttribs.get('type', '')
         self.buttonName = self.buttonAttribs.get('name', '')
         self.modifiers = json.loads(self.buttonAttribs.get('modifiers', '{}'))
-        self.buttonObj = QtWidgets.QPushButton(self.buttonString)
+        self.buttonObj = self.getQtObject()
         self.addWidget(self.buttonObj)
         self.invisible = utils.evaluateBoolean(self.buttonAttribs.get('invisible', False))
         self.readonly = utils.evaluateBoolean(self.buttonAttribs.get('readonly', False))
@@ -35,3 +35,22 @@ class Button(OdooFieldTemplate):
                 self.buttonObj.show()
         self.invisibleConditions, self.readonlyConditions = utils.evaluateModifiers(self.modifiers)
         self.buttonObj.setStyleSheet(constants.BUTTON_STYLE)
+
+    @property
+    def qtObject(self):
+        return self.buttonObj
+
+    def getQtObject(self):
+        self.buttonObj = QtWidgets.QPushButton(self.buttonString)
+        self.buttonObj.setMaximumWidth(200)
+        return self.buttonObj
+
+    def setReadonly(self, val=False):
+        self.buttonObj.setDisabled(val)
+
+    def setInvisible(self, val=False):
+        if val:
+            self.buttonObj.hide()
+        else:
+            self.buttonObj.show()
+

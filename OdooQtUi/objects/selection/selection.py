@@ -17,13 +17,18 @@ class Selection(OdooFieldTemplate):
         self.selectionMapping = {}
         self.selectionMappingReverse = {}
         self.labels = []
-        self.qDoubleSpinBoxValue = False
+        self.widgetQtObj = False
         self.currentValue = ''
         self.widget = self.fieldXmlAttributes.get('widget', '')
         if self.widget == 'statusbar':
             self.statusbar_colors = json.loads(self.fieldXmlAttributes.get('statusbar_colors', ''))
             self.statusbar_visible = self.fieldXmlAttributes.get('statusbar_visible', '').split(',')
         self.getQtObject()
+
+        if self.widgetQtObj:
+            self.widgetQtObj.setDisabled(self.readonly)
+            if self.invisible:
+                self.widgetQtObj.hide()
 
     def populateMapping(self, items):
         for odooName, interfaceName in items:
@@ -52,22 +57,22 @@ class Selection(OdooFieldTemplate):
     def getCombo(self):
         self.labelQtObj = QtWidgets.QLabel(self.fieldStringInterface)
         self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
-        self.qDoubleSpinBoxValue = QtWidgets.QComboBox(self)
-        self.qDoubleSpinBoxValue.setStyleSheet(constants.SELECTION_STYLE)
+        self.widgetQtObj = QtWidgets.QComboBox(self)
+        self.widgetQtObj.setStyleSheet(constants.SELECTION_STYLE)
         selectionVals = [('', '')]
         selectionVals.extend(self.fieldPyDefinition.get('selection', []))
         self.populateMapping(selectionVals)
-        self.qDoubleSpinBoxValue.addItems(list(self.selectionMappingReverse.keys()))
-        self.qDoubleSpinBoxValue.setToolTip(self.tooltip)
-        self.qDoubleSpinBoxValue.currentIndexChanged.connect(self.valueChanged)
+        self.widgetQtObj.addItems(list(self.selectionMappingReverse.keys()))
+        self.widgetQtObj.setToolTip(self.tooltip)
+        self.widgetQtObj.currentIndexChanged.connect(self.valueChanged)
         if self.required:
-            utilsUi.setRequiredBackground(self.qDoubleSpinBoxValue, constants.SELECTION_STYLE)
+            utilsUi.setRequiredBackground(self.widgetQtObj, constants.SELECTION_STYLE)
         self.qtHorizontalWidget.addWidget(self.labelQtObj)
-        self.qtHorizontalWidget.addWidget(self.qDoubleSpinBoxValue)
+        self.qtHorizontalWidget.addWidget(self.widgetQtObj)
         self.qtHorizontalWidget.addSpacerItem(QtWidgets.QSpacerItem(40, 40, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding))
 
     def valueChanged(self, newIndex):
-        currentValue = str(self.qDoubleSpinBoxValue.currentText())
+        currentValue = str(self.widgetQtObj.currentText())
         self.currentValue = self.selectionMappingReverse.get(currentValue)
         self.valueTemplateChanged()
 
@@ -90,8 +95,31 @@ class Selection(OdooFieldTemplate):
             return
         newIndex = allItems.index(newVal)
         if newIndex:
-            self.qDoubleSpinBoxValue.setCurrentIndex(newIndex)
+            self.widgetQtObj.setCurrentIndex(newIndex)
         self.currentValue = newVal
+
+    def setReadonly(self, val=False):
+        super(Selection, self).setReadonly(val)
+        if self.widgetQtObj:
+            self.widgetQtObj.setEnabled(not val)
+            self.widgetQtObj.setEditable(not val)
+            self.widgetQtObj.setDisabled(val)
+            if val:
+                self.widgetQtObj.setStyleSheet(constants.SELECTION_STYLE + constants.READONLY_STYLE)
+            elif self.required:
+                utilsUi.setRequiredBackground(self.widgetQtObj, constants.SELECTION_STYLE)
+            else:
+                if self.required:
+                    utilsUi.setRequiredBackground(self.widgetQtObj, constants.SELECTION_STYLE)
+                else:
+                    self.widgetQtObj.setStyleSheet(constants.SELECTION_STYLE)
+
+    def setInvisible(self, val=False):
+        super(Selection, self).setInvisible(val)
+        if self.labelQtObj:
+            self.labelQtObj.setHidden(val)
+        if self.widgetQtObj:
+            self.widgetQtObj.setHidden(val)
 
     @property
     def value(self):

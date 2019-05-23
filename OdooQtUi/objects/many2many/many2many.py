@@ -18,7 +18,7 @@ class Many2many(OdooFieldTemplate):
     def __init__(self, qtParent, xmlField, fieldsDefinition, rpc, odooConnector=None):
         super(Many2many, self).__init__(qtParent, xmlField, fieldsDefinition, rpc)
         self.labelQtObj = False
-        self.qDoubleSpinBoxValue = False
+        self.widgetQtObj = False
         self.treeViewObj = False
         self.btnAddAnItem = None
         self.odooConnector = odooConnector
@@ -92,12 +92,12 @@ class Many2many(OdooFieldTemplate):
     def setValue(self, relIds):
         self.currentValue = relIds
         self.treeViewObj.loadIds(relIds, {}, {}, {})
-        self.qDoubleSpinBoxValue = self.treeViewObj.treeObj.tableWidget
+        self.widgetQtObj = self.treeViewObj.treeObj.tableWidget
         self.fieldsToReadOrdered = self.treeViewObj.treeObj.orderedFields
-        self.setRemoveButtons(self.qDoubleSpinBoxValue)
-        self.setupTableWidgetLay(self.qDoubleSpinBoxValue)
+        self.setRemoveButtons(self.widgetQtObj)
+        self.setupTableWidgetLay(self.widgetQtObj)
         if self.required:
-            utilsUi.setRequiredBackground(self.qDoubleSpinBoxValue, '')
+            utilsUi.setRequiredBackground(self.widgetQtObj, '')
         if not self.btnAddAnItem:
             self.btnAddAnItem = QtWidgets.QPushButton('Add an item')
             self.btnAddAnItem.setStyleSheet(constants.BUTTON_ADD_AN_ITEM)
@@ -156,8 +156,8 @@ class Many2many(OdooFieldTemplate):
             if rowInd == rowIndex:
                 if objId in self.currentValue:
                     self.currentValue.remove(objId)
-                    utils.removeRowFromTableWidget(self.qDoubleSpinBoxValue, rowIndex)
-                    self.setRemoveButtons(self.qDoubleSpinBoxValue)
+                    utils.removeRowFromTableWidget(self.widgetQtObj, rowIndex)
+                    self.setRemoveButtons(self.widgetQtObj)
                     del self.treeViewObj.idLineRel[rowInd]
                     found = True
             elif found:
@@ -221,6 +221,43 @@ class Many2many(OdooFieldTemplate):
 
     def valueChanged(self):
         self.valueTemplateChanged()
+
+    def setReadonly(self, val=False):
+        if self.btnAddAnItem:
+            self.btnAddAnItem.setDisabled(val)
+        if self.widgetQtObj:
+            self.widgetQtObj.setDisabled(val)
+        if self.treeViewObj:
+            self.treeViewObj.treeObj.tableWidget.setDisabled(val)
+            self.treeViewObj.buttToLeft.setDisabled(val)
+            self.treeViewObj.buttToRight.setDisabled(val)
+            self.treeViewObj.treeObj.widgetContents.setDisabled(val)
+        self.createButt.setDisabled(val)
+        super(Many2many, self).setReadonly(val)
+
+    def setInvisible(self, val=False):
+        if self.btnAddAnItem:
+            if val:
+                self.btnAddAnItem.hide()
+            else:
+                self.btnAddAnItem.show()
+        if self.widgetQtObj:
+            self.widgetQtObj.setHidden(val)
+        if self.treeViewObj:
+            if val:
+                self.treeViewObj.buttToLeft.hide()
+                self.treeViewObj.buttToRight.hide()
+            else:
+                self.treeViewObj.buttToLeft.show()
+                self.treeViewObj.buttToRight.show()
+            self.treeViewObj.treeObj.tableWidget.setHidden(val)
+            self.treeViewObj.treeObj.widgetContents.setHidden(val)
+        self.labelQtObj.setHidden(val)
+        if val:
+            self.createButt.hide()
+        else:
+            self.createButt.show()
+        super(Many2many, self).setInvisible(val)
 
     @property
     def value(self):

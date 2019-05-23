@@ -425,7 +425,7 @@ def evaluateAttrs(fieldsDict, toCompute):
         if not fieldObj:
             #logMessage('warning', 'No field obj found for name %r' % (fieldName), 'evalSingleCondition')
             return False
-        fieldVal = fieldObj.currentValue
+        fieldVal = fieldObj.value
         if operator == '=' or operator == '==':
             return fieldVal == valToCompare
         elif operator == '!=':

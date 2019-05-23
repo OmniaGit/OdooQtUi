@@ -15,7 +15,7 @@ class Charachter(OdooFieldTemplate):
     def __init__(self, qtParent, xmlField, fieldsDefinition, rpc):
         super(Charachter, self).__init__(qtParent, xmlField, fieldsDefinition, rpc)
         self.labelQtObj = False
-        self.qDoubleSpinBoxValue = False
+        self.widgetQtObj = False
         self.currentValue = ''
         self.translatable = utils.evaluateBoolean(self.fieldPyDefinition.get('translate', False))
         self.getQtObject()
@@ -24,20 +24,20 @@ class Charachter(OdooFieldTemplate):
         self.labelQtObj = QtWidgets.QLabel(self.fieldStringInterface)
         self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
         self.qtHorizontalWidget.addWidget(self.labelQtObj)
-        self.qDoubleSpinBoxValue = QtWidgets.QLineEdit()
-        self.qDoubleSpinBoxValue.setStyleSheet(constants.CHAR_STYLE)
-        self.qDoubleSpinBoxValue.setToolTip(self.tooltip)
-        self.qDoubleSpinBoxValue.editingFinished.connect(self.valueChanged)
-        self.qtHorizontalWidget.addWidget(self.qDoubleSpinBoxValue)
+        self.widgetQtObj = QtWidgets.QLineEdit()
+        self.widgetQtObj.setStyleSheet(constants.CHAR_STYLE)
+        self.widgetQtObj.setToolTip(self.tooltip)
+        self.widgetQtObj.editingFinished.connect(self.valueChanged)
+        self.qtHorizontalWidget.addWidget(self.widgetQtObj)
         if self.translatable:
             #self.setSpacing(10)
             self.connectTranslationButton()
             self.qtHorizontalWidget.addWidget(self.translateButton)
         if self.required:
-            utilsUi.setRequiredBackground(self.qDoubleSpinBoxValue, constants.CHAR_STYLE)
+            utilsUi.setRequiredBackground(self.widgetQtObj, constants.CHAR_STYLE)
 
     def valueChanged(self):
-        self.currentValue = str(self.qDoubleSpinBoxValue.text())
+        self.currentValue = str(self.widgetQtObj.text())
         self.valueTemplateChanged()
 
     def setValue(self, newVal):
@@ -47,13 +47,26 @@ class Charachter(OdooFieldTemplate):
             else:
                 newVal = ''
                 utils.logMessage('warning', 'Boolean value %r is passed to char field %r, check better' % (newVal, self.fieldName), 'setValue')
-        self.qDoubleSpinBoxValue.setText(newVal)
+        self.widgetQtObj.setText(newVal)
         self.currentValue = newVal
+
+    def setReadonly(self, val=False):
+        super(Charachter, self).setReadonly(val)
+        self.widgetQtObj.setEnabled(not val)
+        if val:
+            self.widgetQtObj.setStyleSheet(constants.CHAR_STYLE + constants.READONLY_STYLE)
+        elif self.required:
+            utilsUi.setRequiredBackground(self.widgetQtObj, constants.CHAR_STYLE)
+        else:
+            if self.required:
+                utilsUi.setRequiredBackground(self.widgetQtObj, constants.CHAR_STYLE)
+            else:
+                self.widgetQtObj.setStyleSheet(constants.CHAR_STYLE)
 
     def setInvisible(self, val=False):
         super(Charachter, self).setInvisible(val)
         self.labelQtObj.setHidden(val)
-        self.qDoubleSpinBoxValue.setHidden(val)
+        self.widgetQtObj.setHidden(val)
 
     @property
     def value(self):
