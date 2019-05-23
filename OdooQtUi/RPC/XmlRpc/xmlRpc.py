@@ -12,10 +12,12 @@ try:
 except Exception as ex:
     import xmlrpclib as xmlrpc
     import httplib
+USE_INTERFACE = True
 try:
     from OdooQtUi.utils_odoo_conn import utilsUi
 except Exception as ex:
     utils.logError(ex, '')
+    USE_INTERFACE = False
 
 
 class XmlRpcConnection(object):
@@ -35,7 +37,7 @@ class XmlRpcConnection(object):
         self.socketNoLogin = False
         self.socketYesLogin = False
         self.userId = False
-        self.useInterface = True
+        self.useInterface = USE_INTERFACE
         self.secure = secure
 
     @property
@@ -271,6 +273,8 @@ class XmlRpcConnection(object):
                 if err.faultString:
                     if self.useInterface:
                         utilsUi.launchMessage(err.faultString, 'error')
+                    else:
+                        utils.logError(err.faultString, 'callOdooFunction')
                 return self.socketYesLogin.execute(self.databaseName, self.userId, self.userPassword, odooObj, functionName, parameters)
             except Exception as ex:
                 message = 'Unable to communicate with the server: %r' % ex.faultCode

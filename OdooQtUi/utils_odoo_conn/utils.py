@@ -289,6 +289,7 @@ def logError(message='', functionName=''):
 
 def logMessage(msgType='DEBUG', message='', functionName=''):
     msg = '%s[%s] %s: %s' % (str(datetime.datetime.now()), functionName, str(msgType).upper(), message)
+    print(msg)
     if msgType.upper() == 'DEBUG':
         logging.debug(msg)
     elif msgType.upper() == 'INFO':
