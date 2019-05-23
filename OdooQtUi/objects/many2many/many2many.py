@@ -231,7 +231,7 @@ class Many2many(OdooFieldTemplate):
             self.treeViewObj.treeObj.tableWidget.setDisabled(val)
             self.treeViewObj.buttToLeft.setDisabled(val)
             self.treeViewObj.buttToRight.setDisabled(val)
-            self.treeViewObj.treeObj.widgetContents.setDisabled(val)
+            #self.treeViewObj.treeObj.widgetContents.setDisabled(val)
         self.createButt.setDisabled(val)
         super(Many2many, self).setReadonly(val)
 
@@ -251,7 +251,7 @@ class Many2many(OdooFieldTemplate):
                 self.treeViewObj.buttToLeft.show()
                 self.treeViewObj.buttToRight.show()
             self.treeViewObj.treeObj.tableWidget.setHidden(val)
-            self.treeViewObj.treeObj.widgetContents.setHidden(val)
+            #self.treeViewObj.treeObj.widgetContents.setHidden(val)
         self.labelQtObj.setHidden(val)
         if val:
             self.createButt.hide()

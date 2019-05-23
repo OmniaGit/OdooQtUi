@@ -14,7 +14,6 @@ class RpcConnection(object):
         self.availableConnTypes = ['xmlrpc', 'secure-xmlrpc']
         self.sockInstance = False
         self.contextUser = {}
-        self.userLogged = False
         self.useInterface = True
         return super(RpcConnection, self).__init__()
 

@@ -153,7 +153,7 @@ server= %r\n
 port= %r\n
 scheme= %r\n
 connection type=%r\n
-''' % (self.dbName, self.username, self.userpass, self.serverIp, self.serverPort, self.scheme, self.connType), '__init__')
+''' % (self.dbName, self.username, self.serverIp, self.serverPort, self.scheme, self.connType), '__init__')
         connectionObj.initConnection(self.connType,
                                      '',
                                      '',
