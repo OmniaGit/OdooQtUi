@@ -62,7 +62,7 @@ class Binary(OdooFieldTemplate):
             self.buttonOpen.setStyleSheet(constants.BUTTON_STYLE_MANY_2_ONE + 'min-width:50px;')
             self.buttonOpen.clicked.connect(self.openFile)
             if self.required:
-                utils.setRequiredBackground(self.widgetQtObj, '')
+                utilsUi.setRequiredBackground(self.widgetQtObj, '')
             self.qtHorizontalWidget.addWidget(self.widgetQtObj)
             self.qtHorizontalWidget.addWidget(self.buttonEdit)
             self.qtHorizontalWidget.addWidget(self.buttonClear)
@@ -128,11 +128,12 @@ class Binary(OdooFieldTemplate):
             self.buttonClear.setHidden(val)
             self.buttonEdit.setHidden(val)
             if self.required:
-                utils.setRequiredBackground(self.widgetQtObj, constants.CHAR_STYLE)
+                utilsUi.setRequiredBackground(self.widgetQtObj, constants.CHAR_STYLE)
 
     def setInvisible(self, val=False):
         super(Binary, self).setInvisible(val)
-        self.labelQtObj.setHidden(val)
+        if self.labelQtObj:
+            self.labelQtObj.setHidden(val)
         self.widgetQtObj.setHidden(val)
         if self.xmlWidget != 'image':
             self.buttonClear.setHidden(val)
