@@ -5,10 +5,17 @@ Created on 3 Feb 2017
 '''
 
 from OdooQtUi.utils_odoo_conn import utils
-from OdooQtUi.utils_odoo_conn import utilsUi
-import xmlrpc.client as xmlrpc
-import http.client as httplib
 import socket
+try:
+    import xmlrpc.client as xmlrpc
+    import http.client as httplib
+except Exception as ex:
+    import xmlrpclib as xmlrpc
+    import httplib
+try:
+    from OdooQtUi.utils_odoo_conn import utilsUi
+except Exception as ex:
+    utils.logError(ex, '')
 
 
 class XmlRpcConnection(object):
