@@ -99,7 +99,7 @@ class RpcConnection(object):
 
     def read(self, obj, fields, ids, context={}, limit=False):
         if not ids:
-            return {}
+            return []
         localContext = self.contextUser
         localContext.update(context)
         if isinstance(ids, int):

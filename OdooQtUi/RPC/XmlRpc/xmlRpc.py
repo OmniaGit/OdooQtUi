@@ -39,6 +39,7 @@ class XmlRpcConnection(object):
         self.userId = False
         self.useInterface = USE_INTERFACE
         self.secure = secure
+        self.timeout = 2.5
 
     @property
     def urlNoLogin(self):
@@ -60,7 +61,7 @@ class XmlRpcConnection(object):
         if not self.secure:
             try:
                 t = TimeoutTransport()
-                t.set_timeout(2.5)
+                t.set_timeout(self.timeout)
                 self.socketNoLogin = xmlrpc.ServerProxy(self.urlNoLogin, transport=t)
             except Exception as ex:
                 utils.logMessage('error', 'Error during login without user: %r' % (ex), 'loginNoUser')
@@ -87,7 +88,7 @@ class XmlRpcConnection(object):
         if not self.secure:
             try:
                 t = TimeoutTransport()
-                t.set_timeout(2.5)
+                t.set_timeout(self.timeout)
                 self.socketYesLogin = xmlrpc.ServerProxy(self.urlYesLogin, transport=t)
             except Exception as ex:
                 utils.logMessage('error', 'Error getting server proxy: %r' % (ex), 'loginWithUser')
@@ -112,7 +113,7 @@ class XmlRpcConnection(object):
         if not self.secure:
             try:
                 t = TimeoutTransport()
-                t.set_timeout(2.5)
+                t.set_timeout(self.timeout)
                 return xmlrpc.ServerProxy(self.urlListDB, transport=t).list()
             except Exception as ex:
                 utils.logMessage('warning', 'Unable to list database. EX: %r' % (ex), 'listDb')
