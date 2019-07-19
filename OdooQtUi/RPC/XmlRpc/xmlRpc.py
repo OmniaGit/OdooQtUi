@@ -5,39 +5,73 @@ Created on 3 Feb 2017
 '''
 
 from OdooQtUi.utils_odoo_conn import utils
-from OdooQtUi.utils_odoo_conn import utilsUi
-import xmlrpc.client
-import http
 import socket
+try:
+    import xmlrpc.client as xmlrpc
+    import http.client as httplib
+except Exception as ex:
+    import xmlrpclib as xmlrpc
+    import httplib
+USE_INTERFACE = True
+try:
+    from OdooQtUi.utils_odoo_conn import utilsUi
+except Exception as ex:
+    utils.logError(ex, '')
+    USE_INTERFACE = False
 
 
 class XmlRpcConnection(object):
 
-    def __init__(self, userName, userPassword, databaseName, xmlrpcPort=8069, scheme='http', xmlrpcServerIP='127.0.0.1'):
+    def __init__(self, userName, userPassword, databaseName, xmlrpcPort=8069, scheme='http', xmlrpcServerIP='127.0.0.1', secure=False):
         self.userName = userName
         self.userPassword = userPassword
         self.databaseName = databaseName
         self.xmlrpcPort = xmlrpcPort
         self.scheme = scheme
         self.xmlrpcServerIP = xmlrpcServerIP
-        self.urlCommon = self.scheme + '://' + str(self.xmlrpcServerIP) + ':' + str(self.xmlrpcPort) + '/xmlrpc/'
-        self.urlNoLogin = self.urlCommon + 'common'
-        self.urlListDB = self.urlCommon + 'db'
-        self.urlYesLogin = self.urlCommon + 'object'
+        self.xmlrpcType = '/xmlrpc/' # '/xmlrpc/2/' (no login is available)
+        # self.urlCommon = self.scheme + '://' + str(self.xmlrpcServerIP) + ':' + str(self.xmlrpcPort) + self.xmlrpcType
+        # self.urlNoLogin = self.urlCommon + 'common'
+        # self.urlListDB = self.urlCommon + 'db'
+        # self.urlYesLogin = self.urlCommon + 'object'
         self.socketNoLogin = False
         self.socketYesLogin = False
-        self.useInterface = True
         self.userId = False
+        self.useInterface = USE_INTERFACE
+        self.secure = secure
+        self.timeout = 2.5
 
+    @property
+    def urlNoLogin(self):
+        return self.urlCommon + 'common'
+
+    @property
+    def urlListDB(self):
+        return self.urlCommon + 'db'
+
+    @property
+    def urlYesLogin(self):
+        return self.urlCommon + 'object'
+
+    @property
+    def urlCommon(self):
+        return self.scheme + '://' + str(self.xmlrpcServerIP) + ':' + str(self.xmlrpcPort) + self.xmlrpcType
+        
     def loginNoUser(self):
-        try:
-            t = TimeoutTransport()
-            t.set_timeout(2.5)
-            # server = xmlrpc.Server('http://time.xmlrpc.com/RPC2', transport=t)
-            self.socketNoLogin = xmlrpc.client.ServerProxy(self.urlNoLogin, transport=t)
-        except Exception as ex:
-            utils.logMessage('error', 'Error during login without user: %r' % (ex), 'loginNoUser')
-            return False
+        if not self.secure:
+            try:
+                t = TimeoutTransport()
+                t.set_timeout(self.timeout)
+                self.socketNoLogin = xmlrpc.ServerProxy(self.urlNoLogin, transport=t)
+            except Exception as ex:
+                utils.logMessage('error', 'Error during login without user: %r' % (ex), 'loginNoUser')
+                return False
+        else:
+            try:
+                self.socketNoLogin = xmlrpc.ServerProxy(self.urlNoLogin)
+            except Exception as ex:
+                utils.logMessage('error', 'Error during login without user on secure: %r' % (ex), 'loginNoUser')
+                return False
         utils.logMessage('info', 'Successfull connection to Odoo using login No User', 'loginNoUser')
         return True
 
@@ -51,26 +85,49 @@ class XmlRpcConnection(object):
         except Exception as ex:
             utils.logMessage('error', 'Error during login with user: %r' % (ex), 'loginWithUser')
             return False
-        try:
-            t = TimeoutTransport()
-            t.set_timeout(2.5)
-            self.socketYesLogin = xmlrpc.client.ServerProxy(self.urlYesLogin, transport=t)
-        except Exception as ex:
-            utils.logMessage('error', 'Error getting server proxy: %r' % (ex), 'loginWithUser')
-            return False
+        if not self.secure:
+            try:
+                t = TimeoutTransport()
+                t.set_timeout(self.timeout)
+                self.socketYesLogin = xmlrpc.ServerProxy(self.urlYesLogin, transport=t)
+            except Exception as ex:
+                utils.logMessage('error', 'Error getting server proxy: %r' % (ex), 'loginWithUser')
+                return False
+        else:
+            try:
+                self.socketYesLogin = xmlrpc.ServerProxy(self.urlYesLogin) 
+            except Exception as ex:
+                utils.logMessage('error', 'Unable to login with user on secure', 'loginWithUser')
+                try:
+                    self.xmlrpcType = '/xmlrpc/2/'
+                    self.socketNoLogin = xmlrpc.ServerProxy(self.urlCommon)
+                    self.userId = self.socketNoLogin.authenticate(self.databaseName, self.userName, self.userPassword, {})
+                    self.socketYesLogin = xmlrpc.ServerProxy(self.urlYesLogin)
+                except Exception as ex:
+                    utils.logMessage('error', 'Unable to login with user on secure with autenticate', 'loginWithUser')
+                    return False
         utils.logMessage('info', 'Successfull connection to Odoo with user %r and database %r' % (self.userName, self.databaseName), 'loginNoUser')
         return True
 
     def listDb(self):
-        try:
-            t = TimeoutTransport()
-            t.set_timeout(2.5)
-            return xmlrpc.client.ServerProxy(self.urlListDB, transport=t).list()
-        except Exception as ex:
-            utils.logMessage('warning', 'Unable to list database. EX: %r' % (ex), 'listDb')
-            if self.useInterface:
-                utilsUi.launchMessage('Unable to get database list, please check your login settings.', 'warning')
-        return False
+        if not self.secure:
+            try:
+                t = TimeoutTransport()
+                t.set_timeout(self.timeout)
+                return xmlrpc.ServerProxy(self.urlListDB, transport=t).list()
+            except Exception as ex:
+                utils.logMessage('warning', 'Unable to list database. EX: %r' % (ex), 'listDb')
+                if self.useInterface:
+                    utilsUi.launchMessage('Unable to get database list, please check your login settings.', 'warning')
+        else:
+            try:
+                proxy = xmlrpc.ServerProxy(self.urlListDB)
+                return proxy.list()
+            except Exception as ex:
+                utils.logMessage('warning', 'Secure try to read database list: %r' % (ex), 'listDb')
+                if self.useInterface:
+                    utilsUi.launchMessage('Unable to get database list, please check your login settings.', 'warning')
+        return []
 
     def search(self, obj, filterList, limit=False, offset=False, order='', context={}):
         try:
@@ -216,8 +273,13 @@ class XmlRpcConnection(object):
             if self.useInterface:
                 utilsUi.launchMessage(message, 'error')
             utils.logMessage('error', message, 'callOdooFunction')
-        except xmlrpc.client.Fault as err:
+        except xmlrpc.Fault as err:
             try:
+                if err.faultString:
+                    if self.useInterface:
+                        utilsUi.launchMessage(err.faultString, 'error')
+                    else:
+                        utils.logError(err.faultString, 'callOdooFunction')
                 return self.socketYesLogin.execute(self.databaseName, self.userId, self.userPassword, odooObj, functionName, parameters)
             except Exception as ex:
                 message = 'Unable to communicate with the server: %r' % ex.faultCode
@@ -232,12 +294,12 @@ class XmlRpcConnection(object):
         return False
 
 
-class TimeoutTransport(xmlrpc.client.Transport):
+class TimeoutTransport(xmlrpc.Transport):
     timeout = 5.0
 
     def set_timeout(self, timeout):
         self.timeout = timeout
 
     def make_connection(self, host):
-        h = http.client.HTTPConnection(host, timeout=self.timeout)
+        h = httplib.HTTPConnection(host, timeout=self.timeout)
         return h
