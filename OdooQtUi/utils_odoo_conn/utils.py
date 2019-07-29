@@ -506,8 +506,8 @@ def timeit(method):
         result = method(*args, **kw)
         te = time.time()
 
-        print ('%2.2f sec, %r par: %r' % \
-              (te - ts, method.__name__, args[1:]))
+#         print ('%2.2f sec, %r par: %r' % \
+#               (te - ts, method.__name__, args[1:]))
         return result
 
     return timed
