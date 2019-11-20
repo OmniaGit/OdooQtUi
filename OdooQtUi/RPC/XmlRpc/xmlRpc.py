@@ -40,6 +40,7 @@ class XmlRpcConnection(object):
         self.useInterface = USE_INTERFACE
         self.secure = secure
         self.timeout = 2.5
+        self.max_timeout = 7200
 
     @property
     def urlNoLogin(self):
@@ -89,6 +90,9 @@ class XmlRpcConnection(object):
             try:
                 t = TimeoutTransport()
                 t.set_timeout(self.timeout)
+                self.socketYesLogin = xmlrpc.ServerProxy(self.urlYesLogin, transport=t)
+                t = TimeoutTransport()
+                t.set_timeout(self.max_timeout)
                 self.socketYesLogin = xmlrpc.ServerProxy(self.urlYesLogin, transport=t)
             except Exception as ex:
                 utils.logMessage('error', 'Error getting server proxy: %r' % (ex), 'loginWithUser')
@@ -279,7 +283,7 @@ class XmlRpcConnection(object):
                     if self.useInterface:
                         utilsUi.launchMessage(err.faultString, 'error')
                     else:
-                        utils.logError(err.faultString, 'callOdooFunction')
+                        utils.logMessage('error', err.faultString, 'callOdooFunction')
                 return self.socketYesLogin.execute(self.databaseName, self.userId, self.userPassword, odooObj, functionName, parameters)
             except Exception as ex:
                 message = 'Unable to communicate with the server: %r' % ex.faultCode
