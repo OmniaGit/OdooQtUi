@@ -279,6 +279,7 @@ class XmlRpcConnection(object):
             utils.logMessage('error', message, 'callOdooFunction')
         except xmlrpc.Fault as err:
             try:
+                utils.logMessage('error', err, 'callOdooFunction')
                 if err.faultString:
                     if self.useInterface:
                         utilsUi.launchMessage(err.faultString, 'error')
