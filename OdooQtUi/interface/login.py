@@ -233,7 +233,13 @@ connection type=%r\n
                                      self.serverPort,
                                      self.scheme,
                                      self.serverIp)
-        return connectionObj.loginWithUser()
+        return connectionObj.loginWithUser(self.connType,
+                                     self.username,
+                                     self.userpass,
+                                     self.dbName,
+                                     self.serverPort,
+                                     self.scheme,
+                                     self.serverIp)
 
     def writeToFile(self):
         toWriteDict = {

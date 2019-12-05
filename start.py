@@ -76,7 +76,7 @@ class MainConnector(object):
 
     def loginWithUser(self, user, password, dbName, xmlrpcServerIP='127.0.0.1', xmlrpcPort=8069, scheme='http', loginType='xmlrpc'):
         connectionObj.initConnection(loginType, user, password, dbName, xmlrpcPort, scheme, xmlrpcServerIP)
-        res = connectionObj.loginWithUser()
+        res = connectionObj.loginWithUser(loginType, user, password, dbName, xmlrpcPort, scheme, xmlrpcServerIP)
         self.activeLanguage = connectionObj.contextUser.get('lang', 'en_US')
         return res
 
@@ -194,6 +194,8 @@ if __name__ == '__main__':
     @utils.timeit
     def do_test():
         connectorObj = MainConnector()
+        if not connectorObj.loginWithDial():
+            return do_test()
         connectorObj.loginWithUser('admin', 'admin', 'odoo-11', '127.0.0.1', '8069')
         # connectorObj.loginWithUser('admin', 'admin', 'v11_all', '192.168.99.16', '8069')
 
