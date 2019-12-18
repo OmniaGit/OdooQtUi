@@ -111,10 +111,10 @@ class RpcConnection(object):
         localContext.update(context)
         return self.sockInstance.readSearch(obj, fields, filterList, order=order, context=localContext)
 
-    def write(self, obj, values, idsToWrite, context={}):
+    def write(self, obj, values, idsToWrite, context={}, **kargs):
         localContext = self.contextUser
         localContext.update(context)
-        return self.sockInstance.write(obj, values, idsToWrite, context=localContext)
+        return self.sockInstance.write(obj, values, idsToWrite, context=localContext, kargs=kargs)
 
     def writeSearch(self, obj, values, filterList, context={}):
         localContext = self.contextUser

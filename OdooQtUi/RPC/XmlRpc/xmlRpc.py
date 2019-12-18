@@ -195,9 +195,10 @@ class XmlRpcConnection(object):
             utils.logMessage('error', 'Error during create with values: object %r, kargs %r, filterList %r. Error: %r' % (obj, kargs, values, ex), 'create')
         return []
 
-    def write(self, obj, values, idsToWrite, context={}):
+    def write(self, obj, values, idsToWrite, context={}, kargs={}):
         try:
-            kargs = {'context': context}
+            if 'context' not in kargs:
+                kargs['context'] = context
             return self.callOdooFunction(obj, 'write', [idsToWrite, values], kargs)
         except Exception as ex:
             utils.logMessage('error', 'Error during create with values: object %r, kargs %r, filterList %r. Error: %r' % (obj, kargs, values, ex), 'write')
