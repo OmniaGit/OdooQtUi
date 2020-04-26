@@ -312,10 +312,6 @@ class QtFormView(TemplateView):
         divVlay.addLayout(self.chatterLay)
 
     def showChatter(self):
-        lineEdit = QtWidgets.QPushButton('Chatter')
-        lineEdit.setFlat(True)
-        lineEdit.setStyleSheet(constants.BUTTON_STYLE + constants.VIOLET_BACKGROUND)
-        self.chatterLay.insertWidget(0, lineEdit)
         for chatterWidget in self.chatterWidgets:
             chatterWidget.showChatterWidget()
         self.chatterButton.hide()
