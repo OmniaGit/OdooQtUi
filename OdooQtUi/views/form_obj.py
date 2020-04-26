@@ -85,11 +85,12 @@ class QtFormView(TemplateView):
             qvboxLayout.setSpacing(0)
             qvboxLayout.setMargin(0)
         if constants.DEBUG:
-            line = QtWidgets.QFrame(self)
-            line.setFrameShape(QtWidgets.QFrame.HLine)
-            line.setFrameShadow(QtWidgets.QFrame.Sunken)
-            line.setLineWidth(100)
-            line.setStyleSheet("color: blue;")
+            line = QtWidgets.QLineEdit()
+#             line = QtWidgets.QFrame(self)
+#             line.setFrameShape(QtWidgets.QFrame.HLine)
+#             line.setFrameShadow(QtWidgets.QFrame.Sunken)
+#             line.setLineWidth(100)
+            line.setStyleSheet("border:2px solid blue;")
             qvboxLayout.addWidget(line)
         for childXlmElement in xmlParent.getchildren():
             childXmlTag = childXlmElement.tag
@@ -204,11 +205,12 @@ class QtFormView(TemplateView):
             else:
                 utils.logWarning('Tag %r not supported and not evaluated' % (childXlmElement))
         if constants.DEBUG:
-            line = QtWidgets.QFrame(self)
-            line.setFrameShape(QtWidgets.QFrame.HLine)
-            line.setFrameShadow(QtWidgets.QFrame.Sunken)
-            line.setLineWidth(300)
-            line.setStyleSheet("color: blue;")
+            line = QtWidgets.QLineEdit()
+#             line = QtWidgets.QFrame(self)
+#             line.setFrameShape(QtWidgets.QFrame.HLine)
+#             line.setFrameShadow(QtWidgets.QFrame.Sunken)
+#             line.setLineWidth(300)
+            line.setStyleSheet("border:2px solid blue;")
             qvboxLayout.addWidget(line)
         return qvboxLayout
 

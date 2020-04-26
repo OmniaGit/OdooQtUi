@@ -38,8 +38,10 @@ class One2many(OdooFieldTemplate):
         self.messaggesLay.setSpacing(15)
         if self.odooWidgetType == 'mail_followers':
             self.treeViewObj = QtWidgets.QWidget()
+            self.treeViewObj.treeObj = None
         elif self.odooWidgetType == 'mail_thread':
             self.treeViewObj = QtWidgets.QWidget()
+            self.treeViewObj.treeObj = None
         else:
             self.treeViewObj = self.odooConnector.initTreeListViewObject(odooObjectName=self.relation,
                                                                          viewName='',
@@ -94,6 +96,7 @@ class One2many(OdooFieldTemplate):
         return self.chatterWidget
 
     def getQtObject(self):
+        self.createButt = None
         if self.odooWidgetType == 'mail_followers':
             self.followersButton = QtWidgets.QPushButton('Show Followers')
             self.followersButton.setStyleSheet(constants.BUTTON_STYLE)
@@ -474,11 +477,13 @@ class One2many(OdooFieldTemplate):
             if self.widgetQtObj:
                 self.widgetQtObj.setDisabled(val)
             if self.treeViewObj:
-                self.treeViewObj.treeObj.tableWidget.setDisabled(val)
-                self.treeViewObj.buttToLeft.setDisabled(val)
-                self.treeViewObj.buttToRight.setDisabled(val)
-                self.treeViewObj.treeObj.widgetContents.setDisabled(val)
-            self.createButt.setDisabled(val)
+                if self.treeViewObj.treeObj:
+                    self.treeViewObj.treeObj.tableWidget.setDisabled(val)
+                    self.treeViewObj.buttToLeft.setDisabled(val)
+                    self.treeViewObj.buttToRight.setDisabled(val)
+                    #self.treeViewObj.treeObj.widgetContents.setDisabled(val)
+            if self.createButt:
+                self.createButt.setDisabled(val)
             super(One2many, self).setReadonly(val)
         except Exception as ex:
             utils.logError(ex, 'setReadonly')
@@ -488,12 +493,15 @@ class One2many(OdooFieldTemplate):
             if self.widgetQtObj:
                 self.widgetQtObj.setHidden(val)
             if self.treeViewObj:
-                self.treeViewObj.buttToLeft.setHidden(val)
-                self.treeViewObj.buttToRight.setHidden(val)
-                self.treeViewObj.treeObj.tableWidget.setHidden(val)
-                self.treeViewObj.treeObj.widgetContents.setHidden(val)
-            self.labelQtObj.setHidden(val)
-            self.createButt.setHidden(val)
+                if self.treeViewObj.treeObj:
+                    self.treeViewObj.buttToLeft.setHidden(val)
+                    self.treeViewObj.buttToRight.setHidden(val)
+                    self.treeViewObj.treeObj.tableWidget.setHidden(val)
+                    #self.treeViewObj.treeObj.widgetContents.setHidden(val)
+            if self.labelQtObj:
+                self.labelQtObj.setHidden(val)
+            if self.createButt:
+                self.createButt.setHidden(val)
             super(One2many, self).setInvisible(val)
         except Exception as ex:
             utils.logError(ex, 'setInvisible')

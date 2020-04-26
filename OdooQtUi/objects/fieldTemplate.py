@@ -79,13 +79,6 @@ class OdooFieldTemplate(QtWidgets.QWidget):
     def setValue(self, newVal):
         utils.logMessage('warning', 'setValue not implemented for field: %r' % (self.fieldName), 'setValue')
 
-
-    def setReadonly(self, val=False):
-        self.hideTranslateButton(val)
-
-    def setInvisible(self, val=False):
-        self.hideTranslateButton(val)
-
     def hideTranslateButton(self, val):
         if self.translateButton:
             self.translateButton.setHidden(val)
@@ -98,8 +91,10 @@ class OdooFieldTemplate(QtWidgets.QWidget):
 
     def setReadonly(self, val):
         self.setEnabled(not val)
+        self.hideTranslateButton(val)
 
     def setInvisible(self, val):
+        self.hideTranslateButton(val)
         if val:
             self.hide()
         else:

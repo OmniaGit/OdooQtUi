@@ -14,7 +14,7 @@ logger.setLevel(logging.DEBUG)
 
 
 if __name__ == '__main__':
-    constants.DEBUG = False
+    constants.DEBUG = True
     odooConnector = MainConnector()
     import time
     ts = time.time()
@@ -40,9 +40,16 @@ if __name__ == '__main__':
                 tmplViewObj.loadForceEmptyIds(forceFieldValues, readonlyFields, invisibleFields)
             return tmplViewObj
 
-        tmplViewObj = tryForm('sale.order', idToLoad=100, useChatter=True)
+        tmplViewObj = tryForm('product.product', idToLoad=54, useChatter=True)
         #tmplViewObj = tryForm('product.product', 'plm.base.component', idToLoad=3572, useChatter=True)
         #tmplViewObj = tryListView('product.template', viewFilter=True)
+#         lay = QtWidgets.QVBoxLayout()
+#         lay.addWidget(tmplViewObj)
+#         lay.setMargin(0)
+#         lay.setContentsMargins(0,0,0,0)
+#         dialog = QtWidgets.QDialog()
+#         dialog.setLayout(lay)
+#         dialog.exec_()
         scroll = QtWidgets.QScrollArea()
         scroll.setWidget(tmplViewObj)
         scroll.setWidgetResizable(True)
@@ -51,6 +58,8 @@ if __name__ == '__main__':
         dialog = QtWidgets.QDialog()
         lay = QtWidgets.QVBoxLayout()
         lay.addWidget(scroll)
+        lay.setMargin(0)
+        lay.setContentsMargins(0,0,0,0)
         dialog.setLayout(lay)
         dialog.resize(1200, 600)
         dialog.move(100, 100)

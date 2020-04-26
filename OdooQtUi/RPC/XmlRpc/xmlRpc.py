@@ -250,7 +250,6 @@ class XmlRpcConnection(object):
             utils.logMessage('error', 'Error during call Odoo Function execute with arguments: %r, %r, %r, %r' % (obj, method, args), 'execute')
             return False
 
-    @utils.timeit
     def callOdooFunction(self, odooObj, functionName, parameters=[], kwargParameters={}):
         '''
             @odooObj: product.product, product.template ...

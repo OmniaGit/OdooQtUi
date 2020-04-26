@@ -26,7 +26,7 @@ class Many2many(OdooFieldTemplate):
         self.relation = self.fieldPyDefinition.get('relation', '')
         self.canCreate = json.loads(self.fieldXmlAttributes.get('can_create', 'true'))
         self.canWrite = json.loads(self.fieldXmlAttributes.get('can_write', 'true'))
-        self.qtVBoxLayout = QtWidgets.QVBoxLayout(self)
+        self.qtVBoxLayout = QtWidgets.QVBoxLayout()
         qHl = self.getQtObject()
         self.qtVBoxLayout.addLayout(qHl)
         self.evaluatedIds = {}
@@ -41,7 +41,7 @@ class Many2many(OdooFieldTemplate):
         self.qtHorizontalWidget.addLayout(self.qtVBoxLayout)
 
     def getQtObject(self):
-        qhw = QtWidgets.QHBoxLayout(self)
+        qhw = QtWidgets.QHBoxLayout()
         self.labelQtObj = QtWidgets.QLabel(self.fieldStringInterface)
         self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
         qhw.addWidget(self.labelQtObj)
@@ -104,6 +104,7 @@ class Many2many(OdooFieldTemplate):
             self.btnAddAnItem.clicked.connect(self.addAnItem)
             addAnItemLay = QtWidgets.QHBoxLayout()
             addAnItemLay.addWidget(self.btnAddAnItem)
+            self.qtVBoxLayout.addLayout(addAnItemLay)
 
     def setupTableWidgetLay(self, tableWidget):
         tableWidget.resizeColumnsToContents()
