@@ -308,7 +308,8 @@ class QtFormView(TemplateView):
             else:
                 utils.logMessage('warning', 'Unable to compute tag in chatter %r' % (fieldObj.tag), 'computeChatter')
         self.chatterLay.insertWidget(0, self.chatterButton)
-        utilsUi.setLayoutMarginAndSpacing(self.chatterLay)
+        utilsUi.setLayoutMarginAndSpacing(self.chatterLay, constants.LAY_OUT_SPACING + 40)
+        self.chatterLay.setSpacing(constants.LAY_OUT_SPACING)
         divVlay.addLayout(self.chatterLay)
 
     def showChatter(self):

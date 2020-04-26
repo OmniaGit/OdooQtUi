@@ -18,10 +18,12 @@ from OdooQtUi.utils_odoo_conn import utils
 DEFAULT_ICON_PATH = ''
 
 
-def getQtImageFromContent(content, imageWidth=100, imageHeight=100):
+def getQtImageFromContent(content, imageWidth=100, imageHeight=100, b64decode=True):
     label = QtWidgets.QLabel()
     pixmap = QtGui.QPixmap()
-    pixmap.loadFromData(base64.b64decode(content))
+    if b64decode:
+        content = base64.b64decode(content)
+    pixmap.loadFromData(content)
     pixmap = pixmap.scaled(imageWidth,
                            imageHeight,
                            aspectRatioMode=QtCore.Qt.IgnoreAspectRatio,
@@ -155,3 +157,14 @@ def setLayoutMarginAndSpacing(lay, forceVal=False):
         forceVal = constants.LAY_OUT_SPACING
     lay.setSpacing(forceVal)
     lay.setContentsMargins(forceVal, forceVal, forceVal, forceVal)
+
+
+def getIconPath(iconName):
+    currDir = os.path.dirname(__file__)
+    imagesDir = os.path.join(currDir, 'images')
+    if not os.path.exists(imagesDir):
+        imagesDir = os.path.join(os.path.dirname(currDir), 'images')
+    image_path = os.path.join(imagesDir, iconName)
+    if not os.path.exists(image_path):
+        return ''
+    return image_path

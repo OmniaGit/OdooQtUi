@@ -122,24 +122,43 @@ class One2many(OdooFieldTemplate):
             state = messageDict.get('state', '')
             note = messageDict.get('note', '')
             summary = messageDict.get('summary', '')
-            icon = messageDict.get('fa-envelope', '')
+            icon = messageDict.get('icon', '')
+            date_deadline = messageDict.get('date_deadline', '')
             
+            contentHLay = QtWidgets.QHBoxLayout()
+            if icon == 'fa-envelope':
+                icon_path = utilsUi.getIconPath('mail.png')
+            elif icon == 'fa-phone':
+                icon_path = utilsUi.getIconPath('phone.png')
+            elif icon == 'fa-users':
+                icon_path = utilsUi.getIconPath('meeting.png')
+            elif icon == 'fa-tasks':
+                icon_path = utilsUi.getIconPath('todo.png')
+            if icon_path:
+                with open(icon_path, 'rb') as file_obj:
+                    labelImage = utilsUi.getQtImageFromContent(file_obj.read(), imageWidth=20, imageHeight=20, b64decode=False)
+                    contentHLay.addWidget(labelImage)
+
             labelBody = QtWidgets.QTextEdit()
             labelBody.setFrameShape(QtWidgets.QFrame.NoFrame)
             labelBody.insertHtml(note)
             labelBody.setReadOnly(True)
             
-            msg = '%s: %s "%s" for %s' % (state.capitalize(), activity_name, summary, user_name)
+            msg = '%s: %s "%s" for %s            Date %s' % (state.capitalize(), activity_name, summary, user_name, date_deadline)
             labelUser = QtWidgets.QLabel(msg)
+            labelUser.setAlignment(QtCore.Qt.AlignLeft)
+            contentHLay.addWidget(labelUser)
+            verticalSpacer = QtWidgets.QSpacerItem(40, 40, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+            contentHLay.addSpacerItem(verticalSpacer)
             
             mainVLay = QtWidgets.QVBoxLayout()
-            mainVLay.addWidget(labelUser)
+            mainVLay.addLayout(contentHLay)
             mainVLay.addWidget(labelBody)
 
             mainWidget = QtWidgets.QWidget()
             mainWidget.setLayout(mainVLay)
             labelUser.setStyleSheet('font-weight: bold;')
-            mainWidget.setStyleSheet('background-color: #dbdbdb;')
+            mainWidget.setStyleSheet('background-color: #efefef;')
             mainWidget.setMinimumHeight(100)
             self.activityVLayout.addWidget(mainWidget)
 
@@ -390,7 +409,7 @@ class One2many(OdooFieldTemplate):
             mainWidget = QtWidgets.QWidget()
             mainWidget.setLayout(mainVLay)
             labelUser.setStyleSheet('font-weight: bold;')
-            mainWidget.setStyleSheet('background-color: #dbdbdb;')
+            mainWidget.setStyleSheet('background-color: #efefef;')
             self.messageVLay.addWidget(mainWidget)
 
     def downloadImage(self, content, fileName):
