@@ -86,10 +86,6 @@ class QtFormView(TemplateView):
             qvboxLayout.setMargin(0)
         if constants.DEBUG:
             line = QtWidgets.QLineEdit()
-#             line = QtWidgets.QFrame(self)
-#             line.setFrameShape(QtWidgets.QFrame.HLine)
-#             line.setFrameShadow(QtWidgets.QFrame.Sunken)
-#             line.setLineWidth(100)
             line.setStyleSheet("border:2px solid blue;")
             qvboxLayout.addWidget(line)
         for childXlmElement in xmlParent.getchildren():
@@ -206,10 +202,6 @@ class QtFormView(TemplateView):
                 utils.logWarning('Tag %r not supported and not evaluated' % (childXlmElement))
         if constants.DEBUG:
             line = QtWidgets.QLineEdit()
-#             line = QtWidgets.QFrame(self)
-#             line.setFrameShape(QtWidgets.QFrame.HLine)
-#             line.setFrameShadow(QtWidgets.QFrame.Sunken)
-#             line.setLineWidth(300)
             line.setStyleSheet("border:2px solid blue;")
             qvboxLayout.addWidget(line)
         return qvboxLayout
@@ -249,36 +241,36 @@ class QtFormView(TemplateView):
                 pass
         return mapping, headerLayout
 
-    def computeField(self, xmlObj):
+    def computeField(self, xmlObj, isChatterWidget=False):
         fieldAttributes = xmlObj.attrib
         fieldName = fieldAttributes.get('name', '')
         fieldDefinition = self.fieldsNameTypeRel.get(fieldName, {})
         fieldType = fieldDefinition.get('type', False)
         fieldObj = None
         if fieldType == 'selection':
-            fieldObj = Selection(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject)
+            fieldObj = Selection(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject, isChatterWidget)
         elif fieldType == 'char':
-            fieldObj = Charachter(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject)
+            fieldObj = Charachter(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject, isChatterWidget)
         elif fieldType == 'integer':
-            fieldObj = Integer(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject)
+            fieldObj = Integer(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject, isChatterWidget)
         elif fieldType == 'float':
-            fieldObj = Float(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject)
+            fieldObj = Float(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject, isChatterWidget)
         elif fieldType == 'datetime':
-            fieldObj = Datetime(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject)
+            fieldObj = Datetime(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject, isChatterWidget)
         elif fieldType == 'many2one':
-            fieldObj = Many2one(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject, self.odooConnector)
+            fieldObj = Many2one(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject, self.odooConnector, isChatterWidget)
         elif fieldType == 'many2many':
-            fieldObj = Many2many(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject, self.odooConnector)
+            fieldObj = Many2many(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject, self.odooConnector, isChatterWidget)
         elif fieldType == 'text':
-            fieldObj = Text(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject)
+            fieldObj = Text(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject, isChatterWidget)
         elif fieldType == 'date':
-            fieldObj = Date(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject)
+            fieldObj = Date(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject, isChatterWidget)
         elif fieldType == 'boolean':
-            fieldObj = Boolean(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject)
+            fieldObj = Boolean(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject, isChatterWidget)
         elif fieldType == 'one2many':
-            fieldObj = One2many(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject, self.odooConnector)
+            fieldObj = One2many(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject, self.odooConnector, isChatterWidget)
         elif fieldType == 'binary':
-            fieldObj = Binary(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject)
+            fieldObj = Binary(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject, isChatterWidget)
         else:
             utils.logMessage('warning', 'Field %r not supported' % (fieldType), 'computeField')
         return fieldObj
@@ -292,23 +284,41 @@ class QtFormView(TemplateView):
             self.nootebook_changed_signal.emit(pageIndex)
 
     def computeChatter(self, divVlay, childElement):
-        hlay = QtWidgets.QHBoxLayout()
+        self.chatterLay = QtWidgets.QVBoxLayout()
+        self.chatterButton = QtWidgets.QPushButton('↓↓↓   Show Chatter   ↓↓↓')
+        self.chatterButton.setStyleSheet(constants.BUTTON_STYLE)
+        self.chatterButton.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        self.chatterButton.clicked.connect(self.showChatter)
+        self.chatterWidgets = []
         count = 0
         for fieldObj in childElement.getchildren():
             if fieldObj.tag == 'field':
-                qtWidgetField = self.computeField(fieldObj)
+                qtWidgetField = self.computeField(fieldObj, isChatterWidget=True)
                 if qtWidgetField:
                     if isinstance(qtWidgetField, QtWidgets.QLayout):
-                        hlay.insertLayout(0, qtWidgetField)
+                        self.chatterLay.insertLayout(0, qtWidgetField)
                         if count == 0:
-                            hlay.insertSpacerItem(0, QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum))
+                            self.chatterLay.insertSpacerItem(0, QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum))
                             count = count + 1
                     elif isinstance(qtWidgetField, QtWidgets.QWidget):
-                        hlay.insertWidget(0, qtWidgetField)
+                        self.chatterLay.insertWidget(0, qtWidgetField)
+                        qtWidgetField.hide()
+                        self.chatterWidgets.append(qtWidgetField)
                     self.appendToglobalMapping('field_' + qtWidgetField.fieldName, qtWidgetField)
             else:
                 utils.logMessage('warning', 'Unable to compute tag in chatter %r' % (fieldObj.tag), 'computeChatter')
-        divVlay.addLayout(hlay)
+        self.chatterLay.insertWidget(0, self.chatterButton)
+        utilsUi.setLayoutMarginAndSpacing(self.chatterLay)
+        divVlay.addLayout(self.chatterLay)
+
+    def showChatter(self):
+        lineEdit = QtWidgets.QPushButton('Chatter')
+        lineEdit.setFlat(True)
+        lineEdit.setStyleSheet(constants.BUTTON_STYLE + constants.VIOLET_BACKGROUND)
+        self.chatterLay.insertWidget(0, lineEdit)
+        for chatterWidget in self.chatterWidgets:
+            chatterWidget.showChatterWidget()
+        self.chatterButton.hide()
 
     def updateDataStructure(self, pageIndex=0):
         utils.logDebug('compute Notebook fields: %r' % (pageIndex), 'updateDataStructure')

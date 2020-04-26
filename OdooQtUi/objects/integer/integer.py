@@ -12,8 +12,9 @@ from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
 
 
 class Integer(OdooFieldTemplate):
-    def __init__(self, qtParent, xmlField, fieldsDefinition, rpc):
+    def __init__(self, qtParent, xmlField, fieldsDefinition, rpc, isChatterWidget=False):
         super(Integer, self).__init__(qtParent, xmlField, fieldsDefinition, rpc)
+        self.isChatterWidget = isChatterWidget
         self.labelQtObj = False
         self.widgetQtObj = False
         self.currentValue = 0
@@ -58,6 +59,8 @@ class Integer(OdooFieldTemplate):
                 self.widgetQtObj.setStyleSheet(constants.INTEGER_STYLE)
 
     def setInvisible(self, val=False):
+        if self.isChatterWidget:
+            return
         super(Integer, self).setInvisible(val)
         self.labelQtObj.setHidden(val)
         self.widgetQtObj.setHidden(val)

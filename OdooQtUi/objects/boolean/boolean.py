@@ -14,8 +14,9 @@ from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
 
 
 class Boolean(OdooFieldTemplate):
-    def __init__(self, qtParent, xmlField, fieldsDefinition, rpc):
+    def __init__(self, qtParent, xmlField, fieldsDefinition, rpc, isChatterWidget=False):
         super(Boolean, self).__init__(qtParent, xmlField, fieldsDefinition, rpc)
+        self.isChatterWidget = isChatterWidget
         self.labelQtObj = False
         self.widgetQtObj = False
         self.currentValue = False
@@ -61,6 +62,8 @@ class Boolean(OdooFieldTemplate):
                 self.widgetQtObj.setStyleSheet('background-color:white;')
 
     def setInvisible(self, val=False):
+        if self.isChatterWidget:
+            return
         super(Boolean, self).setInvisible(val)
         self.labelQtObj.setHidden(val)
         self.widgetQtObj.setHidden(val)

@@ -15,8 +15,9 @@ from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
 
 
 class Many2many(OdooFieldTemplate):
-    def __init__(self, qtParent, xmlField, fieldsDefinition, rpc, odooConnector=None):
+    def __init__(self, qtParent, xmlField, fieldsDefinition, rpc, odooConnector=None, isChatterWidget=False):
         super(Many2many, self).__init__(qtParent, xmlField, fieldsDefinition, rpc)
+        self.isChatterWidget = isChatterWidget
         self.labelQtObj = False
         self.widgetQtObj = False
         self.treeViewObj = False
@@ -237,6 +238,8 @@ class Many2many(OdooFieldTemplate):
         super(Many2many, self).setReadonly(val)
 
     def setInvisible(self, val=False):
+        if self.isChatterWidget:
+            return
         if self.btnAddAnItem:
             if val:
                 self.btnAddAnItem.hide()

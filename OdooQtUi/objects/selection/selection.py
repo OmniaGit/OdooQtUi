@@ -12,8 +12,9 @@ from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
 
 
 class Selection(OdooFieldTemplate):
-    def __init__(self, qtParent, xmlField, fieldsDefinition, rpc):
+    def __init__(self, qtParent, xmlField, fieldsDefinition, rpc, isChatterWidget=False):
         super(Selection, self).__init__(qtParent, xmlField, fieldsDefinition, rpc)
+        self.isChatterWidget = isChatterWidget
         self.selectionMapping = {}
         self.selectionMappingReverse = {}
         self.labels = []
@@ -115,10 +116,14 @@ class Selection(OdooFieldTemplate):
                     self.widgetQtObj.setStyleSheet(constants.SELECTION_STYLE)
 
     def setInvisible(self, val=False):
+        if self.isChatterWidget:
+            return
         super(Selection, self).setInvisible(val)
         if self.labelQtObj:
+            self.labelQtObj.setContentsMargins(0,0,0,0)
             self.labelQtObj.setHidden(val)
         if self.widgetQtObj:
+            self.widgetQtObj.setContentsMargins(0,0,0,0)
             self.widgetQtObj.setHidden(val)
 
     @property

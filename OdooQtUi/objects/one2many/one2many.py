@@ -20,8 +20,9 @@ import base64
 
 
 class One2many(OdooFieldTemplate):
-    def __init__(self, qtParent, xmlField, fieldsDefinition, rpc, odooConnector=None):
+    def __init__(self, qtParent, xmlField, fieldsDefinition, rpc, odooConnector=None, isChatterWidget=False):
         super(One2many, self).__init__(qtParent, xmlField, fieldsDefinition, rpc)
+        self.isChatterWidget = isChatterWidget
         self.labelQtObj = False
         self.widgetQtObj = False
         self.treeViewObj = False
@@ -42,6 +43,9 @@ class One2many(OdooFieldTemplate):
         elif self.odooWidgetType == 'mail_thread':
             self.treeViewObj = QtWidgets.QWidget()
             self.treeViewObj.treeObj = None
+        elif self.odooWidgetType == 'mail_activity':
+            self.treeViewObj = QtWidgets.QWidget()
+            self.treeViewObj.treeObj = None
         else:
             self.treeViewObj = self.odooConnector.initTreeListViewObject(odooObjectName=self.relation,
                                                                          viewName='',
@@ -54,22 +58,18 @@ class One2many(OdooFieldTemplate):
 
     def getMessageChatterWidget(self):
         self.setMinimumSize(100, 250)
-        self.chatterWidget = QtWidgets.QWidget()
-        self.chatterWidget.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        chatterWidget = QtWidgets.QWidget()
+        chatterWidget.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         chatterVLayout = QtWidgets.QVBoxLayout()
-        self.messaggesButton = QtWidgets.QPushButton('Show Chatter')
-        self.messaggesButton.setStyleSheet(constants.BUTTON_STYLE)
-        self.messaggesButton.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
-        self.messaggesButton.setMinimumSize(100, 40)
-        self.messaggesButton.clicked.connect(self.showMessagges)
-        chatterVLayout.addWidget(self.messaggesButton)
         # send message box
         self.sendMessageBox = QtWidgets.QWidget()
         sendMessageBoxHLayout = QtWidgets.QHBoxLayout()
         self.buttSendMessage = QtWidgets.QPushButton('Send Message')
         self.buttLogNote = QtWidgets.QPushButton('Log Note')
-        self.buttSendMessage.setStyleSheet(constants.BUTTON_STYLE_MANY_2_ONE__2)
-        self.buttLogNote.setStyleSheet(constants.BUTTON_STYLE_MANY_2_ONE__2)
+        self.buttSendMessage.setFlat(True)
+        self.buttLogNote.setFlat(True)
+        self.buttSendMessage.setStyleSheet(constants.BUTTON_STYLE_LINK)
+        self.buttLogNote.setStyleSheet(constants.BUTTON_STYLE_LINK)
         self.buttSendMessage.clicked.connect(self.sendMessage)
         self.buttLogNote.clicked.connect(self.logNote)
         spacerExpander = QtWidgets.QSpacerItem(40, 100, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
@@ -77,50 +77,92 @@ class One2many(OdooFieldTemplate):
         sendMessageBoxHLayout.addWidget(self.buttLogNote)
         sendMessageBoxHLayout.addItem(spacerExpander)
         self.sendMessageBox.setLayout(sendMessageBoxHLayout)
-        self.sendMessageBox.hide()
         chatterVLayout.addWidget(self.sendMessageBox)
         # Scroll messages
-        self.messageScroll = QtWidgets.QScrollArea(self.chatterWidget)
-        messageWidget = QtWidgets.QWidget(self.chatterWidget)
+        messageScroll = QtWidgets.QScrollArea(chatterWidget)
+        messageWidget = QtWidgets.QWidget(chatterWidget)
         self.messageVLay = QtWidgets.QVBoxLayout()
         messageWidget.setLayout(self.messageVLay)
-        self.messageScroll.setWidget(messageWidget)
-        self.messageScroll.setWidgetResizable(True)
-        chatterVLayout.addWidget(self.messageScroll)
+        messageScroll.setWidget(messageWidget)
+        messageScroll.setWidgetResizable(True)
+        messageScroll.setFrameShape(QtWidgets.QFrame.NoFrame)
+        chatterVLayout.addWidget(messageScroll)
         verticalSpacer = QtWidgets.QSpacerItem(40, 100, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         chatterVLayout.addItem(verticalSpacer)
-        self.messageScroll.hide()
-        self.messageScroll.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        self.chatterWidget.setLayout(chatterVLayout)
-        self.chatterWidget.setMinimumSize(100, 100)
-        return self.chatterWidget
+        messageScroll.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        chatterWidget.setLayout(chatterVLayout)
+        self.showMessagges()
+        return chatterWidget
 
+    def getMailActivityWidget(self):
+        label = QtWidgets.QLabel('-----------------  Planned Activities  -----------------')
+        label.setAlignment(QtCore.Qt.AlignCenter)
+        mainWidget = QtWidgets.QWidget()
+        #mainWidget.setStyleSheet('border: 1px solid black;')
+        mainWidget.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        mainLay = QtWidgets.QVBoxLayout(mainWidget)
+        scrollArea = QtWidgets.QScrollArea()
+        scrollArea.setFrameShape(QtWidgets.QFrame.NoFrame)
+        scrollArea.setFrameShadow(QtWidgets.QFrame.Sunken)
+        scrollArea.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
+        scrollArea.setWidgetResizable(True)
+        scrollArea.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        #scrollArea.setStyleSheet('border: 1px solid blue;')
+        scrollAreaWidgetContents = QtWidgets.QWidget()
+        self.activityVLayout = QtWidgets.QVBoxLayout(scrollAreaWidgetContents)
+        scrollArea.setWidget(scrollAreaWidgetContents)
+        mainLay.addWidget(label)
+        mainLay.addWidget(scrollArea)
+        mainWidget.setLayout(mainLay)
+        mainWidget.setMinimumHeight(300)
+        return mainWidget
+
+    def showActivities(self):
+        messages = connectionObj.read(self.relation, [], self.currentValue)
+        for messageDict in messages:
+            _activity_id, activity_name = messageDict.get('activity_type_id', [False, ''])
+            _user_id, user_name = messageDict.get('user_id', [False, ''])
+            state = messageDict.get('state', '')
+            note = messageDict.get('note', '')
+            summary = messageDict.get('summary', '')
+            icon = messageDict.get('fa-envelope', '')
+            
+            labelBody = QtWidgets.QTextEdit()
+            labelBody.setFrameShape(QtWidgets.QFrame.NoFrame)
+            labelBody.insertHtml(note)
+            labelBody.setReadOnly(True)
+            
+            msg = '%s: %s "%s" for %s' % (state.capitalize(), activity_name, summary, user_name)
+            labelUser = QtWidgets.QLabel(msg)
+            
+            mainVLay = QtWidgets.QVBoxLayout()
+            mainVLay.addWidget(labelUser)
+            mainVLay.addWidget(labelBody)
+
+            mainWidget = QtWidgets.QWidget()
+            mainWidget.setLayout(mainVLay)
+            labelUser.setStyleSheet('font-weight: bold;')
+            mainWidget.setStyleSheet('background-color: #cccbcb;')
+            mainWidget.setMinimumHeight(100)
+            self.activityVLayout.addWidget(mainWidget)
+
+    def showChatterWidget(self):
+        self.show()
+        if self.odooWidgetType == 'mail_thread':
+            self.showMessagges()
+        elif self.odooWidgetType == 'mail_followers':
+            self.showFollowers()
+        elif self.odooWidgetType == 'mail_activity':
+            self.showActivities()
+        
     def getQtObject(self):
         self.createButt = None
         if self.odooWidgetType == 'mail_followers':
-            self.followersButton = QtWidgets.QPushButton('Show Followers')
-            self.followersButton.setStyleSheet(constants.BUTTON_STYLE)
-            self.followersButton.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
-            self.followersButton.clicked.connect(self.showFollowers)
-            self.followersOpened = False
-            self.qtHorizontalWidget.addWidget(self.followersButton)
             self.qtHorizontalWidget.addLayout(self.messaggesLay)
         elif self.odooWidgetType == 'mail_thread':
             self.qtHorizontalWidget.addWidget(self.getMessageChatterWidget())
-            return
-            #  old chatter
-            self.messaggesButton = QtWidgets.QPushButton('Show Chatter')
-            self.messaggesButton.setStyleSheet(constants.BUTTON_STYLE)
-            self.messaggesButton.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-            self.messaggesButton.clicked.connect(self.showMessagges)
-            self.messaggesButtLay = QtWidgets.QHBoxLayout()
-            self.populateMessButtLay()
-            self.noteLay = QtWidgets.QVBoxLayout()
-            self.populateNoteLay()
-            self.qtHorizontalWidget.addWidget(self.messaggesButton)
-            self.qtHorizontalWidget.addLayout(self.messaggesButtLay)
-            self.qtHorizontalWidget.addLayout(self.noteLay)
-            self.qtHorizontalWidget.addLayout(self.messaggesLay)
+        elif self.odooWidgetType == 'mail_activity':
+            self.qtHorizontalWidget.addWidget(self.getMailActivityWidget())
         else:
             self.labelQtObj = QtWidgets.QLabel(self.fieldStringInterface)
             self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
@@ -211,29 +253,25 @@ class One2many(OdooFieldTemplate):
         return connectionObj.callCustomMethod('mail.thread', 'message_post', parameters, kwargParameters, context=context)
 
     def showFollowers(self):
-        self.followersButton.setHidden(True)
-        if not self.followersOpened:
-            lay = QtWidgets.QHBoxLayout()
-            self.followButton = QtWidgets.QPushButton('UnFollowing')
-            self.followButton.clicked.connect(self.followClicked)
-            self.setUnfolloWingButton()
-            lay.addWidget(self.followButton)
-            self.buttonFollowersCount = QtWidgets.QToolButton()
-            self.buttonFollowersCount.setText(str(len(self.currentValue)))
-            self.toolmenu = QtWidgets.QMenu()
-            res = self.populateMenu()
-            for obj in res:
-                currentPartnerId, _partnerName = self.getPartnerIdFromUserId()
-                partnerRes = obj.get('partner_id')
-                if partnerRes and partnerRes[0] == currentPartnerId:
-                    self.setFollowingButton()
-            self.buttonFollowersCount.setMenu(self.toolmenu)
-            self.buttonFollowersCount.setPopupMode(QtWidgets.QToolButton.InstantPopup)
-            self.buttonFollowersCount.setStyleSheet(constants.BUTTON_STYLE)
-            lay.addWidget(self.buttonFollowersCount)
-            self.messaggesLay.addLayout(lay)
-        else:
-            pass
+        lay = QtWidgets.QHBoxLayout()
+        self.followButton = QtWidgets.QPushButton('UnFollowing')
+        self.followButton.clicked.connect(self.followClicked)
+        self.setUnfolloWingButton()
+        lay.addWidget(self.followButton)
+        self.buttonFollowersCount = QtWidgets.QToolButton()
+        self.buttonFollowersCount.setText(str(len(self.currentValue)))
+        self.toolmenu = QtWidgets.QMenu()
+        res = self.populateMenu()
+        for obj in res:
+            currentPartnerId, _partnerName = self.getPartnerIdFromUserId()
+            partnerRes = obj.get('partner_id')
+            if partnerRes and partnerRes[0] == currentPartnerId:
+                self.setFollowingButton()
+        self.buttonFollowersCount.setMenu(self.toolmenu)
+        self.buttonFollowersCount.setPopupMode(QtWidgets.QToolButton.InstantPopup)
+        self.buttonFollowersCount.setStyleSheet(constants.BUTTON_STYLE)
+        lay.addWidget(self.buttonFollowersCount)
+        self.messaggesLay.addLayout(lay)
 
     def populateMenu(self):
         followerAction = self.toolmenu.addAction('Add Followers')
@@ -319,9 +357,6 @@ class One2many(OdooFieldTemplate):
                 self._addFollower(partnerId)
 
     def showMessagges(self):
-        self.sendMessageBox.show()
-        #self.messaggesButton.setEnabled(False)
-        #self.messaggesButton.setStyleSheet(constants.BUTTON_STYLE + 'background-color: #d3d0d0;')
         messages = connectionObj.read(self.relation, [], self.currentValue)
         for messageDict in messages:
             _userId, userName = messageDict.get('author_id', [False, ''])
@@ -360,7 +395,6 @@ class One2many(OdooFieldTemplate):
             labelUser.setStyleSheet('font-weight: bold;')
             mainWidget.setStyleSheet('background-color: #cccbcb;')
             self.messageVLay.addWidget(mainWidget)
-            self.messageScroll.show()
 
     def downloadImage(self, content, fileName):
         fileCleanContent = base64.b64decode(content)
@@ -422,6 +456,8 @@ class One2many(OdooFieldTemplate):
         if self.odooWidgetType == 'mail_followers':
             return
         elif self.odooWidgetType == 'mail_thread':
+            return
+        elif self.odooWidgetType == 'mail_activity':
             return
         else:
             self.treeViewObj.loadIds(relIds, {}, {}, {})
@@ -490,6 +526,8 @@ class One2many(OdooFieldTemplate):
 
     def setInvisible(self, val=False):
         try:
+            if self.isChatterWidget:
+                return
             if self.widgetQtObj:
                 self.widgetQtObj.setHidden(val)
             if self.treeViewObj:

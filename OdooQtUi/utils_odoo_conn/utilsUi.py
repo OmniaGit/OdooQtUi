@@ -150,5 +150,8 @@ def setRequiredBackground(widgetQtObj, baseBackground):
     widgetQtObj.setStyleSheet(baseBackground + constants.COMMON_FIELDS_REQUIRED_BACKGROUND)
 
 
-def setLayoutMarginAndSpacing(lay):
-    lay.setSpacing(constants.LAY_OUT_SPACING)
+def setLayoutMarginAndSpacing(lay, forceVal=False):
+    if not forceVal:
+        forceVal = constants.LAY_OUT_SPACING
+    lay.setSpacing(forceVal)
+    lay.setContentsMargins(forceVal, forceVal, forceVal, forceVal)

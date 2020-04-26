@@ -29,6 +29,7 @@ BUTTON_STYLE_OK = 'background-color: #59be50;border-color: #21b799;' + BUTTON_CO
 BUTTON_STYLE_CANCEL = ';background-color: #f05050;border-color: #21b799;' + BUTTON_COMMON
 BUTTON_STYLE_MANY_2_ONE = 'background-color: #3eb2df;border-color: #21b799;max-width:30px;max-height:10px;' + BOLD_FONT + BUTTON_COMMON
 BUTTON_STYLE_MANY_2_ONE__2 = 'background-color: #3eb2df;border-color: #21b799;' + BOLD_FONT + BUTTON_COMMON
+BUTTON_STYLE_LINK = 'color: #008784;' + BOLD_FONT
 BUTTON_ADD_AN_ITEM = 'border: none;color:blue;background-color:white;' + BOLD_FONT
 LABEL_STYLE = 'margin-right: 0px;' + BOLD_FONT + FONT_SIZE
 LABEL_STYLE_STATUSBAR = 'background-color: grey;color:white;max-width:100px;border: 0.1px solid white;border-bottom-right-radius: 10px;border-top-right-radius: 10px;'

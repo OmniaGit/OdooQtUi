@@ -14,7 +14,7 @@ logger.setLevel(logging.DEBUG)
 
 
 if __name__ == '__main__':
-    constants.DEBUG = True
+    constants.DEBUG = False
     odooConnector = MainConnector()
     import time
     ts = time.time()
@@ -59,7 +59,7 @@ if __name__ == '__main__':
         lay = QtWidgets.QVBoxLayout()
         lay.addWidget(scroll)
         lay.setMargin(0)
-        lay.setContentsMargins(0,0,0,0)
+        lay.setContentsMargins(20,20,20,20)
         dialog.setLayout(lay)
         dialog.resize(1200, 600)
         dialog.move(100, 100)
