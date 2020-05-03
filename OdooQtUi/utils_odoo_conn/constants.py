@@ -13,7 +13,7 @@ BACKGROUND_GREY = 'background-color:#dfd9d9;'
 BACKGROUND_LIGHT_BLUE = 'background-color: #cdd6fc;'
 READONLY_STYLE = 'background-color:#ebebeb;'
 COMMON_FIELDS_REQUIRED_BACKGROUND = 'background-color: rgb(210,210,255)'
-LAY_OUT_SPACING = 2
+LAY_OUT_SPACING = 4
 
 BOLD_FONT = 'font-weight: bold;'
 COMMON_FIELDS_BORDER = 'border: 2px solid #cfcfcf;'

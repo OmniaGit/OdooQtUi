@@ -70,7 +70,7 @@ class Selection(OdooFieldTemplate):
             utilsUi.setRequiredBackground(self.widgetQtObj, constants.SELECTION_STYLE)
         self.qtHorizontalWidget.addWidget(self.labelQtObj)
         self.qtHorizontalWidget.addWidget(self.widgetQtObj)
-        self.qtHorizontalWidget.addSpacerItem(QtWidgets.QSpacerItem(40, 40, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding))
+        self.qtHorizontalWidget.addSpacerItem(QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding))
 
     def valueChanged(self, newIndex):
         currentValue = str(self.widgetQtObj.currentText())

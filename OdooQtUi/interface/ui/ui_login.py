@@ -106,7 +106,7 @@ class Ui_dialog_login(object):
         self.pushButton_next = QtWidgets.QPushButton(dialog_login)
         self.pushButton_next.setObjectName(_fromUtf8("pushButton_next"))
         self.horizontalLayout.addWidget(self.pushButton_next)
-        spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        spacerItem = QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout.addItem(spacerItem)
         self.pushButton_ok = QtWidgets.QPushButton(dialog_login)
         self.pushButton_ok.setObjectName(_fromUtf8("pushButton_ok"))

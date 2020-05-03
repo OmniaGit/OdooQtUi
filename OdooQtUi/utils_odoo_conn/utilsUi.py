@@ -88,7 +88,10 @@ def commonPopulateTable(headers, values, tableWidget, flags={}, add=False, fontS
         for colIndex in colIndexList:
             colName = headers[colIndex]
             if isinstance(menuObj, (list, tuple)):
-                colVal = menuObj[colIndex]
+                if colIndex >= len(menuObj):
+                    colVal = ''
+                else:
+                    colVal = menuObj[colIndex]
             else:
                 colVal = menuObj.__dict__.get(colName, '')
             rowDict[colName] = colVal
@@ -132,11 +135,11 @@ def getButtonBox(spacer='right'):
     okButt = QtWidgets.QPushButton('Ok')
     cancelButt = QtWidgets.QPushButton('Cancel')
     if spacer == 'right':
-        mainLay.addSpacerItem(QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum))
+        mainLay.addSpacerItem(QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum))
     mainLay.addWidget(okButt)
     mainLay.addWidget(cancelButt)
     if spacer == 'left':
-        mainLay.addSpacerItem(QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum))
+        mainLay.addSpacerItem(QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum))
     return mainLay, okButt, cancelButt
 
 

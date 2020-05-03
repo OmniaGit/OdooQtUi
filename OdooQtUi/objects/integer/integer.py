@@ -31,7 +31,7 @@ class Integer(OdooFieldTemplate):
         if self.required:
             utilsUi.setRequiredBackground(self.widgetQtObj, constants.INTEGER_STYLE)
         self.qtHorizontalWidget.addWidget(self.widgetQtObj)
-        self.qtHorizontalWidget.addSpacerItem(QtWidgets.QSpacerItem(40, 40, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding))
+        self.qtHorizontalWidget.addSpacerItem(QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding))
         if self.translatable:
             self.connectTranslationButton()
             self.qtHorizontalWidget.addWidget(self.translateButton)

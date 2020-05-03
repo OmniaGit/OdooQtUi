@@ -150,7 +150,7 @@ class One2many(OdooFieldTemplate):
             labelUser = QtWidgets.QLabel(msg)
             labelUser.setAlignment(QtCore.Qt.AlignLeft)
             contentHLay.addWidget(labelUser)
-            verticalSpacer = QtWidgets.QSpacerItem(40, 40, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+            verticalSpacer = QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
             contentHLay.addSpacerItem(verticalSpacer)
             
             mainVLay = QtWidgets.QVBoxLayout()
@@ -479,7 +479,7 @@ class One2many(OdooFieldTemplate):
             self.qtHorizontalWidget.addLayout(self.mainLay)
             self.widgetQtObj.setHorizontalHeaderItem(self.widgetQtObj.columnCount() - 1, QtWidgets.QTableWidgetItem('Remove'))
             self.widgetQtObj.resizeColumnsToContents()
-        #self.addSpacerItem(QtWidgets.QSpacerItem(20,20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding))
+        #self.addSpacerItem(QtWidgets.QSpacerItem(10,10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding))
 
     def setupTableWidgetLay(self, tableWidget):
         tableWidget.resizeColumnsToContents()

@@ -78,8 +78,9 @@ class QtFormView(TemplateView):
         else:
             utils.logWarning('No arch set impossible to compute structure')
 
-    def computeRecursion(self, qvboxLayout=False, xmlParent=None, nootebookIndex=0):
+    def computeRecursion(self, qvboxLayout=False, xmlParent=None, nootebookIndex=0, row_widget_limit=4):
         # TODO:    div name <div name="button_box" class="oe_button_box">
+        row_widget_count = 0
         if not qvboxLayout:
             qvboxLayout = QtWidgets.QVBoxLayout()
             qvboxLayout.setSpacing(0)
@@ -88,8 +89,14 @@ class QtFormView(TemplateView):
             line = QtWidgets.QLineEdit()
             line.setStyleSheet("border:2px solid blue;")
             qvboxLayout.addWidget(line)
+        row_container = QtWidgets.QHBoxLayout()
+        row_container.setSpacing(0)
+        row_container.setMargin(0)
         for childXlmElement in xmlParent.getchildren():
             childXmlTag = childXlmElement.tag
+            xmlAttrs = childXlmElement.attrib
+            
+            print('%s %s' % (childXmlTag, xmlAttrs))
             if childXmlTag == 'sheet':
                 self.computeRecursion(qvboxLayout=qvboxLayout,
                                       xmlParent=childXlmElement)
@@ -125,9 +132,11 @@ class QtFormView(TemplateView):
                     self.computeRecursion(qvboxLayout=qvboxLayout,
                                           xmlParent=childXlmElement)
                 else:
+                    qvboxLayout.addLayout(row_container)
                     self.computeRecursion(qvboxLayout=qvboxLayout,
                                           xmlParent=childXlmElement)
             elif childXmlTag == 'notebook':
+                qvboxLayout.addLayout(row_container)
                 tabWidget = QtWidgets.QTabWidget(self)
                 tabWidget.setStyleSheet(constants.NOOTEBOOK_STYLE)
                 tabWidgetBar = tabWidget.tabBar()
@@ -150,14 +159,22 @@ class QtFormView(TemplateView):
                     self.computeRecursion(qvboxLayout=pageVboxLayout,
                                           xmlParent=page,
                                           nootebookIndex=nootebookIndex)
+                    pageVboxLayout.addSpacerItem(QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding))
                     pageWidget.setLayout(pageVboxLayout)
                     tabWidget.addTab(pageWidget, pageString)
                     nootebookIndex = nootebookIndex + 1
                 qvboxLayout.addWidget(tabWidget)
-                tabWidget.currentChanged.connect(partial(self.computeNooteBookPage, tabWidget))
+                # tabWidget.currentChanged.connect(partial(self.computeNooteBookPage, tabWidget))
             elif childXmlTag == 'group':
+                colspan = xmlAttrs.get('col', None)
+                if colspan:
+                    colspan = eval(colspan)
+                else:
+                    colspan = row_widget_limit
+                qvboxLayout.addLayout(row_container)
                 self.computeRecursion(qvboxLayout=qvboxLayout,
-                                      xmlParent=childXlmElement)
+                                      xmlParent=childXlmElement,
+                                      row_widget_limit=colspan)
             elif childXmlTag == 'button':
                 utils.logWarning('Buttons not implemented at first level of form')
                 continue
@@ -178,7 +195,8 @@ class QtFormView(TemplateView):
             elif childXmlTag == 'field':
                 fieldQHLayout = self.computeField(childXlmElement)
                 if fieldQHLayout:
-                    qvboxLayout.addWidget(fieldQHLayout)
+                    row_container.addWidget(fieldQHLayout)
+                    row_widget_count += 2
                     self.appendToglobalMapping('field_' + fieldQHLayout.fieldName, fieldQHLayout)
             elif childXmlTag == 'h1':
                 self.computeRecursion(qvboxLayout=qvboxLayout,
@@ -200,10 +218,18 @@ class QtFormView(TemplateView):
                     qvboxLayout.addWidget(labelObj)
             else:
                 utils.logWarning('Tag %r not supported and not evaluated' % (childXlmElement))
+            if row_widget_count >= row_widget_limit:
+                row_widget_count = 0
+                qvboxLayout.addLayout(row_container)
+                row_container = QtWidgets.QHBoxLayout()
+                row_container.setSpacing(0)
+                row_container.setMargin(0)
         if constants.DEBUG:
             line = QtWidgets.QLineEdit()
             line.setStyleSheet("border:2px solid blue;")
             qvboxLayout.addWidget(line)
+        if not row_container.parent():
+            qvboxLayout.addLayout(row_container)
         return qvboxLayout
 
     def computeHeader(self, archHeader, useHeader=False):
@@ -276,8 +302,8 @@ class QtFormView(TemplateView):
         return fieldObj
 
     def computeNooteBookPage(self, tabObject, pageIndex=False):
-        tabObject.nootebook_changed_signal.emit(pageIndex)
-        return
+#         tabObject.nootebook_changed_signal.emit(pageIndex)
+#         return
         values = tabObject.get(pageIndex, {})
         if values:
             del tabObject[pageIndex]
@@ -286,7 +312,7 @@ class QtFormView(TemplateView):
     def computeChatter(self, divVlay, childElement):
         self.chatterLay = QtWidgets.QVBoxLayout()
         self.chatterButton = QtWidgets.QPushButton('↓↓↓   Show Chatter   ↓↓↓')
-        self.chatterButton.setStyleSheet(constants.BUTTON_STYLE)
+        self.chatterButton.setStyleSheet(constants.BUTTON_STYLE + constants.VIOLET_BACKGROUND)
         self.chatterButton.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         self.chatterButton.clicked.connect(self.showChatter)
         self.chatterWidgets = []
@@ -308,7 +334,7 @@ class QtFormView(TemplateView):
             else:
                 utils.logMessage('warning', 'Unable to compute tag in chatter %r' % (fieldObj.tag), 'computeChatter')
         self.chatterLay.insertWidget(0, self.chatterButton)
-        utilsUi.setLayoutMarginAndSpacing(self.chatterLay, constants.LAY_OUT_SPACING + 40)
+        utilsUi.setLayoutMarginAndSpacing(self.chatterLay, constants.LAY_OUT_SPACING + 20)
         self.chatterLay.setSpacing(constants.LAY_OUT_SPACING)
         divVlay.addLayout(self.chatterLay)
 

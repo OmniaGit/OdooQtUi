@@ -23,33 +23,48 @@ class Many2many(OdooFieldTemplate):
         self.treeViewObj = False
         self.btnAddAnItem = None
         self.odooConnector = odooConnector
-        self.currentValue = []
         self.relation = self.fieldPyDefinition.get('relation', '')
         self.canCreate = json.loads(self.fieldXmlAttributes.get('can_create', 'true'))
         self.canWrite = json.loads(self.fieldXmlAttributes.get('can_write', 'true'))
         self.qtVBoxLayout = QtWidgets.QVBoxLayout()
         qHl = self.getQtObject()
-        self.qtVBoxLayout.addLayout(qHl)
         self.evaluatedIds = {}
+        self.labelQtObj = QtWidgets.QLabel(self.fieldStringInterface)
+        self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
+        self.qtVBoxLayout.addWidget(self.labelQtObj)
+        remove_button = True
+        if self.readonly:
+            remove_button = False
         self.treeViewObj = self.odooConnector.initTreeListViewObject(odooObjectName=self.relation,
                                                                      viewName='',
                                                                      view_id=False,
                                                                      rpcObj=self.rpc,
                                                                      activeLanguage='',
                                                                      viewCheckBoxes={0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled},
-                                                                     viewFilter=False)
+                                                                     viewFilter=False,
+                                                                     remove_button=remove_button)
         self.qtVBoxLayout.addWidget(self.treeViewObj)
+        self.qtVBoxLayout.addLayout(qHl)
         self.qtHorizontalWidget.addLayout(self.qtVBoxLayout)
+
+    @property
+    def currentValue(self):
+        return self.treeViewObj.idLineRel.ids()
 
     def getQtObject(self):
         qhw = QtWidgets.QHBoxLayout()
-        self.labelQtObj = QtWidgets.QLabel(self.fieldStringInterface)
-        self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
-        qhw.addWidget(self.labelQtObj)
         self.createButt = QtWidgets.QPushButton('Create', self)
         self.createButt.setStyleSheet(constants.BUTTON_STYLE)
         self.createButt.clicked.connect(self.createAndAdd)
+
+        self.btnAddAnItem = QtWidgets.QPushButton('Add an item', self)
+        self.btnAddAnItem.setStyleSheet(constants.BUTTON_STYLE)
+        self.btnAddAnItem.clicked.connect(self.addAnItem)
+            
         qhw.addWidget(self.createButt)
+        qhw.addWidget(self.btnAddAnItem)
+        
+        qhw.addSpacerItem(QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding))
         return qhw
 
     def createAndAdd(self):
@@ -65,13 +80,14 @@ class Many2many(OdooFieldTemplate):
         def rejectFormDial():
             formdialog.reject()
 
+        raise Exception('To be moved inside list view with a flag like remove button')
         try:
             tmpviewObjForm = self.odooConnector.initFormViewObj(self.relation, rpcObj=self.rpc)
             tmpviewObjForm.loadIds([])
             formdialog = QtWidgets.QDialog()
             mainLay = QtWidgets.QVBoxLayout()
             mainLay.addWidget(tmpviewObjForm)
-            formdialog.setStyleSheet(constants.VIOLET_BACKGROUND)
+            formdialog.setStyleSheet(constants.BACKGROUND_WHITE)
             formdialog.resize(1200, 600)
             formdialog.move(100, 100)
             buttLay, okButt, cancelButt = utilsUi.getButtonBox('right')
@@ -91,21 +107,13 @@ class Many2many(OdooFieldTemplate):
             utils.logMessage('error', '%r' % (ex), 'createAndAdd')
 
     def setValue(self, relIds):
-        self.currentValue = relIds
         self.treeViewObj.loadIds(relIds, {}, {}, {})
         self.widgetQtObj = self.treeViewObj.treeObj.tableWidget
         self.fieldsToReadOrdered = self.treeViewObj.treeObj.orderedFields
-        self.setRemoveButtons(self.widgetQtObj)
+        # self.setRemoveButtons(self.widgetQtObj)
         self.setupTableWidgetLay(self.widgetQtObj)
         if self.required:
             utilsUi.setRequiredBackground(self.widgetQtObj, '')
-        if not self.btnAddAnItem:
-            self.btnAddAnItem = QtWidgets.QPushButton('Add an item')
-            self.btnAddAnItem.setStyleSheet(constants.BUTTON_ADD_AN_ITEM)
-            self.btnAddAnItem.clicked.connect(self.addAnItem)
-            addAnItemLay = QtWidgets.QHBoxLayout()
-            addAnItemLay.addWidget(self.btnAddAnItem)
-            self.qtVBoxLayout.addLayout(addAnItemLay)
 
     def setupTableWidgetLay(self, tableWidget):
         tableWidget.resizeColumnsToContents()
@@ -150,22 +158,6 @@ class Many2many(OdooFieldTemplate):
             flags[0] = QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
         return values, flags
 
-    def removeItem(self, rowIndex):
-        found = False
-        rowIndexes = list(self.treeViewObj.idLineRel.keys())
-        for rowInd in rowIndexes:
-            objId = self.treeViewObj.idLineRel[rowInd]
-            if rowInd == rowIndex:
-                if objId in self.currentValue:
-                    self.currentValue.remove(objId)
-                    utils.removeRowFromTableWidget(self.widgetQtObj, rowIndex)
-                    self.setRemoveButtons(self.widgetQtObj)
-                    del self.treeViewObj.idLineRel[rowInd]
-                    found = True
-            elif found:
-                del self.treeViewObj.idLineRel[rowInd]
-                self.treeViewObj.idLineRel[rowInd - 1] = objId
-
     def addAnItem(self):
         def acceptDial():
             dial.accept()
@@ -190,6 +182,7 @@ class Many2many(OdooFieldTemplate):
         def toRight():
             commonMove()
 
+        raise Exception('To be moved in list view with a flag')
         viewObj = self.odooConnector.initTreeListViewObject(self.relation, rpcObj=self.rpc, viewCheckBoxes={0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled})
         viewObj.buttToLeft.clicked.connect(toLeft)
         viewObj.buttToRight.clicked.connect(toRight)

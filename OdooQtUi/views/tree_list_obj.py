@@ -11,11 +11,12 @@ from OdooQtUi.views.search_obj import TemplateSearchView
 from OdooQtUi.utils_odoo_conn import utils, utilsUi
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.RPC.rpc import connectionObj
+from functools import partial
 
 
 class TemplateTreeListView(TemplateView):
 
-    def __init__(self, rpcObject, viewObj, activeLanguageCode='en_US', searchObj=None, odooConnector=None, deafult_filter=[]):
+    def __init__(self, rpcObject, viewObj, activeLanguageCode='en_US', searchObj=None, odooConnector=None, deafult_filter=[], remove_button=False):
         super(TemplateTreeListView, self).__init__(rpcObject, viewObj, activeLanguageCode)
         self.readonly = True
         self.activeIds = []
@@ -27,6 +28,7 @@ class TemplateTreeListView(TemplateView):
         self.deafult_filter = deafult_filter
         self.currentRange = [0, 40]
         self.passRange = 40
+        self.remove_button = remove_button
         self._initViewObj()
 
     def _initViewObj(self):
@@ -55,7 +57,7 @@ class TemplateTreeListView(TemplateView):
         switchRecordsLay = QtWidgets.QHBoxLayout()
         self.buttToLeft = QtWidgets.QPushButton('<')
         self.buttToRight = QtWidgets.QPushButton('>')
-        switchRecordsLay.addSpacerItem(QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum))
+        switchRecordsLay.addSpacerItem(QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum))
         switchRecordsLay.addWidget(self.buttToLeft)
         switchRecordsLay.addWidget(self.buttToRight)
         self.buttToLeft.setStyleSheet(constants.BUTTON_STYLE)
@@ -141,6 +143,8 @@ class TemplateTreeListView(TemplateView):
             recordId = record.get('id', False)
             self.idValsRel[recordId] = record
             self.idLineRel[records.index(record)] = recordId
+        if self.remove_button:
+            self.labelsOrdered.append('')
         utilsUi.commonPopulateTable(self.labelsOrdered, valuesList, self.treeObj.tableWidget, flagsDict, fontSize=constants.FONT_SIZE_LIST_WIDGET)
         if self.treeObj.tableWidget:
             self.treeObj.tableWidget.setShowGrid(False)
@@ -148,11 +152,37 @@ class TemplateTreeListView(TemplateView):
             self.treeObj.tableWidget.horizontalHeader().setStyleSheet(constants.MANY_2_MANY_H_HEADER)
             self.treeObj.tableWidget.verticalHeader().setVisible(False)
             self.treeObj.tableWidget.horizontalHeader().setStyleSheet('::section {background-color:#a2b0ff;color:black;font-weight:bold;}')
+        if self.remove_button:
+            self.setRemoveButtons()
         self.refreshColumns()
+
+    def setRemoveButtons(self):
+        rowCount = self.treeObj.tableWidget.rowCount()
+        colCount = self.treeObj.tableWidget.columnCount()
+        for rowCount in range(0, rowCount):
+            btn = QtWidgets.QPushButton('Remove')
+            btn.setStyleSheet(constants.BUTTON_ADD_AN_ITEM)
+            self.treeObj.tableWidget.setCellWidget(rowCount, colCount - 1, btn)
+            btn.clicked.connect(partial(self.removeItem, rowCount))
+
+    def removeItem(self, rowIndex):
+        found = False
+        rowIndexes = list(self.idLineRel.keys())
+        for rowInd in rowIndexes:
+            objId = self.idLineRel[rowInd]
+            if rowInd == rowIndex:
+                utils.removeRowFromTableWidget(self.treeObj.tableWidget, rowIndex)
+                self.setRemoveButtons()
+                del self.idLineRel[rowInd]
+                found = True
+            elif found:
+                del self.idLineRel[rowInd]
+                self.idLineRel[rowInd - 1] = objId
 
     def refreshColumns(self):
         if self.treeObj.tableWidget:
             self.treeObj.tableWidget.resizeColumnsToContents()
+            self.treeObj.tableWidget.horizontalHeader().setStretchLastSection(True)
 
     def setRowSelected(self, rowIndex):
         self.treeObj.tableWidget.selectRow(rowIndex)
@@ -181,12 +211,15 @@ class TemplateTreeListView(TemplateView):
         self.currentRange = [to, to + self.passRange]
         self.buttToLeft.setHidden(False)
         objIds = connectionObj.search(self.model, [], limit=self.passRange, offset=self.currentRange[0])
-        self.loadIds(objIds)
+        if objIds:
+            self.loadIds(objIds)
+        else:
+            self.buttToRight.setHidden(True)
 
     def switchToLeft(self):
         start, _to = self.currentRange
         self.currentRange = [start - self.passRange, start]
-        if self.currentRange[0] == 0:
+        if self.currentRange[0] <= 0:
             self.buttToLeft.setHidden(True)
         self.buttToRight.setHidden(False)
         objIds = connectionObj.search(self.model, [], limit=self.passRange, offset=self.currentRange[0])

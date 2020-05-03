@@ -57,7 +57,7 @@ class Many2one(OdooFieldTemplate):
             utilsUi.setRequiredBackground(self.widgetQtObj2, constants.SELECTION_STYLE)
         self.qtHorizontalWidget.addWidget(self.widgetQtObj2)
         if self.canWrite:
-            self.editButton = QtWidgets.QPushButton('Edit')
+            self.editButton = QtWidgets.QPushButton('E')
             self.editButton.clicked.connect(self.editItem)
             self.editButton.setStyleSheet(constants.BUTTON_STYLE_MANY_2_ONE)
             self.qtHorizontalWidget.addWidget(self.editButton)
@@ -175,7 +175,7 @@ class Many2one(OdooFieldTemplate):
         lay.setParent(None)
         mainLay.addLayout(lay)
         dialog.setLayout(mainLay)
-        dialog.setStyleSheet(constants.VIOLET_BACKGROUND)
+        dialog.setStyleSheet(constants.BACKGROUND_WHITE)
         dialog.adjustSize()
         dialog.resize(1000, 750)
         if dialog.exec_() == QtWidgets.QDialog.Accepted:

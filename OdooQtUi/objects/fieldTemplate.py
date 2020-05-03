@@ -67,7 +67,7 @@ class OdooFieldTemplate(QtWidgets.QWidget):
         self.parentModel = parentModel
 
     def connectTranslationButton(self):
-        self.translateButton = QtWidgets.QPushButton('Translate')
+        self.translateButton = QtWidgets.QPushButton('T')
         self.translateButton.setStyleSheet(constants.BUTTON_STYLE)
         self.translateButton.clicked.connect(self.translateDialog)
         # self.qtHorizontalWidget.setSpacing(10)
