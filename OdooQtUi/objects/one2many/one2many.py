@@ -144,7 +144,7 @@ class One2many(OdooFieldTemplate):
             labelBody.setFrameShape(QtWidgets.QFrame.NoFrame)
             labelBody.insertHtml(note)
             labelBody.setReadOnly(True)
-            labelBody.setFixedHeight(labelBody.document().size().toSize().height() + 3)
+            # labelBody.setFixedHeight(labelBody.document().size().toSize().height() + 3)
             
             msg = '%s: %s "%s" for %s            Date %s' % (state.capitalize(), activity_name, summary, user_name, date_deadline)
             labelUser = QtWidgets.QLabel(msg)
