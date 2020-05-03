@@ -61,7 +61,7 @@ if __name__ == '__main__':
         lay.setMargin(0)
         lay.setContentsMargins(20,20,20,20)
         dialog.setLayout(lay)
-        dialog.resize(1200, 600)
+        dialog.resize(1200, 800)
         dialog.move(100, 100)
         dialog.exec_()
 

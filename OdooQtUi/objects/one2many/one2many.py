@@ -75,7 +75,7 @@ class One2many(OdooFieldTemplate):
         sendMessageBoxHLayout.addWidget(self.buttLogNote)
 
         mainWidget.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        mainLay = QtWidgets.QVBoxLayout(mainWidget)
+        self.mainMessageVLay = QtWidgets.QVBoxLayout(mainWidget)
         scrollArea = QtWidgets.QScrollArea()
         scrollArea.setFrameShape(QtWidgets.QFrame.NoFrame)
         scrollArea.setFrameShadow(QtWidgets.QFrame.Sunken)
@@ -85,11 +85,12 @@ class One2many(OdooFieldTemplate):
         scrollAreaWidgetContents = QtWidgets.QWidget()
         self.messageVLay = QtWidgets.QVBoxLayout(scrollAreaWidgetContents)
         scrollArea.setWidget(scrollAreaWidgetContents)
-        mainLay.addWidget(label)
-        mainLay.addLayout(sendMessageBoxHLayout)
-        mainLay.addWidget(scrollArea)
-        mainWidget.setLayout(mainLay)
+        self.mainMessageVLay.addWidget(label)
+        self.mainMessageVLay.addLayout(sendMessageBoxHLayout)
+        self.mainMessageVLay.addWidget(scrollArea)
+        mainWidget.setLayout(self.mainMessageVLay)
         mainWidget.setMinimumHeight(300)
+        self.populateNoteLay()
         return mainWidget
 
     def getMailActivityWidget(self):
@@ -143,6 +144,7 @@ class One2many(OdooFieldTemplate):
             labelBody.setFrameShape(QtWidgets.QFrame.NoFrame)
             labelBody.insertHtml(note)
             labelBody.setReadOnly(True)
+            labelBody.setFixedHeight(labelBody.document().size().toSize().height() + 3)
             
             msg = '%s: %s "%s" for %s            Date %s' % (state.capitalize(), activity_name, summary, user_name, date_deadline)
             labelUser = QtWidgets.QLabel(msg)
@@ -192,10 +194,10 @@ class One2many(OdooFieldTemplate):
         self.textEditMess = QtWidgets.QTextEdit()
         self.sendButtonMess = QtWidgets.QPushButton('Send')
         self.sendButtonMess.setStyleSheet(constants.BUTTON_STYLE_MANY_2_ONE__2)
-        self.noteLay.addWidget(self.textEditMess)
+        self.mainMessageVLay.addWidget(self.textEditMess)
         lay = QtWidgets.QHBoxLayout()
         lay.addWidget(self.sendButtonMess)
-        self.noteLay.addLayout(lay)
+        self.mainMessageVLay.addLayout(lay)
         self.textEditMess.setStyleSheet(constants.TEXT_STYLE)
         self.sendButtonMess.clicked.connect(self.sendMessNote)
         self.showNoteLay(False)
@@ -208,8 +210,8 @@ class One2many(OdooFieldTemplate):
         else:
             res = self._sendMessage(body)
         self.showNoteLay(False)
-        for i in reversed(list(range(self.messaggesLay.count()))):
-            self.messaggesLay.itemAt(i).widget().deleteLater()
+        for i in reversed(list(range(self.messageVLay.count()))):
+            self.messageVLay.itemAt(i).widget().deleteLater()
         if res:
             self.currentValue.insert(0, res)
         self.showMessagges()
@@ -218,19 +220,6 @@ class One2many(OdooFieldTemplate):
     def showNoteLay(self, visible=False):
         self.textEditMess.setHidden(not visible)
         self.sendButtonMess.setHidden(not visible)
-
-    def populateMessButtLay(self):
-        self.buttSendMessage = QtWidgets.QPushButton('Send Message')
-        self.buttLogNote = QtWidgets.QPushButton('Log Note')
-        self.buttSendMessage.setStyleSheet(constants.BUTTON_STYLE_MANY_2_ONE__2)
-        self.buttLogNote.setStyleSheet(constants.BUTTON_STYLE_MANY_2_ONE__2)
-        self.messaggesButtLay.addWidget(self.buttSendMessage)
-        self.messaggesButtLay.addWidget(self.buttLogNote)
-        #self.messaggesButtLay.addSpacerItem(QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding))
-        self.buttSendMessage.clicked.connect(self.sendMessage)
-        self.buttLogNote.clicked.connect(self.logNote)
-        self.buttSendMessage.setHidden(True)
-        self.buttLogNote.setHidden(True)
 
     def sendMessage(self):
         self.showNoteLay(True)
@@ -385,6 +374,7 @@ class One2many(OdooFieldTemplate):
             labelBody.setFrameShape(QtWidgets.QFrame.NoFrame)
             labelBody.insertHtml(bodyMessage)
             labelBody.setReadOnly(True)
+            labelBody.setFixedHeight(labelBody.document().size().toSize().height() + 3)
             hlayUser = QtWidgets.QHBoxLayout()
             hlayUser.addWidget(labelUser)
             hlayUser.addWidget(labelDate)
