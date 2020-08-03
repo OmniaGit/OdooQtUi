@@ -171,9 +171,11 @@ class XmlRpcConnection(object):
             utils.logMessage('error', 'Error during reading fields with values: object %r, kargs %r. Error: %r' % (obj, kargs, ex), 'fieldsGet')
         return {}
 
-    def readSearch(self, obj, fields, filterList, limit=False, context={}):
+    def readSearch(self, obj, fields, filterList, limit=False, order=False, context={}):
         try:
             kargs = {'fields': fields, 'context': context}
+            if order:
+                kargs['order'] = order    
             return self.callOdooFunction(obj, 'search_read', [filterList], kargs)
         except Exception as ex:
             utils.logMessage('error', 'Error during reading fields with values: object %r, kargs %r, filterList %r. Error: %r' % (obj, kargs, filterList, ex), 'readSearch')
@@ -265,7 +267,7 @@ class XmlRpcConnection(object):
                                                   parameters,
                                                   kwargParameters)
         except socket.error as err:
-            message = 'Unable to communicate with the server: %r' % err
+            message = 'Unable to communicate with the server: %r calling %r on %r' % (err, functionName, odooObj)
             if self.useInterface:
                 utilsUi.launchMessage(message, 'error')
             utils.logMessage('error', message, 'callOdooFunction')
