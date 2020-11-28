@@ -511,8 +511,7 @@ def timeit(method):
         ts = time.time()
         result = method(*args, **kw)
         te = time.time()
-
-        logDebug('%2.2f sec, %r par: %r' % (te - ts, method.__name__, args[1:]), 'timeit')
+        logDebug('%2.2f sec, %r' % (te - ts, method.__name__), 'timeit')
         return result
 
     return timed

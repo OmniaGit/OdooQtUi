@@ -261,7 +261,9 @@ class XmlRpcConnection(object):
             @kwargParameters: {'context': {}, limit: val, 'order': val,...}
         '''
         try:
-            return self.socketYesLogin.execute_kw(self.databaseName, self.userId, self.userPassword,
+            return self.socketYesLogin.execute_kw(self.databaseName,
+                                                  self.userId,
+                                                  self.userPassword,
                                                   odooObj,
                                                   functionName,
                                                   parameters,
