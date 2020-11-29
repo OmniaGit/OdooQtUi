@@ -526,6 +526,14 @@ def getLoginFile():
     return os.path.join(home, '.trayUserLogin')
 
 
+def getDebugSeverity():
+    home = getUserHomeDir()
+    if os.path.join(home,'.odooqtuidebug'):
+        return logging.DEBUG
+    else:
+        return logging.INFO
+
+
 def loadFromFile():
     dbName = ''
     username = ''

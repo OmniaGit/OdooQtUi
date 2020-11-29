@@ -22,7 +22,14 @@ except Exception as ex:
 
 class XmlRpcConnection(object):
 
-    def __init__(self, userName, userPassword, databaseName, xmlrpcPort=8069, scheme='http', xmlrpcServerIP='127.0.0.1', secure=False):
+    def __init__(self,
+                 userName,
+                 userPassword,
+                 databaseName,
+                 xmlrpcPort=8069,
+                 scheme='http',
+                 xmlrpcServerIP='127.0.0.1',
+                 secure=False):
         self.userName = userName
         self.userPassword = userPassword
         self.databaseName = databaseName
@@ -40,7 +47,28 @@ class XmlRpcConnection(object):
         self.useInterface = USE_INTERFACE
         self.secure = secure
         self.timeout = 2.5
+        self.serverVersion = 8
 
+    def _assignServerVersion(self):
+        """
+            assign odoo server version
+        """
+        try:
+            utils.logMessage('info', 'Trying to compute server version', '_assignServerVersion')
+            odooVerInfo = xmlrpc.ServerProxy('{}2/common'.format(self.urlCommon))
+            odooVerDict = odooVerInfo.version()
+            serverVersion = odooVerDict.get('server_serie', '')
+            if serverVersion == '':
+                serverVersion = odooVerDict.get('server_version', '')
+                serverVersion = serverVersion.split('-')[0]
+                serverVersion = str(serverVersion).split("+")[0]
+                serverVersion = serverVersion.replace('e', '')
+            self.serverVersion =  int(float(serverVersion))
+            utils.logMessage('info', 'Server version is %r' % (self.serverVersion), '_assignServerVersion')
+        except Exception as ex:
+            utils.logMessage('error', 'Unable to read server version: %r' % (ex), '_assignServerVersion')
+            
+        
     @property
     def urlNoLogin(self):
         return self.urlCommon + 'common'
@@ -76,6 +104,7 @@ class XmlRpcConnection(object):
         return True
 
     def loginWithUser(self):
+        self._assignServerVersion()
         if not self.socketNoLogin:
             self.loginNoUser()
         try:
@@ -252,6 +281,11 @@ class XmlRpcConnection(object):
             utils.logMessage('error', 'Error during call Odoo Function execute with arguments: %r, %r, %r, %r' % (obj, method, args), 'execute')
             return False
 
+    def sanitizeVersionFunction(self, functionName):
+        if functionName == 'context_get' and self.serverVersion==14:
+            functionName = 'koo_context_get'
+        return functionName
+    
     @utils.timeit
     def callOdooFunction(self, odooObj, functionName, parameters=[], kwargParameters={}):
         '''
@@ -261,6 +295,7 @@ class XmlRpcConnection(object):
             @kwargParameters: {'context': {}, limit: val, 'order': val,...}
         '''
         try:
+            functionName = self.sanitizeVersionFunction(functionName)
             return self.socketYesLogin.execute_kw(self.databaseName,
                                                   self.userId,
                                                   self.userPassword,
@@ -280,7 +315,12 @@ class XmlRpcConnection(object):
                         utilsUi.launchMessage(err.faultString, 'error')
                     else:
                         utils.logError(err.faultString, 'callOdooFunction')
-                return self.socketYesLogin.execute(self.databaseName, self.userId, self.userPassword, odooObj, functionName, parameters)
+                return self.socketYesLogin.execute(self.databaseName,
+                                                   self.userId,
+                                                   self.userPassword,
+                                                   odooObj,
+                                                   functionName,
+                                                   parameters)
             except Exception as ex:
                 message = 'Unable to communicate with the server: %r' % ex.faultCode
                 if self.useInterface:
@@ -290,7 +330,12 @@ class XmlRpcConnection(object):
             if self.useInterface:
                 utilsUi.launchMessage(ex, 'error')
             utils.logMessage('error', ex, 'callOdooFunction')
-            utils.logMessage('error', 'Error during call Odoo Function with arguments: %r, %r, %r, %r' % (odooObj, functionName, parameters, kwargParameters), 'callOdooFunction')
+            utils.logMessage('error',
+                             'Error during call Odoo Function with arguments: %r, %r, %r, %r' % (odooObj,
+                                                                                                 functionName,
+                                                                                                 parameters,
+                                                                                                 kwargParameters),
+                             'callOdooFunction')
         return False
 
 

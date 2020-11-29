@@ -8,7 +8,6 @@ from OdooQtUi.RPC.XmlRpc.xmlRpc import XmlRpcConnection
 
 
 class RpcConnection(object):
-
     def __init__(self):
         self.userId = False
         self.availableConnTypes = ['xmlrpc', 'secure-xmlrpc']

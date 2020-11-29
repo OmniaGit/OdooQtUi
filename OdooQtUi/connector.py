@@ -14,7 +14,8 @@ from OdooQtUi.views.tree_list_obj import TemplateTreeListView
 from OdooQtUi.interface.login import LoginDialComplete
 
 logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
+
+logger.setLevel(utils.getDebugSeverity())
 
 
 class ViewOdooObj(object):
