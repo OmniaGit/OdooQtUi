@@ -57,10 +57,10 @@ class ViewOdooObj(object):
 
 class MainConnector(object):
 
-    def __init__(self):
+    def __init__(self, parentWindow=None):
         self.activeLanguage = 'en_US'
         self.loadedViews = []
-        return super(MainConnector, self).__init__()
+        self._parentWindow = parentWindow
 
     def loginNoUser(self, xmlrpcServerIP='127.0.0.1', xmlrpcPort=8069, scheme='http', loginType='xmlrpc'):
         connectionObj.initConnection(loginType, '', '', '', xmlrpcPort, scheme, xmlrpcServerIP)
