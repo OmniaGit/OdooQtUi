@@ -3,8 +3,10 @@ Created on Jan 18, 2019
 
 @author: mboscolo
 '''
+import os
 import sys
 import logging
+import PySide2
 from PySide2 import QtWidgets
 from PySide2 import QtGui
 from OdooQtUi.connector import MainConnector
@@ -12,13 +14,19 @@ from OdooQtUi.utils_odoo_conn import constants
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
+# dirname = os.path.dirname(PySide2.__file__)
+# plugin_path = os.path.join(dirname, 'Qt', 'plugins', 'platforms')
+# os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = plugin_path
+#os.environ['QT_DEBUG_PLUGINS']='1'
+
+app = QtWidgets.QApplication(sys.argv)
 
 if __name__ == '__main__':
     constants.DEBUG = False
     odooConnector = MainConnector()
     import time
     ts = time.time()
-    app = QtWidgets.QApplication(sys.argv)
+    
     connectorObj = MainConnector()
     connectorObj.loginWithDial()
 
@@ -40,7 +48,7 @@ if __name__ == '__main__':
                 tmplViewObj.loadForceEmptyIds(forceFieldValues, readonlyFields, invisibleFields)
             return tmplViewObj
 
-        tmplViewObj = tryForm('sale.order', idToLoad=100, useChatter=True)
+        tmplViewObj = tryForm('sale.order', useChatter=True)
         #tmplViewObj = tryForm('product.product', 'plm.base.component', idToLoad=3572, useChatter=True)
         #tmplViewObj = tryListView('product.template', viewFilter=True)
         scroll = QtWidgets.QScrollArea()

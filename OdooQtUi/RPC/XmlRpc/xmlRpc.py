@@ -282,8 +282,11 @@ class XmlRpcConnection(object):
             return False
 
     def sanitizeVersionFunction(self, functionName):
-        if functionName == 'context_get' and self.serverVersion==14:
-            functionName = 'koo_context_get'
+        if self.serverVersion==14:
+            if functionName == 'context_get': 
+                functionName = 'koo_context_get'
+            if functionName == 'fields_view_get': 
+                functionName = 'koo_fields_view_get'            
         return functionName
     
     @utils.timeit

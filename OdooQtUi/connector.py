@@ -62,11 +62,22 @@ class MainConnector(object):
         self.loadedViews = []
         self._parentWindow = parentWindow
 
-    def loginNoUser(self, xmlrpcServerIP='127.0.0.1', xmlrpcPort=8069, scheme='http', loginType='xmlrpc'):
+    def loginNoUser(self, 
+                    xmlrpcServerIP='127.0.0.1', 
+                    xmlrpcPort=8069, 
+                    scheme='http', 
+                    loginType='xmlrpc'):
         connectionObj.initConnection(loginType, '', '', '', xmlrpcPort, scheme, xmlrpcServerIP)
         return connectionObj.loginNoUser()
 
-    def loginWithUser(self, user, password, dbName, xmlrpcServerIP='127.0.0.1', xmlrpcPort=8069, scheme='http', loginType='xmlrpc'):
+    def loginWithUser(self, 
+                      user, 
+                      password, 
+                      dbName, 
+                      xmlrpcServerIP='127.0.0.1', 
+                      xmlrpcPort=8069, 
+                      scheme='http', 
+                      loginType='xmlrpc'):
         connectionObj.initConnection(loginType, user, password, dbName, xmlrpcPort, scheme, xmlrpcServerIP)
         res = connectionObj.loginWithUser()
         self.activeLanguage = connectionObj.contextUser.get('lang', 'en_US')
@@ -84,7 +95,18 @@ class MainConnector(object):
         logger = logging.getLogger()
         logger.setLevel(logInteger)
 
-    def _initView(self, viewType, rpcObj, activeLanguage, odooObjectName, viewName, view_id, viewFilter=False, viewCheckBoxes={}, searchMode='ilike', useHeader=False, useChatter=False):
+    def _initView(self, 
+                  viewType, 
+                  rpcObj, 
+                  activeLanguage, 
+                  odooObjectName, 
+                  viewName, 
+                  view_id, 
+                  viewFilter=False, 
+                  viewCheckBoxes={}, 
+                  searchMode='ilike', 
+                  useHeader=False, 
+                  useChatter=False):
         try:
             localLang, rpcObj = self._getCommonLangAndRpc(activeLanguage, rpcObj)
             viewObj = self.checkAlreadyLoadedView(viewType, rpcObj, odooObjectName, viewName, view_id, viewFilter, viewCheckBoxes)
@@ -96,7 +118,15 @@ class MainConnector(object):
             logging.error("Exception Ex %r" % ex)
             raise ex
 
-    def initTreeListViewObject(self, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', viewCheckBoxes={}, viewFilter=False, deafult_filter=[]):
+    def initTreeListViewObject(self,
+                               odooObjectName,
+                               viewName='',
+                               view_id=False,
+                               rpcObj=None, 
+                               activeLanguage='', 
+                               viewCheckBoxes={}, 
+                               viewFilter=False, 
+                               deafult_filter=[]):
         try:
             viewObjSearch = None
             viewObj, localLang, rpcObj = self._initView('tree_list', rpcObj, activeLanguage, odooObjectName, viewName, view_id, viewFilter, viewCheckBoxes)
@@ -116,8 +146,25 @@ class MainConnector(object):
         viewObj, localLang, rpcObj = self._initView('tree_tree', rpcObj, activeLanguage, odooObjectName, viewName, view_id)
         return TemplateTreeTreeView(rpcObj, viewObj, localLang)
 
-    def initFormViewObj(self, odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', useHeader=False, useChatter=False):
-        viewObj, localLang, rpcObj = self._initView('form', rpcObj, activeLanguage, odooObjectName, viewName, view_id, useHeader=useHeader, useChatter=useChatter)
+    def initFormViewObj(self,
+                        odooObjectName, 
+                        viewName='', 
+                        view_id=False, 
+                        rpcObj=None, 
+                        activeLanguage='', 
+                        useHeader=False, 
+                        useChatter=False):
+        """
+        initialize a odoo form view to be used
+        """
+        viewObj, localLang, rpcObj = self._initView('form',
+                                                    rpcObj, 
+                                                    activeLanguage, 
+                                                    odooObjectName, 
+                                                    viewName, 
+                                                    view_id, 
+                                                    useHeader=useHeader, 
+                                                    useChatter=useChatter)
         return QtFormView(rpcObj, viewObj, localLang, self)
 
     def appendLoadedView(self, viewType, rpcObj, odooObjectName, viewName, view_id, viewFilter=False, viewCheckBoxes={}, searchMode='ilike', useHeader=False, useChatter=False):
