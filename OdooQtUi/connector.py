@@ -83,6 +83,10 @@ class MainConnector(object):
         self.activeLanguage = connectionObj.contextUser.get('lang', 'en_US')
         return res
 
+    @property
+    def userLogged(self):
+        return connectionObj.userLogged
+
     def loginWithDial(self):
         loginDialInst = LoginDialComplete()
         loginDialInst.interfaceDial.exec_()

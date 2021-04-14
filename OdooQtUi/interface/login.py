@@ -6,8 +6,8 @@ Created on Mar 28, 2017
 import json
 from OdooQtUi.RPC.rpc import connectionObj
 from .ui.ui_login import Ui_dialog_login
-from PySide2 import QtWidgets
-from PySide2 import QtCore
+from PySide6 import QtWidgets
+from PySide6 import QtCore
 from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.utils_odoo_conn import constants
 
@@ -40,8 +40,8 @@ class LoginDial(QtWidgets.QDialog, Ui_dialog_login):
             searchItem = 'xmlrpc'
         elif lowerTxt == 'https':
             searchItem = 'secure-xmlrpc'
-        if searchItem in self.comboBox_conn_type._items:
-            index = self.comboBox_conn_type._items.index(searchItem)
+        if searchItem in self.availableConnTypes:
+            index = self.availableConnTypes.index(searchItem)
         if index:
             self.comboBox_conn_type.setCurrentIndex(index)
         

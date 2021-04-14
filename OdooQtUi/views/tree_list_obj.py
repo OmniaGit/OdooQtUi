@@ -3,8 +3,8 @@ Created on 24 Mar 2017
 
 @author: dsmerghetto
 '''
-from PySide2 import QtGui
-from PySide2 import QtWidgets
+from PySide6 import QtGui
+from PySide6 import QtWidgets
 from .parser.tree_list import TreeViewList
 from .templateView import TemplateView
 from OdooQtUi.views.search_obj import TemplateSearchView

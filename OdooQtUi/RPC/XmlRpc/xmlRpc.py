@@ -46,7 +46,7 @@ class XmlRpcConnection(object):
         self.userId = False
         self.useInterface = USE_INTERFACE
         self.secure = secure
-        self.timeout = 2.5
+        self.timeout = 60
         self.serverVersion = 8
 
     def _assignServerVersion(self):
@@ -313,11 +313,14 @@ class XmlRpcConnection(object):
             utils.logMessage('error', message, 'callOdooFunction')
         except xmlrpc.Fault as err:
             try:
-                if err.faultString:
+                err_str = err.faultString or err.faultCode
+                if err_str:
                     if self.useInterface:
-                        utilsUi.launchMessage(err.faultString, 'error')
+                        utilsUi.launchMessage(err_str, 'error')
+                        return False
                     else:
-                        utils.logError(err.faultString, 'callOdooFunction')
+                        utils.logError(err_str, 'callOdooFunction')
+                        return False
                 return self.socketYesLogin.execute(self.databaseName,
                                                    self.userId,
                                                    self.userPassword,

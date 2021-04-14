@@ -7,9 +7,9 @@
 #
 # WARNING! All changes made in this file will be lost!
 
-from PySide2 import QtCore
-from PySide2 import QtGui
-from PySide2 import QtWidgets
+from PySide6 import QtCore
+from PySide6 import QtGui
+from PySide6 import QtWidgets
 
 try:
     _fromUtf8 = QtCore.QObject.fromUtf8
@@ -91,7 +91,7 @@ class Ui_dialog_login(object):
         self.label_status = QtWidgets.QLabel(self.page_2)
         font = QtGui.QFont()
         font.setBold(True)
-        font.setWeight(75)
+        font.setWeight(QtGui.QFont.Weight(75))
         self.label_status.setFont(font)
         self.label_status.setText(_fromUtf8(""))
         self.label_status.setObjectName(_fromUtf8("label_status"))

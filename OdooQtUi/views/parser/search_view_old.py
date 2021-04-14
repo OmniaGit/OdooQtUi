@@ -4,8 +4,8 @@ Created on 3 Feb 2017
 @author: Daniel Smerghetto
 '''
 import xml.etree.cElementTree as ElementTree
-from PySide2 import QtGui
-from PySide2 import QtCore
+from PySide6 import QtGui
+from PySide6 import QtCore
 from functools import partial
 from utils_odoo_conn import constants
 from utils_odoo_conn import utils
@@ -745,7 +745,7 @@ class CustomQCompleter(QtGui.QCompleter):
             def filterAcceptsRow(self, sourceRow, sourceParent):
                 index0 = self.sourceModel().index(sourceRow, 0, sourceParent)
                 searchStr = local_completion_prefix.lower()
-                modelStr = str(self.sourceModel().data(index0, QtCore.Qt.DisplayRole).toString().toLower())
+                modelStr = str(self.sourceModel().data(index0, QtCore.Qt.DisplayRole).toLower())
                 return searchStr in modelStr
 
         proxy_model = InnerProxyModel()

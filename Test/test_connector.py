@@ -6,15 +6,15 @@ Created on Jan 18, 2019
 import os
 import sys
 import logging
-import PySide2
-from PySide2 import QtWidgets
-from PySide2 import QtGui
+import PySide6
+from PySide6 import QtWidgets
+from PySide6 import QtGui
 from OdooQtUi.connector import MainConnector
 from OdooQtUi.utils_odoo_conn import constants
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
-# dirname = os.path.dirname(PySide2.__file__)
+# dirname = os.path.dirname(PySide6.__file__)
 # plugin_path = os.path.join(dirname, 'Qt', 'plugins', 'platforms')
 # os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = plugin_path
 #os.environ['QT_DEBUG_PLUGINS']='1'

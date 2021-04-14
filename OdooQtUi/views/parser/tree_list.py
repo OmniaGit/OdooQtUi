@@ -4,7 +4,7 @@ Created on 3 Feb 2017
 @author: Daniel Smerghetto
 '''
 import xml.etree.cElementTree as ElementTree
-from PySide2 import QtWidgets
+from PySide6 import QtWidgets
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.utils_odoo_conn import utilsUi
 from OdooQtUi.objects.selection.selection import Selection
