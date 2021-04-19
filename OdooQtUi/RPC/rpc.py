@@ -76,11 +76,12 @@ class RpcConnection(object):
     def computeUserLanguage(self):
         if not self.userId:
             return False
-        res = self.callCustomMethod('res.users', 'context_get')
+        res = self.read('res.users', ['lang', 'tz'], self.userId)
         if not res:
             logging.warning('Unable to get user context.')
             res = {}
-        self.contextUser = res
+        else:
+            self.contextUser = res[0]
 
     def callCustomMethod(self, odooObj, functionName, parameters=[], kwargParameters={}, context={}):
         localContext = self.contextUser
