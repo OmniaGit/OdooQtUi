@@ -42,6 +42,7 @@ srcPath = os.path.join(os.path.dirname(__file__), "*.ui")
 for fromFile in glob.glob(srcPath):
     toFile = getPyFileName(fromFile)
     if not os.path.exists(fromFile):
+
         logging.warning("File %s dose not exsists" % fromFile)
         continue
     if sys.platform.find('linux') > 0 or ('linux' in sys.platform) > 0:
@@ -50,5 +51,5 @@ for fromFile in glob.glob(srcPath):
         cmd = r'pyuic4 -o %s  %s' % (toFile, fromFile)
         #  seems that subprocess dose not finds the python side package dir
         cmd = r'C:\Python27\Lib\site-packages\PyQt4\pyuic4.bat -o %s %s' % (toFile, fromFile)
-    logging.info("Execute %r" % cmd)
+    print ("Execute", cmd)
     subprocess.call(cmd)

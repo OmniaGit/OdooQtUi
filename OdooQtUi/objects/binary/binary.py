@@ -8,6 +8,7 @@ import base64
 from PySide6 import QtGui
 from PySide6 import QtCore
 from PySide6 import QtWidgets
+
 from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.utils_odoo_conn import utilsUi
 from OdooQtUi.utils_odoo_conn import constants

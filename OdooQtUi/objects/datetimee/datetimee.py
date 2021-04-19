@@ -2,6 +2,7 @@ from datetime import datetime
 from PySide6 import QtCore
 from PySide6 import QtWidgets
 from OdooQtUi.utils_odoo_conn import utilsUi
+
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
 

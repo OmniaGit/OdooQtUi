@@ -31,6 +31,7 @@ class TreeViewList(QtWidgets.QWidget):
         self.tableWidget = False
         self.viewCheckBoxes = viewCheckBoxes
         self.rpc = rpc
+        self.widgetContents = None
 
     def computeRecursion(self, parent):
         mainVLay = QtWidgets.QVBoxLayout()

@@ -218,6 +218,7 @@ class One2many(OdooFieldTemplate):
             self.buttonFollowersCount = QtWidgets.QToolButton()
             self.buttonFollowersCount.setText(str(len(self.currentValue)))
             self.toolmenu = QtWidgets.QMenu()
+
             res = self.populateMenu()
             for obj in res:
                 currentPartnerId, _partnerName = self.getPartnerIdFromUserId()
@@ -477,7 +478,8 @@ class One2many(OdooFieldTemplate):
                 self.treeViewObj.treeObj.tableWidget.setDisabled(val)
                 self.treeViewObj.buttToLeft.setDisabled(val)
                 self.treeViewObj.buttToRight.setDisabled(val)
-                self.treeViewObj.treeObj.widgetContents.setDisabled(val)
+                if  self.treeViewObj.treeObj.widgetContents:
+                    self.treeViewObj.treeObj.widgetContents.setDisabled(val)
             self.createButt.setDisabled(val)
             super(One2many, self).setReadonly(val)
         except Exception as ex:
@@ -491,7 +493,8 @@ class One2many(OdooFieldTemplate):
                 self.treeViewObj.buttToLeft.setHidden(val)
                 self.treeViewObj.buttToRight.setHidden(val)
                 self.treeViewObj.treeObj.tableWidget.setHidden(val)
-                self.treeViewObj.treeObj.widgetContents.setHidden(val)
+                if  self.treeViewObj.treeObj.widgetContents:
+                    self.treeViewObj.treeObj.widgetContents.setHidden(val)
             self.labelQtObj.setHidden(val)
             self.createButt.setHidden(val)
             super(One2many, self).setInvisible(val)

@@ -30,6 +30,7 @@ class XmlRpcConnection(object):
                  scheme='http',
                  xmlrpcServerIP='127.0.0.1',
                  secure=False):
+
         self.userName = userName
         self.userPassword = userPassword
         self.databaseName = databaseName
@@ -48,6 +49,7 @@ class XmlRpcConnection(object):
         self.secure = secure
         self.timeout = 60
         self.serverVersion = 8
+        self.max_timeout = 7200
 
     def _assignServerVersion(self):
         """
@@ -69,6 +71,7 @@ class XmlRpcConnection(object):
             utils.logMessage('error', 'Unable to read server version: %r' % (ex), '_assignServerVersion')
             
         
+
     @property
     def urlNoLogin(self):
         return self.urlCommon + 'common'
@@ -158,13 +161,15 @@ class XmlRpcConnection(object):
                     utilsUi.launchMessage('Unable to get database list, please check your login settings.', 'warning')
         return []
 
-    def search(self, obj, filterList, limit=False, offset=False, context={}):
+    def search(self, obj, filterList, limit=False, offset=False, order='', context={}):
         try:
             kargs = {'context': context}
             if limit or limit == 0:
                 kargs['limit'] = limit
             if offset or offset == 0:
                 kargs['offset'] = offset
+            if order:
+                kargs['order'] = order
             return self.callOdooFunction(obj, 'search', [filterList], kargs)
         except Exception as ex:
             utils.logMessage('error', 'Error during search with values: object %r, filter %r, parameters %r. Error: %r' % (obj, filterList, kargs, ex), 'search')
@@ -201,10 +206,11 @@ class XmlRpcConnection(object):
         return {}
 
     def readSearch(self, obj, fields, filterList, limit=False, order=False, context={}):
+
         try:
             kargs = {'fields': fields, 'context': context}
             if order:
-                kargs['order'] = order    
+                kargs['order'] = order
             return self.callOdooFunction(obj, 'search_read', [filterList], kargs)
         except Exception as ex:
             utils.logMessage('error', 'Error during reading fields with values: object %r, kargs %r, filterList %r. Error: %r' % (obj, kargs, filterList, ex), 'readSearch')
@@ -218,9 +224,10 @@ class XmlRpcConnection(object):
             utils.logMessage('error', 'Error during create with values: object %r, kargs %r, filterList %r. Error: %r' % (obj, kargs, values, ex), 'create')
         return []
 
-    def write(self, obj, values, idsToWrite, context={}):
+    def write(self, obj, values, idsToWrite, context={}, kargs={}):
         try:
-            kargs = {'context': context}
+            if 'context' not in kargs:
+                kargs['context'] = context
             return self.callOdooFunction(obj, 'write', [idsToWrite, values], kargs)
         except Exception as ex:
             utils.logMessage('error', 'Error during create with values: object %r, kargs %r, filterList %r. Error: %r' % (obj, kargs, values, ex), 'write')

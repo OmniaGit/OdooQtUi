@@ -42,7 +42,7 @@ class SearchView(object):
         self.tmpLayouts = []    # Temporary "or layouts" to delete when condition is confirmed
         self.tmpLineEdits = []  # Temporary "or line edits" to read and delete
         self.orPressed = False  # Flag to know if or flag has been pressed
-
+        self.widgetContents = None
         self.globalCondition = []   # List of conditions objects
 
     def launchFilterChanged(self):

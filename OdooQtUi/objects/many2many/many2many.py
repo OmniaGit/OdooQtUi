@@ -7,6 +7,7 @@ import json
 from PySide6 import QtGui
 from PySide6 import QtCore
 from PySide6 import QtWidgets
+
 from functools import partial
 from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.utils_odoo_conn import utilsUi
@@ -231,7 +232,8 @@ class Many2many(OdooFieldTemplate):
             self.treeViewObj.treeObj.tableWidget.setDisabled(val)
             self.treeViewObj.buttToLeft.setDisabled(val)
             self.treeViewObj.buttToRight.setDisabled(val)
-            #self.treeViewObj.treeObj.widgetContents.setDisabled(val)
+            if self.treeViewObj.treeObj.widgetContents:
+                self.treeViewObj.treeObj.widgetContents.setDisabled(val)
         self.createButt.setDisabled(val)
         super(Many2many, self).setReadonly(val)
 

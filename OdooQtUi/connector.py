@@ -14,7 +14,6 @@ from OdooQtUi.views.tree_list_obj import TemplateTreeListView
 from OdooQtUi.interface.login import LoginDialComplete
 
 logger = logging.getLogger()
-
 logger.setLevel(utils.getDebugSeverity())
 
 
@@ -159,7 +158,7 @@ class MainConnector(object):
                         useHeader=False, 
                         useChatter=False):
         """
-        initialize a odoo form view to be used
+        Initialize a odoo form view to be used
         """
         viewObj, localLang, rpcObj = self._initView('form',
                                                     rpcObj, 

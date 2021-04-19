@@ -69,7 +69,7 @@ class QtFormView(TemplateView):
             self.setStyleSheet(constants.MAIN_STYLE)
             vertical_layout = QtWidgets.QVBoxLayout()
             vertical_layout.setSpacing(0)
-            vertical_layout.setMargin(0)
+            # seems to be not available vertical_layout.setMargin(0)
             self.computeRecursion(qvboxLayout=vertical_layout,
                                   xmlParent=ElementTree.XML(self.arch.encode('utf-8')))
             verticalSpacer = QtWidgets.QSpacerItem(40, 100, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
@@ -145,7 +145,7 @@ class QtFormView(TemplateView):
                     pageWidget = QtWidgets.QWidget(tabWidget)
                     pageVboxLayout = QtWidgets.QVBoxLayout()
                     pageVboxLayout.setSpacing(0)
-                    pageVboxLayout.setMargin(0)
+                    #pageVboxLayout.setMargin(0)
                     if modifReadonly:
                         pageWidget.setDisabled(True)
                     if nootebookIndex != 0:
@@ -442,7 +442,7 @@ class QtFormView(TemplateView):
         for fieldName, fieldObject in list(self.interfaceFieldsDict.items()):
             outDict[fieldName] = fieldObject.on_change
         return outDict
-
+    
     def _on_change(self, fieldName):
         '''
             [
@@ -473,6 +473,12 @@ class QtFormView(TemplateView):
                 self.buttons.__dict__[newKey] = obj
         return True
 
+    def _valueChangedExt(self, fieldName):
+        '''
+            To allow external oveload
+        '''
+        pass
+
     def _valueChanged(self, fieldName):
         fieldName = str(fieldName)
         fieldObj = self.interfaceFieldsDict.get(fieldName)
@@ -485,6 +491,7 @@ class QtFormView(TemplateView):
             fieldObj1.setValue(fieldValueFromServer)
         self.fieldsChanged[fieldName] = fieldObj
         self._setFieldModifiers()
+        self._valueChangedExt(fieldName)
 
     def translationDial(self, fieldName):
         if not self.activeIds:

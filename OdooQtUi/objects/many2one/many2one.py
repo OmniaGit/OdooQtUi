@@ -7,6 +7,7 @@ import json
 from PySide6 import QtGui
 from PySide6 import QtCore
 from PySide6 import QtWidgets
+
 from OdooQtUi.utils_odoo_conn import utils, utilsUi
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
@@ -95,6 +96,7 @@ class Many2one(OdooFieldTemplate):
                     found = True
                     newTextVal = text
                     self.currentValue = [objId, text]
+                    break
             if not found:
                 res = self.rpc.read(self.relation, ['name'], [val])
                 if res:
@@ -104,15 +106,17 @@ class Many2one(OdooFieldTemplate):
                     self.currentValue = [relDict.get('id', False), newTextVal]
         elif isinstance(val, str):
             newTextVal = val
+        
+        if self.widgetQtObj2.count() <= 2:
+            self.skipSearch = False
+            self.comboActivated()
+            self.skipSearch = True
+            
         if newTextVal in self.availableItems:
             indexToSet = self.availableItems.index(newTextVal)
-        else:
-            self.availableItems.append(newTextVal)
-            self.widgetQtObj2.clear()
-            self.widgetQtObj2.addItems(self.availableItems)
-            indexToSet = self.availableItems.index(newTextVal)
         self.skipSearch = True
-        self.widgetQtObj2.setCurrentIndex(indexToSet)
+        if isinstance(indexToSet, (int, float)):
+            self.widgetQtObj2.setCurrentIndex(indexToSet)
         self.skipSearch = False
 
     def setReadonly(self, val=False):
