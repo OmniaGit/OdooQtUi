@@ -13,8 +13,9 @@ from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
 
 class Float(OdooFieldTemplate):
 
-    def __init__(self, qtParent, xmlField, fieldsDefinition, rpc):
+    def __init__(self, qtParent, xmlField, fieldsDefinition, rpc, isChatterWidget=False):
         super(Float, self).__init__(qtParent, xmlField, fieldsDefinition, rpc)
+        self.isChatterWidget = isChatterWidget
         self.labelQtObj = False
         self.widgetQtObj = False
         self.currentValue = 0
@@ -31,7 +32,7 @@ class Float(OdooFieldTemplate):
             utilsUi.setRequiredBackground(self.widgetQtObj, constants.FLOAT_STYLE)
         self.qtHorizontalWidget.addWidget(self.labelQtObj)
         self.qtHorizontalWidget.addWidget(self.widgetQtObj)
-        self.qtHorizontalWidget.addSpacerItem(QtWidgets.QSpacerItem(40, 40, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding))
+        self.qtHorizontalWidget.addSpacerItem(QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding))
         if self.translatable:
             self.connectTranslationButton()
             self.qtHorizontalWidget.addWidget(self.translateButton)
@@ -58,6 +59,8 @@ class Float(OdooFieldTemplate):
                 self.widgetQtObj.setStyleSheet(constants.FLOAT_STYLE)
 
     def setInvisible(self, val=False):
+        if self.isChatterWidget:
+            return
         super(Float, self).setInvisible(val)
         self.labelQtObj.setHidden(val)
         self.widgetQtObj.setHidden(val)

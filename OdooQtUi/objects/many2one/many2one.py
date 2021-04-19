@@ -14,8 +14,9 @@ from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
 
 
 class Many2one(OdooFieldTemplate):
-    def __init__(self, qtParent, xmlField, fieldsDefinition, rpc, odooConnector=None):
+    def __init__(self, qtParent, xmlField, fieldsDefinition, rpc, odooConnector=None, isChatterWidget=False):
         super(Many2one, self).__init__(qtParent, xmlField, fieldsDefinition, rpc)
+        self.isChatterWidget = isChatterWidget
         self.labelQtObj = False
         self.widgetQtObj = False
         self.editButton = False
@@ -57,7 +58,7 @@ class Many2one(OdooFieldTemplate):
             utilsUi.setRequiredBackground(self.widgetQtObj2, constants.SELECTION_STYLE)
         self.qtHorizontalWidget.addWidget(self.widgetQtObj2)
         if self.canWrite:
-            self.editButton = QtWidgets.QPushButton('Edit')
+            self.editButton = QtWidgets.QPushButton('E')
             self.editButton.clicked.connect(self.editItem)
             self.editButton.setStyleSheet(constants.BUTTON_STYLE_MANY_2_ONE)
             self.qtHorizontalWidget.addWidget(self.editButton)
@@ -141,6 +142,8 @@ class Many2one(OdooFieldTemplate):
                 self.widgetQtObj2.setStyleSheet(constants.SELECTION_STYLE)
 
     def setInvisible(self, val=False):
+        if self.isChatterWidget:
+            return
         super(Many2one, self).setInvisible(val)
         self.labelQtObj.setHidden(val)
         if self.widgetQtObj2:
@@ -176,7 +179,7 @@ class Many2one(OdooFieldTemplate):
         lay.setParent(None)
         mainLay.addLayout(lay)
         dialog.setLayout(mainLay)
-        dialog.setStyleSheet(constants.VIOLET_BACKGROUND)
+        dialog.setStyleSheet(constants.BACKGROUND_WHITE)
         dialog.adjustSize()
         dialog.resize(1000, 750)
         if dialog.exec_() == QtWidgets.QDialog.Accepted:

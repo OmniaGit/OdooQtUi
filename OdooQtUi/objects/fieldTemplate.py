@@ -20,7 +20,7 @@ class OdooFieldTemplate(QtWidgets.QWidget):
     def __init__(self, qtParent, xmlField, fieldsDefinition, rpc):
         super(OdooFieldTemplate, self).__init__(qtParent)
         self.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
-        self.setMinimumSize(40, 40)
+        #self.setMinimumSize(40, 40)
         self.rpc = rpc
         self.fieldXmlAttributes = xmlField.attrib
         self.parentId = False
@@ -56,7 +56,6 @@ class OdooFieldTemplate(QtWidgets.QWidget):
         self.hide()
         if constants.DEBUG:
             self.setStyleSheet("border: 2px solid black;")
-            self.show()
         return self
 
     @property
@@ -68,23 +67,16 @@ class OdooFieldTemplate(QtWidgets.QWidget):
         self.parentModel = parentModel
 
     def connectTranslationButton(self):
-        self.translateButton = QtWidgets.QPushButton('Translate')
+        self.translateButton = QtWidgets.QPushButton('T')
         self.translateButton.setStyleSheet(constants.BUTTON_STYLE)
         self.translateButton.clicked.connect(self.translateDialog)
-        self.qtHorizontalWidget.setSpacing(10)
+        # self.qtHorizontalWidget.setSpacing(10)
 
     def valueTemplateChanged(self):
         self.value_changed_signal.emit(self.fieldName)
 
     def setValue(self, newVal):
         utils.logMessage('warning', 'setValue not implemented for field: %r' % (self.fieldName), 'setValue')
-
-
-    def setReadonly(self, val=False):
-        self.hideTranslateButton(val)
-
-    def setInvisible(self, val=False):
-        self.hideTranslateButton(val)
 
     def hideTranslateButton(self, val):
         if self.translateButton:
@@ -98,9 +90,15 @@ class OdooFieldTemplate(QtWidgets.QWidget):
 
     def setReadonly(self, val):
         self.setEnabled(not val)
+        self.hideTranslateButton(val)
 
     def setInvisible(self, val):
+        utilsUi.setLayoutMarginAndSpacing(self.qtHorizontalWidget, 0)
+        self.hideTranslateButton(val)
         if val:
             self.hide()
         else:
             self.show()
+
+    def showChatterWidget(self):
+        pass

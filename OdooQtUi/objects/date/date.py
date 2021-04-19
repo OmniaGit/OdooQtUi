@@ -12,8 +12,9 @@ from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
 
 
 class Date(OdooFieldTemplate):
-    def __init__(self, qtParent, xmlField, fieldsDefinition, rpc):
+    def __init__(self, qtParent, xmlField, fieldsDefinition, rpc, isChatterWidget=False):
         super(Date, self).__init__(qtParent, xmlField, fieldsDefinition, rpc)
+        self.isChatterWidget = isChatterWidget
         self.labelQtObj = False
         self.widgetQtObj = False
         self.currentValue = False
@@ -56,6 +57,8 @@ class Date(OdooFieldTemplate):
                 self.widgetQtObj.setStyleSheet(constants.DATE_STYLE)
 
     def setInvisible(self, val=False):
+        if self.isChatterWidget:
+            return
         super(Date, self).setInvisible(val)
         self.labelQtObj.setHidden(val)
         self.widgetQtObj.setHidden(val)
