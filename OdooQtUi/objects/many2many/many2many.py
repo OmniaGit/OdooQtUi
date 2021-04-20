@@ -50,6 +50,8 @@ class Many2many(OdooFieldTemplate):
 
     @property
     def currentValue(self):
+        if isinstance(self.treeViewObj.idLineRel, dict):
+            return self.treeViewObj.idLineRel.get('ids', [])
         return self.treeViewObj.idLineRel.ids()
 
     def getQtObject(self):

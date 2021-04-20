@@ -91,7 +91,7 @@ class QtFormView(TemplateView):
             qvboxLayout.addWidget(line)
         row_container = QtWidgets.QHBoxLayout()
         row_container.setSpacing(0)
-        row_container.setMargin(0)
+        # no more on pyside row_container.setMargin(0)
         for childXlmElement in xmlParent.getchildren():
             childXmlTag = childXlmElement.tag
             xmlAttrs = childXlmElement.attrib
@@ -223,7 +223,7 @@ class QtFormView(TemplateView):
                 qvboxLayout.addLayout(row_container)
                 row_container = QtWidgets.QHBoxLayout()
                 row_container.setSpacing(0)
-                row_container.setMargin(0)
+                # no more available on pyside row_container.setMargin(0)
         if constants.DEBUG:
             line = QtWidgets.QLineEdit()
             line.setStyleSheet("border:2px solid blue;")
