@@ -2,13 +2,15 @@ from datetime import datetime
 from PySide6 import QtCore
 from PySide6 import QtWidgets
 from OdooQtUi.utils_odoo_conn import utilsUi
+
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
 
 
 class Datetime(OdooFieldTemplate):
-    def __init__(self, qtParent, xmlField, fieldsDefinition, rpc):
+    def __init__(self, qtParent, xmlField, fieldsDefinition, rpc, isChatterWidget=False):
         super(Datetime, self).__init__(qtParent, xmlField, fieldsDefinition, rpc)
+        self.isChatterWidget = isChatterWidget
         self.labelQtObj = False
         self.widgetQtObj = False
         self.currentValue = ''
@@ -59,6 +61,8 @@ class Datetime(OdooFieldTemplate):
                 self.widgetQtObj.setStyleSheet(constants.DATE_STYLE)
 
     def setInvisible(self, val=False):
+        if self.isChatterWidget:
+            return
         super(Datetime, self).setInvisible(val)
         self.labelQtObj.setHidden(val)
         self.widgetQtObj.setHidden(val)

@@ -8,6 +8,7 @@ from OdooQtUi.RPC.rpc import connectionObj
 from .ui.ui_login import Ui_dialog_login
 from PySide6 import QtWidgets
 from PySide6 import QtCore
+
 from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.utils_odoo_conn import constants
 

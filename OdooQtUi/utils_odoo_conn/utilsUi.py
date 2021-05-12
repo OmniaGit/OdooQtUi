@@ -18,10 +18,12 @@ from OdooQtUi.utils_odoo_conn import utils
 DEFAULT_ICON_PATH = ''
 
 
-def getQtImageFromContent(content, imageWidth=100, imageHeight=100):
+def getQtImageFromContent(content, imageWidth=100, imageHeight=100, b64decode=True):
     label = QtWidgets.QLabel()
     pixmap = QtGui.QPixmap()
-    pixmap.loadFromData(base64.b64decode(content))
+    if b64decode:
+        content = base64.b64decode(content)
+    pixmap.loadFromData(content)
     pixmap = pixmap.scaled(imageWidth,
                            imageHeight,
                            aspectRatioMode=QtCore.Qt.IgnoreAspectRatio,
@@ -86,7 +88,10 @@ def commonPopulateTable(headers, values, tableWidget, flags={}, add=False, fontS
         for colIndex in colIndexList:
             colName = headers[colIndex]
             if isinstance(menuObj, (list, tuple)):
-                colVal = menuObj[colIndex]
+                if colIndex >= len(menuObj):
+                    colVal = ''
+                else:
+                    colVal = menuObj[colIndex]
             else:
                 colVal = menuObj.__dict__.get(colName, '')
             rowDict[colName] = colVal
@@ -130,11 +135,11 @@ def getButtonBox(spacer='right'):
     okButt = QtWidgets.QPushButton('Ok')
     cancelButt = QtWidgets.QPushButton('Cancel')
     if spacer == 'right':
-        mainLay.addSpacerItem(QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum))
+        mainLay.addSpacerItem(QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum))
     mainLay.addWidget(okButt)
     mainLay.addWidget(cancelButt)
     if spacer == 'left':
-        mainLay.addSpacerItem(QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum))
+        mainLay.addSpacerItem(QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum))
     return mainLay, okButt, cancelButt
 
 
@@ -150,5 +155,19 @@ def setRequiredBackground(widgetQtObj, baseBackground):
     widgetQtObj.setStyleSheet(baseBackground + constants.COMMON_FIELDS_REQUIRED_BACKGROUND)
 
 
-def setLayoutMarginAndSpacing(lay):
-    lay.setSpacing(constants.LAY_OUT_SPACING)
+def setLayoutMarginAndSpacing(lay, forceVal=False):
+    if not forceVal:
+        forceVal = constants.LAY_OUT_SPACING
+    lay.setSpacing(forceVal)
+    lay.setContentsMargins(forceVal, forceVal, forceVal, forceVal)
+
+
+def getIconPath(iconName):
+    currDir = os.path.dirname(__file__)
+    imagesDir = os.path.join(currDir, 'images')
+    if not os.path.exists(imagesDir):
+        imagesDir = os.path.join(os.path.dirname(currDir), 'images')
+    image_path = os.path.join(imagesDir, iconName)
+    if not os.path.exists(image_path):
+        return ''
+    return image_path

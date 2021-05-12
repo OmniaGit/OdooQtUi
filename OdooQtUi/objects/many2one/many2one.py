@@ -7,14 +7,16 @@ import json
 from PySide6 import QtGui
 from PySide6 import QtCore
 from PySide6 import QtWidgets
+
 from OdooQtUi.utils_odoo_conn import utils, utilsUi
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
 
 
 class Many2one(OdooFieldTemplate):
-    def __init__(self, qtParent, xmlField, fieldsDefinition, rpc, odooConnector=None):
+    def __init__(self, qtParent, xmlField, fieldsDefinition, rpc, odooConnector=None, isChatterWidget=False):
         super(Many2one, self).__init__(qtParent, xmlField, fieldsDefinition, rpc)
+        self.isChatterWidget = isChatterWidget
         self.labelQtObj = False
         self.widgetQtObj = False
         self.editButton = False
@@ -56,7 +58,7 @@ class Many2one(OdooFieldTemplate):
             utilsUi.setRequiredBackground(self.widgetQtObj2, constants.SELECTION_STYLE)
         self.qtHorizontalWidget.addWidget(self.widgetQtObj2)
         if self.canWrite:
-            self.editButton = QtWidgets.QPushButton('Edit')
+            self.editButton = QtWidgets.QPushButton('E')
             self.editButton.clicked.connect(self.editItem)
             self.editButton.setStyleSheet(constants.BUTTON_STYLE_MANY_2_ONE)
             self.qtHorizontalWidget.addWidget(self.editButton)
@@ -95,6 +97,7 @@ class Many2one(OdooFieldTemplate):
                     found = True
                     newTextVal = text
                     self.currentValue = [objId, text]
+                    break
             if not found:
                 res = self.rpc.read(self.relation, ['name'], [val])
                 if res:
@@ -104,15 +107,17 @@ class Many2one(OdooFieldTemplate):
                     self.currentValue = [relDict.get('id', False), newTextVal]
         elif isinstance(val, str):
             newTextVal = val
+        
+        if self.widgetQtObj2.count() <= 2:
+            self.skipSearch = False
+            self.comboActivated()
+            self.skipSearch = True
+            
         if newTextVal in self.availableItems:
             indexToSet = self.availableItems.index(newTextVal)
-        else:
-            self.availableItems.append(newTextVal)
-            self.widgetQtObj2.clear()
-            self.widgetQtObj2.addItems(self.availableItems)
-            indexToSet = self.availableItems.index(newTextVal)
         self.skipSearch = True
-        self.widgetQtObj2.setCurrentIndex(indexToSet)
+        if isinstance(indexToSet, (int, float)):
+            self.widgetQtObj2.setCurrentIndex(indexToSet)
         self.skipSearch = False
 
     def setReadonly(self, val=False):
@@ -137,6 +142,8 @@ class Many2one(OdooFieldTemplate):
                 self.widgetQtObj2.setStyleSheet(constants.SELECTION_STYLE)
 
     def setInvisible(self, val=False):
+        if self.isChatterWidget:
+            return
         super(Many2one, self).setInvisible(val)
         self.labelQtObj.setHidden(val)
         if self.widgetQtObj2:
@@ -172,7 +179,7 @@ class Many2one(OdooFieldTemplate):
         lay.setParent(None)
         mainLay.addLayout(lay)
         dialog.setLayout(mainLay)
-        dialog.setStyleSheet(constants.VIOLET_BACKGROUND)
+        dialog.setStyleSheet(constants.BACKGROUND_WHITE)
         dialog.adjustSize()
         dialog.resize(1000, 750)
         if dialog.exec_() == QtWidgets.QDialog.Accepted:

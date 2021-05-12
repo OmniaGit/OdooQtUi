@@ -69,7 +69,7 @@ class QtFormView(TemplateView):
             self.setStyleSheet(constants.MAIN_STYLE)
             vertical_layout = QtWidgets.QVBoxLayout()
             vertical_layout.setSpacing(0)
-            vertical_layout.setMargin(0)
+            # seems to be not available vertical_layout.setMargin(0)
             self.computeRecursion(qvboxLayout=vertical_layout,
                                   xmlParent=ElementTree.XML(self.arch.encode('utf-8')))
             verticalSpacer = QtWidgets.QSpacerItem(40, 100, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
@@ -78,21 +78,25 @@ class QtFormView(TemplateView):
         else:
             utils.logWarning('No arch set impossible to compute structure')
 
-    def computeRecursion(self, qvboxLayout=False, xmlParent=None, nootebookIndex=0):
+    def computeRecursion(self, qvboxLayout=False, xmlParent=None, nootebookIndex=0, row_widget_limit=4):
         # TODO:    div name <div name="button_box" class="oe_button_box">
+        row_widget_count = 0
         if not qvboxLayout:
             qvboxLayout = QtWidgets.QVBoxLayout()
             qvboxLayout.setSpacing(0)
             qvboxLayout.setMargin(0)
         if constants.DEBUG:
-            line = QtWidgets.QFrame(self)
-            line.setFrameShape(QtWidgets.QFrame.HLine)
-            line.setFrameShadow(QtWidgets.QFrame.Sunken)
-            line.setLineWidth(100)
-            line.setStyleSheet("color: blue;")
+            line = QtWidgets.QLineEdit()
+            line.setStyleSheet("border:2px solid blue;")
             qvboxLayout.addWidget(line)
+        row_container = QtWidgets.QHBoxLayout()
+        row_container.setSpacing(0)
+        # no more on pyside row_container.setMargin(0)
         for childXlmElement in xmlParent.getchildren():
             childXmlTag = childXlmElement.tag
+            xmlAttrs = childXlmElement.attrib
+            
+            print('%s %s' % (childXmlTag, xmlAttrs))
             if childXmlTag == 'sheet':
                 self.computeRecursion(qvboxLayout=qvboxLayout,
                                       xmlParent=childXlmElement)
@@ -128,9 +132,11 @@ class QtFormView(TemplateView):
                     self.computeRecursion(qvboxLayout=qvboxLayout,
                                           xmlParent=childXlmElement)
                 else:
+                    qvboxLayout.addLayout(row_container)
                     self.computeRecursion(qvboxLayout=qvboxLayout,
                                           xmlParent=childXlmElement)
             elif childXmlTag == 'notebook':
+                qvboxLayout.addLayout(row_container)
                 tabWidget = QtWidgets.QTabWidget(self)
                 tabWidget.setStyleSheet(constants.NOOTEBOOK_STYLE)
                 tabWidgetBar = tabWidget.tabBar()
@@ -145,7 +151,7 @@ class QtFormView(TemplateView):
                     pageWidget = QtWidgets.QWidget(tabWidget)
                     pageVboxLayout = QtWidgets.QVBoxLayout()
                     pageVboxLayout.setSpacing(0)
-                    pageVboxLayout.setMargin(0)
+                    #pageVboxLayout.setMargin(0)
                     if modifReadonly:
                         pageWidget.setDisabled(True)
                     if nootebookIndex != 0:
@@ -153,14 +159,22 @@ class QtFormView(TemplateView):
                     self.computeRecursion(qvboxLayout=pageVboxLayout,
                                           xmlParent=page,
                                           nootebookIndex=nootebookIndex)
+                    pageVboxLayout.addSpacerItem(QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding))
                     pageWidget.setLayout(pageVboxLayout)
                     tabWidget.addTab(pageWidget, pageString)
                     nootebookIndex = nootebookIndex + 1
                 qvboxLayout.addWidget(tabWidget)
-                tabWidget.currentChanged.connect(partial(self.computeNooteBookPage, tabWidget))
+                # tabWidget.currentChanged.connect(partial(self.computeNooteBookPage, tabWidget))
             elif childXmlTag == 'group':
+                colspan = xmlAttrs.get('col', None)
+                if colspan:
+                    colspan = eval(colspan)
+                else:
+                    colspan = row_widget_limit
+                qvboxLayout.addLayout(row_container)
                 self.computeRecursion(qvboxLayout=qvboxLayout,
-                                      xmlParent=childXlmElement)
+                                      xmlParent=childXlmElement,
+                                      row_widget_limit=colspan)
             elif childXmlTag == 'button':
                 utils.logWarning('Buttons not implemented at first level of form')
                 continue
@@ -181,7 +195,8 @@ class QtFormView(TemplateView):
             elif childXmlTag == 'field':
                 fieldQHLayout = self.computeField(childXlmElement)
                 if fieldQHLayout:
-                    qvboxLayout.addWidget(fieldQHLayout)
+                    row_container.addWidget(fieldQHLayout)
+                    row_widget_count += 2
                     self.appendToglobalMapping('field_' + fieldQHLayout.fieldName, fieldQHLayout)
             elif childXmlTag == 'h1':
                 self.computeRecursion(qvboxLayout=qvboxLayout,
@@ -203,13 +218,18 @@ class QtFormView(TemplateView):
                     qvboxLayout.addWidget(labelObj)
             else:
                 utils.logWarning('Tag %r not supported and not evaluated' % (childXlmElement))
+            if row_widget_count >= row_widget_limit:
+                row_widget_count = 0
+                qvboxLayout.addLayout(row_container)
+                row_container = QtWidgets.QHBoxLayout()
+                row_container.setSpacing(0)
+                # no more available on pyside row_container.setMargin(0)
         if constants.DEBUG:
-            line = QtWidgets.QFrame(self)
-            line.setFrameShape(QtWidgets.QFrame.HLine)
-            line.setFrameShadow(QtWidgets.QFrame.Sunken)
-            line.setLineWidth(300)
-            line.setStyleSheet("color: blue;")
+            line = QtWidgets.QLineEdit()
+            line.setStyleSheet("border:2px solid blue;")
             qvboxLayout.addWidget(line)
+        if not row_container.parent():
+            qvboxLayout.addLayout(row_container)
         return qvboxLayout
 
     def computeHeader(self, archHeader, useHeader=False):
@@ -247,66 +267,81 @@ class QtFormView(TemplateView):
                 pass
         return mapping, headerLayout
 
-    def computeField(self, xmlObj):
+    def computeField(self, xmlObj, isChatterWidget=False):
         fieldAttributes = xmlObj.attrib
         fieldName = fieldAttributes.get('name', '')
         fieldDefinition = self.fieldsNameTypeRel.get(fieldName, {})
         fieldType = fieldDefinition.get('type', False)
         fieldObj = None
         if fieldType == 'selection':
-            fieldObj = Selection(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject)
+            fieldObj = Selection(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject, isChatterWidget)
         elif fieldType == 'char':
-            fieldObj = Charachter(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject)
+            fieldObj = Charachter(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject, isChatterWidget)
         elif fieldType == 'integer':
-            fieldObj = Integer(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject)
+            fieldObj = Integer(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject, isChatterWidget)
         elif fieldType == 'float':
-            fieldObj = Float(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject)
+            fieldObj = Float(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject, isChatterWidget)
         elif fieldType == 'datetime':
-            fieldObj = Datetime(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject)
+            fieldObj = Datetime(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject, isChatterWidget)
         elif fieldType == 'many2one':
-            fieldObj = Many2one(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject, self.odooConnector)
+            fieldObj = Many2one(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject, self.odooConnector, isChatterWidget)
         elif fieldType == 'many2many':
-            fieldObj = Many2many(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject, self.odooConnector)
+            fieldObj = Many2many(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject, self.odooConnector, isChatterWidget)
         elif fieldType == 'text':
-            fieldObj = Text(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject)
+            fieldObj = Text(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject, isChatterWidget)
         elif fieldType == 'date':
-            fieldObj = Date(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject)
+            fieldObj = Date(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject, isChatterWidget)
         elif fieldType == 'boolean':
-            fieldObj = Boolean(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject)
+            fieldObj = Boolean(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject, isChatterWidget)
         elif fieldType == 'one2many':
-            fieldObj = One2many(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject, self.odooConnector)
+            fieldObj = One2many(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject, self.odooConnector, isChatterWidget)
         elif fieldType == 'binary':
-            fieldObj = Binary(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject)
+            fieldObj = Binary(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject, isChatterWidget)
         else:
             utils.logMessage('warning', 'Field %r not supported' % (fieldType), 'computeField')
         return fieldObj
 
     def computeNooteBookPage(self, tabObject, pageIndex=False):
-        tabObject.nootebook_changed_signal.emit(pageIndex)
-        return
+#         tabObject.nootebook_changed_signal.emit(pageIndex)
+#         return
         values = tabObject.get(pageIndex, {})
         if values:
             del tabObject[pageIndex]
             self.nootebook_changed_signal.emit(pageIndex)
 
     def computeChatter(self, divVlay, childElement):
-        hlay = QtWidgets.QHBoxLayout()
+        self.chatterLay = QtWidgets.QVBoxLayout()
+        self.chatterButton = QtWidgets.QPushButton('↓↓↓   Show Chatter   ↓↓↓')
+        self.chatterButton.setStyleSheet(constants.BUTTON_STYLE + constants.VIOLET_BACKGROUND)
+        self.chatterButton.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        self.chatterButton.clicked.connect(self.showChatter)
+        self.chatterWidgets = []
         count = 0
         for fieldObj in childElement.getchildren():
             if fieldObj.tag == 'field':
-                qtWidgetField = self.computeField(fieldObj)
+                qtWidgetField = self.computeField(fieldObj, isChatterWidget=True)
                 if qtWidgetField:
                     if isinstance(qtWidgetField, QtWidgets.QLayout):
-                        hlay.insertLayout(0, qtWidgetField)
+                        self.chatterLay.insertLayout(0, qtWidgetField)
                         if count == 0:
-                            hlay.insertSpacerItem(0, QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum))
+                            self.chatterLay.insertSpacerItem(0, QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum))
                             count = count + 1
                     elif isinstance(qtWidgetField, QtWidgets.QWidget):
-                        hlay.insertWidget(0, qtWidgetField)
+                        self.chatterLay.insertWidget(0, qtWidgetField)
+                        qtWidgetField.hide()
+                        self.chatterWidgets.append(qtWidgetField)
                     self.appendToglobalMapping('field_' + qtWidgetField.fieldName, qtWidgetField)
             else:
                 utils.logMessage('warning', 'Unable to compute tag in chatter %r' % (fieldObj.tag), 'computeChatter')
-        divVlay.addLayout(hlay)
+        self.chatterLay.insertWidget(0, self.chatterButton)
+        utilsUi.setLayoutMarginAndSpacing(self.chatterLay, constants.LAY_OUT_SPACING + 20)
+        self.chatterLay.setSpacing(constants.LAY_OUT_SPACING)
+        divVlay.addLayout(self.chatterLay)
+
+    def showChatter(self):
+        for chatterWidget in self.chatterWidgets:
+            chatterWidget.showChatterWidget()
+        self.chatterButton.hide()
 
     def updateDataStructure(self, pageIndex=0):
         utils.logDebug('compute Notebook fields: %r' % (pageIndex), 'updateDataStructure')
@@ -442,7 +477,7 @@ class QtFormView(TemplateView):
         for fieldName, fieldObject in list(self.interfaceFieldsDict.items()):
             outDict[fieldName] = fieldObject.on_change
         return outDict
-
+    
     def _on_change(self, fieldName):
         '''
             [
@@ -473,6 +508,12 @@ class QtFormView(TemplateView):
                 self.buttons.__dict__[newKey] = obj
         return True
 
+    def _valueChangedExt(self, fieldName):
+        '''
+            To allow external oveload
+        '''
+        pass
+
     def _valueChanged(self, fieldName):
         fieldName = str(fieldName)
         fieldObj = self.interfaceFieldsDict.get(fieldName)
@@ -485,6 +526,7 @@ class QtFormView(TemplateView):
             fieldObj1.setValue(fieldValueFromServer)
         self.fieldsChanged[fieldName] = fieldObj
         self._setFieldModifiers()
+        self._valueChangedExt(fieldName)
 
     def translationDial(self, fieldName):
         if not self.activeIds:

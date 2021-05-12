@@ -3,8 +3,6 @@ Created on 24 Mar 2017
 
 @author: dsmerghetto
 '''
-
-
 from PySide6 import QtCore
 from PySide6.QtCore import QObject
 
@@ -14,8 +12,7 @@ from OdooQtUi.views.parser.search_view import SearchView
 from OdooQtUi.views.templateView import TemplateView
 
 
-class TemplateSearchView(TemplateView, QObject):
-
+class TemplateSearchView(TemplateView, QtCore.QObject):
     filter_changed_signal = QtCore.Signal(list)         # Used by "SearchView" to return current filter
     out_filter_change_signal = QtCore.Signal(list)      # Used by parent view to get the current odoo list filter
 

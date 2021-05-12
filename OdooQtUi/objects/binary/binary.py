@@ -8,6 +8,7 @@ import base64
 from PySide6 import QtGui
 from PySide6 import QtCore
 from PySide6 import QtWidgets
+
 from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.utils_odoo_conn import utilsUi
 from OdooQtUi.utils_odoo_conn import constants
@@ -15,7 +16,8 @@ from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
 
 
 class Binary(OdooFieldTemplate):
-    def __init__(self, qtParent, xmlField, fieldsDefinition, rpc):
+    def __init__(self, qtParent, xmlField, fieldsDefinition, rpc, isChatterWidget=False):
+        self.isChatterWidget = isChatterWidget
         super(Binary, self).__init__(qtParent, xmlField, fieldsDefinition, rpc)
         self.labelQtObj = False
         self.widgetQtObj = False
@@ -131,6 +133,8 @@ class Binary(OdooFieldTemplate):
                 utilsUi.setRequiredBackground(self.widgetQtObj, constants.CHAR_STYLE)
 
     def setInvisible(self, val=False):
+        if self.isChatterWidget:
+            return
         super(Binary, self).setInvisible(val)
         if self.labelQtObj:
             self.labelQtObj.setHidden(val)

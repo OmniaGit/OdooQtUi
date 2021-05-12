@@ -14,7 +14,6 @@ from OdooQtUi.views.tree_list_obj import TemplateTreeListView
 from OdooQtUi.interface.login import LoginDialComplete
 
 logger = logging.getLogger()
-
 logger.setLevel(utils.getDebugSeverity())
 
 
@@ -137,7 +136,7 @@ class MainConnector(object):
             if viewFilter:
                 allFieldsDef = rpcObj.fieldsGet(odooObjectName)
                 viewObjSearch = self.initSearchViewObj(odooObjectName, viewName='', view_id='', rpcObj=rpcObj, activeLanguage=activeLanguage, allFieldsDef=allFieldsDef)
-            return TemplateTreeListView(rpcObj, viewObj, localLang, viewObjSearch, self, deafult_filter)
+            return TemplateTreeListView(rpcObj, viewObj, localLang, viewObjSearch, self, deafult_filter, remove_button)
         except Exception as ex:
             logging.error("Exception Ex %r" % ex)
             raise ex
@@ -159,7 +158,7 @@ class MainConnector(object):
                         useHeader=False, 
                         useChatter=False):
         """
-        initialize a odoo form view to be used
+        Initialize a odoo form view to be used
         """
         viewObj, localLang, rpcObj = self._initView('form',
                                                     rpcObj, 
