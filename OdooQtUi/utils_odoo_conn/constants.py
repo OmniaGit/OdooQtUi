@@ -15,6 +15,7 @@ READONLY_STYLE = 'background-color:#ebebeb;'
 COMMON_FIELDS_REQUIRED_BACKGROUND = 'background-color: rgb(210,210,255)'
 LAY_OUT_SPACING = 2
 
+COLOR_WHITE = 'color:white;'
 BOLD_FONT = 'font-weight: bold;'
 COMMON_FIELDS_BORDER = 'border: 2px solid #cfcfcf;'
 NO_RIGHT_BORDER = 'border-right-style: none;'
@@ -23,10 +24,11 @@ NO_TOP_BORDER = 'border-top-style: none;'
 COMMON_FIELDS_BOTTOM_BORDER = COMMON_FIELDS_BORDER + NO_RIGHT_BORDER + NO_LEFT_BORDER + NO_TOP_BORDER
 MAIN_STYLE = 'background-color:#ffffff;'
 
+BUTTON_ODOO_DEFAULT_COLOR = 'background-color: #00A09D;'
 BUTTON_COMMON = 'border-radius: 0px;border: none;color: white;padding: 5px 10px;' + FONT_SIZE
 BUTTON_STYLE = 'background-color: #21b799;border-color: #21b799;' + BOLD_FONT + BUTTON_COMMON   # Color green
 BUTTON_STYLE_OK = 'background-color: #59be50;border-color: #21b799;' + BUTTON_COMMON
-BUTTON_STYLE_CANCEL = ';background-color: #f05050;border-color: #21b799;' + BUTTON_COMMON
+BUTTON_STYLE_CANCEL = 'background-color: #f05050;border-color: #21b799;' + BUTTON_COMMON
 BUTTON_STYLE_MANY_2_ONE = 'background-color: #3eb2df;border-color: #21b799;max-width:30px;max-height:10px;' + BOLD_FONT + BUTTON_COMMON
 BUTTON_STYLE_MANY_2_ONE__2 = 'background-color: #3eb2df;border-color: #21b799;' + BOLD_FONT + BUTTON_COMMON
 BUTTON_ADD_AN_ITEM = 'border: none;color:blue;background-color:white;' + BOLD_FONT
