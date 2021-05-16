@@ -20,6 +20,7 @@ except Exception as ex:
     USE_INTERFACE = False
 
 
+
 class XmlRpcConnection(object):
 
     def __init__(self,
@@ -50,7 +51,16 @@ class XmlRpcConnection(object):
         self.timeout = 60
         self.serverVersion = 8
         self.max_timeout = 7200
+        self.raise_error = False
 
+    def _logError(self, ex, message='', function_name=''):
+        message = message + ' Error: %r' % ex
+        utils.logMessage('error',
+                         message,
+                         function_name)
+        if self.raise_error:
+            raise ex
+        
     def _assignServerVersion(self):
         """
             assign odoo server version
@@ -68,9 +78,7 @@ class XmlRpcConnection(object):
             self.serverVersion =  int(float(serverVersion))
             utils.logMessage('info', 'Server version is %r' % (self.serverVersion), '_assignServerVersion')
         except Exception as ex:
-            utils.logMessage('error', 'Unable to read server version: %r' % (ex), '_assignServerVersion')
-            
-        
+            self._logError(ex, 'Unable to read server version', utils.getFunctionName())
 
     @property
     def urlNoLogin(self):
@@ -172,15 +180,17 @@ class XmlRpcConnection(object):
                 kargs['order'] = order
             return self.callOdooFunction(obj, 'search', [filterList], kargs)
         except Exception as ex:
-            utils.logMessage('error', 'Error during search with values: object %r, filter %r, parameters %r. Error: %r' % (obj, filterList, kargs, ex), 'search')
+            msg = 'Error during search with values: object %r, filter %r, parameters %r.' % (obj, filterList, kargs)
+            self._logError(ex, msg, utils.getFunctionName())
         return []
 
-    def read(self, obj, fields=[], ids=[], limit=False, context={}):
+    def read(self, obj, fields=[], ids=[], limit=False, context={}, load='_classic_read'):
         try:
             kargs = {'context': context}
-            return self.callOdooFunction(obj, 'read', [ids, fields], kargs)
+            return self.callOdooFunction(obj, 'read', [ids, fields, load], kargs)
         except Exception as ex:
-            utils.logMessage('error', 'Error during read with values: object %r, fields %r, ids %r. Error: %r' % (obj, fields, ids, ex), 'read')
+            msg = 'Error during read with values: object %r, fields %r, ids %r.' % (obj, fields, ids)
+            self._logError(ex, msg, utils.getFunctionName())
         return []
 
     def fieldsGet(self, obj, attributesToRead=[], context={}):
@@ -191,7 +201,8 @@ class XmlRpcConnection(object):
             kargs = {'attributes': attributesToRead, 'context': context}
             return self.callOdooFunction(obj, 'fields_get', [], kargs)
         except Exception as ex:
-            utils.logMessage('error', 'Error during reading fields with values: object %r, kargs %r. Error: %r' % (obj, kargs, ex), 'fieldsGet')
+            msg = 'Error during reading fields with values: object %r, kargs %r.' % (obj, kargs)
+            self._logError(ex, msg, utils.getFunctionName())
         return {}
 
     def defaultGet(self, obj, fieldsToRead=[], context={}):
@@ -202,18 +213,19 @@ class XmlRpcConnection(object):
             kargs = {'context': context}
             return self.callOdooFunction(obj, 'default_get', [fieldsToRead], kargs)
         except Exception as ex:
-            utils.logMessage('error', 'Error during reading fields with values: object %r, kargs %r. Error: %r' % (obj, kargs, ex), 'fieldsGet')
+            msg = 'Error during reading fields with values: object %r, kargs %r.' % (obj, kargs)
+            self._logError(ex, msg, utils.getFunctionName())
         return {}
 
     def readSearch(self, obj, fields, filterList, limit=False, order=False, context={}):
-
         try:
             kargs = {'fields': fields, 'context': context}
             if order:
                 kargs['order'] = order
             return self.callOdooFunction(obj, 'search_read', [filterList], kargs)
         except Exception as ex:
-            utils.logMessage('error', 'Error during reading fields with values: object %r, kargs %r, filterList %r. Error: %r' % (obj, kargs, filterList, ex), 'readSearch')
+            msg = 'Error during reading fields with values: object %r, kargs %r, filterList' % (obj, kargs)
+            self._logError(ex, msg, utils.getFunctionName())
         return []
 
     def create(self, obj, values, context={}):
@@ -221,7 +233,8 @@ class XmlRpcConnection(object):
             kargs = {'context': context}
             return self.callOdooFunction(obj, 'create', [values], kargs)
         except Exception as ex:
-            utils.logMessage('error', 'Error during create with values: object %r, kargs %r, filterList %r. Error: %r' % (obj, kargs, values, ex), 'create')
+            msg = 'Error during create with values: object %r, kargs %r, filterList %r.' % (obj, kargs, values)
+            self._logError(ex, msg, utils.getFunctionName())
         return []
 
     def write(self, obj, values, idsToWrite, context={}, kargs={}):
@@ -230,7 +243,8 @@ class XmlRpcConnection(object):
                 kargs['context'] = context
             return self.callOdooFunction(obj, 'write', [idsToWrite, values], kargs)
         except Exception as ex:
-            utils.logMessage('error', 'Error during create with values: object %r, kargs %r, filterList %r. Error: %r' % (obj, kargs, values, ex), 'write')
+            msg = 'Error during create with values: object %r, kargs %r, filterList %r.' % (obj, kargs, values)
+            self._logError(ex, msg, utils.getFunctionName())
         return []
 
     def delete(self, obj, idsToDelete, context={}):
@@ -238,7 +252,8 @@ class XmlRpcConnection(object):
             kargs = {'context': context}
             return self.callOdooFunction(obj, 'unlink', [idsToDelete], kargs)
         except Exception as ex:
-            utils.logMessage('error', 'Error during create with values: object %r, kargs %r, idsToDelete %r. Error: %r' % (obj, kargs, idsToDelete, ex), 'delete')
+            msg = 'Error during create with values: object %r, kargs %r, idsToDelete %r.' % (obj, kargs, idsToDelete)
+            self._logError(ex, msg, utils.getFunctionName())
         return []
 
     def searchCount(self, obj, filterList, context={}):
@@ -246,7 +261,8 @@ class XmlRpcConnection(object):
             kargs = {'context': context}
             return self.callOdooFunction(obj, 'search_count', [filterList], kargs)
         except Exception as ex:
-            utils.logMessage('error', 'Error during create with values: object %r, kargs %r, filterList %r. Error: %r' % (obj, kargs, filterList, ex), 'searchCount')
+            msg = 'Error during create with values: object %r, kargs %r, filterList %r.' % (obj, kargs, filterList)
+            self._logError(ex, msg, utils.getFunctionName())
         return []
 
     def fieldsViewGet(self, odooObj, view_id=False, view_type='form', context={}):
@@ -256,7 +272,7 @@ class XmlRpcConnection(object):
             kwargParameters = {'context': context}
             return self.callOdooFunction(odooObj, 'fields_view_get', [view_id, view_type], kwargParameters)
         except Exception as ex:
-            utils.logMessage('error', 'Error during fields view get: %r' % (ex), 'fieldsViewGet')
+            self._logError(ex, 'Error during fields view get:', utils.getFunctionName())
         return {}
 
     def on_change(self, odooObj, activeIds, allVals, fieldName, allOnchanges, context):
@@ -267,7 +283,8 @@ class XmlRpcConnection(object):
                 return {}
             return res
         except Exception as ex:
-            utils.logMessage('error', 'Wrong on_change call with odooObj: %r, fieldName: %r, activeIds: %r, context: %r. Error: %r' % (odooObj, fieldName, activeIds, context, ex), 'on_change')
+            msg =  'Wrong on_change call with odooObj: %r, fieldName: %r, activeIds: %r, context: %r.' % (odooObj, fieldName, activeIds, context)
+            self._logError(ex, msg, utils.getFunctionName())
         return {}
 
     def execute_kw(self, obj, method, *args, **kargs):
@@ -284,8 +301,8 @@ class XmlRpcConnection(object):
                                                parameters,
                                                kwargParameters)
         except Exception as ex:
-            utils.logMessage('error', ex, 'execute')
-            utils.logMessage('error', 'Error during call Odoo Function execute with arguments: %r, %r, %r, %r' % (obj, method, args), 'execute')
+            msg =  'Error during call Odoo Function execute with arguments: %r, %r, %r, %r' % (obj, method, args)
+            self._logError(ex, msg, utils.getFunctionName())
             return False
 
     def sanitizeVersionFunction(self, functionName):
@@ -315,19 +332,25 @@ class XmlRpcConnection(object):
                                                   kwargParameters)
         except socket.error as err:
             message = 'Unable to communicate with the server: %r calling %r on %r' % (err, functionName, odooObj)
+            utils.logMessage('error', message, 'callOdooFunction')
             if self.useInterface:
                 utilsUi.launchMessage(message, 'error')
-            utils.logMessage('error', message, 'callOdooFunction')
+            else:
+                self._logError(err, message, utils.getFunctionName())
         except xmlrpc.Fault as err:
             try:
                 err_str = err.faultString or err.faultCode
                 if err_str:
                     if self.useInterface:
+                        if self.raise_error:
+                            raise err
                         utilsUi.launchMessage(err_str, 'error')
-                        return False
+                        return None
                     else:
                         utils.logError(err_str, 'callOdooFunction')
-                        return False
+                        if self.raise_error:
+                            raise err
+                        return None
                 return self.socketYesLogin.execute(self.databaseName,
                                                    self.userId,
                                                    self.userPassword,
@@ -335,13 +358,13 @@ class XmlRpcConnection(object):
                                                    functionName,
                                                    parameters)
             except Exception as ex:
+                utils.logMessage('error', ex, 'callOdooFunction')
                 message = 'Unable to communicate with the server: %r' % ex.faultCode
                 if self.useInterface:
                     utilsUi.launchMessage(message, 'error')
-                utils.logMessage('error', message, 'callOdooFunction')
+                else:
+                    self._logError(ex, message, utils.getFunctionName())
         except Exception as ex:
-            if self.useInterface:
-                utilsUi.launchMessage(ex, 'error')
             utils.logMessage('error', ex, 'callOdooFunction')
             utils.logMessage('error',
                              'Error during call Odoo Function with arguments: %r, %r, %r, %r' % (odooObj,
@@ -349,7 +372,11 @@ class XmlRpcConnection(object):
                                                                                                  parameters,
                                                                                                  kwargParameters),
                              'callOdooFunction')
-        return False
+            if self.useInterface:
+                utilsUi.launchMessage(ex, 'error')
+            else:
+                self._logError(ex, '', utils.getFunctionName())
+        return None
 
 
 class TimeoutTransport(xmlrpc.Transport):
