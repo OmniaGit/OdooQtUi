@@ -48,7 +48,7 @@ if __name__ == '__main__':
                 tmplViewObj.loadForceEmptyIds(forceFieldValues, readonlyFields, invisibleFields)
             return tmplViewObj
 
-        tmplViewObj = tryForm('sale.order', useChatter=True)
+        tmplViewObj = tryForm('sale.order', useChatter=False)
         #tmplViewObj = tryForm('product.product', 'plm.base.component', idToLoad=3572, useChatter=True)
         #tmplViewObj = tryListView('product.template', viewFilter=True)
 #         lay = QtWidgets.QVBoxLayout()
@@ -66,7 +66,7 @@ if __name__ == '__main__':
         dialog = QtWidgets.QDialog()
         lay = QtWidgets.QVBoxLayout()
         lay.addWidget(scroll)
-        lay.setMargin(0)
+        #lay.setMargin(0)
         lay.setContentsMargins(20,20,20,20)
         dialog.setLayout(lay)
         dialog.resize(1200, 800)

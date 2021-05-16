@@ -11,7 +11,7 @@ import time
 import base64
 import logging
 import datetime
-
+import inspect
 from os.path import expanduser
 
 
@@ -31,6 +31,8 @@ except Exception as ex:
 TRY_ICON_OBJ = None
 DB_INST = None
 
+
+getFunctionName = lambda: inspect.stack()[1][3]
 
 def launchTryIconMessage(title, message, level='info'):
     if level.upper() == 'INFO':

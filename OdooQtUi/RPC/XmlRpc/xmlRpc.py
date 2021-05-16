@@ -49,9 +49,11 @@ class XmlRpcConnection(object):
         self.useInterface = USE_INTERFACE
         self.secure = secure
         self.timeout = 60
+        self.login_timeout = 2
         self.serverVersion = 8
         self.max_timeout = 7200
         self.raise_error = False
+
 
     def _logError(self, ex, message='', function_name=''):
         message = message + ' Error: %r' % ex
@@ -61,13 +63,21 @@ class XmlRpcConnection(object):
         if self.raise_error:
             raise ex
         
+    def timeoutTransport(self, force=False):
+        t = TimeoutTransport()
+        if force:
+            t.set_timeout(force)
+        else:
+            t.set_timeout(self.timeout)
+        return t
+
     def _assignServerVersion(self):
         """
             assign odoo server version
         """
         try:
             utils.logMessage('info', 'Trying to compute server version', '_assignServerVersion')
-            odooVerInfo = xmlrpc.ServerProxy('{}2/common'.format(self.urlCommon))
+            odooVerInfo = xmlrpc.ServerProxy('{}2/common'.format(self.urlCommon), transport=self.timeoutTransport(self.login_timeout))
             odooVerDict = odooVerInfo.version()
             serverVersion = odooVerDict.get('server_serie', '')
             if serverVersion == '':
@@ -99,9 +109,7 @@ class XmlRpcConnection(object):
     def loginNoUser(self):
         if not self.secure:
             try:
-                t = TimeoutTransport()
-                t.set_timeout(self.timeout)
-                self.socketNoLogin = xmlrpc.ServerProxy(self.urlNoLogin, transport=t)
+                self.socketNoLogin = xmlrpc.ServerProxy(self.urlNoLogin, transport=self.timeoutTransport(self.login_timeout))
             except Exception as ex:
                 utils.logMessage('error', 'Error during login without user: %r' % (ex), 'loginNoUser')
                 return False
@@ -127,9 +135,8 @@ class XmlRpcConnection(object):
             return False
         if not self.secure:
             try:
-                t = TimeoutTransport()
-                t.set_timeout(self.timeout)
-                self.socketYesLogin = xmlrpc.ServerProxy(self.urlYesLogin, transport=t)
+                self.socketYesLogin = xmlrpc.ServerProxy(self.urlYesLogin, transport=self.timeoutTransport(self.login_timeout))
+                self.socketYesLogin._ServerProxy__transport.timeout = self.timeout
             except Exception as ex:
                 utils.logMessage('error', 'Error getting server proxy: %r' % (ex), 'loginWithUser')
                 return False
@@ -152,9 +159,7 @@ class XmlRpcConnection(object):
     def listDb(self):
         if not self.secure:
             try:
-                t = TimeoutTransport()
-                t.set_timeout(self.timeout)
-                return xmlrpc.ServerProxy(self.urlListDB, transport=t).list()
+                return xmlrpc.ServerProxy(self.urlListDB, transport=self.timeoutTransport(self.login_timeout)).list()
             except Exception as ex:
                 utils.logMessage('warning', 'Unable to list database. EX: %r' % (ex), 'listDb')
                 if self.useInterface:

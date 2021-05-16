@@ -39,8 +39,9 @@ class Binary(OdooFieldTemplate):
             self.pixmap = QtGui.QPixmap()
             self.pixmap = self.pixmap.scaled(self.imageWidth,
                                              self.imageHeight,
-                                             aspectRatioMode=QtCore.Qt.IgnoreAspectRatio,
-                                             transformMode=QtCore.Qt.FastTransformation)
+                                             # not supported on pyside aspectRatioMode=QtCore.Qt.IgnoreAspectRatio,
+                                             #transformMode=QtCore.Qt.FastTransformation
+                                             )
             self.widgetQtObj.setPixmap(self.pixmap)
             self.widgetQtObj.resize(self.imageWidth, self.imageHeight)
             self.widgetQtObj.setText('aaa')
@@ -117,8 +118,9 @@ class Binary(OdooFieldTemplate):
                 self.pixmap.loadFromData(base64.b64decode(newVal))
             self.pixmap = self.pixmap.scaled(self.imageWidth,
                                              self.imageHeight,
-                                             aspectRatioMode=QtCore.Qt.IgnoreAspectRatio,
-                                             transformMode=QtCore.Qt.FastTransformation)
+                                             #aspectRatioMode=QtCore.Qt.IgnoreAspectRatio,
+                                             #transformMode=QtCore.Qt.FastTransformation
+                                             )
             self.widgetQtObj.setPixmap(self.pixmap)
             self.widgetQtObj.resize(self.imageWidth, self.imageHeight)
 

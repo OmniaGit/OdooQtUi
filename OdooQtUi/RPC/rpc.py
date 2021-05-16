@@ -14,8 +14,16 @@ class RpcConnection(object):
         self.sockInstance = False
         self.contextUser = {}
         self.useInterface = True
+        self._cache_search = {}
+        self._cache_search_condition = {}
+        self.db_from_field = ''
         return super(RpcConnection, self).__init__()
-
+    
+    def __str__(self, *args, **kwargs):
+        return "UID: %s DB: %s URL %s" % (self.userName,
+                                          self.databaseName,
+                                          self.xmlrpcServerIP) 
+        
     def initConnection(self, connectionType, userName, userPassword, databaseName, xmlrpcPort=8069, scheme='http', xmlrpcServerIP='127.0.0.1'):
         self.userName = userName
         self.userPassword = userPassword
@@ -96,14 +104,19 @@ class RpcConnection(object):
             return []
         return res
 
-    def read(self, obj, fields, ids, context={}, limit=False):
+    def read(self, obj, fields, ids, context={}, limit=False, load='_classic_read'):
         if not ids:
             return []
         localContext = self.contextUser
         localContext.update(context)
         if isinstance(ids, int):
             ids = [ids]
-        return self.sockInstance.read(obj, fields, ids, limit, context=localContext)
+        return self.sockInstance.read(obj,
+                                      fields,
+                                      ids,
+                                      limit,
+                                      context=localContext,
+                                      load=load)
 
     def readSearch(self, obj, fields, filterList=[], order=False, context={}):
         localContext = self.contextUser
@@ -171,5 +184,72 @@ class RpcConnection(object):
         localContext = self.contextUser
         localContext.update(context)
         return self.sockInstance.on_change(obj, activeIds, allVals, fieldName, allOnchanges, context=localContext)
+
+    def EnableException(self):
+        """
+        enable at low level xml-rpc call exceprion
+        """
+        self.sockInstance.raise_error=True
+    
+    def DisableException(self):
+        """
+        diseble at low level xml-rpc call exceprion
+        """
+        self.sockInstance.raise_error=True
+
+    def cacheSearch(self,
+                    objName,
+                    condition=[],
+                    limit=False,
+                    offset=False,
+                    context={}):
+        key = "%s_%s" % (objName, condition)
+        if key not in self._cache_search_condition:
+            self._cache_search_condition[key] = self.search(objName,
+                                                                condition,
+                                                                limit, 
+                                                                offset, 
+                                                                context)
+        return self._cache_search_condition[key]
+        
+        
+    def searchObjectFromOldId(self,
+                              objName,
+                              OldID):
+        ret = self._cache_search.get(objName, {}).get(OldID)
+        if not ret:
+            ret = self.search(objName, [(self.db_from_field, '=', OldID)])
+            if not ret:
+                return False
+            if not objName in self._cache_search:
+                self._cache_search[objName] = {}
+            self._cache_search[objName][OldID] = ret[0]
+        if isinstance(ret, int):
+            return ret    
+        return ret[0]
+
+    def writeOrCreateObject(self,
+                            objName,
+                            attributes,
+                            cleanAttributes=[],
+                            mapAttributes = {},
+                            context={}):
+        if 'id' in attributes:
+            obj_id = attributes['id']
+            del attributes['id']
+        new_id = self.search(objName, [(self.db_from_field, '=', obj_id)],context=context)
+        for befAtt, toAtt in mapAttributes.items():
+            attributes[toAtt] = attributes[befAtt]
+        for aClean in cleanAttributes:
+            del attributes[aClean]
+        if new_id:
+            self.write(objName, attributes, new_id, context=context)
+        else:
+            attributes[self.db_from_field]=obj_id
+            new_id = self.create(objName, attributes, context=context)
+        if isinstance(new_id, (list,tuple)):
+            for _id in new_id:
+                return _id
+        return new_id
 
 connectionObj = RpcConnection()

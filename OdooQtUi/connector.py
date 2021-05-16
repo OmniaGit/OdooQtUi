@@ -129,7 +129,8 @@ class MainConnector(object):
                                activeLanguage='', 
                                viewCheckBoxes={}, 
                                viewFilter=False, 
-                               deafult_filter=[]):
+                               deafult_filter=[],
+                               remove_button=False):
         try:
             viewObjSearch = None
             viewObj, localLang, rpcObj = self._initView('tree_list', rpcObj, activeLanguage, odooObjectName, viewName, view_id, viewFilter, viewCheckBoxes)
