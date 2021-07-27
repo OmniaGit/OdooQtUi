@@ -191,8 +191,8 @@ class XmlRpcConnection(object):
 
     def read(self, obj, fields=[], ids=[], limit=False, context={}, load='_classic_read'):
         try:
-            kargs = {'context': context}
-            return self.callOdooFunction(obj, 'read', [ids, fields, load], kargs)
+            kargs = {'context': context, 'load': load}
+            return self.callOdooFunction(obj, 'read', [ids, fields], kargs)
         except Exception as ex:
             msg = 'Error during read with values: object %r, fields %r, ids %r.' % (obj, fields, ids)
             self._logError(ex, msg, utils.getFunctionName())
