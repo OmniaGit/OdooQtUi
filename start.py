@@ -15,8 +15,8 @@ from OdooQtUi.views.tree_tree_obj import TemplateTreeTreeView
 from OdooQtUi.views.tree_list_obj import TemplateTreeListView
 from OdooQtUi.interface.login import LoginDialComplete
 
-from PySide6 import QtGui
-from PySide6 import QtWidgets
+from PySide2 import QtGui
+from PySide2 import QtWidgets
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)

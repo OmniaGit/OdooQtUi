@@ -6,8 +6,8 @@ Created on Mar 28, 2017
 import json
 from OdooQtUi.RPC.rpc import connectionObj
 from .ui.ui_login import Ui_dialog_login
-from PySide6 import QtWidgets
-from PySide6 import QtCore
+from PySide2 import QtWidgets
+from PySide2 import QtCore
 
 from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.utils_odoo_conn import constants
@@ -143,7 +143,9 @@ class LoginDial(QtWidgets.QDialog, Ui_dialog_login):
 
 
 class LoginDialComplete(object):
-    def __init__(self, connType='xmlrpc'):
+    def __init__(self,
+                 connType='xmlrpc',
+                 context={}):
         self.connType = connType
         self.dbName, self.username, self.userpass, self.serverIp, self.serverPort, self.scheme, self.connType, self.dbList = utils.loadFromFile()
         utils.logMessage('info', '''

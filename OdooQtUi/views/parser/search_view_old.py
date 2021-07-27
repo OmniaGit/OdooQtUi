@@ -4,8 +4,8 @@ Created on 3 Feb 2017
 @author: Daniel Smerghetto
 '''
 import xml.etree.cElementTree as ElementTree
-from PySide6 import QtGui
-from PySide6 import QtCore
+from PySide2 import QtGui
+from PySide2 import QtCore
 from functools import partial
 from utils_odoo_conn import constants
 from utils_odoo_conn import utils

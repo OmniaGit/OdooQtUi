@@ -76,9 +76,11 @@ class MainConnector(object):
                       xmlrpcServerIP='127.0.0.1', 
                       xmlrpcPort=8069, 
                       scheme='http', 
-                      loginType='xmlrpc'):
+                      loginType='xmlrpc',
+                      context={}):
         connectionObj.initConnection(loginType, user, password, dbName, xmlrpcPort, scheme, xmlrpcServerIP)
         res = connectionObj.loginWithUser()
+        connectionObj.contextUser.update(context)
         self.activeLanguage = connectionObj.contextUser.get('lang', 'en_US')
         return res
 
@@ -86,10 +88,11 @@ class MainConnector(object):
     def userLogged(self):
         return connectionObj.userLogged
 
-    def loginWithDial(self):
+    def loginWithDial(self, context={}):
         loginDialInst = LoginDialComplete()
         loginDialInst.interfaceDial.exec_()
         if connectionObj.userLogged:
+            connectionObj.contextUser.update(context) 
             self.activeLanguage = connectionObj.contextUser.get('lang', 'en_US')
             return True
         return False

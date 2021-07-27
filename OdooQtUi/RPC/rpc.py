@@ -16,6 +16,7 @@ class RpcConnection(object):
         self.useInterface = True
         self._cache_search = {}
         self._cache_search_condition = {}
+        self._cache_align_table = {}
         self.db_from_field = ''
         return super(RpcConnection, self).__init__()
     
@@ -212,7 +213,27 @@ class RpcConnection(object):
                                                                 context)
         return self._cache_search_condition[key]
         
-        
+    def cacheSearchCreate(self,
+                          objName,
+                          objVals,
+                          condition,
+                          context={}):
+        if not condition:
+            raise Exception("You must provide a valid search condition")
+        key = "%s_%s" % (objName, condition)
+        if key not in self._cache_search_condition:
+            res = self.search(objName,
+                              condition,
+                              context)
+
+            if not res:
+                res = self.create(objName,
+                                     objVals,
+                                     context=context)
+                res = [res]
+            self._cache_search_condition[key] = res
+        return self._cache_search_condition[key]
+
     def searchObjectFromOldId(self,
                               objName,
                               OldID):
@@ -234,22 +255,29 @@ class RpcConnection(object):
                             cleanAttributes=[],
                             mapAttributes = {},
                             context={}):
-        if 'id' in attributes:
-            obj_id = attributes['id']
-            del attributes['id']
-        new_id = self.search(objName, [(self.db_from_field, '=', obj_id)],context=context)
-        for befAtt, toAtt in mapAttributes.items():
-            attributes[toAtt] = attributes[befAtt]
+        att = attributes.copy()
+        map = mapAttributes.copy()
+        
+        if 'id' in att:
+            obj_id = att['id']
+            del att['id']
+        new_id = self.search(objName,
+                             [(self.db_from_field, '=', obj_id)],
+                             context=context)
+        for befAtt, toAtt in map.items():
+            att[toAtt] = att[befAtt]
         for aClean in cleanAttributes:
-            del attributes[aClean]
+            del att[aClean]
         if new_id:
-            self.write(objName, attributes, new_id, context=context)
+            self.write(objName, att, new_id, context=context)
         else:
-            attributes[self.db_from_field]=obj_id
-            new_id = self.create(objName, attributes, context=context)
+            att[self.db_from_field]=obj_id
+            new_id = self.create(objName,
+                                 att,
+                                 context=context)
         if isinstance(new_id, (list,tuple)):
             for _id in new_id:
                 return _id
-        return new_id
-
+        return new_id       
+        
 connectionObj = RpcConnection()

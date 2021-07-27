@@ -4,7 +4,7 @@ Created on 3 Feb 2017
 @author: Daniel Smerghetto
 '''
 import copy
-from PySide6 import QtWidgets
+from PySide2 import QtWidgets
 from OdooQtUi.utils_odoo_conn import utils
 
 
