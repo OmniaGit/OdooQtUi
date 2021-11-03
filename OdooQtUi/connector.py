@@ -8,7 +8,7 @@ import logging
 from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.RPC.rpc import connectionObj
 from OdooQtUi.views.search_obj import TemplateSearchView
-from OdooQtUi.views.form_obj import QtFormView
+from OdooQtUi.views.form_obj import TemplateFormView
 from OdooQtUi.views.tree_tree_obj import TemplateTreeTreeView
 from OdooQtUi.views.tree_list_obj import TemplateTreeListView
 from OdooQtUi.interface.login import LoginDialComplete
@@ -56,7 +56,8 @@ class ViewOdooObj(object):
 
 class MainConnector(object):
 
-    def __init__(self, parentWindow=None):
+    def __init__(self, parentWindow=None, contextUser={}):
+        connectionObj.contextUser.update(contextUser)
         self.activeLanguage = 'en_US'
         self.loadedViews = []
         self._parentWindow = parentWindow
@@ -78,12 +79,27 @@ class MainConnector(object):
                       scheme='http', 
                       loginType='xmlrpc',
                       context={}):
-        connectionObj.initConnection(loginType, user, password, dbName, xmlrpcPort, scheme, xmlrpcServerIP)
-        res = connectionObj.loginWithUser()
+        res = connectionObj.loginWithUser(connectionType=loginType,
+                                          userName=user,
+                                          userPassword=password,
+                                          databaseName=dbName,
+                                          xmlrpcPort=xmlrpcPort, 
+                                          scheme=scheme, 
+                                          xmlrpcServerIP=xmlrpcServerIP)
         connectionObj.contextUser.update(context)
         self.activeLanguage = connectionObj.contextUser.get('lang', 'en_US')
         return res
-
+    
+    def loginFromStorage(self):
+        dbName, username, userpass, serverIp, serverPort, scheme, connType, _dbList = utils.loadFromFile()
+        self.loginWithUser(user=username,
+                           password=userpass,
+                           dbName=dbName,
+                           xmlrpcServerIP=serverIp,
+                           xmlrpcPort=serverPort,
+                           scheme=scheme,
+                           loginType=connType)
+        
     @property
     def userLogged(self):
         return connectionObj.userLogged
@@ -172,7 +188,7 @@ class MainConnector(object):
                                                     view_id, 
                                                     useHeader=useHeader, 
                                                     useChatter=useChatter)
-        return QtFormView(rpcObj, viewObj, localLang, self)
+        return TemplateFormView(rpcObj, viewObj, localLang, self)
 
     def appendLoadedView(self, viewType, rpcObj, odooObjectName, viewName, view_id, viewFilter=False, viewCheckBoxes={}, searchMode='ilike', useHeader=False, useChatter=False):
         odooArch, odooModel, odooViewName, odooViewId, odooFieldsNameTypeRel = self._getViewDefinition(rpcObj, odooObjectName, viewType, viewName, view_id)

@@ -5,6 +5,7 @@ Created on 24 Mar 2017
 '''
 import copy
 import json
+import logging
 import xml.etree.cElementTree as ElementTree
 from functools import partial
 from PySide2 import QtCore
@@ -30,7 +31,7 @@ from OdooQtUi.objects.text.text import Text
 from OdooQtUi.objects import button
 
 
-class QtFormView(TemplateView):
+class TemplateFormView(TemplateView):
     nootebook_changed_signal = QtCore.Signal(int)
 
     def __init__(self, rpcObject, viewObj, activeLanguageCode='en_US', odooConnector=None):
@@ -45,7 +46,7 @@ class QtFormView(TemplateView):
         self.skipOnChange = False
         self.readonly = False
         self.activeIds = []         # must be one
-        super(QtFormView, self).__init__(rpcObject, viewObj, activeLanguageCode)
+        super(TemplateFormView, self).__init__(rpcObject, viewObj, activeLanguageCode)
         self.odooConnector = odooConnector
         self.objectsInit = copy.deepcopy(self.fields)
         self._initViewObj()
@@ -353,10 +354,15 @@ class QtFormView(TemplateView):
     def setDefaults(self, fieldsToRead=[]):
         if not fieldsToRead:
             fieldsToRead = list(self.interfaceFieldsDict.keys())
-        self.fieldDefaultVals = self.rpcObject.defaultGet(self.model, fieldsToRead)
-        self.skipOnChange = True
-        for fieldName, fieldVal in list(self.fieldDefaultVals.items()):
-            self.setValueField(fieldName, fieldVal)
+        if fieldsToRead:
+            self.fieldDefaultVals = self.rpcObject.defaultGet(self.model, fieldsToRead)
+            self.skipOnChange = True
+            if self.fieldDefaultVals:
+                for fieldName, fieldVal in list(self.fieldDefaultVals.items()):
+                    self.setValueField(fieldName, fieldVal)
+                    self._valueChanged(fieldName)
+        else:
+            logging.warning("unable to load default field from model %s " % self.model)
         self.skipOnChange = False
 
     def removeNootebookFields(self, fieldsToRead):
@@ -382,13 +388,13 @@ class QtFormView(TemplateView):
         if len(objIds) > 1:
             utilsUi.launchMessage('You cannot load multiple ids on form or search view!', 'warning')
             return False
-        formId = False
+        fromId = False
         if objIds:
-            formId = objIds[0]
-            formVals = self.rpcObject.read(self.model, fieldsToRead, [formId], {'lang': self.activeLanguageCode})
+            fromId = objIds[0]
+            formVals = self.rpcObject.read(self.model, fieldsToRead, [fromId], {'lang': self.activeLanguageCode})
             if not formVals:
-                utils.logMessage('warning', 'No values found for id %r and model %r' % (formId, self.model), 'loadIds')
-                formId = False
+                utils.logMessage('warning', 'No values found for id %r and model %r' % (fromId, self.model), 'loadIds')
+                fromId = False
                 self.skipOnChange = True
                 self.setDefaults()
                 self.skipOnChange = False
@@ -611,3 +617,20 @@ class QtFormView(TemplateView):
 
     def appendToglobalMapping(self, key, value):
         self.globalMapping.update({key: value})
+
+    def save(self):
+        """
+        save the current values
+        """
+        to_write = {}
+        for k, v in self.fieldsChanged.items():
+            fieldObj1 = self.interfaceFieldsDict.get(k)
+            if fieldObj1.fieldType in ['one2many','many2many']:
+                to_write[k] = [(6, False, v.value)]
+            else:
+                to_write[k] = v.value
+        if self.activeIds:
+            self.rpcObject.write(self.model, to_write,  self.activeIds)
+        else:
+            self.activeIds = [self.rpcObject.create(self.model, to_write)]
+        return self.activeIds

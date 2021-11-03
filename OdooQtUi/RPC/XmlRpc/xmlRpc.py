@@ -77,7 +77,7 @@ class XmlRpcConnection(object):
         """
         try:
             utils.logMessage('info', 'Trying to compute server version', '_assignServerVersion')
-            odooVerInfo = xmlrpc.ServerProxy('{}2/common'.format(self.urlCommon), transport=self.timeoutTransport(self.login_timeout))
+            odooVerInfo = xmlrpc.ServerProxy('{}2/common'.format(self.urlCommon), transport=self.timeoutTransport(self.login_timeout),allow_none=True)
             odooVerDict = odooVerInfo.version()
             serverVersion = odooVerDict.get('server_serie', '')
             if serverVersion == '':
@@ -109,13 +109,13 @@ class XmlRpcConnection(object):
     def loginNoUser(self):
         if not self.secure:
             try:
-                self.socketNoLogin = xmlrpc.ServerProxy(self.urlNoLogin, transport=self.timeoutTransport(self.login_timeout))
+                self.socketNoLogin = xmlrpc.ServerProxy(self.urlNoLogin, transport=self.timeoutTransport(self.login_timeout), allow_none=True)
             except Exception as ex:
                 utils.logMessage('error', 'Error during login without user: %r' % (ex), 'loginNoUser')
                 return False
         else:
             try:
-                self.socketNoLogin = xmlrpc.ServerProxy(self.urlNoLogin)
+                self.socketNoLogin = xmlrpc.ServerProxy(self.urlNoLogin, allow_none=True)
             except Exception as ex:
                 utils.logMessage('error', 'Error during login without user on secure: %r' % (ex), 'loginNoUser')
                 return False
@@ -135,21 +135,21 @@ class XmlRpcConnection(object):
             return False
         if not self.secure:
             try:
-                self.socketYesLogin = xmlrpc.ServerProxy(self.urlYesLogin, transport=self.timeoutTransport(self.login_timeout))
+                self.socketYesLogin = xmlrpc.ServerProxy(self.urlYesLogin, transport=self.timeoutTransport(self.login_timeout), allow_none=True)
                 self.socketYesLogin._ServerProxy__transport.timeout = self.timeout
             except Exception as ex:
                 utils.logMessage('error', 'Error getting server proxy: %r' % (ex), 'loginWithUser')
                 return False
         else:
             try:
-                self.socketYesLogin = xmlrpc.ServerProxy(self.urlYesLogin) 
+                self.socketYesLogin = xmlrpc.ServerProxy(self.urlYesLogin, allow_none=True) 
             except Exception as ex:
                 utils.logMessage('error', 'Unable to login with user on secure', 'loginWithUser')
                 try:
                     self.xmlrpcType = '/xmlrpc/2/'
-                    self.socketNoLogin = xmlrpc.ServerProxy(self.urlCommon)
+                    self.socketNoLogin = xmlrpc.ServerProxy(self.urlCommon, allow_none=True)
                     self.userId = self.socketNoLogin.authenticate(self.databaseName, self.userName, self.userPassword, {})
-                    self.socketYesLogin = xmlrpc.ServerProxy(self.urlYesLogin)
+                    self.socketYesLogin = xmlrpc.ServerProxy(self.urlYesLogin, allow_none=True)
                 except Exception as ex:
                     utils.logMessage('error', 'Unable to login with user on secure with autenticate', 'loginWithUser')
                     return False
@@ -159,14 +159,14 @@ class XmlRpcConnection(object):
     def listDb(self):
         if not self.secure:
             try:
-                return xmlrpc.ServerProxy(self.urlListDB, transport=self.timeoutTransport(self.login_timeout)).list()
+                return xmlrpc.ServerProxy(self.urlListDB, transport=self.timeoutTransport(self.login_timeout), allow_none=True).list()
             except Exception as ex:
                 utils.logMessage('warning', 'Unable to list database. EX: %r' % (ex), 'listDb')
                 if self.useInterface:
                     utilsUi.launchMessage('Unable to get database list, please check your login settings.', 'warning')
         else:
             try:
-                proxy = xmlrpc.ServerProxy(self.urlListDB)
+                proxy = xmlrpc.ServerProxy(self.urlListDB, allow_none=True)
                 return proxy.list()
             except Exception as ex:
                 utils.logMessage('warning', 'Secure try to read database list: %r' % (ex), 'listDb')

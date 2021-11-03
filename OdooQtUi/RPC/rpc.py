@@ -18,6 +18,13 @@ class RpcConnection(object):
         self._cache_search_condition = {}
         self._cache_align_table = {}
         self.db_from_field = ''
+        self.userName = ''      
+        self.userPassword = ''  
+        self.databaseName = ''
+        self.xmlrpcPort = ''
+        self.scheme = ''
+        self.xmlrpcServerIP = ''
+        self.connectionType = ''
         return super(RpcConnection, self).__init__()
     
     def __str__(self, *args, **kwargs):
@@ -58,12 +65,11 @@ class RpcConnection(object):
             if not self.sockInstance:
                 return False
         return self.sockInstance.loginNoUser()
-
+    
     def loginWithUser(self, connectionType, userName, userPassword, databaseName, xmlrpcPort=8069, scheme='http', xmlrpcServerIP='127.0.0.1'):
+        self.initConnection(connectionType, userName, userPassword, databaseName, xmlrpcPort, scheme, xmlrpcServerIP)
         if not self.sockInstance:
-            self.initConnection(connectionType, userName, userPassword, databaseName, xmlrpcPort, scheme, xmlrpcServerIP)
-            if not self.sockInstance:
-                return False
+            return False
         res = self.sockInstance.loginWithUser()
         self.userId = self.sockInstance.userId
         if self.userId:
@@ -88,7 +94,7 @@ class RpcConnection(object):
         if not res:
             logging.warning('Unable to get user context.')
             res = {}
-        self.contextUser = res
+        self.contextUser.update(res)
 
     def callCustomMethod(self, odooObj, functionName, parameters=[], kwargParameters={}, context={}):
         localContext = self.contextUser

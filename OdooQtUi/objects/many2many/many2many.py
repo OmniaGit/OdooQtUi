@@ -185,7 +185,7 @@ class Many2many(OdooFieldTemplate):
         def toRight():
             commonMove()
 
-        raise Exception('To be moved in list view with a flag')
+        #raise Exception('To be moved in list view with a flag')
         viewObj = self.odooConnector.initTreeListViewObject(self.relation, rpcObj=self.rpc, viewCheckBoxes={0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled})
         viewObj.buttToLeft.clicked.connect(toLeft)
         viewObj.buttToRight.clicked.connect(toRight)
