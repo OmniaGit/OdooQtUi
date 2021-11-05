@@ -31,6 +31,8 @@ class RpcConnection(object):
         return "UID: %s DB: %s URL %s" % (self.userName,
                                           self.databaseName,
                                           self.xmlrpcServerIP) 
+    def getCleanServer(self):
+        return self.url.split("/xmlrpc")[0]
         
     def initConnection(self, connectionType, userName, userPassword, databaseName, xmlrpcPort=8069, scheme='http', xmlrpcServerIP='127.0.0.1'):
         self.userName = userName

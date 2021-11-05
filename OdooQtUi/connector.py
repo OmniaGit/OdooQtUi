@@ -67,6 +67,7 @@ class MainConnector(object):
                     xmlrpcPort=8069, 
                     scheme='http', 
                     loginType='xmlrpc'):
+        self.loadedViews = [] # reset the cashed view because you can change db
         connectionObj.initConnection(loginType, '', '', '', xmlrpcPort, scheme, xmlrpcServerIP)
         return connectionObj.loginNoUser()
 
@@ -79,6 +80,7 @@ class MainConnector(object):
                       scheme='http', 
                       loginType='xmlrpc',
                       context={}):
+        self.loadedViews = [] # reset the cashed view because you can change db 
         res = connectionObj.loginWithUser(connectionType=loginType,
                                           userName=user,
                                           userPassword=password,
@@ -108,6 +110,7 @@ class MainConnector(object):
         loginDialInst = LoginDialComplete()
         loginDialInst.interfaceDial.exec_()
         if connectionObj.userLogged:
+            self.loadedViews = [] # reset the cashed view because you can change db
             connectionObj.contextUser.update(context) 
             self.activeLanguage = connectionObj.contextUser.get('lang', 'en_US')
             return True
