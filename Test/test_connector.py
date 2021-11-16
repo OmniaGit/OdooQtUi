@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 '''
 Created on Jan 18, 2019
 
@@ -27,7 +28,7 @@ if __name__ == '__main__':
     import time
     ts = time.time()
     
-    connectorObj = MainConnector()
+    connectorObj = MainConnector(contextUser={'odooPLM': True})
     connectorObj.loginWithDial()
 
     def do_test():
@@ -48,9 +49,9 @@ if __name__ == '__main__':
                 tmplViewObj.loadForceEmptyIds(forceFieldValues, readonlyFields, invisibleFields)
             return tmplViewObj
 
-        tmplViewObj = tryForm('sale.order', useChatter=False)
+        #tmplViewObj = tryForm('sale.order', useChatter=False)
         #tmplViewObj = tryForm('product.product', 'plm.base.component', idToLoad=3572, useChatter=True)
-        #tmplViewObj = tryListView('product.template', viewFilter=True)
+        tmplViewObj = tryListView('product.template', viewFilter=True)
 #         lay = QtWidgets.QVBoxLayout()
 #         lay.addWidget(tmplViewObj)
 #         lay.setMargin(0)

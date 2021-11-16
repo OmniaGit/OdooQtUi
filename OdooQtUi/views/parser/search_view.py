@@ -118,8 +118,11 @@ class SearchView(object):
 
     def computeRecursion(self, xmlElementParent):
         self.mainVLay = QtWidgets.QVBoxLayout()
+        self.mainVLay.setSpacing(0)
+        self.mainVLay.setMargin(0 )
         mainHLay = QtWidgets.QHBoxLayout()
-
+        mainHLay.setSpacing(0)   
+        mainHLay.setMargin(0 )   
         self.multipleConditionLay = QtWidgets.QVBoxLayout()
         lineEditLay = QtWidgets.QHBoxLayout()
         # Setup lineedit
@@ -173,7 +176,7 @@ class SearchView(object):
 
     def computeFieldAndFilters(self, xmlElementParent):
         self.toolmenu = QtWidgets.QMenu()
-        for childElement in xmlElementParent.getchildren():
+        for childElement in xmlElementParent: #.getchildren():
             childTag = childElement.tag
             if childTag == 'filter':
                 filterObj = self.computeFilter(childElement)
@@ -363,6 +366,8 @@ class SearchView(object):
     def computeArchRecursion(self, xmlElementParent):
         self.widgetContents = QtWidgets.QWidget()
         self.mainLayOut = QtWidgets.QVBoxLayout()
+        self.mainLayOut.setSpacing(1)
+        self.mainLayOut.setMargin(1)
         self.filterListLay = QtWidgets.QHBoxLayout()
         self.mainHLayRec = self.computeRecursion(xmlElementParent)
         self.widgetContents.setStyleSheet('background-color:#ffffff;')
@@ -370,6 +375,8 @@ class SearchView(object):
         self.mainLayOut.addLayout(self.filterListLay)
         self.widgetContents.setLayout(self.mainLayOut)
         self.outLay = QtWidgets.QVBoxLayout()
+        self.outLay.setSpacing(1)
+        self.outLay.setMargin(1)
         self.outLay.addWidget(self.widgetContents)
         return self.outLay
 

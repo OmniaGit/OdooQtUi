@@ -35,7 +35,7 @@ class TreeViewList(QtWidgets.QWidget):
 
     def computeRecursion(self, parent):
         mainVLay = QtWidgets.QVBoxLayout()
-        for childElement in parent.getchildren():
+        for childElement in parent: #.getchildren():
             childTag = childElement.tag
             if childTag == 'field':
                 fieldObj = self.computeField(childElement)

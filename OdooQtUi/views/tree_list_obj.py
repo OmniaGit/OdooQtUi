@@ -12,6 +12,7 @@ from OdooQtUi.utils_odoo_conn import utils, utilsUi
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.RPC.rpc import connectionObj
 from functools import partial
+from PySide2.QtWidgets import QSpacerItem
 
 
 class TemplateTreeListView(TemplateView):
@@ -33,15 +34,18 @@ class TemplateTreeListView(TemplateView):
 
     def _initViewObj(self):
         mainLay = QtWidgets.QVBoxLayout()
+        mainLay.setSpacing(0)
+        mainLay.setMargin(0)
+        mainLay.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
         # Add arrow buttons
-        switchRecordsLay = self._setupArrowButtons()
-        mainLay.addLayout(switchRecordsLay, 0)
+        recordSwitcher = self._setupArrowButtons()
         if self.viewFilter:
             if not self.searchObj:
                 utils.logMessage('warning', 'You have requested to view search view for this object but search view has not been passed!', '_initViewObj')
             else:
                 self.searchObj.out_filter_change_signal.connect(self.filterChanged)
-                mainLay.addWidget(self.searchObj)
+                recordSwitcher.insertWidget(0, self.searchObj)   
+        mainLay.addLayout(recordSwitcher)  
         self.treeObj = TreeViewList(self, self.arch, self.fieldsNameTypeRel, self.rpcObject, self.viewCheckBoxes, self.odooConnector)
         self.treeObj.computeArch()
         mainLay.addWidget(self.treeObj)
@@ -55,9 +59,10 @@ class TemplateTreeListView(TemplateView):
     def _setupArrowButtons(self):
         self.currentRange = [0, 40]
         switchRecordsLay = QtWidgets.QHBoxLayout()
+        switchRecordsLay.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
         self.buttToLeft = QtWidgets.QPushButton('<')
         self.buttToRight = QtWidgets.QPushButton('>')
-        switchRecordsLay.addSpacerItem(QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum))
+        switchRecordsLay.addSpacerItem(QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum))
         switchRecordsLay.addWidget(self.buttToLeft)
         switchRecordsLay.addWidget(self.buttToRight)
         self.buttToLeft.setStyleSheet(constants.BUTTON_STYLE)
@@ -227,3 +232,11 @@ class TemplateTreeListView(TemplateView):
 
     def sortResults(self, fieldName='', filterMode='DESC'):
         utils.logMessage('warning', 'Sorting not implemented in tree list view', 'sortResults')
+
+    def getSelectedIds(self):
+        outIds = []
+        selectedIndexes = self.treeObj.tableWidget.selectedItems()
+        for index in selectedIndexes:
+            outIds.append(self.idLineRel[index.row()])
+        return list(set(outIds))
+        
