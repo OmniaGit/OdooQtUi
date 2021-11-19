@@ -32,7 +32,12 @@ class RpcConnection(object):
     def __str__(self, *args, **kwargs):
         return "UID: %s DB: %s URL %s" % (self.userName,
                                           self.databaseName,
-                                          self.xmlrpcServerIP) 
+                                          self.xmlrpcServerIP)
+
+    @property
+    def serverVersion(self):
+        return self.sockInstance.serverVersion
+ 
     def getCleanServer(self):
         return self.url.split("/xmlrpc")[0]
         

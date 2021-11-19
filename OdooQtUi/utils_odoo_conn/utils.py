@@ -15,7 +15,7 @@ import inspect
 import subprocess
 import random
 from os.path import expanduser
-
+from datetime import timedelta
 
 try:
     import Image
@@ -251,6 +251,13 @@ def randomName(maxCar):
     return exitVal
 
 
+def getTimeNow():
+    '''
+        Return machine datetime
+    '''
+    return datetime.datetime.now().replace(microsecond=0)
+
+
 def packFile(filePath):
     """
         get a base64 stream of a file
@@ -270,22 +277,53 @@ def packFile(filePath):
     return content
 
 
-def unpackFile(content, toFile):
+def unpackFile(content, toFile, timeStamp, deltaTime=None):
     """
        Unpack the content into a file
     """
     if not(content) or (content is None):
         return
-    filedata = file(toFile, 'wb')
-    logging.debug("UnpackFile: Processing file (%s)." % (toFile))
     try:
+        filedata = file(toFile, 'wb')
+        logging.debug("UnpackFile: Processing file (%s)." % (toFile))
         value = base64.decodestring(content)
         filedata.write(value)
-    except Exception as ex:
-        logging.warning("UnpackFile : broken stream on file : %r Error: %r" % (toFile, ex))
-        raise ex
-    filedata.close()
+        filedata.close()
+    except Exception as _ex:
+        with open(toFile, 'wb') as file_obj:
+            file_obj.write(base64.b64decode(content))
+    setupTimeOnFile(timeStamp, toFile, deltaTime)
 
+
+def setFileWritable(file_path='', writable=False):
+    """
+         Set ReadOnly status based on writable flag
+    """
+    if os.path.exists(file_path):
+        if writable:
+            os.chmod(file_path, stat.S_IWRITE | stat.S_IREAD)
+        else:
+            os.chmod(file_path, stat.S_IREAD)
+
+
+def setupTimeOnFile(timeStamp, toFile, deltaTime=None):
+    if not deltaTime:
+        deltaTime = timedelta(0)
+    if timeStamp:
+        try:
+            aa = timeStamp.timetuple()
+            bb = "%s-%s-%s %s:%s:%s" % (str(aa.tm_year),
+                                        str(aa.tm_mon),
+                                        str(aa.tm_mday),
+                                        str(aa.tm_hour),
+                                        str(aa.tm_min),
+                                        str(aa.tm_sec))
+        except Exception:
+            bb = timeStamp
+        timeStamp = datetime.datetime.strptime(bb, '%Y-%m-%d %H:%M:%S')
+        os.utime(toFile,
+                 (time.mktime((timeStamp - deltaTime).timetuple()),
+                  time.mktime((timeStamp - deltaTime).timetuple())))
 
 def openByDefaultEditor(path):
     if not path:

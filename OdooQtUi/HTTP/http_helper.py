@@ -37,7 +37,7 @@ class ClientController(object):
         self.session = Session()
         self.csrf_token = None
         self.verify_ssl = verify_ssl
-        self._pwsPath = pwsPath
+        self.pwsPath = pwsPath
         
     def authenticate(self,
                      login,
@@ -76,7 +76,7 @@ class ClientController(object):
         url = self.server + '/plm_document_upload/upload'
         post_data = {'doc_id': ir_id,
                      'filename': os.path.split(file_path)[-1],
-                     'hostpws': self._pwsPath,
+                     'hostpws': self.pwsPath,
                      'hostname': socket.gethostname(),
                      }
         if csrf_token:
