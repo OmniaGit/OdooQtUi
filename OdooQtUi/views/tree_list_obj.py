@@ -74,9 +74,12 @@ class TemplateTreeListView(TemplateView):
         return switchRecordsLay
 
     def filterChanged(self, newFilter):
+        
         if self.deafult_filter:
             newFilter.extend(self.deafult_filter)
-        objIds = connectionObj.search(self.model, newFilter, limit=self.passRange, offset=self.currentRange[0])
+        objIds = connectionObj.search(self.model, newFilter, limit=self.passRange, offset=0)
+        self.buttToLeft.setHidden(True)
+        self.buttToRight.setHidden(False)
         self._loadIds(objIds)
 
     def forceRecordVals(self, recordID, valuesDict={}):
