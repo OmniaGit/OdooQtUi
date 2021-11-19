@@ -5,7 +5,12 @@ Created on 3 Feb 2017
 '''
 import copy
 import logging
+#
+# Do not delete these, are necessary to compute filters coming from server
+#
 
+import datetime
+from dateutil.relativedelta import relativedelta
 
 import xml.etree.cElementTree as ElementTree
 from PySide2 import QtGui
@@ -16,12 +21,7 @@ from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.utils_odoo_conn import utilsUi
 
-# Do not delete these, are necessary to compute filters coming from server
-#import datetime
-#from dateutil.relativedelta import relativedelta
-
 SEARCH_FOR_STRING = 'Search "%s" for: "'
-
 
 class SearchView(object):
 
@@ -146,12 +146,6 @@ class SearchView(object):
         self.multipleConditionLay.addLayout(lineEditLay)
         mainHLay.addLayout(self.multipleConditionLay)
 
-        # Setup plus button
-        self.buttonPlus = QtWidgets.QPushButton('+')
-        self.buttonPlus.setStyleSheet(constants.SEARCH_ADVANCED_BUTTON)
-        self.buttonPlus.clicked.connect(self.advancedFilter)
-        mainHLay.addWidget(self.buttonPlus)
-
         # Setup filters menu
         self.buttonFilters = QtWidgets.QToolButton()
         self.buttonFilters.setText('Filters')
@@ -168,6 +162,13 @@ class SearchView(object):
         self.buttonCustomFilters.setHidden(True)
         self.buttonCustomFilters.clicked.connect(self.customAdvancedFilter)
         mainHLay.addWidget(self.buttonCustomFilters)
+
+        # Setup plus button
+        self.buttonPlus = QtWidgets.QPushButton('+')
+        self.buttonPlus.setStyleSheet(constants.SEARCH_ADVANCED_BUTTON)
+        self.buttonPlus.clicked.connect(self.advancedFilter)
+        mainHLay.addWidget(self.buttonPlus)
+
         mainHLay.setSpacing(3)
         self.mainVLay.addLayout(mainHLay)
         self.tagsLay = QtWidgets.QVBoxLayout()
@@ -324,7 +325,10 @@ class SearchView(object):
     def addFieldTag(self, condObj):
         maxFiltersInLine = 2
         hlay = QtWidgets.QHBoxLayout()
-        label = QtWidgets.QLabel(condObj.intString)
+        if isinstance(condObj, FilterObj):
+            label = QtWidgets.QLabel(condObj.interfaceString)
+        else:
+            label = QtWidgets.QLabel(condObj.intString)
         label.setStyleSheet(constants.TAG_TEXT_STYLE)
         removeButton = QtWidgets.QPushButton('X')
         removeButton.setStyleSheet(constants.BUTTON_STYLE)
