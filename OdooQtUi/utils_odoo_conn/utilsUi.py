@@ -14,6 +14,7 @@ from PySide2 import QtCore
 from PySide2 import QtWidgets
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.utils_odoo_conn import utils
+import OdooQtUi
 
 DEFAULT_ICON_PATH = ''
 
@@ -38,27 +39,72 @@ def setDefaultIconPath(iconPath):
     DEFAULT_ICON_PATH = iconPath
 
 
-def launchMessage(message='', msgType='message'):
+def launchMessage(message='', msgType='MESSAGE'):
     utils.logMessage('info', message, 'launchMessage')
-    messBox = QtWidgets.QMessageBox()
-    messBox.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+    messBox = QtWidgets.QDialog()
     messBox.setWindowTitle('Odoo Plm Connector')
-    messBox.setText(str(message))
-    if msgType == 'message':
-        messBox.setIcon(QtWidgets.QMessageBox.Information)
-        messBox.setStandardBuunicodttons(QtWidgets.QMessageBox.Ok)
-    if msgType == 'warning':
-        messBox.setIcon(QtWidgets.QMessageBox.Warning)
-        messBox.setStandardButtons(QtWidgets.QMessageBox.Ok)
-    if msgType == 'error':
-        messBox.setIcon(QtWidgets.QMessageBox.Critical)
-        messBox.setStandardButtons(QtWidgets.QMessageBox.Ok)
-    elif msgType == 'question':
-        messBox.setIcon(QtWidgets.QMessageBox.Question)
-        messBox.setStandardButtons(QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel)
+    messBox.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+    
+    main_lay = QtWidgets.QHBoxLayout()
+    widget = QtWidgets.QWidget()
+    main_lay.setMargin(5)
+    main_lay.setSpacing(5)
+    main_lay.addWidget(widget)
+    content_layout = QtWidgets.QVBoxLayout()
+    buttons_layout = QtWidgets.QHBoxLayout()
+    
+    text_edit = QtWidgets.QTextEdit()
+
+    ok_button = QtWidgets.QPushButton('Ok')
+    ok_button.clicked.connect(messBox.accept)
+    cancel_butt = QtWidgets.QPushButton('Cancel')
+    cancel_butt.clicked.connect(messBox.reject)
+    spacer = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+    buttons_layout.addSpacerItem(spacer)
+    buttons_layout.addWidget(ok_button)
+    buttons_layout.addWidget(cancel_butt)
+    
+    text_edit.setText(message)
+    text_edit.setReadOnly(True)
+    
+    tmp_msg_box = QtWidgets.QMessageBox()
+
+    color = 'white'
+    msgType = msgType.upper()
+    if msgType == 'MESSAGE':
+        color = '#5bd3ff'
+        tmp_msg_box.setIcon(QtWidgets.QMessageBox.Information)
+        cancel_butt.setHidden(True)
+    if msgType == 'WARNING':
+        color = '#ffb600'
+        tmp_msg_box.setIcon(QtWidgets.QMessageBox.Warning)
+        cancel_butt.setHidden(True)
+    if msgType == 'ERROR':
+        color = '#ed6363'
+        tmp_msg_box.setIcon(QtWidgets.QMessageBox.Critical)
+        cancel_butt.setHidden(True)
+    elif msgType == 'QUESTION':
+        tmp_msg_box.setIcon(QtWidgets.QMessageBox.Question)
+    
+    icon_lable = QtWidgets.QLabel()
+    text_lable = QtWidgets.QLabel()
+    text_lable.setText(msgType)
+    text_edit.setFrameStyle(QtWidgets.QFrame.NoFrame)
+    icon_lable.setPixmap(tmp_msg_box.iconPixmap())
+    content_layout.addWidget(icon_lable)
+    content_layout.addWidget(text_lable)
+    content_layout.addWidget(text_edit)
+    content_layout.addLayout(buttons_layout)
+    widget.setLayout(content_layout)
+    messBox.setLayout(main_lay)
     messBox.setWindowIcon(QtGui.QIcon(DEFAULT_ICON_PATH))
-    if (messBox.exec_() == QtWidgets.QMessageBox.Ok):
-        messBox.accept()
+    messBox.resize(700, 700)
+    messBox.setStyleSheet('background-color:%r;' % (color))
+    widget.setStyleSheet('background-color:white;')
+    cancel_butt.setStyleSheet(constants.BUTTON_STYLE_CANCEL)
+    ok_button.setStyleSheet(constants.BUTTON_STYLE_OK)
+    text_edit.setStyleSheet(constants.TEXT_STYLE)
+    if messBox.exec_() == QtWidgets.QDialog.Accepted:
         return True
     else:
         return False

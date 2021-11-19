@@ -4,6 +4,7 @@ Created on 02 feb 2017
 @author: Daniel
 '''
 import logging
+import socket
 from OdooQtUi.RPC.XmlRpc.xmlRpc import XmlRpcConnection
 
 
@@ -25,6 +26,7 @@ class RpcConnection(object):
         self.scheme = ''
         self.xmlrpcServerIP = ''
         self.connectionType = ''
+        self.hostname = socket.gethostname()
         return super(RpcConnection, self).__init__()
     
     def __str__(self, *args, **kwargs):

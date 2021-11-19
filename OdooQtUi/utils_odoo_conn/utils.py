@@ -12,6 +12,8 @@ import base64
 import logging
 import datetime
 import inspect
+import subprocess
+import random
 from os.path import expanduser
 
 
@@ -33,6 +35,22 @@ DB_INST = None
 
 
 getFunctionName = lambda: inspect.stack()[1][3]
+
+
+def checkCreateDir(path, permissions=511):
+    """
+    check if a directory exist if not create it
+    """
+    if not os.path.exists(path):
+        os.makedirs(path, permissions)
+
+
+def checkCreateDirPermission(path):
+    """
+    create a new one level folder changing the permissions
+    """
+    checkCreateDir(path, stat.S_IRWXG|stat.S_IRWXO|stat.S_IRWXU)
+
 
 def launchTryIconMessage(title, message, level='info'):
     if level.upper() == 'INFO':
@@ -160,23 +178,29 @@ def getImagePath(imageName):
     return computePath(os.path.join(iconsDir, imageName))
 
 
-def getIconsDirectory():
+def getIconsDirectory(folder_name='images', curr_file=''):
     """
         Gets icons directory path
     """
-    moduleDir = os.path.dirname(os.path.realpath(__file__))
-    iconsDir = os.path.join(moduleDir, 'images')       # Path used by packaged version
+    if not curr_file:
+        curr_file = __file__
+    outModuleDir = os.path.dirname(os.path.realpath(curr_file))
+    starting_dir = outModuleDir
+    iconsDir = os.path.join(outModuleDir, folder_name)       # Path used by packaged version
     if not os.path.exists(iconsDir):
-        moduleDir = os.path.dirname(moduleDir)
-        iconsDir = os.path.join(moduleDir, 'images')
+        moduleDir = os.path.dirname(outModuleDir)
+        iconsDir = os.path.join(moduleDir, folder_name)
         if not os.path.exists(iconsDir):
             moduleDir = os.path.dirname(moduleDir)
-            iconsDir = os.path.join(moduleDir, 'images')
+            iconsDir = os.path.join(moduleDir, folder_name)
             if not os.path.exists(iconsDir):
                 moduleDir = os.path.dirname(moduleDir)
-                iconsDir = os.path.join(moduleDir, 'images')
-                if not os.path.exists(iconsDir):
-                    return 'False'
+                iconsDir = os.path.join(moduleDir, folder_name)
+    for root, sub_dirs, _files in os.walk(starting_dir):
+        for sub_dir in sub_dirs:
+            if sub_dir == folder_name:
+                iconsDir = os.path.join(root, sub_dir)
+                break
     return iconsDir
 
 
@@ -217,6 +241,16 @@ def getCurrentPath():
     return modulePath
 
 
+def randomName(maxCar):
+    """
+        get a random set of character
+    """
+    exitVal = ""
+    for dummyLoop in range(0, maxCar):
+        exitVal += random.choice('qwertyuioplkjhgfdsazxcvbnmQWERTYUIOPLKJHGFDSAZXCVBNM')
+    return exitVal
+
+
 def packFile(filePath):
     """
         get a base64 stream of a file
@@ -226,9 +260,13 @@ def packFile(filePath):
     try:
         with open(filePath, "rb") as filedata:
             content = base64.encodestring("".join(filedata.readlines()))
-    except Exception as ex:
-        logging.warning("PackFile : broken stream on file : %r. Err: %r" % (filePath, ex))
-        raise Exception("PackFile : broken stream on file : %r." % (filePath))
+    except Exception as _ex:
+        try:
+            with open(filePath, "rb") as filedata:
+                content = base64.encodebytes(filedata.read())
+        except Exception as ex:
+            logging.warning("PackFile : broken stream on file : %r. Err: %r" % (filePath, ex))
+            raise Exception("PackFile : broken stream on file : %r." % (filePath))
     return content
 
 
@@ -253,12 +291,24 @@ def openByDefaultEditor(path):
     if not path:
         return False
     try:
-        toOpen = '"%s"' % (path).encode(sys.getfilesystemencoding())
-        logMessage('debug', '[openCommon] toOpen: %s' % (toOpen), 'openCommon')
-        os.startfile(toOpen)
+        if sys.platform.startswith('darwin'):
+            subprocess.call(('open', path))
+        elif os.name == 'nt':
+            os.startfile(path)
+        elif os.name == 'posix':
+            try:
+                subprocess.call(('xdg-open', path))
+            except Exception as ex:
+                os.system('%s %s' % (os.getenv('EDITOR'), path))
     except Exception as ex:
-        logMessage('error', 'error during opening file with default editor %r' % (ex), 'openByDefaultEditor')
-        return False
+        logWarning('EX %r' % (ex), 'openByDefaultEditor')
+        try:
+            toOpen = '"%s"' % (path).encode(sys.getfilesystemencoding())
+            logDebug('[openCommon] toOpen: %s' % (toOpen), 'openCommon')
+            os.startfile(toOpen)
+        except Exception as ex:
+            logError('error during opening file with default editor %r' % (ex), 'openByDefaultEditor')
+            return False
     return True
 
 
