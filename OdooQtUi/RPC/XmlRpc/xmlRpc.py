@@ -163,7 +163,7 @@ class XmlRpcConnection(object):
             except Exception as ex:
                 utils.logMessage('warning', 'Unable to list database. EX: %r' % (ex), 'listDb')
                 if self.useInterface:
-                    utilsUi.launchMessage('Unable to get database list, please check your login settings.', 'warning')
+                    utilsUi.popWarning(None, 'Unable to get database list, please check your login settings.')
         else:
             try:
                 proxy = xmlrpc.ServerProxy(self.urlListDB, allow_none=True)
@@ -171,7 +171,7 @@ class XmlRpcConnection(object):
             except Exception as ex:
                 utils.logMessage('warning', 'Secure try to read database list: %r' % (ex), 'listDb')
                 if self.useInterface:
-                    utilsUi.launchMessage('Unable to get database list, please check your login settings.', 'warning')
+                    utilsUi.popWarning(None, 'Unable to get database list, please check your login settings.')
         return []
 
     def search(self, obj, filterList, limit=False, offset=False, order='', context={}):
@@ -339,7 +339,7 @@ class XmlRpcConnection(object):
             message = 'Unable to communicate with the server: %r calling %r on %r' % (err, functionName, odooObj)
             utils.logMessage('error', message, 'callOdooFunction')
             if self.useInterface:
-                utilsUi.launchMessage(message, 'error')
+                utilsUi.popError(self, message)
             else:
                 self._logError(err, message, utils.getFunctionName())
         except xmlrpc.Fault as err:
@@ -349,7 +349,7 @@ class XmlRpcConnection(object):
                     if self.useInterface:
                         if self.raise_error:
                             raise err
-                        utilsUi.launchMessage(err_str, 'error')
+                        utilsUi.popError(self, err_str)
                         return None
                     else:
                         utils.logError(err_str, 'callOdooFunction')
@@ -366,7 +366,7 @@ class XmlRpcConnection(object):
                 utils.logMessage('error', ex, 'callOdooFunction')
                 message = 'Unable to communicate with the server: %r' % ex.faultCode
                 if self.useInterface:
-                    utilsUi.launchMessage(message, 'error')
+                    utilsUi.popError(None, message)
                 else:
                     self._logError(ex, message, utils.getFunctionName())
         except Exception as ex:
@@ -378,7 +378,7 @@ class XmlRpcConnection(object):
                                                                                                  kwargParameters),
                              'callOdooFunction')
             if self.useInterface:
-                utilsUi.launchMessage(ex, 'error')
+                utilsUi.popError(self, ex)
             else:
                 self._logError(ex, '', utils.getFunctionName())
         return None

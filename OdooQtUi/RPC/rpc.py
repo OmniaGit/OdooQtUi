@@ -34,6 +34,11 @@ class RpcConnection(object):
                                           self.databaseName,
                                           self.xmlrpcServerIP)
 
+    def logout(self):
+        self.userName = ''      
+        self.userPassword = ''
+        self.sockInstance = False
+
     @property
     def serverVersion(self):
         return self.sockInstance.serverVersion

@@ -304,7 +304,7 @@ class SearchView(object):
                 try:
                     floatVal = float(value)
                 except Exception:
-                    utilsUi.launchMessage('Wrong value for float field!', 'warning')
+                    utilsUi.popWarning(dial, 'Wrong value for float field!')
                     return
                 operatorIndex = comboFloatOperator.currentIndex()
                 interfaceVal = comboFloatValues[operatorIndex]

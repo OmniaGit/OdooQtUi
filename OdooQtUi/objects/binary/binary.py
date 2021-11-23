@@ -18,6 +18,7 @@ from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
 class Binary(OdooFieldTemplate):
     def __init__(self, qtParent, xmlField, fieldsDefinition, rpc, isChatterWidget=False):
         self.isChatterWidget = isChatterWidget
+        self.qtParent = qtParent
         super(Binary, self).__init__(qtParent, xmlField, fieldsDefinition, rpc)
         self.labelQtObj = False
         self.widgetQtObj = False
@@ -80,14 +81,13 @@ class Binary(OdooFieldTemplate):
     def openFile(self):
         filePath = self.downloadFile()
         if not utils.openByDefaultEditor(filePath):
-            utilsUi.launchMessage('Unable to open file!', 'warning')
+            utilsUi.popWarning(self.qtParent, 'Unable to open file!')
 
     def downloadFile(self):
         statingPath = self.fieldStringInterface
         newFilePath = utilsUi.getDirectoryFileToSaveSystem(None, statingPath=statingPath)
         if not self.currentValue:
-            utilsUi.launchMessage('Unable to save the file!', 'warning')
-            utils.logMessage('warning', 'Empty file content in binary field', 'downloadFile')
+            utilsUi.popWarning(self.qtParent, 'Unable to save the file!')
         filePath = str(newFilePath)
         utils.unpackFile(self.currentValue, filePath)
         return filePath

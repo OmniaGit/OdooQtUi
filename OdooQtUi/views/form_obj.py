@@ -387,7 +387,7 @@ class TemplateFormView(TemplateView):
         if not skipRemoveNootebook:
             fieldsToRead = self.removeNootebookFields(fieldsToRead)
         if len(objIds) > 1:
-            utilsUi.launchMessage('You cannot load multiple ids on form or search view!', 'warning')
+            utilsUi.popWarning(None, 'You cannot load multiple ids on form or search view!')
             return False
         fromId = False
         if objIds:
@@ -453,7 +453,7 @@ class TemplateFormView(TemplateView):
                 fieldsToEvaluate.append(fieldObject.fieldStringInterface)
                 message = message + '\n %r' % (fieldObject.fieldStringInterface)
         if showMessage and fieldsToEvaluate:
-            utilsUi.launchMessage(message, 'warning')
+            utilsUi.popWarning(None, message)
         return fieldsToEvaluate
 
     def setInvisibleField(self, fieldName, val=False):
@@ -537,7 +537,7 @@ class TemplateFormView(TemplateView):
 
     def translationDial(self, fieldName):
         if not self.activeIds:
-            utilsUi.launchMessage('Translations are available only on already created records.', 'warning')
+            utilsUi.popWarning(None, 'Translations are available only on already created records.')
             return
         fieldName = str(fieldName)
         fieldObj = self.interfaceFieldsDict.get(fieldName)

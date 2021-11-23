@@ -14,8 +14,10 @@ import datetime
 import inspect
 import subprocess
 import random
+import hashlib
 from os.path import expanduser
 from datetime import timedelta
+from traceback import TracebackException
 
 try:
     import Image
@@ -35,21 +37,6 @@ DB_INST = None
 
 
 getFunctionName = lambda: inspect.stack()[1][3]
-
-
-def checkCreateDir(path, permissions=511):
-    """
-    check if a directory exist if not create it
-    """
-    if not os.path.exists(path):
-        os.makedirs(path, permissions)
-
-
-def checkCreateDirPermission(path):
-    """
-    create a new one level folder changing the permissions
-    """
-    checkCreateDir(path, stat.S_IRWXG|stat.S_IRWXO|stat.S_IRWXU)
 
 
 def launchTryIconMessage(title, message, level='info'):
@@ -241,23 +228,6 @@ def getCurrentPath():
     return modulePath
 
 
-def randomName(maxCar):
-    """
-        get a random set of character
-    """
-    exitVal = ""
-    for dummyLoop in range(0, maxCar):
-        exitVal += random.choice('qwertyuioplkjhgfdsazxcvbnmQWERTYUIOPLKJHGFDSAZXCVBNM')
-    return exitVal
-
-
-def getTimeNow():
-    '''
-        Return machine datetime
-    '''
-    return datetime.datetime.now().replace(microsecond=0)
-
-
 def packFile(filePath):
     """
         get a base64 stream of a file
@@ -293,17 +263,6 @@ def unpackFile(content, toFile, timeStamp, deltaTime=None):
         with open(toFile, 'wb') as file_obj:
             file_obj.write(base64.b64decode(content))
     setupTimeOnFile(timeStamp, toFile, deltaTime)
-
-
-def setFileWritable(file_path='', writable=False):
-    """
-         Set ReadOnly status based on writable flag
-    """
-    if os.path.exists(file_path):
-        if writable:
-            os.chmod(file_path, stat.S_IWRITE | stat.S_IREAD)
-        else:
-            os.chmod(file_path, stat.S_IREAD)
 
 
 def setupTimeOnFile(timeStamp, toFile, deltaTime=None):
@@ -378,7 +337,7 @@ def logError(message='', functionName=''):
 
 
 def logMessage(msgType='DEBUG', message='', functionName=''):
-    msg = '%s[%s] %s: %s' % (str(datetime.datetime.now()), functionName, str(msgType).upper(), message)
+    msg = '%s[%s] %s' % (str(datetime.datetime.now()), functionName, message)
     if msgType.upper() == 'DEBUG':
         logging.debug(msg)
     elif msgType.upper() == 'INFO':
@@ -648,3 +607,9 @@ def loadFromFile():
             connType = fileDict.get('conn_type', '')
             dbList = fileDict.get('db_list', [])
     return dbName, username, userpass, serverIp, serverPort, scheme, connType, dbList
+
+
+
+
+
+

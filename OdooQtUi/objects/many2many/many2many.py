@@ -18,6 +18,7 @@ from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
 class Many2many(OdooFieldTemplate):
     def __init__(self, qtParent, xmlField, fieldsDefinition, rpc, odooConnector=None, isChatterWidget=False):
         super(Many2many, self).__init__(qtParent, xmlField, fieldsDefinition, rpc)
+        self.qtParent = qtParent
         self.isChatterWidget = isChatterWidget
         self.labelQtObj = False
         self.widgetQtObj = False
@@ -76,7 +77,7 @@ class Many2many(OdooFieldTemplate):
             for requiredFieldStr, requiredFieldObj in list(tmpviewObjForm.requiredFields.items()):
                 fieldVal = fieldVals.get(requiredFieldStr, '')
                 if not fieldVal and not isinstance(fieldVal, (int, float)):
-                    utilsUi.launchMessage('Field %r need a value' % (requiredFieldObj.fieldStringInterface), 'error')
+                    utilsUi.popError(self.qtParent, 'Field %r need a value' % (requiredFieldObj.fieldStringInterface))
                     return
             formdialog.accept()
 

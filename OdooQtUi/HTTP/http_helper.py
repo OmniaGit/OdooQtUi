@@ -38,7 +38,10 @@ class ClientController(object):
         self.csrf_token = None
         self.verify_ssl = verify_ssl
         self.pwsPath = pwsPath
-        
+
+    def logout(self):
+        self.csrf_token = None
+
     def authenticate(self,
                      login,
                      password,

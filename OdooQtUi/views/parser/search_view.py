@@ -740,7 +740,7 @@ class QVBoxLayCustom(QtWidgets.QVBoxLayout):
                 return float(str(self.mainLineEditWidget.text()))
             except Exception as ex:
                 utils.logMessage('warning', str(ex), 'getValue')
-                utilsUi.launchMessage('Wrong value for float field!', 'warning')
+                utilsUi.popWarning(None, 'Wrong value for float field!')
                 return 0
 
     def hideAll(self):

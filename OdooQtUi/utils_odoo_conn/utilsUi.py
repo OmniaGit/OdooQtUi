@@ -15,6 +15,7 @@ from PySide2 import QtWidgets
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.utils_odoo_conn import utils
 import OdooQtUi
+from OdooQtUi.utils_odoo_conn.utils import logMessage
 
 DEFAULT_ICON_PATH = ''
 
@@ -37,80 +38,6 @@ def getQtImageFromContent(content, imageWidth=100, imageHeight=100, b64decode=Tr
 def setDefaultIconPath(iconPath):
     global DEFAULT_ICON_PATH
     DEFAULT_ICON_PATH = iconPath
-
-
-def launchMessage(message='', msgType='MESSAGE'):
-    utils.logMessage('info', message, 'launchMessage')
-    messBox = QtWidgets.QDialog()
-    messBox.setWindowTitle('Odoo Plm Connector')
-    messBox.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
-    
-    main_lay = QtWidgets.QHBoxLayout()
-    widget = QtWidgets.QWidget()
-    main_lay.setMargin(5)
-    main_lay.setSpacing(5)
-    main_lay.addWidget(widget)
-    content_layout = QtWidgets.QVBoxLayout()
-    buttons_layout = QtWidgets.QHBoxLayout()
-    
-    text_edit = QtWidgets.QTextEdit()
-
-    ok_button = QtWidgets.QPushButton('Ok')
-    ok_button.clicked.connect(messBox.accept)
-    cancel_butt = QtWidgets.QPushButton('Cancel')
-    cancel_butt.clicked.connect(messBox.reject)
-    spacer = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-    buttons_layout.addSpacerItem(spacer)
-    buttons_layout.addWidget(ok_button)
-    buttons_layout.addWidget(cancel_butt)
-    
-    text_edit.setText(message)
-    text_edit.setReadOnly(True)
-    
-    tmp_msg_box = QtWidgets.QMessageBox()
-
-    color = 'white'
-    msgType = msgType.upper()
-    if msgType == 'MESSAGE':
-        color = '#5bd3ff'
-        tmp_msg_box.setIcon(QtWidgets.QMessageBox.Information)
-        cancel_butt.setHidden(True)
-    if msgType == 'WARNING':
-        color = '#ffb600'
-        tmp_msg_box.setIcon(QtWidgets.QMessageBox.Warning)
-        cancel_butt.setHidden(True)
-    if msgType == 'ERROR':
-        color = '#ed6363'
-        tmp_msg_box.setIcon(QtWidgets.QMessageBox.Critical)
-        cancel_butt.setHidden(True)
-    elif msgType == 'QUESTION':
-        tmp_msg_box.setIcon(QtWidgets.QMessageBox.Question)
-    
-    icon_lable = QtWidgets.QLabel()
-    text_lable = QtWidgets.QLabel()
-    text_lable.setText(msgType)
-    text_edit.setFrameStyle(QtWidgets.QFrame.NoFrame)
-    font = QtGui.QFont()
-    font.setPointSize(10)
-    text_edit.setFont(font)
-    icon_lable.setPixmap(tmp_msg_box.iconPixmap())
-    content_layout.addWidget(icon_lable)
-    content_layout.addWidget(text_lable)
-    content_layout.addWidget(text_edit)
-    content_layout.addLayout(buttons_layout)
-    widget.setLayout(content_layout)
-    messBox.setLayout(main_lay)
-    messBox.setWindowIcon(QtGui.QIcon(DEFAULT_ICON_PATH))
-    messBox.resize(700, 700)
-    messBox.setStyleSheet('background-color:%r;' % (color))
-    widget.setStyleSheet('background-color:white;')
-    cancel_butt.setStyleSheet(constants.BUTTON_STYLE_CANCEL)
-    ok_button.setStyleSheet(constants.BUTTON_STYLE_OK)
-    text_edit.setStyleSheet(constants.TEXT_STYLE)
-    if messBox.exec_() == QtWidgets.QDialog.Accepted:
-        return True
-    else:
-        return False
 
 
 def commonPopulateTable(headers, values, tableWidget, flags={}, add=False, fontSize=False):
@@ -197,7 +124,7 @@ def exceptionManagement(ex, message=''):
     traceBackMess = traceback.format_exc()
     logging.error(ex)
     logging.error(traceBackMess)
-    launchMessage(message + ': %s \n %s' % (ex, traceBackMess))
+    popError(None, message + ': %s \n %s' % (ex, traceBackMess))
 
 
 def setRequiredBackground(widgetQtObj, baseBackground):
@@ -220,3 +147,99 @@ def getIconPath(iconName):
     if not os.path.exists(image_path):
         return ''
     return image_path
+
+
+class AdvancedErrorPopUP(QtWidgets.QDialog):
+    def __init__(self, parent, messageBody="", mess_type='warning', short_text_header=''):
+        QtWidgets.QDialog.__init__(self)
+        self.setWindowFlags(QtCore.Qt.MSWindowsFixedSizeDialogHint);
+        self.mainLayout = QtWidgets.QVBoxLayout(self)
+        top_widget = QtWidgets.QWidget()
+        hlay = QtWidgets.QHBoxLayout(top_widget)
+        messageShortError = QtWidgets.QLabel()
+        hlay.addWidget(messageShortError)
+        more_button = QtWidgets.QPushButton('More')
+        more_button.clicked.connect(self.showMore)
+        self.lineEdit = QtWidgets.QTextEdit(self)
+        self.lineEdit.setMaximumHeight(0)
+        self.lineEdit.setMaximumWidth(0)        
+        if len(messageBody) > 60:
+            hlay.addStretch(1)
+            hlay.addWidget(more_button)
+            top_widget.setFixedHeight(50)
+            more_button.setStyleSheet('background-color:white;')
+            messageShortError.setText(messageBody[:60])
+        else:
+            messageShortError.setText(messageBody)
+        if short_text_header:
+            messageShortError.setText(short_text_header)
+        self.lineEdit.setHtml(messageBody)
+        closeButton = QtWidgets.QPushButton("Close")
+        closeButton.clicked.connect(self.close)
+        self.mainLayout.addWidget(top_widget)
+        self.mainLayout.addWidget(self.lineEdit)
+        self.mainLayout.addWidget(closeButton)
+        self.setLayout(self.mainLayout)
+        color = 'white'
+        mess_type = mess_type.upper()
+        if mess_type == 'ERROR':
+            color = '#f44336'
+        elif mess_type == 'WARNING':
+            color = '#ffb600'
+        elif mess_type == 'INFO':
+            color = '#5bd3ff'
+        self.setWindowTitle("%s !!" % (mess_type.capitalize()))
+        self.setStyleSheet('background-color:%r;' % (color))
+        self.lineEdit.setStyleSheet('background-color:white;')
+        closeButton.setStyleSheet('background-color:white;')
+        messageShortError.setStyleSheet('font-weight: bold;')
+        self.setMaximumSize(1200, 100)
+        QtCore.QTimer.singleShot(0, self.resizeMe)
+        self._lineEditVisible = False
+
+    def showMore(self):
+        self._lineEditVisible = not self._lineEditVisible
+        if self._lineEditVisible:
+            self.lineEdit.setMinimumSize(600, 400)
+            self.lineEdit.setMaximumHeight(12000)
+            self.lineEdit.setMaximumWidth(12000)
+            self.setMaximumSize(12000,12000)
+        else:
+            self.lineEdit.setMinimumSize(0, 0)
+            self.setMaximumSize(1200, 100)
+            self.lineEdit.setMaximumHeight(0)
+            self.lineEdit.setMaximumWidth(0)           
+        QtCore.QTimer.singleShot(0, self.resizeMe)
+
+    def resizeMe(self):
+        self.resize(self.minimumSizeHint())
+
+def popError(parent, ex):
+    """
+        pop an error message
+    """
+    messageBody = utils.html_traceback(ex)
+    popMessage(parent, messageBody, 'ERROR', str(ex))
+
+def popWarning(parent, ex):
+    """
+        pop an warning message
+    """
+    popMessage(parent, ex, 'WARNING')
+
+def popInfo(parent, ex):
+    """
+        pop an warning message
+    """
+    popMessage(parent, ex, 'INFO')
+
+def popMessage(parent, ex, msg_type='info', short_text_header=''):
+    """
+        pop an warning message
+    """
+    dialObj = AdvancedErrorPopUP(parent,
+                                 messageBody=ex,
+                                 mess_type=msg_type,
+                                 short_text_header=short_text_header)
+    logMessage(msg_type, ex, 'popMessage')
+    dialObj.exec_()
