@@ -569,9 +569,9 @@ def getUserHomeDir():
     return os.path.expanduser("~")
 
 
-def getLoginFile():
+def getLoginFile(app_name='OdooQtUi'):
     home = getUserHomeDir()
-    return os.path.join(home, '.trayUserLogin')
+    return os.path.join(home, '.%s_trayUserLogin' % (app_name))
 
 
 def getDebugSeverity():
@@ -582,7 +582,7 @@ def getDebugSeverity():
         return logging.INFO
 
 
-def loadFromFile():
+def loadFromFile(app_name='OdooQtUi'):
     dbName = ''
     username = ''
     userpass = ''
@@ -591,7 +591,7 @@ def loadFromFile():
     scheme = ''
     connType = ''
     dbList = []
-    filePath = getLoginFile()
+    filePath = getLoginFile(app_name)
     fileDict = {}
     if os.path.exists(filePath):
         with open(filePath, 'r') as readFile:

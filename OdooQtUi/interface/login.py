@@ -145,9 +145,10 @@ class LoginDial(QtWidgets.QDialog, Ui_dialog_login):
 class LoginDialComplete(object):
     def __init__(self,
                  connType='xmlrpc',
-                 context={}):
+                 context={},
+                 app_name='OdooQtUi'):
         self.connType = connType
-        self.dbName, self.username, self.userpass, self.serverIp, self.serverPort, self.scheme, self.connType, self.dbList = utils.loadFromFile()
+        self.dbName, self.username, self.userpass, self.serverIp, self.serverPort, self.scheme, self.connType, self.dbList = utils.loadFromFile(app_name)
         utils.logMessage('info', '''
 Try login with stored settings:\n
 database= %r\n
