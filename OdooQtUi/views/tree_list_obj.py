@@ -10,9 +10,9 @@ from .templateView import TemplateView
 from OdooQtUi.views.search_obj import TemplateSearchView
 from OdooQtUi.utils_odoo_conn import utils, utilsUi
 from OdooQtUi.utils_odoo_conn import constants
-from OdooQtUi.RPC.rpc import connectionObj
 from functools import partial
 from PySide2.QtWidgets import QSpacerItem
+from PySide2 import QtCore
 
 
 class TemplateTreeListView(TemplateView):
@@ -44,7 +44,8 @@ class TemplateTreeListView(TemplateView):
                 utils.logMessage('warning', 'You have requested to view search view for this object but search view has not been passed!', '_initViewObj')
             else:
                 self.searchObj.out_filter_change_signal.connect(self.filterChanged)
-                recordSwitcher.insertWidget(0, self.searchObj)   
+                recordSwitcher.insertWidget(0, self.searchObj)
+                
         mainLay.addLayout(recordSwitcher)  
         self.treeObj = TreeViewList(self, self.arch, self.fieldsNameTypeRel, self.rpcObject, self.viewCheckBoxes, self.odooConnector)
         self.treeObj.computeArch()
@@ -52,7 +53,9 @@ class TemplateTreeListView(TemplateView):
         self.mappingInterface = self.treeObj.globalMapping
         self.addToObject()
         if self.treeObj.tableWidget:
+            self.treeObj.tableWidget.setAlternatingRowColors(True)
             self.treeObj.tableWidget.setStyleSheet(constants.TABLE_LIST_LIST)
+            self.treeObj.tableWidget.horizontalHeader().setStyleSheet(constants.MANY_2_MANY_H_HEADER)
             self.treeObj.tableWidget.setMinimumHeight(200)
         self.setLayout(mainLay)
 
@@ -77,7 +80,7 @@ class TemplateTreeListView(TemplateView):
         
         if self.deafult_filter:
             newFilter.extend(self.deafult_filter)
-        objIds = connectionObj.search(self.model, newFilter, limit=self.passRange, offset=0)
+        objIds = self.odooConnector.connectionObj.search(self.model, newFilter, limit=self.passRange, offset=0)
         self.buttToLeft.setHidden(True)
         self.buttToRight.setHidden(False)
         self._loadIds(objIds)
@@ -107,7 +110,7 @@ class TemplateTreeListView(TemplateView):
         searchFilter = []
         if self.deafult_filter:
             searchFilter = self.deafult_filter
-        objIds = connectionObj.search(self.model, searchFilter, self.passRange)  # to check with many records if 40 stop will work, 40)
+        objIds = self.odooConnector.connectionObj.search(self.model, searchFilter, self.passRange)  # to check with many records if 40 stop will work, 40)
         return self._loadIds(objIds, forceFieldValues, readonlyFields, invisibleFields)
 
     @utils.timeit
@@ -125,7 +128,7 @@ class TemplateTreeListView(TemplateView):
         for fieldName in fields:
             fieldObj = self.interfaceFieldsDict.get(fieldName, None)
             if fieldObj:
-                if fieldObj.fieldType in ['many2many', 'one2many']:
+                if fieldObj.fieldType in ['one2many']:#['many2many', 'one2many']:
                     fieldsToRemove.append(fieldName)
                     continue
                 self.labelsOrdered.append(fieldObj.fieldStringInterface)
@@ -159,7 +162,7 @@ class TemplateTreeListView(TemplateView):
             self.treeObj.tableWidget.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
             self.treeObj.tableWidget.horizontalHeader().setStyleSheet(constants.MANY_2_MANY_H_HEADER)
             self.treeObj.tableWidget.verticalHeader().setVisible(False)
-            self.treeObj.tableWidget.horizontalHeader().setStyleSheet('::section {background-color:#a2b0ff;color:black;font-weight:bold;}')
+            #self.treeObj.tableWidget.horizontalHeader().setStyleSheet('::section {background-color:#a2b0ff;color:black;font-weight:bold;}')
         if self.remove_button:
             self.setRemoveButtons()
         self.refreshColumns()
@@ -218,7 +221,7 @@ class TemplateTreeListView(TemplateView):
         _start, to = self.currentRange
         self.currentRange = [to, to + self.passRange]
         self.buttToLeft.setHidden(False)
-        objIds = connectionObj.search(self.model, [], limit=self.passRange, offset=self.currentRange[0])
+        objIds = self.odooConnector.connectionObj.search(self.model, [], limit=self.passRange, offset=self.currentRange[0])
         if objIds:
             self.loadIds(objIds)
         else:
@@ -230,7 +233,7 @@ class TemplateTreeListView(TemplateView):
         if self.currentRange[0] <= 0:
             self.buttToLeft.setHidden(True)
         self.buttToRight.setHidden(False)
-        objIds = connectionObj.search(self.model, [], limit=self.passRange, offset=self.currentRange[0])
+        objIds = self.odooConnector.connectionObj.search(self.model, [], limit=self.passRange, offset=self.currentRange[0])
         self.loadIds(objIds)
 
     def sortResults(self, fieldName='', filterMode='DESC'):
@@ -241,5 +244,10 @@ class TemplateTreeListView(TemplateView):
         selectedIndexes = self.treeObj.tableWidget.selectedItems()
         for index in selectedIndexes:
             outIds.append(self.idLineRel[index.row()])
+        if not selectedIndexes:
+            for rowIndex in range(self.treeObj.tableWidget.rowCount()):
+                item = self.treeObj.tableWidget.item(rowIndex, 0)
+                if item.checkState() == QtCore.Qt.Checked:
+                    outIds.append(self.idLineRel[rowIndex])
         return list(set(outIds))
         

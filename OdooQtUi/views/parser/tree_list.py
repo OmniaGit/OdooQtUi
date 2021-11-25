@@ -52,7 +52,6 @@ class TreeViewList(QtWidgets.QWidget):
         utilsUi.commonPopulateTable(self.orderedFields, [], self.tableWidget, flagsDict)
         mainVLay.addWidget(self.tableWidget)
         self.tableWidget.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
-        self.tableWidget.horizontalHeader().setStyleSheet('::section {background-color:#a2b0ff;color:black;font-weight:bold;}')
         return mainVLay
 
     def appendToglobalMapping(self, key, value):
@@ -77,9 +76,9 @@ class TreeViewList(QtWidgets.QWidget):
         elif fieldType == 'many2one':
             fieldObj = Many2one(self, xmlObj, self.fieldsNameTypeRel, self.rpc, self.odooConnector)
         elif fieldType == 'many2many':
-            fieldObj = Many2many(self, xmlObj, self.fieldsNameTypeRel, self.rpc, self.odooConnector)
+            fieldObj = Many2many(self, xmlObj, self.fieldsNameTypeRel, self.rpc, self.odooConnector, parent_view_type='tree')
         elif fieldType == 'one2many':
-            fieldObj = One2many(self, xmlObj, self.fieldsNameTypeRel, self.rpc, self.odooConnector)
+            fieldObj = One2many(self, xmlObj, self.fieldsNameTypeRel, self.rpc, self.odooConnector, parent_view_type='tree')
         elif fieldType == 'text':
             fieldObj = Text(self, xmlObj, self.fieldsNameTypeRel, self.rpc)
         elif fieldType == 'date':

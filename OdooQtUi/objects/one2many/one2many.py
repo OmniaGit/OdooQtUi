@@ -15,17 +15,17 @@ from OdooQtUi.utils_odoo_conn import utils, utilsUi
 from OdooQtUi.utils_odoo_conn import constants
 from functools import partial
 from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
-from OdooQtUi.RPC.rpc import connectionObj
 import base64
 
 
 class One2many(OdooFieldTemplate):
-    def __init__(self, qtParent, xmlField, fieldsDefinition, rpc, odooConnector=None, isChatterWidget=False):
+    def __init__(self, qtParent, xmlField, fieldsDefinition, rpc, odooConnector=None, isChatterWidget=False, parent_view_type=''):
         super(One2many, self).__init__(qtParent, xmlField, fieldsDefinition, rpc)
         self.isChatterWidget = isChatterWidget
         self.labelQtObj = False
         self.widgetQtObj = False
         self.treeViewObj = False
+        self.label_name_values = False
         self.currentMessType = 'NOTE'
         self.odooConnector = odooConnector
         self.relation = self.fieldPyDefinition.get('relation', '')
@@ -46,7 +46,7 @@ class One2many(OdooFieldTemplate):
         elif self.odooWidgetType == 'mail_activity':
             self.treeViewObj = QtWidgets.QWidget()
             self.treeViewObj.treeObj = None
-        else:
+        elif parent_view_type != 'tree':
             self.treeViewObj = self.odooConnector.initTreeListViewObject(odooObjectName=self.relation,
                                                                          viewName='',
                                                                          view_id=False,
@@ -54,7 +54,7 @@ class One2many(OdooFieldTemplate):
                                                                          activeLanguage='',
                                                                          viewCheckBoxes={},
                                                                          viewFilter=False)
-        self.getQtObject()
+        self.getQtObject(parent_view_type)
 
     def getMessageChatterWidget(self):
         label = QtWidgets.QLabel('-----------------  Chat  -----------------')
@@ -116,7 +116,7 @@ class One2many(OdooFieldTemplate):
         return mainWidget
 
     def showActivities(self):
-        messages = connectionObj.read(self.relation, [], self.currentValue)
+        messages = self.odooConnector.connectionObj.read(self.relation, [], self.currentValue)
         for messageDict in messages:
             _activity_id, activity_name = messageDict.get('activity_type_id', [False, ''])
             _user_id, user_name = messageDict.get('user_id', [False, ''])
@@ -173,7 +173,7 @@ class One2many(OdooFieldTemplate):
         elif self.odooWidgetType == 'mail_activity':
             self.showActivities()
         
-    def getQtObject(self):
+    def getQtObject(self, parent_view_type):
         self.createButt = None
         if self.odooWidgetType == 'mail_followers':
             self.qtHorizontalWidget.addLayout(self.messaggesLay)
@@ -181,7 +181,7 @@ class One2many(OdooFieldTemplate):
             self.qtHorizontalWidget.addWidget(self.getMessageChatterWidget())
         elif self.odooWidgetType == 'mail_activity':
             self.qtHorizontalWidget.addWidget(self.getMailActivityWidget())
-        else:
+        elif parent_view_type != 'tree':
             self.labelQtObj = QtWidgets.QLabel(self.fieldStringInterface)
             self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
             self.qtHorizontalWidget.addWidget(self.labelQtObj)
@@ -189,6 +189,9 @@ class One2many(OdooFieldTemplate):
             self.createButt.setStyleSheet(constants.BUTTON_STYLE)
             self.qtHorizontalWidget.addWidget(self.createButt)
             self.createButt.clicked.connect(self.createAndAdd)
+        else:
+            self.label_name_values = QtWidgets.QLabel('')
+            self.qtHorizontalWidget.addWidget(self.label_name_values)
 
     def populateNoteLay(self):
         self.textEditMess = QtWidgets.QTextEdit()
@@ -237,7 +240,7 @@ class One2many(OdooFieldTemplate):
         kwargParameters['attachments'] = []
         kwargParameters['content_subtype'] = 'html'
         context['thread_model'] = 'product.product'
-        return connectionObj.callCustomMethod('mail.thread', 'message_post', parameters, kwargParameters, context=context)
+        return self.odooConnector.connectionObj.callCustomMethod('mail.thread', 'message_post', parameters, kwargParameters, context=context)
 
     def logNote(self):
         self.showNoteLay(True)
@@ -255,7 +258,7 @@ class One2many(OdooFieldTemplate):
         kwargParameters['attachments'] = []
         kwargParameters['content_subtype'] = 'html'
         context['thread_model'] = 'product.product'
-        return connectionObj.callCustomMethod('mail.thread', 'message_post', parameters, kwargParameters, context=context)
+        return self.odooConnector.connectionObj.callCustomMethod('mail.thread', 'message_post', parameters, kwargParameters, context=context)
 
     def showFollowers(self):
         self.followersButton.setHidden(True)
@@ -288,7 +291,7 @@ class One2many(OdooFieldTemplate):
         channelAction = self.toolmenu.addAction('Add Channels')
         channelAction.changed.connect(self.addChannel)
         self.toolmenu.addSeparator()
-        res = connectionObj.read(self.relation, [], self.currentValue)
+        res = self.odooConnector.connectionObj.read(self.relation, [], self.currentValue)
         for elem in res:
             name = elem.get('display_name', '') or ''
             if not name or name == 'False':
@@ -311,7 +314,7 @@ class One2many(OdooFieldTemplate):
 
     def removeFollowerChannel(self, resId):
         if resId:
-            connectionObj.write(self.parentModel, {self.fieldName: [(2, resId, False)]}, self.parentId)
+            self.odooConnector.connectionObj.write(self.parentModel, {self.fieldName: [(2, resId, False)]}, self.parentId)
             self.currentValue.remove(resId)
             self.toolmenu.clear()
             self.populateMenu()
@@ -335,8 +338,8 @@ class One2many(OdooFieldTemplate):
             values = {'res_model': self.parentModel,
                       'partner_id': partnerId,
                       'res_id': self.parentId[0]}
-            resId = connectionObj.create(self.relation, values)
-            connectionObj.write(self.parentModel, {self.fieldName: [(4, resId, False)]}, self.parentId)
+            resId = self.odooConnector.connectionObj.create(self.relation, values)
+            self.odooConnector.connectionObj.write(self.parentModel, {self.fieldName: [(4, resId, False)]}, self.parentId)
             self.currentValue.append(resId)
             self.toolmenu.clear()
             self.populateMenu()
@@ -345,9 +348,9 @@ class One2many(OdooFieldTemplate):
 
     def getPartnerIdFromUserId(self, userId=False):
         if not userId:
-            userId = connectionObj.userId
+            userId = self.odooConnector.connectionObj.userId
         partnerId, partnerName = False, ''
-        res = connectionObj.read('res.users', ['partner_id'], userId)
+        res = self.odooConnector.connectionObj.read('res.users', ['partner_id'], userId)
         for elem in res:
             partnerId, partnerName = elem.get('partner_id', [False, ''])
         return partnerId, partnerName
@@ -357,7 +360,7 @@ class One2many(OdooFieldTemplate):
         partnerId, _partnerName = self.getPartnerIdFromUserId()
         if partnerId:
             if currText == 'Following':
-                res = connectionObj.search(self.relation,
+                res = self.odooConnector.connectionObj.search(self.relation,
                                            [('partner_id', '=', partnerId),
                                             ('res_id', '=', self.parentId)])
                 for objId in res:
@@ -366,7 +369,7 @@ class One2many(OdooFieldTemplate):
                 self._addFollower(partnerId)
 
     def showMessagges(self):
-        messages = connectionObj.read(self.relation, [], self.currentValue)
+        messages = self.odooConnector.connectionObj.read(self.relation, [], self.currentValue)
         for messageDict in messages:
             _userId, userName = messageDict.get('author_id', [False, ''])
             bodyMessage = messageDict.get('body', '')
@@ -387,7 +390,7 @@ class One2many(OdooFieldTemplate):
             mainVLay.addWidget(labelBody)
             attachmentLay = QtWidgets.QHBoxLayout()
             if attachment_ids:
-                res = connectionObj.read('ir.attachment', ['datas', 'datas_fname'], attachment_ids)
+                res = self.odooConnector.connectionObj.read('ir.attachment', ['datas', 'datas_fname'], attachment_ids)
                 for attachDict in res:
                     fileContent = attachDict.get('datas', '')
                     fileName = attachDict.get('datas_fname', '')
@@ -469,6 +472,14 @@ class One2many(OdooFieldTemplate):
             return
         elif self.odooWidgetType == 'mail_activity':
             return
+        elif self.label_name_values:
+            self.loaded_ids = relIds
+            str_to_display = ''
+            for box_vals in self.odooConnector.connectionObj.read(self.relation, ['display_name'], relIds):
+                str_to_display += '%s | ' % (box_vals.get('display_name', ''))
+            if str_to_display.endswith(' | '):
+                str_to_display = str_to_display[:-2]
+            self.label_name_values.setText(str_to_display)
         else:
             self.treeViewObj.loadIds(relIds, {}, {}, {})
             self.widgetQtObj = self.treeViewObj.treeObj.tableWidget
@@ -546,6 +557,8 @@ class One2many(OdooFieldTemplate):
                 self.treeViewObj.treeObj.tableWidget.setHidden(val)
                 if  self.treeViewObj.treeObj.widgetContents:
                     self.treeViewObj.treeObj.widgetContents.setHidden(val)
+            if self.label_name_values:
+                self.label_name_values.setHidden(val)
             self.labelQtObj.setHidden(val)
             self.createButt.setHidden(val)
             if self.labelQtObj:
@@ -562,6 +575,8 @@ class One2many(OdooFieldTemplate):
 
     @property
     def valueInterface(self):
+        if self.label_name_values:
+            return self.label_name_values.text()
         return self.currentValue
 
     def eraseValue(self):

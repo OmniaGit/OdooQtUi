@@ -16,44 +16,53 @@ from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
 
 
 class Many2many(OdooFieldTemplate):
-    def __init__(self, qtParent, xmlField, fieldsDefinition, rpc, odooConnector=None, isChatterWidget=False):
+    def __init__(self, qtParent, xmlField, fieldsDefinition, rpc, odooConnector=None, isChatterWidget=False, parent_view_type=''):
         super(Many2many, self).__init__(qtParent, xmlField, fieldsDefinition, rpc)
         self.qtParent = qtParent
         self.isChatterWidget = isChatterWidget
         self.labelQtObj = False
         self.widgetQtObj = False
         self.treeViewObj = False
+        self.label_name_values = False
         self.btnAddAnItem = None
         self.odooConnector = odooConnector
         self.relation = self.fieldPyDefinition.get('relation', '')
         self.canCreate = json.loads(self.fieldXmlAttributes.get('can_create', 'true'))
         self.canWrite = json.loads(self.fieldXmlAttributes.get('can_write', 'true'))
         self.qtVBoxLayout = QtWidgets.QVBoxLayout()
-        qHl = self.getQtObject()
         self.evaluatedIds = {}
+        self.loaded_ids = []
         self.labelQtObj = QtWidgets.QLabel(self.fieldStringInterface)
         self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
         self.qtVBoxLayout.addWidget(self.labelQtObj)
         remove_button = True
         if self.readonly:
             remove_button = False
-        self.treeViewObj = self.odooConnector.initTreeListViewObject(odooObjectName=self.relation,
-                                                                     viewName='',
-                                                                     view_id=False,
-                                                                     rpcObj=self.rpc,
-                                                                     activeLanguage='',
-                                                                     viewCheckBoxes={0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled},
-                                                                     viewFilter=False,
-                                                                     remove_button=remove_button)
-        self.qtVBoxLayout.addWidget(self.treeViewObj)
-        self.qtVBoxLayout.addLayout(qHl)
+        if parent_view_type != 'tree':
+            qHl = self.getQtObject()
+            self.treeViewObj = self.odooConnector.initTreeListViewObject(odooObjectName=self.relation,
+                                                                         viewName='',
+                                                                         view_id=False,
+                                                                         rpcObj=self.rpc,
+                                                                         activeLanguage='',
+                                                                         viewCheckBoxes={0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled},
+                                                                         viewFilter=False,
+                                                                         remove_button=remove_button)
+            self.qtVBoxLayout.addWidget(self.treeViewObj)
+            self.qtVBoxLayout.addLayout(qHl)
+        elif parent_view_type == 'tree':
+            self.label_name_values = QtWidgets.QLabel('')
+            self.qtVBoxLayout.addWidget(self.label_name_values)
+        
         self.qtHorizontalWidget.addLayout(self.qtVBoxLayout)
 
     @property
     def currentValue(self):
-        if isinstance(self.treeViewObj.idLineRel, dict):
-            return self.treeViewObj.idLineRel.get('ids', [])
-        return self.treeViewObj.idLineRel.ids()
+        if self.treeViewObj:
+            if isinstance(self.treeViewObj.idLineRel, dict):
+                return self.treeViewObj.idLineRel.get('ids', [])
+            return self.treeViewObj.idLineRel.ids()
+        return self.loaded_ids
 
     def getQtObject(self):
         qhw = QtWidgets.QHBoxLayout()
@@ -111,13 +120,22 @@ class Many2many(OdooFieldTemplate):
             utils.logMessage('error', '%r' % (ex), 'createAndAdd')
 
     def setValue(self, relIds):
-        self.treeViewObj.loadIds(relIds, {}, {}, {})
-        self.widgetQtObj = self.treeViewObj.treeObj.tableWidget
-        self.fieldsToReadOrdered = self.treeViewObj.treeObj.orderedFields
-        # self.setRemoveButtons(self.widgetQtObj)
-        self.setupTableWidgetLay(self.widgetQtObj)
-        if self.required:
-            utilsUi.setRequiredBackground(self.widgetQtObj, '')
+        if self.treeViewObj:
+            self.treeViewObj.loadIds(relIds, {}, {}, {})
+            self.widgetQtObj = self.treeViewObj.treeObj.tableWidget
+            self.fieldsToReadOrdered = self.treeViewObj.treeObj.orderedFields
+            # self.setRemoveButtons(self.widgetQtObj)
+            self.setupTableWidgetLay(self.widgetQtObj)
+            if self.required:
+                utilsUi.setRequiredBackground(self.widgetQtObj, '')
+        elif self.label_name_values:
+            self.loaded_ids = relIds
+            str_to_display = ''
+            for box_vals in self.odooConnector.connectionObj.read(self.relation, ['display_name'], relIds):
+                str_to_display += '%s | ' % (box_vals.get('display_name', ''))
+            if str_to_display.endswith(' | '):
+                str_to_display = str_to_display[:-2]
+            self.label_name_values.setText(str_to_display)
 
     def setupTableWidgetLay(self, tableWidget):
         tableWidget.resizeColumnsToContents()
@@ -254,6 +272,8 @@ class Many2many(OdooFieldTemplate):
                 self.treeViewObj.buttToRight.show()
             self.treeViewObj.treeObj.tableWidget.setHidden(val)
             #self.treeViewObj.treeObj.widgetContents.setHidden(val)
+        if self.label_name_values:
+            self.label_name_values.setHidden(val)
         self.labelQtObj.setHidden(val)
         if val:
             self.createButt.hide()
@@ -267,6 +287,8 @@ class Many2many(OdooFieldTemplate):
 
     @property
     def valueInterface(self):
+        if self.label_name_values:
+            return self.label_name_values.text()
         return self.currentValue
 
     def eraseValue(self):

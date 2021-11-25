@@ -109,10 +109,10 @@ class SearchView(object):
 
     def createCommonOrButton(self):
         orButton = QtWidgets.QPushButton('Or')
-        orButton.setStyleSheet(constants.BUTTON_STYLE)
+        orButton.setStyleSheet(constants.BUTTON_STYLE + 'min-height:25px;')
         orButton.clicked.connect(self.orCondition)
         applyButton = QtWidgets.QPushButton('Apply')
-        applyButton.setStyleSheet(constants.BUTTON_STYLE)
+        applyButton.setStyleSheet(constants.BUTTON_STYLE + 'min-height:25px;')
         applyButton.clicked.connect(self.applyCondition)
         return orButton, applyButton
 
@@ -139,6 +139,7 @@ class SearchView(object):
         self.completer.setModel(self.filterListModel)
         self.linedit.setCompleter(self.completer)
         lineEditLay.addWidget(self.linedit)
+        self.linedit.setStyleSheet(constants.BACKGROUND_WHITE)
 
         # Setup or button
         orButton, _applyButton = self.createCommonOrButton()
@@ -374,7 +375,7 @@ class SearchView(object):
         self.mainLayOut.setMargin(1)
         self.filterListLay = QtWidgets.QHBoxLayout()
         self.mainHLayRec = self.computeRecursion(xmlElementParent)
-        self.widgetContents.setStyleSheet('background-color:#ffffff;')
+        #self.widgetContents.setStyleSheet('background-color:#ffffff;')
         self.mainLayOut.addLayout(self.mainHLayRec)
         self.mainLayOut.addLayout(self.filterListLay)
         self.widgetContents.setLayout(self.mainLayOut)

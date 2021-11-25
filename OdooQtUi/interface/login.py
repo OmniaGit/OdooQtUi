@@ -4,7 +4,6 @@ Created on Mar 28, 2017
 @author: daniel
 '''
 import json
-from OdooQtUi.RPC.rpc import connectionObj
 from .ui.ui_login import Ui_dialog_login
 from PySide2 import QtWidgets
 from PySide2 import QtCore
@@ -146,7 +145,9 @@ class LoginDialComplete(object):
     def __init__(self,
                  connType='xmlrpc',
                  context={},
-                 app_name='OdooQtUi'):
+                 app_name='OdooQtUi',
+                 odooConnector=None):
+        self.odooConnector = odooConnector.connectionObj
         self.connType = connType
         self.dbName, self.username, self.userpass, self.serverIp, self.serverPort, self.scheme, self.connType, self.dbList = utils.loadFromFile(app_name)
         utils.logMessage('info', '''
@@ -158,19 +159,19 @@ port= %r\n
 scheme= %r\n
 connection type=%r\n
 ''' % (self.dbName, self.username, self.serverIp, self.serverPort, self.scheme, self.connType), '__init__')
-        connectionObj.initConnection(self.connType,
+        self.odooConnector.connectionObj.initConnection(self.connType,
                                      '',
                                      '',
                                      '',
                                      self.serverPort,
                                      self.scheme,
                                      self.serverIp)
-        self.availableConnTypes = connectionObj.availableConnTypes
+        self.availableConnTypes = self.odooConnector.connectionObj.availableConnTypes
         self.interfaceDial = LoginDial(self.connType, self.availableConnTypes)
         self.setEvents()
         utils.logMessage('info', 'Try login using stored data', '__init__')
         self.loginWithUserDial()
-        if connectionObj.userLogged:
+        if self.odooConnector.connectionObj.userLogged:
             utils.logMessage('info', 'User logged reading from stored file', '__init__')
             self.interfaceDial.label_status.setText('User Already Logged!')
             self.interfaceDial.stackedWidget.setCurrentIndex(1)
@@ -193,7 +194,7 @@ connection type=%r\n
         self.interfaceDial.pushButton_cancel.clicked.connect(self.cancelDial)
 
     def initFields(self):
-        self.interfaceDial.initFields(connectionObj.userLogged,
+        self.interfaceDial.initFields(self.odooConnector.connectionObj.userLogged,
                                       self.userpass,
                                       self.serverPort,
                                       self.scheme,
@@ -212,7 +213,7 @@ connection type=%r\n
         self.connType = self.interfaceDial.connType
         self.writeToFile()
         self.loginWithUserDial()
-        if connectionObj.userLogged:
+        if self.odooConnector.connectionObj.userLogged:
             self.interfaceDial.acceptDial()
             self.interfaceDial.accept()
         else:
@@ -230,7 +231,7 @@ connection type=%r\n
         xmlrpcPort = str(self.interfaceDial.lineEdit_port.text())
         scheme = str(self.interfaceDial.lineEdit_scheme.text())
         loginType = str(self.interfaceDial.comboBox_conn_type.currentText())
-        connectionObj.initConnection(loginType,
+        self.odooConnector.connectionObj.initConnection(loginType,
                                      '',
                                      '',
                                      '',
@@ -238,7 +239,7 @@ connection type=%r\n
                                      scheme,
                                      xmlrpcServerIP)
 
-        self.dbList = connectionObj.listDb()
+        self.dbList = self.odooConnector.connectionObj.listDb()
         if not self.dbList:
             self.interfaceDial.label_status.setText('User not logged! Unable to get database list.')
         else:
@@ -260,14 +261,14 @@ connection type=%r\n
             self.interfaceDial.lineEdit_username.setText(self.username)
 
     def loginWithUserDial(self):
-        connectionObj.initConnection(self.connType,
+        self.odooConnector.connectionObj.initConnection(self.connType,
                                      self.username,
                                      self.userpass,
                                      self.dbName,
                                      self.serverPort,
                                      self.scheme,
                                      self.serverIp)
-        return connectionObj.loginWithUser(self.connType,
+        return self.odooConnector.connectionObj.loginWithUser(self.connType,
                                            self.username,
                                            self.userpass,
                                            self.dbName,

@@ -609,7 +609,41 @@ def loadFromFile(app_name='OdooQtUi'):
     return dbName, username, userpass, serverIp, serverPort, scheme, connType, dbList
 
 
+def html_traceback(exc_value):
+    result = ''
 
+    # get previous fails, so errors are appended by order of execution
+    if exc_value.__context__:
+        result += html_traceback(exc_value.__context__)
+
+    # convert Exception into TracebackException
+    tbe = TracebackException.from_exception(exc_value)
+
+    # get stacktrace (cascade methods calls)
+    error_lines = ""
+    for frame_summary in tbe.stack:
+        summary_details = """
+            <hr>
+            <b>'filename'</b>: %s<br> 
+            <b>'method'  </b>: %s<br>
+            <b>'lineno'  </b>: %s<br>
+            <b>'code'    </b>: %s<br>
+            """ % (frame_summary.filename,
+                   frame_summary.name,
+                   frame_summary.lineno,
+                   frame_summary.line)
+        error_lines+= "\n"
+        error_lines+= summary_details
+
+    # append error, by order of execution
+    result+="""
+               <hr>
+               <b>'error_lines'</b>: %s<br> 
+               <b>'type'       </b>: %s<br>
+               <b>'message'    </b>: %s<br>""" % (error_lines,
+                                                  tbe.exc_type.__name__,
+                                                  str(tbe).replace("\n", "<br>"))
+    return result
 
 
 

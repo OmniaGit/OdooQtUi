@@ -37,7 +37,6 @@ LABEL_STYLE = 'margin-right: 0px;' + BOLD_FONT + FONT_SIZE
 LABEL_STYLE_STATUSBAR = 'background-color: grey;color:white;max-width:100px;border: 0.1px solid white;border-bottom-right-radius: 10px;border-top-right-radius: 10px;'
 LABEL_STYLE_STATUSBAR_ACTIVE = LABEL_STYLE_STATUSBAR + 'background-color:blue;'
 LABEL_SEPARATOR = LABEL_STYLE + FONT_SIZE + BOLD_FONT
-MANY_2_MANY_H_HEADER = 'vertical-align: middle;color:black;background-color:#dfdfdf;' + BOLD_FONT
 CHAR_STYLE = COMMON_FIELDS_BOTTOM_BORDER
 FLOAT_STYLE = COMMON_FIELDS_BOTTOM_BORDER
 INTEGER_STYLE = COMMON_FIELDS_BOTTOM_BORDER
@@ -46,14 +45,26 @@ DATE_STYLE = COMMON_FIELDS_BOTTOM_BORDER
 TEXT_STYLE = BACKGROUND_WHITE
 NOOTEBOOK_STYLE = 'border-left-style: none;border-right-style: none;border-bottom-style: none;border-top-style: none;'
 NOOTEBOOK_TABBAR_STYLE = 'QTabBar::tab:!selected {border: 3px solid grey;border-left-style: none;border-right-style: none;border-top-style: none;min-width:180px;} QTabBar::tab:selected {border: 3px solid #875a7b;border-left-style: none;border-right-style: none;border-top-style: none;color: #875a7b;' + FONT_SIZE + 'min-width:150px} QTabBar::tab:hover {border: 3px solid #875a7b;border-left-style: none;border-right-style: none;border-top-style: none;color: #875a7b;' + FONT_SIZE + 'font-weight: bold;min-width:150px}'
-TABLE_LIST_LIST = """QScrollBar {background-color:#875a7b} QTableWidget {border-left: 3px solid #875a7b; border-right: 3px solid #875a7b; border-bottom: 3px solid #875a7b;}"""
+MANY_2_MANY_H_HEADER = '::section {color:white;padding:3px;background-color:#167F92;text-align:left;border:none;%s}' % BOLD_FONT
+TABLE_LIST_LIST = """QScrollBar {background-color:#875a7b}
+QTableWidget {border-left: 3px solid #875a7b;
+                border-right: 3px solid #875a7b;
+                border-bottom: 3px solid #875a7b;
+                padding: 3px;
+                alternate-background-color: #DDEDF0;
+                background-color: white;} 
+}
+"""
+#hover
+#QTableWidget::item::hover {
+#color:white;background-color:#167F92;
 FONT_SIZE_LIST_WIDGET = 8
 
 TAG_TEXT_STYLE = 'background-color: #c5c5c5;color: black;padding: 0px 5px 0px 5px;max-width: 500px;border: 1px solid black;' + FONT_SIZE
 TAG_BUTTON_STYLE = 'color: black;margin-left:20px;display: flex;padding: 0px 5px 0px 0px;background-color:#3eb2df' + BOLD_FONT + FONT_SIZE
 # Search view
-SEARCH_FILTER_TOOLBUTTON = 'background-color: #7c7bad;min-width: 130px;min-height:30px;color: white;border: 3px solid black;' + BOLD_FONT + FONT_SIZE
-SEARCH_ADVANCED_BUTTON = 'background-color:white;color:#875a7b;border: 4px solid #875a7b;min-width: 25px;min-height:25px;' + BOLD_FONT + FONT_SIZE
+SEARCH_FILTER_TOOLBUTTON = 'background-color: #7c7bad;min-width: 130px;min-height:25px;color: white;' + BOLD_FONT + FONT_SIZE
+SEARCH_ADVANCED_BUTTON = 'background-color: #7c7bad;color:white;width: 25px;min-height:25px;%s%s' % (BOLD_FONT, FONT_SIZE)
 OPERATOR_LABEL = 'background-color: #7c7bad;border: 1px solid black;width:30px;color:white;'
 # Login dialog
 LOGIN_LINEEDIT_STYLE = 'min-width:200px;height: 16px;padding: 6px 12px;border: 1px solid #ccc;border-radius: 4px;background-color: rgb(250, 255, 189);color: rgb(0, 0, 0);' + FONT_SIZE
