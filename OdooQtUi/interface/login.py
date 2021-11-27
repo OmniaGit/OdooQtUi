@@ -147,7 +147,7 @@ class LoginDialComplete(object):
                  context={},
                  app_name='OdooQtUi',
                  odooConnector=None):
-        self.odooConnector = odooConnector.connectionObj
+        self.odooConnector = odooConnector
         self.connType = connType
         self.dbName, self.username, self.userpass, self.serverIp, self.serverPort, self.scheme, self.connType, self.dbList = utils.loadFromFile(app_name)
         utils.logMessage('info', '''

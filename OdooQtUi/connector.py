@@ -18,7 +18,9 @@ logger.setLevel(utils.getDebugSeverity())
 
 
 class ViewOdooObj(object):
-
+    """
+        view info container
+    """
     def __init__(self):
         # Readed Odoo values
         self.odooArch = ''
@@ -109,7 +111,8 @@ class MainConnector(object):
         return self.connectionObj.userLogged
 
     def loginWithDial(self, context={}):
-        loginDialInst = LoginDialComplete(app_name=self.app_name)
+        loginDialInst = LoginDialComplete(app_name=self.app_name,
+                                          odooConnector=self)
         loginDialInst.interfaceDial.exec_()
         if self.connectionObj.userLogged:
             self.loadedViews = [] # reset the cashed view because you can change db

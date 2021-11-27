@@ -344,18 +344,16 @@ class XmlRpcConnection(object):
                 self._logError(err, message, utils.getFunctionName())
         except xmlrpc.Fault as err:
             try:
-                err_str = err.faultString or err.faultCode
-                if err_str:
-                    if self.useInterface:
-                        if self.raise_error:
-                            raise err
-                        utilsUi.popError(self, err_str)
-                        return None
-                    else:
+                if self.useInterface:
+                    utilsUi.popError(self, err)
+                    return None
+                else:
+                    err_str = err.faultString or err.faultCode
+                    if err_str:
                         utils.logError(err_str, 'callOdooFunction')
-                        if self.raise_error:
-                            raise err
-                        return None
+                    if self.raise_error:
+                        raise err
+                    return None
                 return self.socketYesLogin.execute(self.databaseName,
                                                    self.userId,
                                                    self.userPassword,
