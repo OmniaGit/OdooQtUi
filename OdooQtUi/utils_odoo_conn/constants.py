@@ -50,7 +50,6 @@ TABLE_LIST_LIST = """QScrollBar {background-color:#875a7b}
 QTableWidget {border-left: 3px solid #875a7b;
                 border-right: 3px solid #875a7b;
                 border-bottom: 3px solid #875a7b;
-                padding: 3px;
                 alternate-background-color: #DDEDF0;
                 background-color: white;} 
 }

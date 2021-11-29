@@ -71,19 +71,22 @@ def commonPopulateTable(headers, values, tableWidget, flags={}, add=False, fontS
             else:
                 colVal = menuObj.__dict__.get(colName, '')
             rowDict[colName] = colVal
-            twItem = QtWidgets.QTableWidgetItem(colVal)
-            if fontSize:
-                font = QtGui.QFont()
-                font.setPointSize(fontSize)
-                twItem.setFont(font)
-            if colIndex in flags:
-                flagsToAdd = flags[colIndex]
-                twItem.setFlags(flagsToAdd)
-                if flagsToAdd & QtCore.Qt.ItemIsUserCheckable:
-                    twItem.setCheckState(QtCore.Qt.Unchecked)
+            if not isinstance(colVal, str):
+                tableWidget.setCellWidget(rowPosition, colIndex, colVal)
             else:
-                twItem.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
-            tableWidget.setItem(rowPosition, colIndex, twItem)
+                twItem = QtWidgets.QTableWidgetItem(colVal)
+                if fontSize:
+                    font = QtGui.QFont()
+                    font.setPointSize(fontSize)
+                    twItem.setFont(font)
+                if colIndex in flags:
+                    flagsToAdd = flags[colIndex]
+                    twItem.setFlags(flagsToAdd)
+                    if flagsToAdd & QtCore.Qt.ItemIsUserCheckable:
+                        twItem.setCheckState(QtCore.Qt.Unchecked)
+                else:
+                    twItem.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
+                tableWidget.setItem(rowPosition, colIndex, twItem)
         outDict[rowPosition] = rowDict
         rowPosition = rowPosition + 1
     return outDict

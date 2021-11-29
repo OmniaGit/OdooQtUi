@@ -3,6 +3,7 @@ Created on 3 Feb 2017
 
 @author: Daniel Smerghetto
 '''
+import json
 import xml.etree.cElementTree as ElementTree
 from PySide2 import QtWidgets
 from OdooQtUi.utils_odoo_conn import constants
@@ -18,6 +19,7 @@ from OdooQtUi.objects.many2many.many2many import Many2many
 from OdooQtUi.objects.many2one.many2one import Many2one
 from OdooQtUi.objects.text.text import Text
 from OdooQtUi.objects.one2many.one2many import One2many
+from OdooQtUi.utils_odoo_conn import utils
 
 
 class TreeViewList(QtWidgets.QWidget):
@@ -28,6 +30,7 @@ class TreeViewList(QtWidgets.QWidget):
         self.fieldsNameTypeRel = fieldsNameTypeRel
         self.globalMapping = {}
         self.orderedFields = []
+        self.widgets_to_add_in_line = {}
         self.tableWidget = False
         self.viewCheckBoxes = viewCheckBoxes
         self.rpc = rpc
@@ -40,10 +43,11 @@ class TreeViewList(QtWidgets.QWidget):
         for childElement in parent: #.getchildren():
             childTag = childElement.tag
             if childTag == 'field':
-                fieldObj = self.computeField(childElement)
-                if fieldObj:
-                    self.orderedFields.append(fieldObj.fieldName)
-                    self.appendToglobalMapping('field_' + fieldObj.fieldName, fieldObj)
+                fieldName = childElement.attrib.get('name', '')
+                self.orderedFields.append(fieldName)
+            elif childTag == 'button':
+                self.orderedFields.append('')
+            self.widgets_to_add_in_line[len(self.orderedFields) - 1] = childElement
         self.tableWidget = QtWidgets.QTableWidget()
         self.tableWidget.horizontalHeader().setStretchLastSection(True)
         flagsDict = {}
@@ -56,6 +60,42 @@ class TreeViewList(QtWidgets.QWidget):
 
     def appendToglobalMapping(self, key, value):
         self.globalMapping.update({key: value})
+
+    def computeWidget(self, xmlObj):
+        if xmlObj.tag == 'field':
+            field_obj = self.computeField(xmlObj)
+            if field_obj:
+                #self.appendToglobalMapping('field_' + field_obj.fieldName)
+                return field_obj
+        if xmlObj.tag == 'button':
+            button_obj = self.computeButton(xmlObj)
+            if button_obj:
+                #self.appendToglobalMapping('button_' + button_obj.label, button_obj)
+                return button_obj
+                
+    def computeButton(self, xmlObj):
+        button = False
+        attrs = xmlObj.attrib
+        odoo_func_name = attrs.get('name', '')
+        icon = attrs.get('icon', '')
+        butt_type = attrs.get('type', '')
+        attrs_extra = attrs.get('attrs', '')
+        label = attrs.get('string', '')
+        modifiers = json.loads(attrs.get('modifiers', '{}'))
+        context = attrs.get('context', {})
+        if butt_type == 'object': # Call Odoo function
+            button = QtWidgets.QPushButton(parent=self.tableWidget)
+            button.setText(label)
+        if button:
+            button.context = context
+            button.butt_type = butt_type
+            button.odoo_func = odoo_func_name
+            button.label = label
+            button.modifiers = modifiers
+            button.readonly = utils.evaluateBoolean(attrs.get('readonly', False))
+            button.required = utils.evaluateBoolean(attrs.get('required', False))
+            button.invisible = utils.evaluateBoolean(attrs.get('invisible', False))
+        return button
 
     def computeField(self, xmlObj):
         fieldAttributes = xmlObj.attrib
