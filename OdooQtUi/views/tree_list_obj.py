@@ -148,8 +148,9 @@ class TemplateTreeListView(TemplateView):
                             val = val[1]
                     localList.append(str(widget.valueInterface))
                 else:
-                    if isinstance(widget, QtWidgets.QPushButton):
-                        widget.clicked.connect(partial(self.button_row_clicked, widget, record))
+#                     if isinstance(widget, QtWidgets.QPushButton):
+#                         widget.clicked.connect(partial(self.button_row_clicked, widget, record))
+                    widget.record = record
                     self.row_widgets[row_index][col_index] = widget
                     localList.append(widget)
             valuesList.append(localList)
@@ -164,33 +165,35 @@ class TemplateTreeListView(TemplateView):
             self.treeObj.tableWidget.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
             self.treeObj.tableWidget.horizontalHeader().setStyleSheet(constants.MANY_2_MANY_H_HEADER)
             self.treeObj.tableWidget.verticalHeader().setVisible(False)
-            #self.treeObj.tableWidget.horizontalHeader().setStyleSheet('::section {background-color:#a2b0ff;color:black;font-weight:bold;}')
         self._setButtonsModifiers(fieldDict)
         if self.remove_button:
             self.setRemoveButtons()
         self.refreshColumns()
 
     def _setButtonsModifiers(self, fieldDict):
+        
+        def hideButtonWithStyle(butt, flag):
+            if flag:
+                butt.setStyleSheet('color:#dddddd; border:none;background-color:#dddddd;')
+            else:
+                butt.setStyleSheet(constants.BUTTON_STYLE_REVERSED)
+            butt.setDisabled(flag)
+
         for row_index, row_vals in self.row_widgets.items():
             for widget in row_vals.values():
                 if widget.modifiers:
                     readonlyModif = widget.modifiers.get('readonly', {})
                     invisibleModif = widget.modifiers.get('invisible', {})
                     if readonlyModif:
-                        val = utils.evaluateAttrs(fieldDict[row_index], readonlyModif)
+                        val = utils.evaluateAttrs(fieldDict.get(row_index, {}), readonlyModif)
                         widget.setReadonly(val)
                     if invisibleModif:
-                        val = utils.evaluateAttrs(fieldDict[row_index], invisibleModif)
-                        widget.setHidden(val)
+                        val = utils.evaluateAttrs(fieldDict.get(row_index, {}), invisibleModif)
+                        hideButtonWithStyle(widget, val)
                     if widget.readonly:
                         widget.setReadonly(True)
                     if widget.invisible:
-                        widget.setHidden(True)
-
-    def button_row_clicked(self, button, record):
-        pass
-#         if button.butt_type == 'object':
-#             self.odooConnector.connectionObj.callCustomMethod(self.model, button.odoo_func, [record.id], button.context)
+                        hideButtonWithStyle(widget, val)
 
     def setRemoveButtons(self):
         rowCount = self.treeObj.tableWidget.rowCount()

@@ -87,6 +87,7 @@ class TreeViewList(QtWidgets.QWidget):
             button = QtWidgets.QPushButton(parent=self.tableWidget)
             button.setText(label)
         if button:
+            button.record = None
             button.context = context
             button.butt_type = butt_type
             button.odoo_func = odoo_func_name
@@ -95,6 +96,7 @@ class TreeViewList(QtWidgets.QWidget):
             button.readonly = utils.evaluateBoolean(attrs.get('readonly', False))
             button.required = utils.evaluateBoolean(attrs.get('required', False))
             button.invisible = utils.evaluateBoolean(attrs.get('invisible', False))
+        button.setStyleSheet(constants.BUTTON_STYLE_REVERSED)
         return button
 
     def computeField(self, xmlObj):
