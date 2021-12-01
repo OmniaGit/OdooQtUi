@@ -255,7 +255,7 @@ def unpackFile(content, toFile, timeStamp, deltaTime=None):
         return
     try:
         filedata = file(toFile, 'wb')
-        logging.debug("UnpackFile: Processing file (%s)." % (toFile))
+        logging.debug("unpackFile: Processing file (%s)." % (toFile))
         value = base64.decodestring(content)
         filedata.write(value)
         filedata.close()

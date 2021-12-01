@@ -60,6 +60,7 @@ class RpcConnection(object):
         elif connectionType == 'secure-xmlrpc':
             self.sockInstance = XmlRpcConnection(userName, userPassword, databaseName, xmlrpcPort, scheme, xmlrpcServerIP, secure=True)
             self.sockInstance.useInterface = self.useInterface
+        
 
     def getLoginInfos(self):
         return [self.userName,
