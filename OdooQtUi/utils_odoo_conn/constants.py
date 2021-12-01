@@ -27,6 +27,7 @@ MAIN_STYLE = 'background-color:#ffffff;'
 BUTTON_ODOO_DEFAULT_COLOR = 'background-color: #00A09D;'
 BUTTON_COMMON = 'border-radius: 0px;border: none;color: white;padding: 5px 10px;' + FONT_SIZE
 BUTTON_STYLE = 'background-color: #21b799;border-color: #21b799;' + BOLD_FONT + BUTTON_COMMON   # Color green
+BUTTON_STYLE_REVERSED = 'background-color:white; color: #21b799; border: 2px solid #21b799;padding: 3px; margin:1px;' + BOLD_FONT   # Color green
 BUTTON_STYLE_OK = 'background-color: #59be50;border-color: #21b799;' + BUTTON_COMMON
 BUTTON_STYLE_CANCEL = 'background-color: #f05050;border-color: #21b799;' + BUTTON_COMMON
 BUTTON_STYLE_MANY_2_ONE = 'background-color: #3eb2df;border-color: #21b799;max-width:30px;max-height:10px;' + BOLD_FONT + BUTTON_COMMON
@@ -50,7 +51,6 @@ TABLE_LIST_LIST = """QScrollBar {background-color:#875a7b}
 QTableWidget {border-left: 3px solid #875a7b;
                 border-right: 3px solid #875a7b;
                 border-bottom: 3px solid #875a7b;
-                padding: 3px;
                 alternate-background-color: #DDEDF0;
                 background-color: white;} 
 }

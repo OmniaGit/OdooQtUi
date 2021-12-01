@@ -468,7 +468,7 @@ class SearchView(object):
         mainWidget.setStyleSheet(constants.BACKGROUND_WHITE)
         lay.addWidget(mainWidget)
         self.dialCustomFilter.setLayout(lay)
-        self.dialCustomFilter.setStyleSheet(constants.VIOLET_BACKGROUND)
+        #self.dialCustomFilter.setStyleSheet(constants.VIOLET_BACKGROUND)
 
         self.dialCustomFilter.resize(500, 450)
         if self.dialCustomFilter.exec_() == QtWidgets.QDialog.Accepted:

@@ -3,16 +3,14 @@ Created on 24 Mar 2017
 
 @author: dsmerghetto
 '''
-from PySide2 import QtGui
 from PySide2 import QtWidgets
 from .parser.tree_list import TreeViewList
 from .templateView import TemplateView
-from OdooQtUi.views.search_obj import TemplateSearchView
 from OdooQtUi.utils_odoo_conn import utils, utilsUi
 from OdooQtUi.utils_odoo_conn import constants
-from functools import partial
-from PySide2.QtWidgets import QSpacerItem
 from PySide2 import QtCore
+from functools import partial
+from OdooQtUi.utils_odoo_conn.utils import logWarning
 
 
 class TemplateTreeListView(TemplateView):
@@ -23,6 +21,7 @@ class TemplateTreeListView(TemplateView):
         self.activeIds = []
         self.idValsRel = {}
         self.idLineRel = {}
+        self.row_widgets = {}
         self.odooConnector = odooConnector
         self.searchObj = searchObj
         self.labelsOrdered = []
@@ -58,6 +57,7 @@ class TemplateTreeListView(TemplateView):
             self.treeObj.tableWidget.horizontalHeader().setStyleSheet(constants.MANY_2_MANY_H_HEADER)
             self.treeObj.tableWidget.setMinimumHeight(200)
         self.setLayout(mainLay)
+        self.setStyleSheet(constants.BACKGROUND_WHITE)
 
     def _setupArrowButtons(self):
         self.currentRange = [0, 40]
@@ -65,7 +65,8 @@ class TemplateTreeListView(TemplateView):
         switchRecordsLay.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
         self.buttToLeft = QtWidgets.QPushButton('<')
         self.buttToRight = QtWidgets.QPushButton('>')
-        switchRecordsLay.addSpacerItem(QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum))
+        spacer = QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
+        switchRecordsLay.addSpacerItem(spacer)
         switchRecordsLay.addWidget(self.buttToLeft)
         switchRecordsLay.addWidget(self.buttToRight)
         self.buttToLeft.setStyleSheet(constants.BUTTON_STYLE)
@@ -115,41 +116,43 @@ class TemplateTreeListView(TemplateView):
 
     @utils.timeit
     def _loadIds(self, objIds=[], forceFieldValues={}, readonlyFields={}, invisibleFields={}):
-        fields = self.treeObj.orderedFields
+        self.labelsOrdered = self.treeObj.orderedFields
         if len(objIds) < self.passRange:
             self.buttToRight.setHidden(True)
         else:
             self.buttToRight.setHidden(False)
-        records = self.rpcObject.read(self.model, fields, objIds)
+        records = self.rpcObject.read(self.model, self.labelsOrdered, objIds)
         flagsDict = {}
+        fieldDict = {}
         valuesList = []
-        self.labelsOrdered = []
-        fieldsToRemove = []
-        for fieldName in fields:
-            fieldObj = self.interfaceFieldsDict.get(fieldName, None)
-            if fieldObj:
-                if fieldObj.fieldType in ['one2many']:#['many2many', 'one2many']:
-                    fieldsToRemove.append(fieldName)
-                    continue
-                self.labelsOrdered.append(fieldObj.fieldStringInterface)
-            else:
-                self.labelsOrdered.append(fieldName)
-        fields = [item for item in fields if item not in fieldsToRemove]
         if self.viewCheckBoxes:
             flagsDict = self.viewCheckBoxes
-        for record in records:
+        for row_index, record in enumerate(records):
+            if row_index not in self.row_widgets:
+                self.row_widgets[row_index] = {}
+            if row_index not in fieldDict:
+                fieldDict[row_index] = {}
             localList = []
-            for fieldName in fields:
+            for col_index, fieldName in enumerate(self.labelsOrdered):
                 val = record.get(fieldName, '')
-                fieldObj = self.interfaceFieldsDict.get(fieldName, None)
-                fieldObj.setValue(val)
-                record[fieldName] = fieldObj.value
-                if fieldObj.fieldType == 'many2one':
-                    if isinstance(val, bool):
-                        val = ''
-                    else:
-                        val = val[1]
-                localList.append(str(fieldObj.valueInterface))
+                xml_obj = self.treeObj.widgets_to_add_in_line[col_index]
+                widget = self.treeObj.computeWidget(xml_obj)
+                if xml_obj.tag == 'field':
+                    widget.setValue(val)
+                    fieldDict[row_index][fieldName] = widget
+                    record[fieldName] = widget.value
+                    if widget.fieldType == 'many2one':
+                        if isinstance(val, bool):
+                            val = ''
+                        else:
+                            val = val[1]
+                    localList.append(str(widget.valueInterface))
+                else:
+#                     if isinstance(widget, QtWidgets.QPushButton):
+#                         widget.clicked.connect(partial(self.button_row_clicked, widget, record))
+                    widget.record = record
+                    self.row_widgets[row_index][col_index] = widget
+                    localList.append(widget)
             valuesList.append(localList)
             recordId = record.get('id', False)
             self.idValsRel[recordId] = record
@@ -162,10 +165,35 @@ class TemplateTreeListView(TemplateView):
             self.treeObj.tableWidget.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
             self.treeObj.tableWidget.horizontalHeader().setStyleSheet(constants.MANY_2_MANY_H_HEADER)
             self.treeObj.tableWidget.verticalHeader().setVisible(False)
-            #self.treeObj.tableWidget.horizontalHeader().setStyleSheet('::section {background-color:#a2b0ff;color:black;font-weight:bold;}')
+        self._setButtonsModifiers(fieldDict)
         if self.remove_button:
             self.setRemoveButtons()
         self.refreshColumns()
+
+    def _setButtonsModifiers(self, fieldDict):
+        
+        def hideButtonWithStyle(butt, flag):
+            if flag:
+                butt.setStyleSheet('color:#dddddd; border:none;background-color:#dddddd;')
+            else:
+                butt.setStyleSheet(constants.BUTTON_STYLE_REVERSED)
+            butt.setDisabled(flag)
+
+        for row_index, row_vals in self.row_widgets.items():
+            for widget in row_vals.values():
+                if widget.modifiers:
+                    readonlyModif = widget.modifiers.get('readonly', {})
+                    invisibleModif = widget.modifiers.get('invisible', {})
+                    if readonlyModif:
+                        val = utils.evaluateAttrs(fieldDict.get(row_index, {}), readonlyModif)
+                        widget.setReadonly(val)
+                    if invisibleModif:
+                        val = utils.evaluateAttrs(fieldDict.get(row_index, {}), invisibleModif)
+                        hideButtonWithStyle(widget, val)
+                    if widget.readonly:
+                        widget.setReadonly(True)
+                    if widget.invisible:
+                        hideButtonWithStyle(widget, val)
 
     def setRemoveButtons(self):
         rowCount = self.treeObj.tableWidget.rowCount()
