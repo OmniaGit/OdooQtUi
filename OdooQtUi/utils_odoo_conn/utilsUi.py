@@ -222,7 +222,7 @@ def popError(parent, ex):
         pop an error message
     """
     messageBody = utils.html_traceback(ex)
-    popMessage(parent, messageBody, 'ERROR', str(ex))
+    popMessage(parent, messageBody, 'ERROR', str(ex.faultCode))
 
 def popWarning(parent, ex):
     """

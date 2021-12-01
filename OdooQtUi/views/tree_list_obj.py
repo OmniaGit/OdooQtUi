@@ -173,11 +173,12 @@ class TemplateTreeListView(TemplateView):
     def _setButtonsModifiers(self, fieldDict):
         
         def hideButtonWithStyle(butt, flag):
-            if flag:
-                butt.setStyleSheet('color:#dddddd; border:none;background-color:#dddddd;')
-            else:
-                butt.setStyleSheet(constants.BUTTON_STYLE_REVERSED)
-            butt.setDisabled(flag)
+            if butt:
+                if flag:
+                    butt.setStyleSheet('color:#dddddd; border:none;background-color:#dddddd;')
+                else:
+                    butt.setStyleSheet(constants.BUTTON_STYLE_REVERSED)
+                butt.setDisabled(flag)
 
         for row_index, row_vals in self.row_widgets.items():
             for widget in row_vals.values():
