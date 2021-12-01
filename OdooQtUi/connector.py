@@ -65,7 +65,15 @@ class MainConnector(object):
         self.app_name = app_name
         self.loadedViews = []
         self._parentWindow = parentWindow
-
+    
+    
+    @property
+    def deltaTime(self):
+        """
+        return the delta time calculated from server to client machine time
+        """
+        return self.connectionObj.deltaTime
+    
     def loginNoUser(self, 
                     xmlrpcServerIP='127.0.0.1', 
                     xmlrpcPort=8069, 

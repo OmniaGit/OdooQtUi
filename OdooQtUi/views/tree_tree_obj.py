@@ -245,7 +245,7 @@ class TreeTreeView(QtWidgets.QWidget):
         self._mainLayout = QtWidgets.QVBoxLayout()
         self.setLayout(self._mainLayout)    
         self._qTreeView = QtWidgets.QTreeView()
-        self._qTreeView.setSelectionMode(QtWidgets.QAbstractItemView.MultiSelection)
+        self._qTreeView.setSelectionMode(QtWidgets.QAbstractItemView.ContiguousSelection)
         self._mainLayout.addWidget(self._qTreeView)
         
     def loadIds(self, ids):
