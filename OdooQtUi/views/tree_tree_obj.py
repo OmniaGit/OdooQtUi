@@ -6,6 +6,7 @@ Created on 24 Mar 2017
 from OdooQtUi.views.templateView import TemplateView
 from PySide2.QtCore import QAbstractItemModel, Qt, QModelIndex
 from PySide2 import QtWidgets
+import json
 
 class TemplateTreeTreeView(TemplateView):
 
@@ -29,7 +30,8 @@ class NodeComputed(object):
         :attributes of the current object suppose that the id parameter must be in the dictionary
         """
         self.id = attributes.get('id')
-        del attributes['id']
+        if 'id' in attributes:
+            del attributes['id']
         self.attributes = attributes
         self.parent = parent
         self.children = []
@@ -91,6 +93,10 @@ class TreeTreeData(QAbstractItemModel):
         ret = self.connectorObj.callCustomMethod(self.objectName,
                                                  functionName,
                                                  parameters=ids)
+        try:
+            ret = json.loads(ret)
+        except Exception:
+            pass
         if not ret:
             #todo: mettere un pop up di errore o qualcosa ???
             return
@@ -106,14 +112,9 @@ class TreeTreeData(QAbstractItemModel):
             for levelAttributes, childrenAttributes in childNodesAttributes:
                 node = NodeComputed(levelAttributes, parent=parentNode)
                 addChilds(node, childrenAttributes)
-        self.root = None
-        first=True
-        for first_element, childrens_element in ret[1]:
-            root = NodeComputed(first_element)
-            if first:
-                self.root = root
-                first = False
-            addChilds(root, childrens_element)
+         
+        self.root = NodeComputed({'name': 'RootNode'})
+        addChilds(self.root, ret[1])
 
     def flags(self, index):
         defaultFlags = QAbstractItemModel.flags(self, index)
@@ -257,9 +258,17 @@ class TreeTreeView(QtWidgets.QWidget):
                                           self._functionName,
                                           ids)
         self._qTreeView.setModel(self.abstractModel)
-        
+
+    def getSelectedNodes(self):
+        nodes = []
+        for index in self._qTreeView.selectionModel().selectedIndexes():
+            node = self.abstractModel.nodeFromIndex(index)
+            if node not in nodes:
+                nodes.append(node)
+        return nodes
     
-        
+    def getRootNode(self):
+        return self.abstractModel.root
         
        
     
