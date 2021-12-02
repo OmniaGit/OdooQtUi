@@ -37,6 +37,7 @@ class TreeViewList(QtWidgets.QWidget):
         self.widgetContents = None
 
     def computeRecursion(self, parent):
+        headers = []
         mainVLay = QtWidgets.QVBoxLayout()
         mainVLay.setMargin(0)
         mainVLay.setSpacing(0)
@@ -45,7 +46,9 @@ class TreeViewList(QtWidgets.QWidget):
             if childTag == 'field':
                 fieldName = childElement.attrib.get('name', '')
                 self.orderedFields.append(fieldName)
+                headers.append(self.fieldsNameTypeRel.get(fieldName, {}).get('string', fieldName))
             elif childTag == 'button':
+                headers.append('')
                 self.orderedFields.append('')
             self.widgets_to_add_in_line[len(self.orderedFields) - 1] = childElement
         self.tableWidget = QtWidgets.QTableWidget()
@@ -53,7 +56,7 @@ class TreeViewList(QtWidgets.QWidget):
         flagsDict = {}
         if self.viewCheckBoxes:
             flagsDict = self.viewCheckBoxes
-        utilsUi.commonPopulateTable(self.orderedFields, [], self.tableWidget, flagsDict)
+        utilsUi.commonPopulateTable(headers, [], self.tableWidget, flagsDict)
         mainVLay.addWidget(self.tableWidget)
         self.tableWidget.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
         return mainVLay
