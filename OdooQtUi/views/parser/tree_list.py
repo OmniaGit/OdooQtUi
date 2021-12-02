@@ -18,6 +18,7 @@ from OdooQtUi.objects.integer.integer import Integer
 from OdooQtUi.objects.many2many.many2many import Many2many
 from OdooQtUi.objects.many2one.many2one import Many2one
 from OdooQtUi.objects.text.text import Text
+from OdooQtUi.objects.text.text import TextHtml
 from OdooQtUi.objects.one2many.one2many import One2many
 from OdooQtUi.utils_odoo_conn import utils
 
@@ -126,6 +127,8 @@ class TreeViewList(QtWidgets.QWidget):
             fieldObj = One2many(self, xmlObj, self.fieldsNameTypeRel, self.rpc, self.odooConnector, parent_view_type='tree')
         elif fieldType == 'text':
             fieldObj = Text(self, xmlObj, self.fieldsNameTypeRel, self.rpc)
+        elif fieldType == 'html':
+            fieldObj = TextHtml(self, xmlObj, self.fieldsNameTypeRel, self.rpc)
         elif fieldType == 'date':
             fieldObj = Date(self, xmlObj, self.fieldsNameTypeRel, self.rpc)
         elif fieldType == 'boolean':

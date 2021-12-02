@@ -79,3 +79,14 @@ class Text(OdooFieldTemplate):
 
     def eraseValue(self):
         self.setValue('')
+
+class TextHtml(Text):
+    def setValue(self, newVal):
+        if isinstance(newVal, bool):
+            if not newVal:
+                newVal = ''
+            else:
+                newVal = ''
+                utils.logMessage('warning', 'Boolean value %r is passed to char field %r, check better' % (newVal, self.fieldName), 'setValue')
+        self.widgetQtObj.setHtml(newVal)
+        self.currentValue = newVal
