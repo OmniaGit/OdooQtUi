@@ -81,7 +81,7 @@ class TemplateTreeListView(TemplateView):
         
         if self.deafult_filter:
             newFilter.extend(self.deafult_filter)
-        objIds = self.odooConnector.connectionObj.search(self.model, newFilter, limit=self.passRange, offset=0)
+        objIds = self.odooConnector.rpc_connector.search(self.model, newFilter, limit=self.passRange, offset=0)
         self.buttToLeft.setHidden(True)
         self.buttToRight.setHidden(False)
         self._loadIds(objIds)
@@ -111,7 +111,7 @@ class TemplateTreeListView(TemplateView):
         searchFilter = []
         if self.deafult_filter:
             searchFilter = self.deafult_filter
-        objIds = self.odooConnector.connectionObj.search(self.model, searchFilter, self.passRange)  # to check with many records if 40 stop will work, 40)
+        objIds = self.odooConnector.rpc_connector.search(self.model, searchFilter, self.passRange)  # to check with many records if 40 stop will work, 40)
         return self._loadIds(objIds, forceFieldValues, readonlyFields, invisibleFields)
 
     @utils.timeit
@@ -125,6 +125,7 @@ class TemplateTreeListView(TemplateView):
         flagsDict = {}
         fieldDict = {}
         valuesList = []
+        headers = []
         if self.viewCheckBoxes:
             flagsDict = self.viewCheckBoxes
         for row_index, record in enumerate(records):
@@ -134,6 +135,8 @@ class TemplateTreeListView(TemplateView):
                 fieldDict[row_index] = {}
             localList = []
             for col_index, fieldName in enumerate(self.labelsOrdered):
+                if row_index == 0:
+                    headers.append(self.fieldsNameTypeRel.get(fieldName, {}).get('string', fieldName))
                 val = record.get(fieldName, '')
                 xml_obj = self.treeObj.widgets_to_add_in_line[col_index]
                 widget = self.treeObj.computeWidget(xml_obj)
@@ -148,6 +151,8 @@ class TemplateTreeListView(TemplateView):
                             val = val[1]
                     localList.append(str(widget.valueInterface))
                 else:
+                    if row_index == 0:
+                        headers.append('')
 #                     if isinstance(widget, QtWidgets.QPushButton):
 #                         widget.clicked.connect(partial(self.button_row_clicked, widget, record))
                     widget.record = record
@@ -158,13 +163,14 @@ class TemplateTreeListView(TemplateView):
             self.idValsRel[recordId] = record
             self.idLineRel[records.index(record)] = recordId
         if self.remove_button:
-            self.labelsOrdered.append('')
-        utilsUi.commonPopulateTable(self.labelsOrdered, valuesList, self.treeObj.tableWidget, flagsDict, fontSize=constants.FONT_SIZE_LIST_WIDGET)
+            headers.append('')
+        utilsUi.commonPopulateTable(headers, valuesList, self.treeObj.tableWidget, flagsDict, fontSize=constants.FONT_SIZE_LIST_WIDGET)
         if self.treeObj.tableWidget:
             self.treeObj.tableWidget.setShowGrid(False)
             self.treeObj.tableWidget.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
             self.treeObj.tableWidget.horizontalHeader().setStyleSheet(constants.MANY_2_MANY_H_HEADER)
             self.treeObj.tableWidget.verticalHeader().setVisible(False)
+            self.treeObj.tableWidget.horizontalHeader().setDefaultAlignment(QtCore.Qt.AlignLeft)
         self._setButtonsModifiers(fieldDict)
         if self.remove_button:
             self.setRemoveButtons()
@@ -250,7 +256,7 @@ class TemplateTreeListView(TemplateView):
         _start, to = self.currentRange
         self.currentRange = [to, to + self.passRange]
         self.buttToLeft.setHidden(False)
-        objIds = self.odooConnector.connectionObj.search(self.model, [], limit=self.passRange, offset=self.currentRange[0])
+        objIds = self.odooConnector.rpc_connector.search(self.model, [], limit=self.passRange, offset=self.currentRange[0])
         if objIds:
             self.loadIds(objIds)
         else:
@@ -262,7 +268,7 @@ class TemplateTreeListView(TemplateView):
         if self.currentRange[0] <= 0:
             self.buttToLeft.setHidden(True)
         self.buttToRight.setHidden(False)
-        objIds = self.odooConnector.connectionObj.search(self.model, [], limit=self.passRange, offset=self.currentRange[0])
+        objIds = self.odooConnector.rpc_connector.search(self.model, [], limit=self.passRange, offset=self.currentRange[0])
         self.loadIds(objIds)
 
     def sortResults(self, fieldName='', filterMode='DESC'):

@@ -46,7 +46,7 @@ DATE_STYLE = COMMON_FIELDS_BOTTOM_BORDER
 TEXT_STYLE = BACKGROUND_WHITE
 NOOTEBOOK_STYLE = 'border-left-style: none;border-right-style: none;border-bottom-style: none;border-top-style: none;'
 NOOTEBOOK_TABBAR_STYLE = 'QTabBar::tab:!selected {border: 3px solid grey;border-left-style: none;border-right-style: none;border-top-style: none;min-width:180px;} QTabBar::tab:selected {border: 3px solid #875a7b;border-left-style: none;border-right-style: none;border-top-style: none;color: #875a7b;' + FONT_SIZE + 'min-width:150px} QTabBar::tab:hover {border: 3px solid #875a7b;border-left-style: none;border-right-style: none;border-top-style: none;color: #875a7b;' + FONT_SIZE + 'font-weight: bold;min-width:150px}'
-MANY_2_MANY_H_HEADER = '::section {color:white;padding:3px;background-color:#167F92;text-align:left;border:none;%s}' % BOLD_FONT
+MANY_2_MANY_H_HEADER = '::section {color:white;padding:3px;background-color:#7C7BAD;text-align:left;border:none;%s}' % BOLD_FONT
 TABLE_LIST_LIST = """QScrollBar {background-color:#875a7b}
 QTableWidget {border-left: 3px solid #875a7b;
                 border-right: 3px solid #875a7b;
@@ -55,6 +55,13 @@ QTableWidget {border-left: 3px solid #875a7b;
                 background-color: white;} 
 }
 """
+TABLE_VIEW_LIST_LIST = """QTreeView {border-left: 3px solid #875a7b;
+                border-right: 3px solid #875a7b;
+                border-bottom: 3px solid #875a7b;
+                alternate-background-color: #DDEDF0;
+                background-color: white;} 
+"""
+# #167F92
 #hover
 #QTableWidget::item::hover {
 #color:white;background-color:#167F92;

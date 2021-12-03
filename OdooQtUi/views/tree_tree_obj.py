@@ -5,6 +5,7 @@ Created on 24 Mar 2017
 '''
 from OdooQtUi.views.templateView import TemplateView
 from PySide2.QtCore import QAbstractItemModel, Qt, QModelIndex
+from OdooQtUi.utils_odoo_conn import constants
 from PySide2 import QtWidgets
 import json
 
@@ -258,6 +259,8 @@ class TreeTreeView(QtWidgets.QWidget):
                                           self._functionName,
                                           ids)
         self._qTreeView.setModel(self.abstractModel)
+        self._qTreeView.header().setStyleSheet(constants.MANY_2_MANY_H_HEADER)
+        #self._qTreeView.setStyleSheet(constants.TABLE_VIEW_LIST_LIST)
 
     def getSelectedNodes(self):
         nodes = []
