@@ -123,7 +123,6 @@ class XmlRpcConnection(object):
         return True
 
     def loginWithUser(self):
-        self._assignServerVersion()
         if not self.socketNoLogin:
             self.loginNoUser()
         try:
@@ -153,6 +152,7 @@ class XmlRpcConnection(object):
                 except Exception as ex:
                     utils.logMessage('error', 'Unable to login with user on secure with autenticate', 'loginWithUser')
                     return False
+        self._assignServerVersion()
         utils.logMessage('info', 'Successfull connection to Odoo with user %r and database %r' % (self.userName, self.databaseName), 'loginNoUser')
         return True
 

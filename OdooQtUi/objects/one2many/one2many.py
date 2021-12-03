@@ -116,7 +116,7 @@ class One2many(OdooFieldTemplate):
         return mainWidget
 
     def showActivities(self):
-        messages = self.odooConnector.connectionObj.read(self.relation, [], self.currentValue)
+        messages = self.odooConnector.rpc_connector.read(self.relation, [], self.currentValue)
         for messageDict in messages:
             _activity_id, activity_name = messageDict.get('activity_type_id', [False, ''])
             _user_id, user_name = messageDict.get('user_id', [False, ''])
@@ -240,7 +240,7 @@ class One2many(OdooFieldTemplate):
         kwargParameters['attachments'] = []
         kwargParameters['content_subtype'] = 'html'
         context['thread_model'] = 'product.product'
-        return self.odooConnector.connectionObj.callCustomMethod('mail.thread', 'message_post', parameters, kwargParameters, context=context)
+        return self.odooConnector.rpc_connector.callCustomMethod('mail.thread', 'message_post', parameters, kwargParameters, context=context)
 
     def logNote(self):
         self.showNoteLay(True)
@@ -258,7 +258,7 @@ class One2many(OdooFieldTemplate):
         kwargParameters['attachments'] = []
         kwargParameters['content_subtype'] = 'html'
         context['thread_model'] = 'product.product'
-        return self.odooConnector.connectionObj.callCustomMethod('mail.thread', 'message_post', parameters, kwargParameters, context=context)
+        return self.odooConnector.rpc_connector.callCustomMethod('mail.thread', 'message_post', parameters, kwargParameters, context=context)
 
     def showFollowers(self):
         self.followersButton.setHidden(True)
@@ -291,7 +291,7 @@ class One2many(OdooFieldTemplate):
         channelAction = self.toolmenu.addAction('Add Channels')
         channelAction.changed.connect(self.addChannel)
         self.toolmenu.addSeparator()
-        res = self.odooConnector.connectionObj.read(self.relation, [], self.currentValue)
+        res = self.odooConnector.rpc_connector.read(self.relation, [], self.currentValue)
         for elem in res:
             name = elem.get('display_name', '') or ''
             if not name or name == 'False':
@@ -314,7 +314,7 @@ class One2many(OdooFieldTemplate):
 
     def removeFollowerChannel(self, resId):
         if resId:
-            self.odooConnector.connectionObj.write(self.parentModel, {self.fieldName: [(2, resId, False)]}, self.parentId)
+            self.odooConnector.rpc_connector.write(self.parentModel, {self.fieldName: [(2, resId, False)]}, self.parentId)
             self.currentValue.remove(resId)
             self.toolmenu.clear()
             self.populateMenu()
@@ -338,8 +338,8 @@ class One2many(OdooFieldTemplate):
             values = {'res_model': self.parentModel,
                       'partner_id': partnerId,
                       'res_id': self.parentId[0]}
-            resId = self.odooConnector.connectionObj.create(self.relation, values)
-            self.odooConnector.connectionObj.write(self.parentModel, {self.fieldName: [(4, resId, False)]}, self.parentId)
+            resId = self.odooConnector.rpc_connector.create(self.relation, values)
+            self.odooConnector.rpc_connector.write(self.parentModel, {self.fieldName: [(4, resId, False)]}, self.parentId)
             self.currentValue.append(resId)
             self.toolmenu.clear()
             self.populateMenu()
@@ -348,9 +348,9 @@ class One2many(OdooFieldTemplate):
 
     def getPartnerIdFromUserId(self, userId=False):
         if not userId:
-            userId = self.odooConnector.connectionObj.userId
+            userId = self.odooConnector.rpc_connector.userId
         partnerId, partnerName = False, ''
-        res = self.odooConnector.connectionObj.read('res.users', ['partner_id'], userId)
+        res = self.odooConnector.rpc_connector.read('res.users', ['partner_id'], userId)
         for elem in res:
             partnerId, partnerName = elem.get('partner_id', [False, ''])
         return partnerId, partnerName
@@ -360,7 +360,7 @@ class One2many(OdooFieldTemplate):
         partnerId, _partnerName = self.getPartnerIdFromUserId()
         if partnerId:
             if currText == 'Following':
-                res = self.odooConnector.connectionObj.search(self.relation,
+                res = self.odooConnector.rpc_connector.search(self.relation,
                                            [('partner_id', '=', partnerId),
                                             ('res_id', '=', self.parentId)])
                 for objId in res:
@@ -369,7 +369,7 @@ class One2many(OdooFieldTemplate):
                 self._addFollower(partnerId)
 
     def showMessagges(self):
-        messages = self.odooConnector.connectionObj.read(self.relation, [], self.currentValue)
+        messages = self.odooConnector.rpc_connector.read(self.relation, [], self.currentValue)
         for messageDict in messages:
             _userId, userName = messageDict.get('author_id', [False, ''])
             bodyMessage = messageDict.get('body', '')
@@ -390,7 +390,7 @@ class One2many(OdooFieldTemplate):
             mainVLay.addWidget(labelBody)
             attachmentLay = QtWidgets.QHBoxLayout()
             if attachment_ids:
-                res = self.odooConnector.connectionObj.read('ir.attachment', ['datas', 'datas_fname'], attachment_ids)
+                res = self.odooConnector.rpc_connector.read('ir.attachment', ['datas', 'datas_fname'], attachment_ids)
                 for attachDict in res:
                     fileContent = attachDict.get('datas', '')
                     fileName = attachDict.get('datas_fname', '')
@@ -475,7 +475,7 @@ class One2many(OdooFieldTemplate):
         elif self.label_name_values:
             self.loaded_ids = relIds
             str_to_display = ''
-            for box_vals in self.odooConnector.connectionObj.read(self.relation, ['display_name'], relIds):
+            for box_vals in self.odooConnector.rpc_connector.read(self.relation, ['display_name'], relIds):
                 str_to_display += '%s | ' % (box_vals.get('display_name', ''))
             if str_to_display.endswith(' | '):
                 str_to_display = str_to_display[:-2]

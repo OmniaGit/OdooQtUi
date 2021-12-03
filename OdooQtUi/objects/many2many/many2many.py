@@ -131,7 +131,7 @@ class Many2many(OdooFieldTemplate):
         elif self.label_name_values:
             self.loaded_ids = relIds
             str_to_display = ''
-            for box_vals in self.odooConnector.connectionObj.read(self.relation, ['display_name'], relIds):
+            for box_vals in self.odooConnector.rpc_connector.read(self.relation, ['display_name'], relIds):
                 str_to_display += '%s | ' % (box_vals.get('display_name', ''))
             if str_to_display.endswith(' | '):
                 str_to_display = str_to_display[:-2]

@@ -55,13 +55,11 @@ QTableWidget {border-left: 3px solid #875a7b;
                 background-color: white;} 
 }
 """
-TABLE_VIEW_LIST_LIST = """
-QTableView {border-left: 3px solid #875a7b;
+TABLE_VIEW_LIST_LIST = """QTreeView {border-left: 3px solid #875a7b;
                 border-right: 3px solid #875a7b;
                 border-bottom: 3px solid #875a7b;
                 alternate-background-color: #DDEDF0;
                 background-color: white;} 
-}
 """
 # #167F92
 #hover

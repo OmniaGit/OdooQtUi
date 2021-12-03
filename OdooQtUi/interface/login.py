@@ -159,19 +159,19 @@ port= %r\n
 scheme= %r\n
 connection type=%r\n
 ''' % (self.dbName, self.username, self.serverIp, self.serverPort, self.scheme, self.connType), '__init__')
-        self.odooConnector.connectionObj.initConnection(self.connType,
+        self.odooConnector.rpc_connector.initConnection(self.connType,
                                      '',
                                      '',
                                      '',
                                      self.serverPort,
                                      self.scheme,
                                      self.serverIp)
-        self.availableConnTypes = self.odooConnector.connectionObj.availableConnTypes
+        self.availableConnTypes = self.odooConnector.rpc_connector.availableConnTypes
         self.interfaceDial = LoginDial(self.connType, self.availableConnTypes)
         self.setEvents()
         utils.logMessage('info', 'Try login using stored data', '__init__')
         self.loginWithUserDial()
-        if self.odooConnector.connectionObj.userLogged:
+        if self.odooConnector.rpc_connector.userLogged:
             utils.logMessage('info', 'User logged reading from stored file', '__init__')
             self.interfaceDial.label_status.setText('User Already Logged!')
             self.interfaceDial.stackedWidget.setCurrentIndex(1)
@@ -194,7 +194,7 @@ connection type=%r\n
         self.interfaceDial.pushButton_cancel.clicked.connect(self.cancelDial)
 
     def initFields(self):
-        self.interfaceDial.initFields(self.odooConnector.connectionObj.userLogged,
+        self.interfaceDial.initFields(self.odooConnector.rpc_connector.userLogged,
                                       self.userpass,
                                       self.serverPort,
                                       self.scheme,
@@ -213,7 +213,7 @@ connection type=%r\n
         self.connType = self.interfaceDial.connType
         self.writeToFile()
         self.loginWithUserDial()
-        if self.odooConnector.connectionObj.userLogged:
+        if self.odooConnector.rpc_connector.userLogged:
             self.interfaceDial.acceptDial()
             self.interfaceDial.accept()
         else:
@@ -231,7 +231,7 @@ connection type=%r\n
         xmlrpcPort = str(self.interfaceDial.lineEdit_port.text())
         scheme = str(self.interfaceDial.lineEdit_scheme.text())
         loginType = str(self.interfaceDial.comboBox_conn_type.currentText())
-        self.odooConnector.connectionObj.initConnection(loginType,
+        self.odooConnector.rpc_connector.initConnection(loginType,
                                      '',
                                      '',
                                      '',
@@ -239,7 +239,7 @@ connection type=%r\n
                                      scheme,
                                      xmlrpcServerIP)
 
-        self.dbList = self.odooConnector.connectionObj.listDb()
+        self.dbList = self.odooConnector.rpc_connector.listDb()
         if not self.dbList:
             self.interfaceDial.label_status.setText('User not logged! Unable to get database list.')
         else:
@@ -261,14 +261,14 @@ connection type=%r\n
             self.interfaceDial.lineEdit_username.setText(self.username)
 
     def loginWithUserDial(self):
-        self.odooConnector.connectionObj.initConnection(self.connType,
+        self.odooConnector.rpc_connector.initConnection(self.connType,
                                      self.username,
                                      self.userpass,
                                      self.dbName,
                                      self.serverPort,
                                      self.scheme,
                                      self.serverIp)
-        return self.odooConnector.connectionObj.loginWithUser(self.connType,
+        return self.odooConnector.rpc_connector.loginWithUser(self.connType,
                                            self.username,
                                            self.userpass,
                                            self.dbName,

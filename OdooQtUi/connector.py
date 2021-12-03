@@ -59,8 +59,8 @@ class ViewOdooObj(object):
 class MainConnector(object):
 
     def __init__(self, parentWindow=None, contextUser={}, app_name='OdooQtUi'):
-        self.connectionObj = RpcConnection()
-        self.connectionObj.contextUser.update(contextUser)
+        self.rpc_connector = RpcConnection()
+        self.rpc_connector.contextUser.update(contextUser)
         self.activeLanguage = 'en_US'
         self.app_name = app_name
         self.loadedViews = []
@@ -72,7 +72,7 @@ class MainConnector(object):
         """
         return the delta time calculated from server to client machine time
         """
-        return self.connectionObj.deltaTime
+        return self.rpc_connector.deltaTime
     
     def loginNoUser(self, 
                     xmlrpcServerIP='127.0.0.1', 
@@ -80,8 +80,8 @@ class MainConnector(object):
                     scheme='http', 
                     loginType='xmlrpc'):
         self.loadedViews = [] # reset the cashed view because you can change db
-        self.connectionObj.initConnection(loginType, '', '', '', xmlrpcPort, scheme, xmlrpcServerIP)
-        return self.connectionObj.loginNoUser()
+        self.rpc_connector.initConnection(loginType, '', '', '', xmlrpcPort, scheme, xmlrpcServerIP)
+        return self.rpc_connector.loginNoUser()
 
     def loginWithUser(self, 
                       user, 
@@ -93,15 +93,15 @@ class MainConnector(object):
                       loginType='xmlrpc',
                       context={}):
         self.loadedViews = [] # reset the cashed view because you can change db 
-        res = self.connectionObj.loginWithUser(connectionType=loginType,
+        res = self.rpc_connector.loginWithUser(connectionType=loginType,
                                           userName=user,
                                           userPassword=password,
                                           databaseName=dbName,
                                           xmlrpcPort=xmlrpcPort, 
                                           scheme=scheme, 
                                           xmlrpcServerIP=xmlrpcServerIP)
-        self.connectionObj.contextUser.update(context)
-        self.activeLanguage = self.connectionObj.contextUser.get('lang', 'en_US')
+        self.rpc_connector.contextUser.update(context)
+        self.activeLanguage = self.rpc_connector.contextUser.get('lang', 'en_US')
         return res
     
     def loginFromStorage(self):
@@ -116,16 +116,16 @@ class MainConnector(object):
         
     @property
     def userLogged(self):
-        return self.connectionObj.userLogged
+        return self.rpc_connector.userLogged
 
     def loginWithDial(self, context={}):
         loginDialInst = LoginDialComplete(app_name=self.app_name,
                                           odooConnector=self)
         loginDialInst.interfaceDial.exec_()
-        if self.connectionObj.userLogged:
+        if self.rpc_connector.userLogged:
             self.loadedViews = [] # reset the cashed view because you can change db
-            self.connectionObj.contextUser.update(context) 
-            self.activeLanguage = self.connectionObj.contextUser.get('lang', 'en_US')
+            self.rpc_connector.contextUser.update(context) 
+            self.activeLanguage = self.rpc_connector.contextUser.get('lang', 'en_US')
             return True
         return False
 
@@ -241,11 +241,11 @@ class MainConnector(object):
         if not activeLanguage:
             activeLanguage = self.activeLanguage
         if not rpcObj:
-            rpcObj = self.connectionObj
+            rpcObj = self.rpc_connector
         return activeLanguage, rpcObj
 
     def _searchForView(self, model, viewName, viewType):
-        viewIds = self.connectionObj.search('ir.ui.view', [('name', '=', viewName),
+        viewIds = self.rpc_connector.search('ir.ui.view', [('name', '=', viewName),
                                                       ('model', '=', model),
                                                       ('type', '=', viewType)])
         if viewIds:

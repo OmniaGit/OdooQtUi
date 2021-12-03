@@ -260,7 +260,7 @@ class TreeTreeView(QtWidgets.QWidget):
                                           ids)
         self._qTreeView.setModel(self.abstractModel)
         self._qTreeView.header().setStyleSheet(constants.MANY_2_MANY_H_HEADER)
-        self._qTreeView.setStyleSheet(constants.TABLE_VIEW_LIST_LIST)
+        #self._qTreeView.setStyleSheet(constants.TABLE_VIEW_LIST_LIST)
 
     def getSelectedNodes(self):
         nodes = []

@@ -81,7 +81,7 @@ class TemplateTreeListView(TemplateView):
         
         if self.deafult_filter:
             newFilter.extend(self.deafult_filter)
-        objIds = self.odooConnector.connectionObj.search(self.model, newFilter, limit=self.passRange, offset=0)
+        objIds = self.odooConnector.rpc_connector.search(self.model, newFilter, limit=self.passRange, offset=0)
         self.buttToLeft.setHidden(True)
         self.buttToRight.setHidden(False)
         self._loadIds(objIds)
@@ -111,7 +111,7 @@ class TemplateTreeListView(TemplateView):
         searchFilter = []
         if self.deafult_filter:
             searchFilter = self.deafult_filter
-        objIds = self.odooConnector.connectionObj.search(self.model, searchFilter, self.passRange)  # to check with many records if 40 stop will work, 40)
+        objIds = self.odooConnector.rpc_connector.search(self.model, searchFilter, self.passRange)  # to check with many records if 40 stop will work, 40)
         return self._loadIds(objIds, forceFieldValues, readonlyFields, invisibleFields)
 
     @utils.timeit
@@ -256,7 +256,7 @@ class TemplateTreeListView(TemplateView):
         _start, to = self.currentRange
         self.currentRange = [to, to + self.passRange]
         self.buttToLeft.setHidden(False)
-        objIds = self.odooConnector.connectionObj.search(self.model, [], limit=self.passRange, offset=self.currentRange[0])
+        objIds = self.odooConnector.rpc_connector.search(self.model, [], limit=self.passRange, offset=self.currentRange[0])
         if objIds:
             self.loadIds(objIds)
         else:
@@ -268,7 +268,7 @@ class TemplateTreeListView(TemplateView):
         if self.currentRange[0] <= 0:
             self.buttToLeft.setHidden(True)
         self.buttToRight.setHidden(False)
-        objIds = self.odooConnector.connectionObj.search(self.model, [], limit=self.passRange, offset=self.currentRange[0])
+        objIds = self.odooConnector.rpc_connector.search(self.model, [], limit=self.passRange, offset=self.currentRange[0])
         self.loadIds(objIds)
 
     def sortResults(self, fieldName='', filterMode='DESC'):
