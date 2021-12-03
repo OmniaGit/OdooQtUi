@@ -17,7 +17,10 @@ import random
 import hashlib
 from os.path import expanduser
 from datetime import timedelta
-from traceback import TracebackException
+try:
+    from traceback import TracebackException
+except Exception as ex:
+    pass
 
 try:
     import Image
