@@ -1,4 +1,7 @@
 eclipse.preferences.version=1
 encoding//OdooQtUi/__init__.py=utf-8
 encoding//OdooQtUi/interface/ui/ui_login.py=utf-8
+encoding//OdooQtUi/views/form_obj.py=utf-8
+encoding//Test/test_connector.py=utf-8
+encoding//Test/ui_test.py=utf-8
 encoding//webInterface/odooWebInterface.py=utf-8

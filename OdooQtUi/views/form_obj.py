@@ -94,7 +94,8 @@ class TemplateFormView(TemplateView):
         row_container = QtWidgets.QHBoxLayout()
         row_container.setSpacing(0)
         # no more on pyside row_container.setMargin(0)
-        for childXlmElement in xmlParent.getchildren():
+        #for childXlmElement in xmlParent.getchildren():
+        for childXlmElement in xmlParent:
             childXmlTag = childXlmElement.tag
             xmlAttrs = childXlmElement.attrib
             
@@ -144,7 +145,8 @@ class TemplateFormView(TemplateView):
                 tabWidgetBar = tabWidget.tabBar()
                 tabWidgetBar.setStyleSheet(constants.NOOTEBOOK_TABBAR_STYLE)
                 nootebookIndex = 0
-                for page in childXlmElement.getchildren():
+                #for page in childXlmElement.getchildren():
+                for page in childXlmElement:
                     pageString = page.attrib.get('string', '')
                     invisible = page.attrib.get('invisible', False)
                     modifInvisible, modifReadonly = utils.evaluateModifiers(page.attrib.get('modifiers', {}))
