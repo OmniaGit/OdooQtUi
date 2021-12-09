@@ -102,6 +102,8 @@ class TemplateTreeListView(TemplateView):
 
     @utils.timeit
     def loadIds(self, objIds=[], forceFieldValues={}, readonlyFields={}, invisibleFields={}):
+        self.treeObj.tableWidget.clearContents()
+        self.treeObj.tableWidget.setRowCount(0)
         if not objIds:
             return
         return self._loadIds(objIds, forceFieldValues, readonlyFields, invisibleFields)
@@ -121,11 +123,13 @@ class TemplateTreeListView(TemplateView):
             self.buttToRight.setHidden(True)
         else:
             self.buttToRight.setHidden(False)
+        objIds.sort()
         records = self.rpcObject.read(self.model, self.labelsOrdered, objIds)
         flagsDict = {}
         fieldDict = {}
         valuesList = []
         headers = []
+        self.row_widgets = {}
         if self.viewCheckBoxes:
             flagsDict = self.viewCheckBoxes
         for row_index, record in enumerate(records):

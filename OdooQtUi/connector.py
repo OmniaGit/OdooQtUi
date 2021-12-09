@@ -105,7 +105,7 @@ class MainConnector(object):
         return res
     
     def loginFromStorage(self):
-        dbName, username, userpass, serverIp, serverPort, scheme, connType, _dbList = utils.loadFromFile()
+        dbName, username, userpass, serverIp, serverPort, scheme, connType, _dbList = utils.loadFromFile(self.app_name)
         self.loginWithUser(user=username,
                            password=userpass,
                            dbName=dbName,

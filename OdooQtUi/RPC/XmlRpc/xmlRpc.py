@@ -318,7 +318,7 @@ class XmlRpcConnection(object):
                 functionName = 'koo_fields_view_get'            
         return functionName
     
-    @utils.timeit
+    #@utils.timeit
     def callOdooFunction(self, odooObj, functionName, parameters=[], kwargParameters={}):
         '''
             @odooObj: product.product, product.template ...

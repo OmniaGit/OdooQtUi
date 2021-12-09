@@ -147,6 +147,7 @@ class LoginDialComplete(object):
                  context={},
                  app_name='OdooQtUi',
                  odooConnector=None):
+        self.app_name = app_name
         self.odooConnector = odooConnector
         self.connType = connType
         self.dbName, self.username, self.userpass, self.serverIp, self.serverPort, self.scheme, self.connType, self.dbList = utils.loadFromFile(app_name)
@@ -289,6 +290,6 @@ connection type=%r\n
             'db_list': self.dbList,
         }
         toWrite = json.dumps(toWriteDict)
-        filePath = utils.getLoginFile()
+        filePath = utils.getLoginFile(self.app_name)
         with open(filePath, 'w') as outFile:
             outFile.write(toWrite)

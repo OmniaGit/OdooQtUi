@@ -16,6 +16,7 @@ from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.utils_odoo_conn import utils
 import OdooQtUi
 from OdooQtUi.utils_odoo_conn.utils import logMessage
+import xmlrpc
 
 DEFAULT_ICON_PATH = ''
 
@@ -222,7 +223,16 @@ def popError(parent, ex):
         pop an error message
     """
     messageBody = utils.html_traceback(ex)
-    popMessage(parent, messageBody, 'ERROR', str(ex.faultCode))
+    err = ''
+    if isinstance(ex, TypeError):
+        err = ex.args[0]
+    elif isinstance(ex, xmlrpc.client.Fault):
+        err = str(ex.faultCode)
+    elif isinstance(ex, Exception):
+        err = str(ex)
+    else:
+        err = str(ex.faultCode)
+    popMessage(parent, messageBody, 'ERROR', err)
 
 def popWarning(parent, ex):
     """
