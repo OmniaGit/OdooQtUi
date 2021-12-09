@@ -126,6 +126,7 @@ class Binary(OdooFieldTemplate):
         else:
             text = fileName or self.fieldPyDefinition.get('help', 'File Content')
             self.widgetQtObj.setText(text)
+            self.fieldStringInterface = text
 
     def setReadonly(self, val=False):
         if self.xmlWidget != 'image':
