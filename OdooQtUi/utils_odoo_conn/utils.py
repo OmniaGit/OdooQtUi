@@ -250,7 +250,7 @@ def packFile(filePath):
     return content
 
 
-def unpackFile(content, toFile, timeStamp, deltaTime=None):
+def unpackFile(content, toFile, timeStamp=False, deltaTime=None):
     """
        Unpack the content into a file
     """

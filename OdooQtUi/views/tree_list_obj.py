@@ -10,7 +10,7 @@ from OdooQtUi.utils_odoo_conn import utils, utilsUi
 from OdooQtUi.utils_odoo_conn import constants
 from PySide2 import QtCore
 from functools import partial
-from OdooQtUi.utils_odoo_conn.utils import logWarning
+from OdooQtUi.utils_odoo_conn.utils import logWarning, logError
 
 
 class TemplateTreeListView(TemplateView):
@@ -175,10 +175,41 @@ class TemplateTreeListView(TemplateView):
             self.treeObj.tableWidget.horizontalHeader().setStyleSheet(constants.MANY_2_MANY_H_HEADER)
             self.treeObj.tableWidget.verticalHeader().setVisible(False)
             self.treeObj.tableWidget.horizontalHeader().setDefaultAlignment(QtCore.Qt.AlignLeft)
+            self.treeObj.tableWidget.doubleClicked.connect(self.doubleClickEvent)
         self._setButtonsModifiers(fieldDict)
         if self.remove_button:
             self.setRemoveButtons()
         self.refreshColumns()
+
+    def doubleClickEvent(self, *args):
+        try:
+            model_index = args[0]
+            row_index = model_index.row()
+            obj_id = self.idLineRel.get(row_index, False)
+            viewObj = self.odooConnector.initFormViewObj(self.model, rpcObj=self.rpcObject)
+            viewObj.loadIds([obj_id])
+            dialog = QtWidgets.QDialog()
+            mainLay = QtWidgets.QVBoxLayout()
+            utilsUi.setLayoutMarginAndSpacing(mainLay)
+            mainLay.addWidget(viewObj)
+            lay, okButt, cancelButt = utilsUi.getButtonBox()
+            okButt.clicked.connect(dialog.accept)
+            cancelButt.clicked.connect(dialog.reject)
+            okButt.setStyleSheet(constants.BUTTON_STYLE_OK)
+            cancelButt.setStyleSheet(constants.BUTTON_STYLE_CANCEL)
+            lay.setParent(None)
+            mainLay.addLayout(lay)
+            dialog.setLayout(mainLay)
+            dialog.setStyleSheet(constants.BACKGROUND_WHITE)
+            dialog.adjustSize()
+            dialog.resize(1000, 750)
+            if dialog.exec_() == QtWidgets.QDialog.Accepted:
+                valuesToUpdate = {}
+                for fieldName, fieldObj in list(viewObj.fieldsChanged.items()):
+                    valuesToUpdate[fieldName] = fieldObj.value
+                self.rpcObject.write(self.model, valuesToUpdate, obj_id)
+        except Exception as ex:
+            logError(ex)
 
     def _setButtonsModifiers(self, fieldDict):
         

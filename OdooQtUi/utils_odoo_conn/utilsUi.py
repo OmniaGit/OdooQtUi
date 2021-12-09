@@ -98,16 +98,16 @@ def getDirectoryFromSystem(parent, pathToOpen=''):
 
 
 def getFileFromSystem(desc='Open', startPath='/home/'):
-    fileName = QtWidgets.QFileDialog.getOpenFileName(None, desc, startPath)
-    if os.path.exists(fileName):
-        return str(fileName)
+    file_path, _filter = QtWidgets.QFileDialog.getOpenFileName(None, desc, startPath)
+    if os.path.exists(file_path):
+        return str(file_path)
     return ''
 
 
 def getDirectoryFileToSaveSystem(parent, statingPath='', fileType=''):
-    filename = QtWidgets.QFileDialog.getSaveFileName(None, "Save file", statingPath, fileType)
-    logging.info('[getDirectoryFileToSaveSystem] filename: %s' % filename)
-    return filename
+    file_path, _filter = QtWidgets.QFileDialog.getSaveFileName(None, "Save file", statingPath, fileType)
+    logging.info('[getDirectoryFileToSaveSystem] filename: %s' % str(file_path))
+    return file_path
 
 
 def getButtonBox(spacer='right'):

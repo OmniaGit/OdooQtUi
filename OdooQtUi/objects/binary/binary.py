@@ -47,7 +47,7 @@ class Binary(OdooFieldTemplate):
             self.widgetQtObj.resize(self.imageWidth, self.imageHeight)
             self.widgetQtObj.setText('aaa')
         else:
-            self.labelQtObj = QtWidgets.QLabel(self.fieldStringInterface)
+            self.labelQtObj = QtWidgets.QLabel(self.fieldStringInterface, self.qtParent)
             self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
             self.widgetQtObj = QtWidgets.QLineEdit()
             self.widgetQtObj.setToolTip(self.tooltip)
@@ -84,7 +84,7 @@ class Binary(OdooFieldTemplate):
             utilsUi.popWarning(self.qtParent, 'Unable to open file!')
 
     def downloadFile(self):
-        statingPath = self.fieldStringInterface
+        statingPath = self.widgetQtObj.text() or self.fieldStringInterface
         newFilePath = utilsUi.getDirectoryFileToSaveSystem(None, statingPath=statingPath)
         if not self.currentValue:
             utilsUi.popWarning(self.qtParent, 'Unable to save the file!')
@@ -94,7 +94,7 @@ class Binary(OdooFieldTemplate):
 
     def editField(self):
         filePath = utilsUi.getFileFromSystem('Open', '')
-        if not filePath:
+        if not os.path.exists(filePath):
             return
         fileContent = utils.packFile(str(filePath))
         self.currentValue = fileContent
@@ -110,7 +110,7 @@ class Binary(OdooFieldTemplate):
         utils.logDebug('To implement valueChanged changed for binary', 'valueChanged')
         self.valueTemplateChanged()
 
-    def setValue(self, newVal):
+    def setValue(self, newVal, fileName=''):
         self.currentValue = newVal
         if self.xmlWidget == 'image':
             self.pixmap = QtGui.QPixmap()
@@ -123,6 +123,9 @@ class Binary(OdooFieldTemplate):
                                              )
             self.widgetQtObj.setPixmap(self.pixmap)
             self.widgetQtObj.resize(self.imageWidth, self.imageHeight)
+        else:
+            text = fileName or self.fieldPyDefinition.get('help', 'File Content')
+            self.widgetQtObj.setText(text)
 
     def setReadonly(self, val=False):
         if self.xmlWidget != 'image':
