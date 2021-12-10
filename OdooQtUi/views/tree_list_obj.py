@@ -104,6 +104,9 @@ class TemplateTreeListView(TemplateView):
     def loadIds(self, objIds=[], forceFieldValues={}, readonlyFields={}, invisibleFields={}):
         self.treeObj.tableWidget.clearContents()
         self.treeObj.tableWidget.setRowCount(0)
+        self.row_widgets = {}
+        self.idValsRel = {}
+        self.idLineRel = {}
         if not objIds:
             return
         return self._loadIds(objIds, forceFieldValues, readonlyFields, invisibleFields)
