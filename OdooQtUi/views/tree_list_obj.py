@@ -57,6 +57,7 @@ class TemplateTreeListView(TemplateView):
             self.treeObj.tableWidget.horizontalHeader().setStyleSheet(constants.MANY_2_MANY_H_HEADER)
             self.treeObj.tableWidget.setMinimumHeight(200)
         self.setLayout(mainLay)
+        self.treeObj.tableWidget.doubleClicked.connect(self.doubleClickEvent)
         self.setStyleSheet(constants.BACKGROUND_WHITE)
 
     def _setupArrowButtons(self):
@@ -178,7 +179,6 @@ class TemplateTreeListView(TemplateView):
             self.treeObj.tableWidget.horizontalHeader().setStyleSheet(constants.MANY_2_MANY_H_HEADER)
             self.treeObj.tableWidget.verticalHeader().setVisible(False)
             self.treeObj.tableWidget.horizontalHeader().setDefaultAlignment(QtCore.Qt.AlignLeft)
-            self.treeObj.tableWidget.doubleClicked.connect(self.doubleClickEvent)
         self._setButtonsModifiers(fieldDict)
         if self.remove_button:
             self.setRemoveButtons()
