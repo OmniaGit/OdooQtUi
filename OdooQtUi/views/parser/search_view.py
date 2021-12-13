@@ -92,15 +92,23 @@ class SearchView(object):
         lineEditLay = QtWidgets.QHBoxLayout()
         lineEdit = self.createCommonLineEdit()
         lineEdit.setCompleter(self.completer)
-        orButton, applyButton = self.createCommonOrButton()
+        orButton, applyButton, removeButton = self.createCommonOrButton()
         lineEditLay.addWidget(lineEdit)
         lineEditLay.addWidget(orButton)
         lineEditLay.addWidget(applyButton)
+        lineEditLay.addWidget(removeButton)
+        removeButton.clicked.connect(partial(self.removeMultyCondition, lineEditLay, lineEdit))
         self.multipleConditionLay.addLayout(lineEditLay)
         self.tmpLayouts.append(lineEditLay)
         self.tmpLineEdits.append(lineEdit)
         lineEdit.selectAll()
         lineEdit.setFocus()
+
+    def removeMultyCondition(self, lineEditLay, lineEdit):
+        self.multipleConditionLay.removeItem(lineEditLay)
+        lineEditLay.deleteLater()
+        self.tmpLayouts.remove(lineEditLay)
+        self.tmpLineEdits.remove(lineEdit)
 
     def createCommonLineEdit(self):
         linedit = CustomLineEdit(self)
@@ -115,7 +123,9 @@ class SearchView(object):
         applyButton = QtWidgets.QPushButton('Apply')
         applyButton.setStyleSheet(constants.BUTTON_STYLE + 'min-height:25px;')
         applyButton.clicked.connect(self.applyCondition)
-        return orButton, applyButton
+        removeButton = QtWidgets.QPushButton('X')
+        removeButton.setStyleSheet(constants.BUTTON_STYLE + 'min-height:25px;')
+        return orButton, applyButton, removeButton
 
     def computeRecursion(self, xmlElementParent):
         self.mainVLay = QtWidgets.QVBoxLayout()
@@ -143,7 +153,7 @@ class SearchView(object):
         self.linedit.setStyleSheet(constants.BACKGROUND_WHITE)
 
         # Setup or button
-        orButton, _applyButton = self.createCommonOrButton()
+        orButton, _applyButton, _removeButton = self.createCommonOrButton()
         lineEditLay.addWidget(orButton)
         self.multipleConditionLay.addLayout(lineEditLay)
         mainHLay.addLayout(self.multipleConditionLay)
