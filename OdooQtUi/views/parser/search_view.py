@@ -61,10 +61,11 @@ class SearchView(object):
         lineEditList.extend(self.tmpLineEdits)
         for lineEdit in lineEditList:
             text = str(lineEdit.text())
-            fieldObj = self.getTmpField(text)
-            conditionList.append(fieldObj.condition)
-            operators.append('|')
-            intString = intString + fieldObj.interfaceStringWithValue + '\nOr  '
+            if text:
+                fieldObj = self.getTmpField(text)
+                conditionList.append(fieldObj.condition)
+                operators.append('|')
+                intString = intString + fieldObj.interfaceStringWithValue + '\nOr  '
         intString = intString[:-4]
         operators = operators[1:]
         condObj = self.addCondition(operators + conditionList, intString)
@@ -257,7 +258,7 @@ class SearchView(object):
         '''
         currentVal = str(currentVal)
         stringList = []
-        self.tmpFields = []  # Do not remove this clear or search without selecting a value will be break
+        #self.tmpFields = []  # Do not remove this clear or search without selecting a value will be break
         if currentVal:
             for fieldObj in self.fieldsTemplate:
                 for tmpField in self.tmpFields:
