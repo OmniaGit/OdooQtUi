@@ -110,7 +110,7 @@ class Binary(OdooFieldTemplate):
         utils.logDebug('To implement valueChanged changed for binary', 'valueChanged')
         self.valueTemplateChanged()
 
-    def setValue(self, newVal, fileName=''):
+    def setValue(self, newVal, fileName='', viewType='form'):
         self.currentValue = newVal
         if self.xmlWidget == 'image':
             self.pixmap = QtGui.QPixmap()

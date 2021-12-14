@@ -79,7 +79,7 @@ class Many2one(OdooFieldTemplate):
             self.widgetQtObj2.addItems(newItems)
             self.availableItems = newItems
 
-    def setValue(self, val=False):
+    def setValue(self, val=False, viewType='form'):
         self.currentValue = val
         newTextVal = ''
         indexToSet = 0
@@ -108,7 +108,7 @@ class Many2one(OdooFieldTemplate):
         elif isinstance(val, str):
             newTextVal = val
         
-        if self.widgetQtObj2.count() <= 2:
+        if self.widgetQtObj2.count() <= 2 and 'form' in viewType:
             self.skipSearch = False
             self.comboActivated()
             self.skipSearch = True

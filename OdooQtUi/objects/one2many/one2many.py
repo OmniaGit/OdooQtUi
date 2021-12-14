@@ -464,7 +464,7 @@ class One2many(OdooFieldTemplate):
             outStrVal = str(val)
         return outStrVal
 
-    def setValue(self, relIds):
+    def setValue(self, relIds, viewType='form'):
         self.currentValue = relIds
         if self.odooWidgetType == 'mail_followers':
             return

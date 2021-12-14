@@ -149,7 +149,7 @@ class TemplateTreeListView(TemplateView):
                 xml_obj = self.treeObj.widgets_to_add_in_line[col_index]
                 widget = self.treeObj.computeWidget(xml_obj)
                 if xml_obj.tag == 'field':
-                    widget.setValue(val)
+                    widget.setValue(val, viewType=self.viewType)
                     fieldDict[row_index][fieldName] = widget
                     record[fieldName] = widget.value
                     if widget.fieldType == 'many2one':
@@ -301,7 +301,7 @@ class TemplateTreeListView(TemplateView):
         _start, to = self.currentRange
         self.currentRange = [to, to + self.passRange]
         self.buttToLeft.setHidden(False)
-        objIds = self.odooConnector.rpc_connector.search(self.model, [], limit=self.passRange, offset=self.currentRange[0])
+        objIds = self.odooConnector.rpc_connector.search(self.model, self.deafult_filter, limit=self.passRange, offset=self.currentRange[0])
         if objIds:
             self.loadIds(objIds)
         else:
@@ -313,7 +313,7 @@ class TemplateTreeListView(TemplateView):
         if self.currentRange[0] <= 0:
             self.buttToLeft.setHidden(True)
         self.buttToRight.setHidden(False)
-        objIds = self.odooConnector.rpc_connector.search(self.model, [], limit=self.passRange, offset=self.currentRange[0])
+        objIds = self.odooConnector.rpc_connector.search(self.model, self.deafult_filter, limit=self.passRange, offset=self.currentRange[0])
         self.loadIds(objIds)
 
     def sortResults(self, fieldName='', filterMode='DESC'):

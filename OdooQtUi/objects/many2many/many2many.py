@@ -119,7 +119,7 @@ class Many2many(OdooFieldTemplate):
         except Exception as ex:
             utils.logMessage('error', '%r' % (ex), 'createAndAdd')
 
-    def setValue(self, relIds):
+    def setValue(self, relIds, viewType='form'):
         if self.treeViewObj:
             self.treeViewObj.loadIds(relIds, {}, {}, {})
             self.widgetQtObj = self.treeViewObj.treeObj.tableWidget

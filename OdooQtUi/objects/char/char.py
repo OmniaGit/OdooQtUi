@@ -42,7 +42,7 @@ class Charachter(OdooFieldTemplate):
         self.currentValue = str(self.widgetQtObj.text())
         self.valueTemplateChanged()
 
-    def setValue(self, newVal):
+    def setValue(self, newVal, viewType='form'):
         if isinstance(newVal, bool):
             if not newVal:
                 newVal = ''

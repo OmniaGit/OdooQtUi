@@ -41,7 +41,7 @@ class Float(OdooFieldTemplate):
         self.currentValue = float(str(newVal))
         self.valueTemplateChanged()
 
-    def setValue(self, newVal):
+    def setValue(self, newVal, viewType='form'):
         newVal = float(str(newVal))
         self.widgetQtObj.setValue(newVal)
 

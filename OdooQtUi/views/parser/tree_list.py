@@ -21,6 +21,7 @@ from OdooQtUi.objects.text.text import Text
 from OdooQtUi.objects.text.text import TextHtml
 from OdooQtUi.objects.one2many.one2many import One2many
 from OdooQtUi.utils_odoo_conn import utils
+from OdooQtUi.utils_odoo_conn.utils import timeit
 
 
 class TreeViewList(QtWidgets.QWidget):

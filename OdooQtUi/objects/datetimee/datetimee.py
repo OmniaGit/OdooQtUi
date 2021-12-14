@@ -35,7 +35,7 @@ class Datetime(OdooFieldTemplate):
         self.currentValue = newDateTime
         self.valueTemplateChanged()
 
-    def setValue(self, newVal):
+    def setValue(self, newVal, viewType='form'):
         pyqtDateTime = QtCore.QDateTime()
         if newVal:
             # year, month, day, hour, minute, second

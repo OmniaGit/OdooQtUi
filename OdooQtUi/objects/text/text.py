@@ -39,7 +39,7 @@ class Text(OdooFieldTemplate):
         self.currentValue = str(self.widgetQtObj.toPlainText())
         self.valueTemplateChanged()
 
-    def setValue(self, newVal):
+    def setValue(self, newVal, viewType='form'):
         if isinstance(newVal, bool):
             if not newVal:
                 newVal = ''

@@ -77,7 +77,7 @@ class Selection(OdooFieldTemplate):
         self.currentValue = self.selectionMappingReverse.get(currentValue)
         self.valueTemplateChanged()
 
-    def setValue(self, newVal):
+    def setValue(self, newVal, viewType='form'):
         if isinstance(newVal, bool):
             if not newVal:
                 newVal = ''

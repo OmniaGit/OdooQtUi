@@ -40,7 +40,7 @@ class Integer(OdooFieldTemplate):
         self.currentValue = int(str(newValue))
         self.valueTemplateChanged()
 
-    def setValue(self, newVal):
+    def setValue(self, newVal, viewType='form'):
         newVal = int(str(newVal))
         self.widgetQtObj.setValue(newVal)
         self.currentValue = newVal

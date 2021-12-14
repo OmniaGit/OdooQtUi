@@ -44,7 +44,7 @@ class Boolean(OdooFieldTemplate):
             self.currentValue = 'third-state'
         self.valueTemplateChanged()
 
-    def setValue(self, newVal):
+    def setValue(self, newVal, viewType='form'):
         newVal = eval(str(newVal))
         self.widgetQtObj.setChecked(newVal)
         self.currentValue = newVal

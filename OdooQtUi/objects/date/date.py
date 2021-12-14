@@ -35,10 +35,10 @@ class Date(OdooFieldTemplate):
             self.addWidget(self.translateButton)
 
     def valueChanged(self, newDate):
-        self.currentValue = newDaten3
+        self.currentValue = newDate
         self.valueTemplateChanged()
 
-    def setValue(self, newVal):
+    def setValue(self, newVal, viewType='form'):
         # To Be Implemented
         self.widgetQtObj
         self.currentValue = newVal
