@@ -161,8 +161,6 @@ class TemplateTreeListView(TemplateView):
                 else:
                     if row_index == 0:
                         headers.append('')
-#                     if isinstance(widget, QtWidgets.QPushButton):
-#                         widget.clicked.connect(partial(self.button_row_clicked, widget, record))
                     widget.record = record
                     self.row_widgets[row_index][col_index] = widget
                     localList.append(widget)
@@ -179,10 +177,12 @@ class TemplateTreeListView(TemplateView):
             self.treeObj.tableWidget.horizontalHeader().setStyleSheet(constants.MANY_2_MANY_H_HEADER)
             self.treeObj.tableWidget.verticalHeader().setVisible(False)
             self.treeObj.tableWidget.horizontalHeader().setDefaultAlignment(QtCore.Qt.AlignLeft)
+        self._setFieldsModifiers(fieldDict)
         self._setButtonsModifiers(fieldDict)
         if self.remove_button:
             self.setRemoveButtons()
         self.refreshColumns()
+        self.treeObj.tableWidget.horizontalHeader().setStretchLastSection(True)
 
     def doubleClickEvent(self, *args):
         try:
@@ -220,6 +220,18 @@ class TemplateTreeListView(TemplateView):
                 self.rpcObject.write(self.model, valuesToUpdate, obj_id)
         except Exception as ex:
             logError(ex)
+
+    def _setFieldsModifiers(self, fieldDict):
+        for _row_index, row_vals in fieldDict.items():
+            for fieldName, widget in row_vals.items():
+                try:
+                    inv = utils.evaluateAttrs(row_vals, widget.invisible)
+                    col_index = self.labelsOrdered.index(fieldName)
+                    self.treeObj.tableWidget.setColumnHidden(col_index, inv)
+                    ronly = utils.evaluateAttrs(row_vals, widget.readonly)
+                    widget.setReadonly(ronly)
+                except Exception as ex:
+                    logWarning('Cannot set readonly and invisible attributes for field %r err %r' % (fieldName, ex), '_setFieldsModifiers')
 
     def _setButtonsModifiers(self, fieldDict):
         
@@ -328,6 +340,8 @@ class TemplateTreeListView(TemplateView):
             for rowIndex in range(self.treeObj.tableWidget.rowCount()):
                 item = self.treeObj.tableWidget.item(rowIndex, 0)
                 if item.checkState() == QtCore.Qt.Checked:
-                    outIds.append(self.idLineRel[rowIndex])
+                    idd = self.idLineRel.get(rowIndex, False)
+                    if idd:
+                        outIds.append(idd)
         return list(set(outIds))
         
