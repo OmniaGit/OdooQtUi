@@ -143,24 +143,30 @@ class TemplateTreeListView(TemplateView):
                 fieldDict[row_index] = {}
             localList = []
             for col_index, fieldName in enumerate(self.labelsOrdered):
-                if row_index == 0:
-                    headers.append(self.fieldsNameTypeRel.get(fieldName, {}).get('string', fieldName))
+                fieldPyDefinition = self.fieldsNameTypeRel.get(fieldName, {})
                 val = record.get(fieldName, '')
                 xml_obj = self.treeObj.widgets_to_add_in_line[col_index]
-                widget = self.treeObj.computeWidget(xml_obj)
+                if row_index == 0:
+                    readonly = fieldPyDefinition.get('readonly', xml_obj.attrib.get('readonly', False))
+                    readonly = utils.evaluateBoolean(readonly)
+                    required = fieldPyDefinition.get('required', xml_obj.attrib.get('required', False))
+                    required = utils.evaluateBoolean(required)
+                    invisible = fieldPyDefinition.get('invisible', xml_obj.attrib.get('invisible', False))
+                    invisible = utils.evaluateBoolean(invisible)
+                    headers.append(fieldPyDefinition.get('string', fieldName))
+                    self.treeObj.tableWidget.setColumnHidden(col_index, invisible)
                 if xml_obj.tag == 'field':
-                    widget.setValue(val, viewType=self.viewType)
-                    fieldDict[row_index][fieldName] = widget
-                    record[fieldName] = widget.value
-                    if widget.fieldType == 'many2one':
-                        if isinstance(val, bool):
-                            val = ''
+                    if self.fieldsNameTypeRel.get(fieldName, {}).get('type')=='many2one':
+                        tmp_val = record.get(fieldName, '')
+                        if isinstance(tmp_val, (list,tuple)):
+                            val=tmp_val[1]
                         else:
-                            val = val[1]
-                    localList.append(str(widget.valueInterface))
+                            val=tmp_val
+                    localList.append(val)
                 else:
                     if row_index == 0:
                         headers.append('')
+                    widget = self.treeObj.computeWidget(xml_obj)
                     widget.record = record
                     self.row_widgets[row_index][col_index] = widget
                     localList.append(widget)
@@ -177,7 +183,6 @@ class TemplateTreeListView(TemplateView):
             self.treeObj.tableWidget.horizontalHeader().setStyleSheet(constants.MANY_2_MANY_H_HEADER)
             self.treeObj.tableWidget.verticalHeader().setVisible(False)
             self.treeObj.tableWidget.horizontalHeader().setDefaultAlignment(QtCore.Qt.AlignLeft)
-        self._setFieldsModifiers(fieldDict)
         self._setButtonsModifiers(fieldDict)
         if self.remove_button:
             self.setRemoveButtons()
