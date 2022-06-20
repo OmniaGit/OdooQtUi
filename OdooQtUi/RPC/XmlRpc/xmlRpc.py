@@ -53,7 +53,7 @@ class XmlRpcConnection(object):
         self.serverVersion = 8
         self.max_timeout = 7200
         self.raise_error = False
-
+        self.last_error = ''
 
     def _logError(self, ex, message='', function_name=''):
         message = message + ' Error: %r' % ex
@@ -326,6 +326,7 @@ class XmlRpcConnection(object):
             @parameters: [val1, val2, ...]
             @kwargParameters: {'context': {}, limit: val, 'order': val,...}
         '''
+        self.last_error = ''
         try:
             functionName = self.sanitizeVersionFunction(functionName)
             return self.socketYesLogin.execute_kw(self.databaseName,
@@ -344,6 +345,7 @@ class XmlRpcConnection(object):
                 self._logError(err, message, utils.getFunctionName())
         except xmlrpc.Fault as err:
             try:
+                self.last_error = str(err)
                 if self.useInterface:
                     utilsUi.popError(self, err)
                     return None
@@ -361,6 +363,7 @@ class XmlRpcConnection(object):
                                                    functionName,
                                                    parameters)
             except Exception as ex:
+                self.last_error = str(ex)
                 utils.logMessage('error', ex, 'callOdooFunction')
                 message = 'Unable to communicate with the server: %r' % ex.faultCode
                 if self.useInterface:
@@ -368,6 +371,7 @@ class XmlRpcConnection(object):
                 else:
                     self._logError(ex, message, utils.getFunctionName())
         except Exception as ex:
+            self.last_error = str(ex)
             utils.logMessage('error', ex, 'callOdooFunction')
             utils.logMessage('error',
                              'Error during call Odoo Function with arguments: %r, %r, %r, %r' % (odooObj,
