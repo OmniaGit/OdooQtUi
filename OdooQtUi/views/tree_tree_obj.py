@@ -176,11 +176,11 @@ class TreeTreeData(QAbstractItemModel):
             return 0
         return len(node)
 
-    def parent(self, child):
-        if not child.isValid():
+    def parent(self, child_index):
+        if not child_index.isValid():
             return QModelIndex()
 
-        node = self.nodeFromIndex(child)
+        node = self.nodeFromIndex(child_index)
        
         if node is None:
             return QModelIndex()

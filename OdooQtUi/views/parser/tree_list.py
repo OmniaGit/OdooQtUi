@@ -67,11 +67,11 @@ class TreeViewList(QtWidgets.QWidget):
         self.globalMapping.update({key: value})
 
     def computeWidget(self, xmlObj):
-        if xmlObj.tag == 'field':
-            field_obj = self.computeField(xmlObj)
-            if field_obj:
-                #self.appendToglobalMapping('field_' + field_obj.fieldName)
-                return field_obj
+        # if xmlObj.tag == 'field':
+        #     field_obj = self.computeField(xmlObj)
+        #     if field_obj:
+        #         #self.appendToglobalMapping('field_' + field_obj.fieldName)
+        #         return field_obj
         if xmlObj.tag == 'button':
             button_obj = self.computeButton(xmlObj)
             if button_obj:

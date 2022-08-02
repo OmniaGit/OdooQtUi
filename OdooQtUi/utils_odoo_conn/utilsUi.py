@@ -73,7 +73,8 @@ def commonPopulateTable(headers, values, tableWidget, flags={}, add=False, fontS
                 colVal = menuObj.__dict__.get(colName, '')
             rowDict[colName] = colVal
             if not isinstance(colVal, str):
-                tableWidget.setCellWidget(rowPosition, colIndex, colVal)
+                #tableWidget.setCellWidget(rowPosition, colIndex, colVal)
+                pass
             else:
                 twItem = QtWidgets.QTableWidgetItem(colVal)
                 if fontSize:

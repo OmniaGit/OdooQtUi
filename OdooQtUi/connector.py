@@ -58,14 +58,14 @@ class ViewOdooObj(object):
 
 class MainConnector(object):
 
-    def __init__(self, parentWindow=None, contextUser={}, app_name='OdooQtUi'):
+    def __init__(self, parentWindow=None, contextUser={}, app_name='OdooQtUi', raise_error=False):
         self.rpc_connector = RpcConnection()
         self.rpc_connector.contextUser.update(contextUser)
         self.activeLanguage = 'en_US'
         self.app_name = app_name
         self.loadedViews = []
         self._parentWindow = parentWindow
-    
+        self._raise_error = raise_error
     
     @property
     def deltaTime(self):
@@ -102,6 +102,7 @@ class MainConnector(object):
                                           xmlrpcServerIP=xmlrpcServerIP)
         self.rpc_connector.contextUser.update(context)
         self.activeLanguage = self.rpc_connector.contextUser.get('lang', 'en_US')
+        self.rpc_connector.setXmlRpcError(self._raise_error)
         return res
     
     def loginFromStorage(self):
@@ -268,3 +269,10 @@ class MainConnector(object):
             return arch, model, viewName, viewId, fieldsNameTypeRel
         utils.logMessage('warning', 'Unable to read view definition for odooObjectName %r, viewName %r, view_id %r' % (odooObjectName, viewName, view_id), '_getViewDefinition')
         return '', '', '', False, ''
+
+    def setXmlRpcError(self, value=False):
+        """
+        force the underline rpc soket to rise any error that occure
+        """   
+        self.rpc_connector.setXmlRpcError(value)
+        

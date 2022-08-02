@@ -81,7 +81,7 @@ class Text(OdooFieldTemplate):
         self.setValue('')
 
 class TextHtml(Text):
-    def setValue(self, newVal):
+    def setValue(self, newVal, viewType='form'):
         if isinstance(newVal, bool):
             if not newVal:
                 newVal = ''

@@ -292,13 +292,19 @@ class RpcConnection(object):
         if new_id:
             self.write(objName, att, new_id, context=context)
         else:
-            att[self.db_from_field]=obj_id
+            att[self.db_from_field]=obj_iRpcConnectiond
             new_id = self.create(objName,
                                  att,
                                  context=context)
         if isinstance(new_id, (list,tuple)):
             for _id in new_id:
                 return _id
-        return new_id       
+        return new_id    
+    
+    def setXmlRpcError(self, value=False):
+        """
+        force the underline rpc soket to rise any error that occure
+        """   
+        self.sockInstance.raise_error = value
         
 connectionObj = RpcConnection()
