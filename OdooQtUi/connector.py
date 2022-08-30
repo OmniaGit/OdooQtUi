@@ -94,12 +94,12 @@ class MainConnector(object):
                       context={}):
         self.loadedViews = [] # reset the cashed view because you can change db 
         res = self.rpc_connector.loginWithUser(connectionType=loginType,
-                                          userName=user,
-                                          userPassword=password,
-                                          databaseName=dbName,
-                                          xmlrpcPort=xmlrpcPort, 
-                                          scheme=scheme, 
-                                          xmlrpcServerIP=xmlrpcServerIP)
+                                               userName=user,
+                                               userPassword=password,
+                                               databaseName=dbName,
+                                               xmlrpcPort=xmlrpcPort, 
+                                               scheme=scheme, 
+                                               xmlrpcServerIP=xmlrpcServerIP)
         self.rpc_connector.contextUser.update(context)
         self.activeLanguage = self.rpc_connector.contextUser.get('lang', 'en_US')
         self.rpc_connector.setXmlRpcError(self._raise_error)
