@@ -4,17 +4,39 @@ Created on Mar 28, 2017
 @author: daniel
 '''
 import json
+import time
 from .ui.ui_login import Ui_dialog_login
 from PySide2 import QtWidgets
 from PySide2 import QtCore
 
 from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.utils_odoo_conn import constants
+from PySide2.QtWidgets import QProgressBar
+from PySide2.QtWidgets import QApplication
+from PySide2.QtWidgets import QSplashScreen
+from PySide2.QtGui import QPixmap
+from PySide2.QtCore import Qt
+from PySide2.QtCore import Slot
 
+class RainbowMan(QSplashScreen):
+    def __init__(self, parent=None):
+        super(RainbowMan, self).__init__(parent)
+        self.setWindowFlag(Qt.FramelessWindowHint)
+        pixmap = QPixmap(utils.getImagePath("rainbow_man.png"))
+        self.setPixmap(pixmap)
 
+    def progress(self):
+        for i in range(10):
+            QApplication.processEvents()
+            time.sleep(0.1)
+        self.hide()
+        QApplication.processEvents()
+        self.close()
+        QApplication.processEvents()
+            
 class LoginDial(QtWidgets.QDialog, Ui_dialog_login):
 
-    def __init__(self, connType, availableConnTypes=[]):
+    def __init__(self, connType='xmlrpc', availableConnTypes=[]):
         super(LoginDial, self).__init__()
         self.availableConnTypes = availableConnTypes
         self.connType = connType
@@ -22,11 +44,12 @@ class LoginDial(QtWidgets.QDialog, Ui_dialog_login):
         self.setStyleWidgets()
         self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
         self.setEvents()
+        self.progress = QProgressBar()
+        self.page_2.layout().addWidget(self.progress, 4, 0, 1,2)
+        self.progress.setRange(0,1)
+        
 
     def setEvents(self):
-        self.pushButton_cancel.clicked.connect(self.cancelDial)
-        self.pushButton_ok.clicked.connect(self.acceptDial)
-        self.pushButton_back.clicked.connect(self.previousPage)
         self.comboBox_conn_type.currentIndexChanged.connect(self.connTypeChanged)
         self.lineEdit_scheme.textChanged.connect(self.schemeChanged)
 
@@ -128,7 +151,7 @@ class LoginDial(QtWidgets.QDialog, Ui_dialog_login):
     def cancelDial(self):
         self.reject()
 
-    def acceptDial(self):
+    def transferDbInfoFromInterface(self):
         self.dbName = str(self.comboBox_database.currentText())
         self.username = str(self.lineEdit_username.text())
         self.userpass = str(self.lineEdit_password.text())
@@ -136,12 +159,12 @@ class LoginDial(QtWidgets.QDialog, Ui_dialog_login):
         self.serverPort = str(self.lineEdit_port.text())
         self.scheme = str(self.lineEdit_scheme.text())
         self.connType = str(self.comboBox_conn_type.currentText())
-
+        
     def acceptDialForce(self):
         self.accept()
 
 
-class LoginDialComplete(object):
+class LoginDialComplete(LoginDial):
     def __init__(self,
                  connType='xmlrpc',
                  context={},
@@ -149,53 +172,64 @@ class LoginDialComplete(object):
                  odooConnector=None):
         self.app_name = app_name
         self.odooConnector = odooConnector
-        self.connType = connType
-        self.dbName, self.username, self.userpass, self.serverIp, self.serverPort, self.scheme, self.connType, self.dbList = utils.loadFromFile(app_name)
-        utils.logMessage('info', '''
-Try login with stored settings:\n
-database= %r\n
-user= %r\n
-server= %r\n
-port= %r\n
-scheme= %r\n
-connection type=%r\n
-''' % (self.dbName, self.username, self.serverIp, self.serverPort, self.scheme, self.connType), '__init__')
-        self.odooConnector.rpc_connector.initConnection(self.connType,
-                                     '',
-                                     '',
-                                     '',
-                                     self.serverPort,
-                                     self.scheme,
-                                     self.serverIp)
         self.availableConnTypes = self.odooConnector.rpc_connector.availableConnTypes
-        self.interfaceDial = LoginDial(self.connType, self.availableConnTypes)
-        self.setEvents()
-        utils.logMessage('info', 'Try login using stored data', '__init__')
-        self.loginWithUserDial()
-        if self.odooConnector.rpc_connector.userLogged:
-            utils.logMessage('info', 'User logged reading from stored file', '__init__')
-            self.interfaceDial.label_status.setText('User Already Logged!')
-            self.interfaceDial.stackedWidget.setCurrentIndex(1)
-            self.interfaceDial.pushButton_back.setHidden(False)
-            self.interfaceDial.pushButton_ok.setHidden(False)
-            self.interfaceDial.pushButton_next.setHidden(True)
-            self.interfaceDial.label_status.setHidden(False)
+        super(LoginDialComplete, self).__init__(connType, availableConnTypes=self.availableConnTypes)
+        self.connType = connType
+        if not self.odooConnector.rpc_connector.userLogged:
+            self.connectFromFile()
         else:
-            utils.logMessage('warning', 'User not logged reading from stored file', '__init__')
-            self.interfaceDial.label_status.setHidden(True)
-            self.interfaceDial.stackedWidget.setCurrentIndex(0)
-            self.interfaceDial.pushButton_back.setHidden(True)
-            self.interfaceDial.pushButton_next.setHidden(False)
-            self.interfaceDial.pushButton_ok.setHidden(True)
+            self.dbName = self.odooConnector.rpc_connector.databaseName
+            self.username = self.odooConnector.rpc_connector.userName
+            self.userpass = self.odooConnector.rpc_connector.userPassword
+            self.serverIp = self.odooConnector.rpc_connector.xmlrpcServerIP
+            self.serverPort = self.odooConnector.rpc_connector.xmlrpcPort
+            self.scheme = self.odooConnector.rpc_connector.scheme
+            self.connType = self.odooConnector.rpc_connector.connectionType
+            self.dbList = self.odooConnector.rpc_connector.listDb()
+            
+        if self.odooConnector.rpc_connector.userLogged:
+            self.setLogged()
+        else:
+            self.setNotLogged()
         self.initFields()
+        self.setEvents()
+        self.showRainbowman=True
+    
+    def setLogged(self):
+        utils.logMessage('info', 'User logged reading from stored file', '__init__')
+        self.label_status.setText('User Already Logged!')
+        self.stackedWidget.setCurrentIndex(1)
+        self.pushButton_back.setHidden(False)
+        self.pushButton_ok.setHidden(False)
+        self.pushButton_next.setHidden(True)
+        self.label_status.setHidden(False)
+        
+    def setNotLogged(self):
+        utils.logMessage('warning', 'User not logged reading from stored file', '__init__')
+        self.label_status.setHidden(True)
+        self.stackedWidget.setCurrentIndex(0)
+        self.pushButton_back.setHidden(True)
+        self.pushButton_next.setHidden(False)
+        self.pushButton_ok.setHidden(True)
 
+    def connectFromFile(self, app_name='odoo_plm'):
+        self.dbName, self.username, self.userpass, self.serverIp, self.serverPort, self.scheme, self.connType, self.dbList = utils.loadFromFile(app_name)
+        utils.logMessage('info',
+                         'Try login with stored settings:',
+                         'connectFromFile')
+        try:
+            self.loginWithUserDial()
+        except Exception as ex:
+            utils.logWarning("Unable to get login information from file", "connectFromFile")
+        
     def setEvents(self):
-        self.interfaceDial.pushButton_next.clicked.connect(self.nextPage)
-        self.interfaceDial.pushButton_ok.clicked.connect(self.acceptDial)
-        self.interfaceDial.pushButton_cancel.clicked.connect(self.cancelDial)
+        self.pushButton_next.clicked.connect(self.nextPage)
+        self.pushButton_ok.clicked.connect(self.acceptDial)
+        self.pushButton_cancel.clicked.connect(self.cancelDial)
+        self.pushButton_back.clicked.connect(self.previousPage)
 
     def initFields(self):
-        self.interfaceDial.initFields(self.odooConnector.rpc_connector.userLogged,
+        super(LoginDialComplete, self).initFields(self.odooConnector.rpc_connector.userLogged,
                                       self.userpass,
                                       self.serverPort,
                                       self.scheme,
@@ -203,35 +237,49 @@ connection type=%r\n
                                       self.username,
                                       self.dbName,
                                       self.dbList)
-
+    def accept(self)->None:
+        super(LoginDialComplete, self).accept()
+    
+    @Slot()
     def acceptDial(self):
-        self.dbName = self.interfaceDial.dbName
-        self.username = self.interfaceDial.username
-        self.userpass = self.interfaceDial.userpass
-        self.serverIp = self.interfaceDial.serverIp
-        self.serverPort = self.interfaceDial.serverPort
-        self.scheme = self.interfaceDial.scheme
-        self.connType = self.interfaceDial.connType
-        self.writeToFile()
-        self.loginWithUserDial()
-        if self.odooConnector.rpc_connector.userLogged:
-            self.interfaceDial.acceptDial()
-            self.interfaceDial.accept()
-        else:
-            self.interfaceDial.lineEdit_username.setStyleSheet(constants.LOGIN_LINEEDIT_STYLE + constants.BACKGROUND_RED)
-            self.interfaceDial.lineEdit_password.setStyleSheet(constants.LOGIN_LINEEDIT_STYLE + constants.BACKGROUND_RED)
-            self.interfaceDial.label_status.setText('Bad Username or Password!')
-            self.interfaceDial.label_status.setHidden(False)
-            self.interfaceDial.label_status.setStyleSheet('color: red;')
+        self.showRainbowman= not self.showRainbowman
+        if not self.showRainbowman:
+           return
+        self.progress.setRange(0,0)
+        try:
+            QApplication.processEvents() 
+            self.transferDbInfoFromInterface()
+            self.loginWithUserDial()
+            if self.odooConnector.rpc_connector.userLogged:
+                self.writeToFile()
+                self.label_status.setText('User Logged')
+                self.lineEdit_username.setStyleSheet(constants.LOGIN_LINEEDIT_STYLE)
+                self.lineEdit_password.setStyleSheet(constants.LOGIN_LINEEDIT_STYLE)
+                self.label_status.setStyleSheet('')
+                splash = RainbowMan(self)
+                splash.show()
+                splash.progress()
+                self.accept()
+            else:
+                raise Exception('Bad Username or Password!')
+        except Exception as ex:
+            self.lineEdit_username.setStyleSheet(constants.LOGIN_LINEEDIT_STYLE + constants.BACKGROUND_RED)
+            self.lineEdit_password.setStyleSheet(constants.LOGIN_LINEEDIT_STYLE + constants.BACKGROUND_RED)
+            self.label_status.setText(str(ex))
+            self.label_status.setHidden(False)
+            self.label_status.setStyleSheet('color: red;')
+            QApplication.processEvents()            
+        finally:
+            self.progress.setRange(0,1)
 
     def cancelDial(self):
         self.loginWithUserDial()
 
     def nextPage(self):
-        xmlrpcServerIP = str(self.interfaceDial.lineEdit_server.text())
-        xmlrpcPort = str(self.interfaceDial.lineEdit_port.text())
-        scheme = str(self.interfaceDial.lineEdit_scheme.text())
-        loginType = str(self.interfaceDial.comboBox_conn_type.currentText())
+        xmlrpcServerIP = str(self.lineEdit_server.text())
+        xmlrpcPort = str(self.lineEdit_port.text())
+        scheme = str(self.lineEdit_scheme.text())
+        loginType = str(self.comboBox_conn_type.currentText())
         self.odooConnector.rpc_connector.initConnection(loginType,
                                      '',
                                      '',
@@ -242,40 +290,54 @@ connection type=%r\n
 
         self.dbList = self.odooConnector.rpc_connector.listDb()
         if not self.dbList:
-            self.interfaceDial.label_status.setText('User not logged! Unable to get database list.')
+            self.label_status.setText('User not logged! Unable to get database list.')
         else:
-            self.interfaceDial.label_status.setText('')
+            self.label_status.setText('')
         self.dbList = self.dbList or []
-        self.interfaceDial.comboBox_database.clear()
-        self.interfaceDial.comboBox_database.addItems(self.dbList)
-        self.interfaceDial.pushButton_ok.setHidden(False)
-        self.interfaceDial.pushButton_back.setHidden(False)
-        self.interfaceDial.pushButton_next.setHidden(True)
-        self.interfaceDial.stackedWidget.setCurrentIndex(1)
+        self.comboBox_database.clear()
+        self.comboBox_database.addItems(self.dbList)
+        self.pushButton_ok.setHidden(False)
+        self.pushButton_back.setHidden(False)
+        self.pushButton_next.setHidden(True)
+        self.stackedWidget.setCurrentIndex(1)
         if self.dbName:
             if self.dbName in self.dbList:
                 index = self.dbList.index(self.dbName)
-                self.interfaceDial.comboBox_database.setCurrentIndex(index)
+                self.comboBox_database.setCurrentIndex(index)
         if self.userpass:
-            self.interfaceDial.lineEdit_password.setText(self.userpass)
+            self.lineEdit_password.setText(self.userpass)
         if self.username:
-            self.interfaceDial.lineEdit_username.setText(self.username)
+            self.lineEdit_username.setText(self.username)
 
     def loginWithUserDial(self):
+        utils.logMessage('info', '''
+                        Try login with settings:
+                        database= %r
+                        user= %r
+                        server= %r
+                        port= %r
+                        scheme= %r
+                        connection type=%r
+                        ''' % (self.dbName,
+                               self.username,
+                               self.serverIp,
+                               self.serverPort,
+                               self.scheme,
+                               self.connType), 'loginWithUserDial')
         self.odooConnector.rpc_connector.initConnection(self.connType,
-                                     self.username,
-                                     self.userpass,
-                                     self.dbName,
-                                     self.serverPort,
-                                     self.scheme,
-                                     self.serverIp)
+                                                        self.username,
+                                                        self.userpass,
+                                                        self.dbName,
+                                                        self.serverPort,
+                                                        self.scheme,
+                                                        self.serverIp)
         return self.odooConnector.rpc_connector.loginWithUser(self.connType,
-                                           self.username,
-                                           self.userpass,
-                                           self.dbName,
-                                           self.serverPort,
-                                           self.scheme,
-                                           self.serverIp)
+                                                              self.username,
+                                                              self.userpass,
+                                                              self.dbName,
+                                                              self.serverPort,
+                                                              self.scheme,
+                                                              self.serverIp)
 
     def writeToFile(self):
         toWriteDict = {

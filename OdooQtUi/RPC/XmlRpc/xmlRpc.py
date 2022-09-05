@@ -319,13 +319,15 @@ class XmlRpcConnection(object):
         return functionName
     
     #@utils.timeit
-    def callOdooFunction(self, odooObj, functionName, parameters=[], kwargParameters={}):
+    def callOdooFunction(self, odooObj, functionName, parameters=[], kwargParameters={}, forceHideInterface=False):
         '''
             @odooObj: product.product, product.template ...
             @functionName: 'search', 'read', ...
             @parameters: [val1, val2, ...]
             @kwargParameters: {'context': {}, limit: val, 'order': val,...}
         '''
+        if self.socketYesLogin in [None, False]:
+            raise Exception("Socket not inizialized properly")
         self.last_error = ''
         try:
             functionName = self.sanitizeVersionFunction(functionName)
@@ -341,7 +343,7 @@ class XmlRpcConnection(object):
                 raise err
             message = 'Unable to communicate with the server: %r calling %r on %r' % (err, functionName, odooObj)
             utils.logMessage('error', message, 'callOdooFunction')
-            if self.useInterface:
+            if self.useInterface and not forceHideInterface:
                 utilsUi.popError(self, message)
             else:
                 self._logError(err, message, utils.getFunctionName())
@@ -350,7 +352,7 @@ class XmlRpcConnection(object):
                 raise err
             try:
                 self.last_error = str(err)
-                if self.useInterface:
+                if self.useInterface and not forceHideInterface:
                     utilsUi.popError(self, err)
                     return None
                 else:
@@ -371,7 +373,7 @@ class XmlRpcConnection(object):
                 self.last_error = str(ex)
                 utils.logMessage('error', ex, 'callOdooFunction')
                 message = 'Unable to communicate with the server: %r' % ex.faultCode
-                if self.useInterface:
+                if self.useInterface and not forceHideInterface:
                     utilsUi.popError(None, message)
                 else:
                     self._logError(ex, message, utils.getFunctionName())
@@ -386,7 +388,7 @@ class XmlRpcConnection(object):
                                                                                                  parameters,
                                                                                                  kwargParameters),
                              'callOdooFunction')
-            if self.useInterface:
+            if self.useInterface and not forceHideInterface:
                 utilsUi.popError(self, ex)
             else:
                 self._logError(ex, '', utils.getFunctionName())

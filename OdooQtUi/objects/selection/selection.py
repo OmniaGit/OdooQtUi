@@ -44,10 +44,10 @@ class Selection(OdooFieldTemplate):
             labelQtObj = QtWidgets.QLabel(visibleText.title())
             labelQtObj.setStyleSheet(constants.LABEL_STYLE_STATUSBAR)
             labelQtObj.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
-            self.addWidget(labelQtObj)
+            self.layout().addWidget(labelQtObj)
             self.labels.append(labelQtObj)
-        self.setSpacing(0)
-        self.setMargin(0)
+        self.layout().setSpacing(0)
+        self.layout().setMargin(0)
 
     def getQtObject(self):
         if self.widget == 'statusbar':
@@ -89,7 +89,10 @@ class Selection(OdooFieldTemplate):
             for label in self.labels:
                 if str(label.text()).upper() == str(newVal).upper():
                     label.setStyleSheet(constants.LABEL_STYLE_STATUSBAR_ACTIVE)
-                    return
+                    self.currentValue = newVal
+                else:
+                    label.setStyleSheet(constants.LABEL_STYLE_STATUSBAR)
+            return
         allItems = tuple(self.selectionMapping.keys())
         if newVal not in allItems:
             utils.logMessage('warning', '[%r] Value %r not found in values: %r' % (self.fieldName, newVal, allItems), 'setValue')

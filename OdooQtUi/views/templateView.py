@@ -100,10 +100,7 @@ class TemplateView(QtWidgets.QWidget):
                 if fieldObj.fileName:
                     file_name = self.formVals.get(fieldObj.fileName, '')
                 fieldObj.setValue(fieldVal, file_name)
-            else:
-                fieldObj.setValue(fieldVal)
-        headerField = 'header_' + fieldName
-        fieldObj = self.interfaceFieldsDict.get(headerField, None)
+                return
         if fieldObj:
             fieldObj.setValue(fieldVal)
 

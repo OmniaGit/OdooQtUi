@@ -17,13 +17,14 @@ class OdooFieldTemplate(QtWidgets.QWidget):
     value_changed_signal = QtCore.Signal((str,))
     translation_clicked = QtCore.Signal((str,))
 
-    def __init__(self, qtParent, xmlField, fieldsDefinition, rpc):
+    def __init__(self, qtParent, xmlField, fieldsDefinition, odooConnector):
         super(OdooFieldTemplate, self).__init__(qtParent)
         self.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
         #self.setMinimumSize(40, 40)
-        self.rpc = rpc
+        self.odooConnector=odooConnector
         self.fieldXmlAttributes = xmlField.attrib
         self.parentId = False
+        self.odooId=False
         self.parentModel = ''
         self.fieldName = self.fieldXmlAttributes.get('name', '')
         self.modifiers = json.loads(self.fieldXmlAttributes.get('modifiers', '{}'))

@@ -12,6 +12,7 @@ from OdooQtUi.views.form_obj import TemplateFormView
 from OdooQtUi.views.tree_tree_obj import TemplateTreeTreeView
 from OdooQtUi.views.tree_list_obj import TemplateTreeListView
 from OdooQtUi.interface.login import LoginDialComplete
+from _socket import SO_PASSSEC
 
 logger = logging.getLogger()
 logger.setLevel(utils.getDebugSeverity())
@@ -40,7 +41,15 @@ class ViewOdooObj(object):
         self.loginInfos = {}
         self.localViewCheckBoxes = False
 
-    def hasMatch(self, localViewType, localOdooObjectName, localViewName, localViewId, localViewFilter, loginInfos, viewCheckBoxes):
+    def hasMatch(self,
+                 localViewType, 
+                 localOdooObjectName, 
+                 localViewName, 
+                 localViewId, 
+                 localViewFilter, 
+                 loginInfos, 
+                 viewCheckBoxes, 
+                 hideFormContent):
         if self.localViewType == localViewType and \
             self.localOdooObjectName == localOdooObjectName and \
             self.localViewName == localViewName and \
@@ -48,6 +57,7 @@ class ViewOdooObj(object):
             self.localViewFilter == localViewFilter and \
             self.loginInfos == loginInfos and \
             self.localViewCheckBoxes == viewCheckBoxes:
+            self.hideFormContent == hideFormContent
             return True
         return False
 
@@ -94,12 +104,12 @@ class MainConnector(object):
                       context={}):
         self.loadedViews = [] # reset the cashed view because you can change db 
         res = self.rpc_connector.loginWithUser(connectionType=loginType,
-                                          userName=user,
-                                          userPassword=password,
-                                          databaseName=dbName,
-                                          xmlrpcPort=xmlrpcPort, 
-                                          scheme=scheme, 
-                                          xmlrpcServerIP=xmlrpcServerIP)
+                                               userName=user,
+                                               userPassword=password,
+                                               databaseName=dbName,
+                                               xmlrpcPort=xmlrpcPort, 
+                                               scheme=scheme, 
+                                               xmlrpcServerIP=xmlrpcServerIP)
         self.rpc_connector.contextUser.update(context)
         self.activeLanguage = self.rpc_connector.contextUser.get('lang', 'en_US')
         self.rpc_connector.setXmlRpcError(self._raise_error)
@@ -122,7 +132,7 @@ class MainConnector(object):
     def loginWithDial(self, context={}):
         loginDialInst = LoginDialComplete(app_name=self.app_name,
                                           odooConnector=self)
-        loginDialInst.interfaceDial.exec_()
+        loginDialInst.exec_()
         if self.rpc_connector.userLogged:
             self.loadedViews = [] # reset the cashed view because you can change db
             self.rpc_connector.contextUser.update(context) 
@@ -145,12 +155,23 @@ class MainConnector(object):
                   viewCheckBoxes={}, 
                   searchMode='ilike', 
                   useHeader=False, 
-                  useChatter=False):
+                  useChatter=False,
+                  hideFormContent=False):
         try:
             localLang, rpcObj = self._getCommonLangAndRpc(activeLanguage, rpcObj)
             viewObj = self.checkAlreadyLoadedView(viewType, rpcObj, odooObjectName, viewName, view_id, viewFilter, viewCheckBoxes)
             if not viewObj:
-                viewObj = self.appendLoadedView(viewType, rpcObj, odooObjectName, viewName, view_id, viewFilter, viewCheckBoxes, searchMode, useHeader, useChatter)
+                viewObj = self.appendLoadedView(viewType,
+                                                rpcObj,
+                                                odooObjectName,
+                                                viewName,
+                                                view_id,
+                                                viewFilter,
+                                                viewCheckBoxes,
+                                                searchMode,
+                                                useHeader,
+                                                useChatter,
+                                                hideFormContent)
             utils.logMessage('info', 'Loading view %s' % (viewObj), '_initView')
             return viewObj, localLang, rpcObj
         except Exception as ex:
@@ -193,7 +214,8 @@ class MainConnector(object):
                         rpcObj=None, 
                         activeLanguage='', 
                         useHeader=False, 
-                        useChatter=False):
+                        useChatter=False,
+                        hideFormContent=False):
         """
         Initialize a odoo form view to be used
         """
@@ -204,10 +226,27 @@ class MainConnector(object):
                                                     viewName, 
                                                     view_id, 
                                                     useHeader=useHeader, 
-                                                    useChatter=useChatter)
-        return TemplateFormView(rpcObj, viewObj, localLang, self)
+                                                    useChatter=useChatter,
+                                                    hideFormContent=hideFormContent)
 
-    def appendLoadedView(self, viewType, rpcObj, odooObjectName, viewName, view_id, viewFilter=False, viewCheckBoxes={}, searchMode='ilike', useHeader=False, useChatter=False):
+        return TemplateFormView(rpcObject=rpcObj,
+                                viewObj=viewObj,
+                                activeLanguageCode=localLang,
+                                odooConnector=self,
+                                hideFormContent=hideFormContent)
+
+    def appendLoadedView(self,
+                         viewType,
+                         rpcObj,
+                         odooObjectName,
+                         viewName,
+                         view_id,
+                         viewFilter=False,
+                         viewCheckBoxes={},
+                         searchMode='ilike',
+                         useHeader=False,
+                         useChatter=False,
+                         hideFormContent=False):
         odooArch, odooModel, odooViewName, odooViewId, odooFieldsNameTypeRel = self._getViewDefinition(rpcObj, odooObjectName, viewType, viewName, view_id)
         viewOdooObj = ViewOdooObj()
         viewOdooObj.odooArch = odooArch
@@ -225,16 +264,25 @@ class MainConnector(object):
         viewOdooObj.localSearchMode = searchMode
         viewOdooObj.useHeader = useHeader
         viewOdooObj.useChatter = useChatter
-
+        viewOdooObj.hideFormContent=hideFormContent
         viewOdooObj.loginInfos = rpcObj.getLoginInfos()
-
+        #
         self.loadedViews.append(viewOdooObj)
+        #
         return viewOdooObj
 
-    def checkAlreadyLoadedView(self, viewType, rpcObj, odooObjectName, viewName, view_id, viewFilter=False, viewCheckBoxes=False):
+    def checkAlreadyLoadedView(self,
+                               viewType,
+                               rpcObj,
+                               odooObjectName,
+                               viewName,
+                               view_id,
+                               viewFilter=False,
+                               viewCheckBoxes=False,
+                               hideFormContent=False):
         loginInfos = rpcObj.getLoginInfos()
         for viewObj in self.loadedViews:
-            if viewObj.hasMatch(viewType, odooObjectName, viewName, view_id, viewFilter, loginInfos, viewCheckBoxes):
+            if viewObj.hasMatch(viewType, odooObjectName, viewName, view_id, viewFilter, loginInfos, viewCheckBoxes, hideFormContent):
                 return viewObj
         return False
 
@@ -247,8 +295,8 @@ class MainConnector(object):
 
     def _searchForView(self, model, viewName, viewType):
         viewIds = self.rpc_connector.search('ir.ui.view', [('name', '=', viewName),
-                                                      ('model', '=', model),
-                                                      ('type', '=', viewType)])
+                                                           ('model', '=', model),
+                                                           ('type', '=', viewType)])
         if viewIds:
             return viewIds[0]
         utils.logMessage('warning', 'View with name %r and model %r nor found' % (viewName, model), 'searchForView')
@@ -275,4 +323,20 @@ class MainConnector(object):
         force the underline rpc soket to rise any error that occure
         """   
         self.rpc_connector.setXmlRpcError(value)
+    
+    def callButtonFunction(self,
+                           model,
+                           entity_id,
+                           buttonType,
+                           buttonName):
+        ret = self.rpc_connector.callCustomMethod(model,  buttonName, [entity_id])
+        if isinstance(ret , dict):
+            action = ret.get('action')
+            if action:
+                pass
+            else:
+                pass
+        return ret
+        
+
         

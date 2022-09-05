@@ -34,8 +34,9 @@ from OdooQtUi.objects import button
 
 class TemplateFormView(TemplateView):
     nootebook_changed_signal = QtCore.Signal(int)
+    form_changed = QtCore.Signal(str)
 
-    def __init__(self, rpcObject, viewObj, activeLanguageCode='en_US', odooConnector=None):
+    def __init__(self, rpcObject, viewObj, activeLanguageCode='en_US', odooConnector=None, hideFormContent=False):
         self.globalMapping = {}
         self.aloneLabels = {}
         self.notebookTabsNotComputed = {}
@@ -47,6 +48,7 @@ class TemplateFormView(TemplateView):
         self.skipOnChange = False
         self.readonly = False
         self.activeIds = []         # must be one
+        self.hideFormContent = hideFormContent
         super(TemplateFormView, self).__init__(rpcObject, viewObj, activeLanguageCode)
         self.odooConnector = odooConnector
         self.objectsInit = copy.deepcopy(self.fields)
@@ -54,6 +56,7 @@ class TemplateFormView(TemplateView):
         self.nootebook_changed_signal.connect(self.updateDataStructure)
         self.setMinimumSize(0, 0)
         self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding))
+        
 
     def _initViewObj(self):
         if self.fieldsNameTypeRel:
@@ -71,7 +74,6 @@ class TemplateFormView(TemplateView):
             self.setStyleSheet(constants.MAIN_STYLE)
             vertical_layout = QtWidgets.QVBoxLayout()
             vertical_layout.setSpacing(0)
-            # seems to be not available vertical_layout.setMargin(0)
             self.computeRecursion(qvboxLayout=vertical_layout,
                                   xmlParent=ElementTree.XML(self.arch.encode('utf-8')))
             verticalSpacer = QtWidgets.QSpacerItem(40, 100, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
@@ -93,27 +95,22 @@ class TemplateFormView(TemplateView):
             qvboxLayout.addWidget(line)
         row_container = QtWidgets.QHBoxLayout()
         row_container.setSpacing(0)
-        # no more on pyside row_container.setMargin(0)
-        #for childXlmElement in xmlParent.getchildren():
+        #
         for childXlmElement in xmlParent:
             childXmlTag = childXlmElement.tag
             xmlAttrs = childXlmElement.attrib
-            
-            print('%s %s' % (childXmlTag, xmlAttrs))
-            if childXmlTag == 'sheet':
-                self.computeRecursion(qvboxLayout=qvboxLayout,
-                                      xmlParent=childXlmElement)
+            if childXmlTag == 'sheet' and not self.hideFormContent:
+                self.sheet_layout = self.computeRecursion(qvboxLayout=qvboxLayout,
+                                                          xmlParent=childXlmElement)
             elif childXmlTag == 'header':
-                utils.logWarning('Header not implemented', 'computeRecursion')
-                continue
-#                 mapping, layout = self.computeHeader(xmlParent=childXlmElement, nootebookIndex=self.useHeader)
-#                 if layout:
-#                     if self.useHeader:
-#                         qvboxLayout.addLayout(layout)
-#                     else:
-#                         layout.deleteLater()
-#                 if mapping:
-#                     self.globalMapping.update(mapping)
+                mapping, layout = self.computeHeader(archHeader=childXlmElement, useHeader=self.useHeader)
+                if layout:
+                    if self.useHeader:
+                        qvboxLayout.addLayout(layout)
+                    else:
+                        layout.deleteLater()
+                if mapping:
+                    self.globalMapping.update(mapping)
             elif childXmlTag == 'div':
                 divAttrib = childXlmElement.attrib
                 divClass = divAttrib.get('class', '')
@@ -145,7 +142,6 @@ class TemplateFormView(TemplateView):
                 tabWidgetBar = tabWidget.tabBar()
                 tabWidgetBar.setStyleSheet(constants.NOOTEBOOK_TABBAR_STYLE)
                 nootebookIndex = 0
-                #for page in childXlmElement.getchildren():
                 for page in childXlmElement:
                     pageString = page.attrib.get('string', '')
                     invisible = page.attrib.get('invisible', False)
@@ -155,7 +151,6 @@ class TemplateFormView(TemplateView):
                     pageWidget = QtWidgets.QWidget(tabWidget)
                     pageVboxLayout = QtWidgets.QVBoxLayout()
                     pageVboxLayout.setSpacing(0)
-                    #pageVboxLayout.setMargin(0)
                     if modifReadonly:
                         pageWidget.setDisabled(True)
                     if nootebookIndex != 0:
@@ -180,15 +175,13 @@ class TemplateFormView(TemplateView):
                                       xmlParent=childXlmElement,
                                       row_widget_limit=colspan)
             elif childXmlTag == 'button':
-                utils.logWarning('Buttons not implemented at first level of form')
-                continue
-#                 buttonObj = button.Button(childXlmElement)
-#                 key = 'button_' + str(buttonObj.buttonString).replace(' ', '_')
-#                 self.appendToglobalMapping(key, buttonObj)
-#                 qvboxLayout.addWidget(buttonObj)
-#                 divClass = parent.attrib.get('class', '')
-#                 if divClass == 'oe_button_box':
-#                     buttonObj.setHidden(True)
+                buttonObj = button.Button(childXlmElement)
+                key = 'button_' + str(buttonObj.buttonString).replace(' ', '_')
+                self.appendToglobalMapping(key, buttonObj)
+                qvboxLayout.addWidget(buttonObj)
+                divClass = parent.attrib.get('class', '')
+                if divClass == 'oe_button_box':
+                    buttonObj.setHidden(True)
             elif childXmlTag == 'separator':
                 childAttrs = childXlmElement.attrib
                 separatorVal = childAttrs.get('string', '')
@@ -247,11 +240,13 @@ class TemplateFormView(TemplateView):
 
         headerLayout = QtWidgets.QHBoxLayout()
         utilsUi.setLayoutMarginAndSpacing(headerLayout)
-        for xmlObj in archHeader.getchildren():
+        for xmlObj in archHeader:
             if xmlObj.tag == 'button':
-                buttonObj = button.Button(xmlObj)
+                buttonObj = button.Button(xmlObj,
+                                          model=self.model,
+                                          odooConnector=self.odooConnector)
                 headerLayout.addWidget(buttonObj)
-                commonAppend('button_header_' + str(buttonObj.buttonString).replace(' ', '_'), buttonObj)
+                commonAppend('button_' + str(buttonObj.buttonString).replace(' ', '_'), buttonObj)
             elif xmlObj.tag == 'field':
                 fieldObj = self.computeField(xmlObj)
                 fieldQt = fieldObj
@@ -266,7 +261,7 @@ class TemplateFormView(TemplateView):
                 else:
                     utils.logMessage('warning', 'Field %r could not be added to layout' % (fieldName), 'computeHeader')
                     continue
-                commonAppend('field_header_' + str(fieldName), fieldObj)
+                commonAppend('field_' + str(fieldName), fieldObj)
             else:
                 pass
         return mapping, headerLayout
@@ -407,18 +402,24 @@ class TemplateFormView(TemplateView):
                 for fieldName, fieldVal in list(self.formVals.items()):
                     self.setValueField(fieldName, fieldVal)
                     self.setFieldParentAttrs(fieldName)
+                for button in self.buttons.__dict__.values():
+                    button.odooId=fromId
                 self.skipOnChange = False
         else:
             self.setDefaults(fieldsToRead)
+        
         for fieldName, fieldVal in list(forceFieldValues.items()):
-            self.setValueField(fieldName, fieldVal)
-        self._setFieldModifiers()
+            self.setValueField(fieldName, fieldVal, )
+        
         for readonlyField, fieldAttr in list(readonlyFields.items()):
             self.setReadonlyField(readonlyField, fieldAttr)
+        
         for invisibleField, fieldAttr in list(invisibleFields.items()):
             self.setInvisibleField(invisibleField, fieldAttr)
+        
         self._setButtonsModifiers()
         self.objectsInit = copy.copy(self.fields)
+        self.form_changed.emit("Reloaded")
 
     def setFieldParentAttrs(self, fieldName):
         fieldObj = self.interfaceFieldsDict.get(fieldName, None)
@@ -528,6 +529,7 @@ class TemplateFormView(TemplateView):
         fieldObj = self.interfaceFieldsDict.get(fieldName)
         if not fieldObj:
             utils.logMessage('warning', 'Field %r not found in interfacefieldsdict' % (fieldName), '_valueChanged')
+            return
         changeResult = self._on_change(fieldObj.fieldName)
         changedValues = changeResult.get('value', {})
         for fieldNameFromServer, fieldValueFromServer in list(changedValues.items()):

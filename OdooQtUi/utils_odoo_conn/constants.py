@@ -27,6 +27,7 @@ MAIN_STYLE = 'background-color:#ffffff;'
 BUTTON_ODOO_DEFAULT_COLOR = 'background-color: #00A09D;'
 BUTTON_COMMON = 'border-radius: 0px;border: none;color: white;padding: 5px 10px;' + FONT_SIZE
 BUTTON_STYLE = 'background-color: #21b799;border-color: #21b799;' + BOLD_FONT + BUTTON_COMMON   # Color green
+BUTTON_STYLE_HOVER = 'background-color: #21b780;border-color: #21b799;' + BOLD_FONT + BUTTON_COMMON   # Color green
 BUTTON_STYLE_REVERSED = 'background-color:white; color: #21b799; border: 2px solid #21b799;padding: 3px; margin:1px;' + BOLD_FONT   # Color green
 BUTTON_STYLE_OK = 'background-color: #59be50;border-color: #21b799;' + BUTTON_COMMON
 BUTTON_STYLE_CANCEL = 'background-color: #f05050;border-color: #21b799;' + BUTTON_COMMON
@@ -85,3 +86,16 @@ LOGIN_STACKED_WIDGET = 'background-color:white;'
 TREE_LIST_BACKGROUND_COLOR = 'background-color:#ffffff;'
 
 DEBUG = False
+
+ODOO_STYLE ="""
+QDialog {{background-color:#875a7b;}}
+QPushButton {{{push_button}}}
+QPushButton:hover {{{push_button_hover}}}
+QTreeView {{border-left: 3px solid #875a7b;
+                border-right: 3px solid #875a7b;
+                border-bottom: 3px solid #875a7b;
+                alternate-background-color: #DDEDF0;
+                background-color: white;}} 
+
+""".format(push_button=BUTTON_STYLE,
+           push_button_hover=BUTTON_STYLE_REVERSED)

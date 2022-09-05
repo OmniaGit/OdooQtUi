@@ -13,26 +13,33 @@ from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
 
 
 class Button(OdooFieldTemplate):
-    def __init__(self, xmlObject, forceHidden=False):
-        super(Button, self).__init__(xmlObject, fieldsDefinition={}, rpc=False)
+    def __init__(self,
+                 xmlObject,
+                 forceHidden=False,
+                 model='',
+                 odooConnector=False):
+        super(Button, self).__init__(None, xmlObject, fieldsDefinition={}, odooConnector=odooConnector)
         self.xmlObject = xmlObject
+        self.model=model
+        self.odooConnector=odooConnector
         self.buttonAttribs = self.xmlObject.attrib
         self.buttonString = self.buttonAttribs.get('string', '')
         self.buttonType = self.buttonAttribs.get('type', '')
         self.buttonName = self.buttonAttribs.get('name', '')
         self.modifiers = json.loads(self.buttonAttribs.get('modifiers', '{}'))
         self.buttonObj = self.getQtObject()
-        self.addWidget(self.buttonObj)
+        self.layout().addWidget(self.buttonObj)
         self.invisible = utils.evaluateBoolean(self.buttonAttribs.get('invisible', False))
         self.readonly = utils.evaluateBoolean(self.buttonAttribs.get('readonly', False))
         self.buttonObj.setDisabled(self.readonly)
+        self.buttonObj.clicked.connect(self.buttonClicked)
         if forceHidden:
-            self.buttonObj.hide()
+            self.hide()
         else:
             if self.invisible:
-                self.buttonObj.hide()
+                self.hide()
             else:
-                self.buttonObj.show()
+                self.show()
         self.invisibleConditions, self.readonlyConditions = utils.evaluateModifiers(self.modifiers)
         self.buttonObj.setStyleSheet(constants.BUTTON_STYLE)
 
@@ -46,11 +53,19 @@ class Button(OdooFieldTemplate):
         return self.buttonObj
 
     def setReadonly(self, val=False):
-        self.buttonObj.setDisabled(val)
+        self.setDisabled(val)
 
     def setInvisible(self, val=False):
         if val:
-            self.buttonObj.hide()
+            self.hide()
         else:
-            self.buttonObj.show()
+            self.show()
 
+    def buttonClicked(self):
+        self.odooConnector.callButtonFunction(self.model, self.odooId, self.buttonType, self.buttonName)
+        self.parent().loadIds(self.odooId)
+        pass
+
+        
+        
+        

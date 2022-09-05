@@ -6,20 +6,21 @@ Created on 20/set/2015
 import os
 import sys
 import base64
+import xmlrpc
 import logging
 import traceback
 
 from PySide2 import QtGui
 from PySide2 import QtCore
 from PySide2 import QtWidgets
+#
+import OdooQtUi
+#
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.utils_odoo_conn import utils
-import OdooQtUi
 from OdooQtUi.utils_odoo_conn.utils import logMessage
-import xmlrpc
 
 DEFAULT_ICON_PATH = ''
-
 
 def getQtImageFromContent(content, imageWidth=100, imageHeight=100, b64decode=True):
     label = QtWidgets.QLabel()
@@ -104,7 +105,6 @@ def getFileFromSystem(desc='Open', startPath='/home/'):
         return str(file_path)
     return ''
 
-
 def getDirectoryFileToSaveSystem(parent, statingPath='', fileType=''):
     file_path, _filter = QtWidgets.QFileDialog.getSaveFileName(None, "Save file", statingPath, fileType)
     logging.info('[getDirectoryFileToSaveSystem] filename: %s' % str(file_path))
@@ -168,12 +168,12 @@ class AdvancedErrorPopUP(QtWidgets.QDialog):
         self.lineEdit = QtWidgets.QTextEdit(self)
         self.lineEdit.setMaximumHeight(0)
         self.lineEdit.setMaximumWidth(0)        
-        if len(messageBody) > 60:
+        if len(messageBody) > 80:
             hlay.addStretch(1)
             hlay.addWidget(more_button)
             top_widget.setFixedHeight(50)
             more_button.setStyleSheet('background-color:white;')
-            messageShortError.setText(messageBody[:60])
+            messageShortError.setText(messageBody[:80])
         else:
             messageShortError.setText(messageBody)
         if short_text_header:

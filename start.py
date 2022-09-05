@@ -43,17 +43,6 @@ class ViewOdooObj(object):
         self.loginInfos = {}
         self.localViewCheckBoxes = False
 
-    def hasMatch(self, localViewType, localOdooObjectName, localViewName, localViewId, localViewFilter, loginInfos, viewCheckBoxes):
-        if self.localViewType == localViewType and \
-            self.localOdooObjectName == localOdooObjectName and \
-            self.localViewName == localViewName and \
-            self.localViewId == localViewId and \
-            self.localViewFilter == localViewFilter and \
-            self.loginInfos == loginInfos and \
-            self.localViewCheckBoxes == viewCheckBoxes:
-            return True
-        return False
-
     def __str__(self, *args, **kwargs):
         res = super(ViewOdooObj, self).__str__()
         return '[%s -- %s -- %s -- %s] ---- [%s]' % (self.odooModel, self.odooViewName, self.localViewType, self.odooViewId, res)
@@ -140,10 +129,18 @@ class MainConnector(object):
         self.loadedViews.append(viewOdooObj)
         return viewOdooObj
 
-    def checkAlreadyLoadedView(self, viewType, rpcObj, odooObjectName, viewName, view_id, viewFilter=False, viewCheckBoxes=False):
+    def checkAlreadyLoadedView(self,
+                               viewType,
+                               rpcObj,
+                               odooObjectName,
+                               viewName,
+                               view_id,
+                               viewFilter=False,
+                               viewCheckBoxes=False,
+                               hideFormContent=False):
         loginInfos = rpcObj.getLoginInfos()
         for viewObj in self.loadedViews:
-            if viewObj.hasMatch(viewType, odooObjectName, viewName, view_id, viewFilter, loginInfos, viewCheckBoxes):
+            if viewObj.hasMatch(viewType, odooObjectName, viewName, view_id, viewFilter, loginInfos, viewCheckBoxes, hideFormContent):
                 return viewObj
         return False
 

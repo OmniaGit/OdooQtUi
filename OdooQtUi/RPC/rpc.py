@@ -6,7 +6,7 @@ Created on 02 feb 2017
 import logging
 import socket
 from OdooQtUi.RPC.XmlRpc.xmlRpc import XmlRpcConnection
-
+from OdooQtUi.utils_odoo_conn.utils import timeit
 
 class RpcConnection(object):
     def __init__(self):
@@ -60,7 +60,8 @@ class RpcConnection(object):
         elif connectionType == 'secure-xmlrpc':
             self.sockInstance = XmlRpcConnection(userName, userPassword, databaseName, xmlrpcPort, scheme, xmlrpcServerIP, secure=True)
             self.sockInstance.useInterface = self.useInterface
-        
+        else:
+            raise Exception("Missing value connectionType for initConnection function")
 
     def getLoginInfos(self):
         return [self.userName,
@@ -81,7 +82,14 @@ class RpcConnection(object):
                 return False
         return self.sockInstance.loginNoUser()
     
-    def loginWithUser(self, connectionType, userName, userPassword, databaseName, xmlrpcPort=8069, scheme='http', xmlrpcServerIP='127.0.0.1'):
+    def loginWithUser(self,
+                      connectionType,
+                      userName,
+                      userPassword,
+                      databaseName,
+                      xmlrpcPort=8069,
+                      scheme='http',
+                      xmlrpcServerIP='127.0.0.1'):
         self.initConnection(connectionType, userName, userPassword, databaseName, xmlrpcPort, scheme, xmlrpcServerIP)
         if not self.sockInstance:
             return False
@@ -110,13 +118,14 @@ class RpcConnection(object):
             logging.warning('Unable to get user context.')
             res = {}
         self.contextUser.update(res)
-
-    def callCustomMethod(self, odooObj, functionName, parameters=[], kwargParameters={}, context={}):
+    
+    @timeit
+    def callCustomMethod(self, odooObj, functionName, parameters=[], kwargParameters={}, context={},forceHideInterface=False):
         localContext = self.contextUser
         localContext.update(context)
         if localContext:
             kwargParameters['context'] = localContext
-        return self.sockInstance.callOdooFunction(odooObj, functionName, parameters, kwargParameters)
+        return self.sockInstance.callOdooFunction(odooObj, functionName, parameters, kwargParameters, forceHideInterface)
 
     def search(self, obj, filterList, limit=False, offset=False, context={}):
         localContext = self.contextUser

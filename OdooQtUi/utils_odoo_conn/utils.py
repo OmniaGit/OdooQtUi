@@ -473,9 +473,14 @@ def evaluateAttrs(fieldsDict, toCompute):
             logMessage('warning', 'Condition lenght != 3: %r' % (cond), 'evalSingleCondition')
             return False
         fieldName, operator, valToCompare = cond
-        fieldObj = fieldsDict.get(fieldName, None)
+        headerFieldName='header_'+fieldName
+        fieldObj=None
+        if fieldName in fieldsDict:
+            fieldObj = fieldsDict.get(fieldName, None)
+        elif headerFieldName in fieldsDict:
+            fieldObj = fieldsDict.get(headerFieldName, None)
         if not fieldObj:
-            #logMessage('warning', 'No field obj found for name %r' % (fieldName), 'evalSingleCondition')
+            logMessage('warning', 'No field obj found for name %r' % (fieldName), 'evalSingleCondition')
             return False
         fieldVal = fieldObj.value
         if operator == '=' or operator == '==':
