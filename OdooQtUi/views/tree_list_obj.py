@@ -14,15 +14,22 @@ from OdooQtUi.utils_odoo_conn.utils import logWarning, logError
 
 
 class TemplateTreeListView(TemplateView):
-
-    def __init__(self, rpcObject, viewObj, activeLanguageCode='en_US', searchObj=None, odooConnector=None, deafult_filter=[], remove_button=False):
-        super(TemplateTreeListView, self).__init__(rpcObject, viewObj, activeLanguageCode)
+    """
+    this class is a widget for managing the tree list view
+    """
+    def __init__(self,
+                 viewObj,
+                 searchObj=None,
+                 odooConnector=None,
+                 deafult_filter=[],
+                 remove_button=False):
+        super(TemplateTreeListView, self).__init__(odooConnector=odooConnector,
+                                                   viewObj=viewObj)
         self.readonly = True
         self.activeIds = []
         self.idValsRel = {}
         self.idLineRel = {}
         self.row_widgets = {}
-        self.odooConnector = odooConnector
         self.searchObj = searchObj
         self.labelsOrdered = []
         self.deafult_filter = deafult_filter
@@ -46,7 +53,11 @@ class TemplateTreeListView(TemplateView):
                 recordSwitcher.insertWidget(0, self.searchObj)
                 
         mainLay.addLayout(recordSwitcher)  
-        self.treeObj = TreeViewList(self, self.arch, self.fieldsNameTypeRel, self.rpcObject, self.viewCheckBoxes, self.odooConnector)
+        self.treeObj = TreeViewList(qtParent=self,
+                                    arch=self.arch,
+                                    fieldsNameTypeRel=self.fieldsNameTypeRel,
+                                    viewCheckBoxes=self.viewCheckBoxes,
+                                    odooConnector=self.odooConnector)
         self.treeObj.computeArch()
         mainLay.addWidget(self.treeObj)
         self.mappingInterface = self.treeObj.globalMapping
@@ -128,7 +139,7 @@ class TemplateTreeListView(TemplateView):
         else:
             self.buttToRight.setHidden(False)
         objIds.sort()
-        records = self.rpcObject.read(self.model, self.labelsOrdered, objIds)
+        records = self.odooConnector.rpc_connector.read(self.model, self.labelsOrdered, objIds)
         flagsDict = {}
         fieldDict = {}
         valuesList = []

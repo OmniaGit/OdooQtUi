@@ -3,22 +3,31 @@ Created on 24 Mar 2017
 
 @author: dsmerghetto
 '''
-from OdooQtUi.views.templateView import TemplateView
-from PySide2.QtCore import QAbstractItemModel, Qt, QModelIndex
-from OdooQtUi.utils_odoo_conn import constants
-from PySide2 import QtWidgets
 import json
-
+#
+from PySide2 import QtWidgets
+from PySide2.QtCore import QAbstractItemModel, Qt, QModelIndex
+#
+from OdooQtUi.utils_odoo_conn import constants
+from OdooQtUi.views.templateView import TemplateView
+#
+#
 class TemplateTreeTreeView(TemplateView):
 
-    def __init__(self, rpcObject, activeLanguageCode='en_US'):
-        super(TemplateTreeTreeView, self).__init__(rpcObject, activeLanguageCode)
+    def __init__(self,
+                 odooConnector,
+                 viewObject):
+        super(TemplateTreeTreeView, self).__init__(odooConnector=odooConnector,
+                                                   viewObj=viewObject)
         self.field_parent = ''
         self.viewType = 'tree'
         self.readonly = True
         self.activeIds = []
 
-    def initViewObj(self, odooObjectName, viewName, view_id):
+    def initViewObj(self,
+                    odooObjectName,
+                    viewName,
+                    view_id):
         self.field_parent = self.fieldsViewDefinition.get('field_parent', '')
         self.addToObject()
 

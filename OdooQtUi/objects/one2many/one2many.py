@@ -19,8 +19,14 @@ import base64
 
 
 class One2many(OdooFieldTemplate):
-    def __init__(self, qtParent, xmlField, fieldsDefinition, rpc, odooConnector=None, isChatterWidget=False, parent_view_type=''):
-        super(One2many, self).__init__(qtParent, xmlField, fieldsDefinition, rpc)
+    def __init__(self,
+                 qtParent,
+                 xmlField,
+                 fieldsDefinition,
+                 odooConnector=None,
+                 isChatterWidget=False,
+                 parent_view_type=''):
+        super(One2many, self).__init__(qtParent, xmlField, fieldsDefinition, odooConnector)
         self.isChatterWidget = isChatterWidget
         self.labelQtObj = False
         self.widgetQtObj = False
@@ -50,8 +56,6 @@ class One2many(OdooFieldTemplate):
             self.treeViewObj = self.odooConnector.initTreeListViewObject(odooObjectName=self.relation,
                                                                          viewName='',
                                                                          view_id=False,
-                                                                         rpcObj=self.rpc,
-                                                                         activeLanguage='',
                                                                          viewCheckBoxes={},
                                                                          viewFilter=False)
         self.getQtObject(parent_view_type)

@@ -10,14 +10,16 @@ from OdooQtUi.utils_odoo_conn import utils
 
 class TemplateView(QtWidgets.QWidget):
 
-    def __init__(self, rpcObject, viewObj, activeLanguageCode='en_US'):
+    def __init__(self,
+                 odooConnector,
+                 viewObj):
         super(TemplateView, self).__init__()
-        self.rpcObject = rpcObject
+        self.odooConnector = odooConnector
         self.viewObj = viewObj
         self.fields = Objects()     # fields.fieldName
         self.buttons = Objects()    # buttons.fieldName
         self.mappingInterface = {}  # {'fieldName' : fieldObj}
-        self.activeLanguageCode = activeLanguageCode    # 'en_US'
+        self.activeLanguage = odooConnector.activeLanguage    # 'en_US'
         self.fieldsChanged = {}     # {'fieldName' : fieldObj}
         self.formVals = {}
 
@@ -177,7 +179,7 @@ class TemplateView(QtWidgets.QWidget):
         return self.fields.__dict__
 
     def setUserLanguage(self, langCode):
-        self.activeLanguageCode = langCode
+        self.activeLanguage = langCode
 
 
 class Objects(object):

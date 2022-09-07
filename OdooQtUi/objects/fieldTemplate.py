@@ -20,7 +20,6 @@ class OdooFieldTemplate(QtWidgets.QWidget):
     def __init__(self, qtParent, xmlField, fieldsDefinition, odooConnector):
         super(OdooFieldTemplate, self).__init__(qtParent)
         self.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
-        #self.setMinimumSize(40, 40)
         self.odooConnector=odooConnector
         self.fieldXmlAttributes = xmlField.attrib
         self.parentId = False

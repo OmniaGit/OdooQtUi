@@ -16,8 +16,14 @@ from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
 
 
 class Many2many(OdooFieldTemplate):
-    def __init__(self, qtParent, xmlField, fieldsDefinition, rpc, odooConnector=None, isChatterWidget=False, parent_view_type=''):
-        super(Many2many, self).__init__(qtParent, xmlField, fieldsDefinition, rpc)
+    def __init__(self,
+                 qtParent,
+                 xmlField,
+                 fieldsDefinition,
+                 odooConnector=None,
+                 isChatterWidget=False,
+                 parent_view_type=''):
+        super(Many2many, self).__init__(qtParent, xmlField, fieldsDefinition, odooConnector)
         self.qtParent = qtParent
         self.isChatterWidget = isChatterWidget
         self.labelQtObj = False
@@ -43,8 +49,6 @@ class Many2many(OdooFieldTemplate):
             self.treeViewObj = self.odooConnector.initTreeListViewObject(odooObjectName=self.relation,
                                                                          viewName='',
                                                                          view_id=False,
-                                                                         rpcObj=self.rpc,
-                                                                         activeLanguage='',
                                                                          viewCheckBoxes={0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled},
                                                                          viewFilter=False,
                                                                          remove_button=remove_button)
@@ -95,7 +99,7 @@ class Many2many(OdooFieldTemplate):
 
         raise Exception('To be moved inside list view with a flag like remove button')
         try:
-            tmpviewObjForm = self.odooConnector.initFormViewObj(self.relation, rpcObj=self.rpc)
+            tmpviewObjForm = self.odooConnector.initFormViewObj(self.relation, rpcObj=self.odooConnector)
             tmpviewObjForm.loadIds([])
             formdialog = QtWidgets.QDialog()
             mainLay = QtWidgets.QVBoxLayout()
@@ -112,7 +116,7 @@ class Many2many(OdooFieldTemplate):
             cancelButt.setStyleSheet(constants.BUTTON_STYLE_CANCEL)
             if formdialog.exec_() == QtWidgets.QDialog.Accepted:
                 fieldVals = tmpviewObjForm.getAllFieldsValues()
-                objId = self.rpc.create(self.relation, fieldVals)
+                objId = self.odooConnector.rpc_connector.create(self.relation, fieldVals)
                 if objId:
                     self.currentValue.append(objId)
                     self.setValue(self.currentValue)
@@ -191,7 +195,7 @@ class Many2many(OdooFieldTemplate):
             currRange = viewObj.currentRange
             currRangeTuple = tuple(currRange)
             if currRangeTuple not in list(self.evaluatedIds.keys()):
-                resIds = self.rpc.search(self.relation, [], limit=viewObj.passRange, offset=currRange[-1])
+                resIds = self.odooConnector.rpc_connector.search(self.relation, [], limit=viewObj.passRange, offset=currRange[-1])
                 self.evaluatedIds[currRangeTuple] = resIds
             else:
                 resIds = self.evaluatedIds[currRangeTuple]
@@ -205,10 +209,11 @@ class Many2many(OdooFieldTemplate):
             commonMove()
 
         #raise Exception('To be moved in list view with a flag')
-        viewObj = self.odooConnector.initTreeListViewObject(self.relation, rpcObj=self.rpc, viewCheckBoxes={0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled})
+        viewObj = self.odooConnector.initTreeListViewObject(self.relation,
+                                                            viewCheckBoxes={0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled})
         viewObj.buttToLeft.clicked.connect(toLeft)
         viewObj.buttToRight.clicked.connect(toRight)
-        resIds = self.rpc.search(self.relation, [], limit=viewObj.currentRange[-1], offset=viewObj.currentRange[0])
+        resIds = self.odooConnector.rpc_connector.search(self.relation, [], limit=viewObj.currentRange[-1], offset=viewObj.currentRange[0])
         viewObj.loadIds(resIds, {}, {}, {})
         dial = QtWidgets.QDialog()
         vlay = QtWidgets.QVBoxLayout()
@@ -228,7 +233,8 @@ class Many2many(OdooFieldTemplate):
             localIndexId = {}
             table = viewObj.treeObj.tableWidget
             for rowIndex in range(table.rowCount()):
-                if table.item(rowIndex, 0).checkState() == QtCore.Qt.Checked:
+                item = table.item(rowIndex, 0)
+                if item and item.checkState() == QtCore.Qt.Checked:
                     objId = viewObj.idLineRel.get(rowIndex, False)
                     if objId:
                         self.currentValue.append(objId)

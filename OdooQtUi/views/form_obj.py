@@ -36,7 +36,10 @@ class TemplateFormView(TemplateView):
     nootebook_changed_signal = QtCore.Signal(int)
     form_changed = QtCore.Signal(str)
 
-    def __init__(self, rpcObject, viewObj, activeLanguageCode='en_US', odooConnector=None, hideFormContent=False):
+    def __init__(self,
+                 viewObj,
+                 odooConnector=None,
+                 hideFormContent=False):
         self.globalMapping = {}
         self.aloneLabels = {}
         self.notebookTabsNotComputed = {}
@@ -49,8 +52,10 @@ class TemplateFormView(TemplateView):
         self.readonly = False
         self.activeIds = []         # must be one
         self.hideFormContent = hideFormContent
-        super(TemplateFormView, self).__init__(rpcObject, viewObj, activeLanguageCode)
-        self.odooConnector = odooConnector
+        #
+        super(TemplateFormView, self).__init__(odooConnector=odooConnector,
+                                               viewObj=viewObj)
+        #
         self.objectsInit = copy.deepcopy(self.fields)
         self._initViewObj()
         self.nootebook_changed_signal.connect(self.updateDataStructure)
@@ -82,7 +87,11 @@ class TemplateFormView(TemplateView):
         else:
             utils.logWarning('No arch set impossible to compute structure')
 
-    def computeRecursion(self, qvboxLayout=False, xmlParent=None, nootebookIndex=0, row_widget_limit=4):
+    def computeRecursion(self,
+                         qvboxLayout=False,
+                         xmlParent=None,
+                         nootebookIndex=0,
+                         row_widget_limit=4):
         # TODO:    div name <div name="button_box" class="oe_button_box">
         row_widget_count = 0
         if not qvboxLayout:
@@ -102,7 +111,7 @@ class TemplateFormView(TemplateView):
             if childXmlTag == 'sheet' and not self.hideFormContent:
                 self.sheet_layout = self.computeRecursion(qvboxLayout=qvboxLayout,
                                                           xmlParent=childXlmElement)
-            elif childXmlTag == 'header':
+            elif childXmlTag == 'header' and self.useHeader:
                 mapping, layout = self.computeHeader(archHeader=childXlmElement, useHeader=self.useHeader)
                 if layout:
                     if self.useHeader:
@@ -179,7 +188,7 @@ class TemplateFormView(TemplateView):
                 key = 'button_' + str(buttonObj.buttonString).replace(' ', '_')
                 self.appendToglobalMapping(key, buttonObj)
                 qvboxLayout.addWidget(buttonObj)
-                divClass = parent.attrib.get('class', '')
+                divClass = xmlParent.attrib.get('class', '')
                 if divClass == 'oe_button_box':
                     buttonObj.setHidden(True)
             elif childXmlTag == 'separator':
@@ -273,29 +282,41 @@ class TemplateFormView(TemplateView):
         fieldType = fieldDefinition.get('type', False)
         fieldObj = None
         if fieldType == 'selection':
-            fieldObj = Selection(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject, isChatterWidget)
+            fieldObj = Selection(self, xmlObj, self.fieldsNameTypeRel, self.odooConnector, isChatterWidget)
         elif fieldType == 'char':
-            fieldObj = Charachter(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject, isChatterWidget)
+            fieldObj = Charachter(self, xmlObj, self.fieldsNameTypeRel, self.odooConnector, isChatterWidget)
         elif fieldType == 'integer':
-            fieldObj = Integer(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject, isChatterWidget)
+            fieldObj = Integer(self, xmlObj, self.fieldsNameTypeRel, self.odooConnector, isChatterWidget)
         elif fieldType == 'float':
-            fieldObj = Float(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject, isChatterWidget)
+            fieldObj = Float(self, xmlObj, self.fieldsNameTypeRel, self.odooConnector, isChatterWidget)
         elif fieldType == 'datetime':
-            fieldObj = Datetime(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject, isChatterWidget)
+            fieldObj = Datetime(self, xmlObj, self.fieldsNameTypeRel, self.odooConnector, isChatterWidget)
         elif fieldType == 'many2one':
-            fieldObj = Many2one(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject, self.odooConnector, isChatterWidget)
+            fieldObj = Many2one(qtParent=self,
+                                xmlField=xmlObj,
+                                fieldsDefinition=self.fieldsNameTypeRel,
+                                odooConnector=self.odooConnector,
+                                isChatterWidget=isChatterWidget)
         elif fieldType == 'many2many':
-            fieldObj = Many2many(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject, self.odooConnector, isChatterWidget)
+            fieldObj = Many2many(qtParent=self,
+                                 xmlField=xmlObj,
+                                 fieldsDefinition=self.fieldsNameTypeRel,
+                                 odooConnector=self.odooConnector,
+                                 isChatterWidget=isChatterWidget)
         elif fieldType == 'text':
-            fieldObj = Text(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject, isChatterWidget)
+            fieldObj = Text(self, xmlObj, self.fieldsNameTypeRel, self.odooConnector, isChatterWidget)
         elif fieldType == 'date':
-            fieldObj = Date(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject, isChatterWidget)
+            fieldObj = Date(self, xmlObj, self.fieldsNameTypeRel, self.odooConnector, isChatterWidget)
         elif fieldType == 'boolean':
-            fieldObj = Boolean(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject, isChatterWidget)
+            fieldObj = Boolean(self, xmlObj, self.fieldsNameTypeRel, self.odooConnector, isChatterWidget)
         elif fieldType == 'one2many':
-            fieldObj = One2many(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject, self.odooConnector, isChatterWidget)
+            fieldObj = One2many(qtParent=self,
+                                xmlField=xmlObj,
+                                fieldsDefinition=self.fieldsNameTypeRel,
+                                odooConnector=self.odooConnector,
+                                isChatterWidget=isChatterWidget)
         elif fieldType == 'binary':
-            fieldObj = Binary(self, xmlObj, self.fieldsNameTypeRel, self.rpcObject, isChatterWidget)
+            fieldObj = Binary(self, xmlObj, self.fieldsNameTypeRel, self.odooConnector, isChatterWidget)
         else:
             utils.logMessage('warning', 'Field %r not supported' % (fieldType), 'computeField')
         return fieldObj
@@ -353,7 +374,7 @@ class TemplateFormView(TemplateView):
         if not fieldsToRead:
             fieldsToRead = list(self.interfaceFieldsDict.keys())
         if fieldsToRead:
-            self.fieldDefaultVals = self.rpcObject.defaultGet(self.model, fieldsToRead)
+            self.fieldDefaultVals = self.odooConnector.rpc_connector.defaultGet(self.model, fieldsToRead)
             self.skipOnChange = True
             if self.fieldDefaultVals:
                 for fieldName, fieldVal in list(self.fieldDefaultVals.items()):
@@ -373,7 +394,16 @@ class TemplateFormView(TemplateView):
         return fieldsToRead
 
     @utils.timeit
-    def loadIds(self, objIds=[], forceFieldValues={}, readonlyFields={}, invisibleFields={}, fieldsToRead=[], skipRemoveNootebook=False):
+    def loadIds(self,
+                objIds=[],
+                forceFieldValues={},
+                readonlyFields={},
+                invisibleFields={},
+                fieldsToRead=[],
+                skipRemoveNootebook=False):
+        """
+        refresh the user interface with the given odooid
+        """
         if objIds is None or not objIds:
             objIds = []
         if isinstance(objIds, int):
@@ -389,7 +419,7 @@ class TemplateFormView(TemplateView):
         fromId = False
         if objIds:
             fromId = objIds[0]
-            formVals = self.rpcObject.read(self.model, fieldsToRead, [fromId], {'lang': self.activeLanguageCode})
+            formVals = self.odooConnector.rpc_connector.read(self.model, fieldsToRead, [fromId], {'lang': self.odooConnector.activeLanguage})
             if not formVals:
                 utils.logMessage('warning', 'No values found for id %r and model %r' % (fromId, self.model), 'loadIds')
                 fromId = False
@@ -502,7 +532,7 @@ class TemplateFormView(TemplateView):
             return {}
         allVals = self.getAllFieldsValues()
         allOnchanges = self.getAllOnChange()
-        return self.rpcObject.on_change(self.model, self.activeIds, allVals, fieldName, allOnchanges, {})
+        return self.odooConnector.rpc_connector.on_change(self.model, self.activeIds, allVals, fieldName, allOnchanges, {})
 
     def addToObject(self):
         fieldIdentifier = 'field_'
@@ -566,10 +596,10 @@ class TemplateFormView(TemplateView):
         fieldNames = ['source', 'translated', 'lang', 'name']
         values = []
         translationObj = 'ir.translation'
-        res = self.rpcObject.readSearch(translationObj, ['src', 'value', 'lang'], filterList)
+        res = self.odooConnector.rpc_connector.readSearch(translationObj, ['src', 'value', 'lang'], filterList)
         if not res:
             res = []
-            installedLangs = self.rpcObject.readSearch('res.lang', ['code', 'name'], [('active', '=', True)])
+            installedLangs = self.odooConnector.rpc_connector.readSearch('res.lang', ['code', 'name'], [('active', '=', True)])
             for resDict in installedLangs:
                 code = resDict.get('code', '')
                 createDict = {
@@ -582,7 +612,7 @@ class TemplateFormView(TemplateView):
                     'src': fieldObj.value,
                     'lang': code,
                 }
-                transId = self.rpcObject.create(translationObj, createDict)
+                transId = self.odooConnector.rpc_connector.create(translationObj, createDict)
                 createDict['id'] = transId
                 res.append(createDict)
         for elemDict in res:
@@ -616,7 +646,7 @@ class TemplateFormView(TemplateView):
                         elemId = elem.get('id', False)
                         break
                 if elemId:
-                    self.rpcObject.write(translationObj, {'value': translated}, [elemId])
+                    self.odooConnector.rpc_connector.write(translationObj, {'value': translated}, [elemId])
                     if lang == self.activeLanguageCode:
                         self.setValueField(fieldName, translated)
 
@@ -635,7 +665,7 @@ class TemplateFormView(TemplateView):
             else:
                 to_write[k] = v.value
         if self.activeIds:
-            self.rpcObject.write(self.model, to_write,  self.activeIds)
+            self.odooConnector.rpc_connector.write(self.model, to_write,  self.activeIds)
         else:
-            self.activeIds = [self.rpcObject.create(self.model, to_write)]
+            self.activeIds = [self.odooConnector.rpc_connector.create(self.model, to_write)]
         return self.activeIds

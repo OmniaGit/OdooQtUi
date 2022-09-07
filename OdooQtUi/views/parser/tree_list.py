@@ -25,7 +25,12 @@ from OdooQtUi.utils_odoo_conn.utils import timeit
 
 
 class TreeViewList(QtWidgets.QWidget):
-    def __init__(self, qtParent, arch, fieldsNameTypeRel, rpc, viewCheckBoxes={}, odooConnector=None):
+    def __init__(self,
+                 qtParent,
+                 arch,
+                 fieldsNameTypeRel,
+                 viewCheckBoxes={},
+                 odooConnector=None):
         super(TreeViewList, self).__init__(qtParent)
         self.arch = arch
         self.odooConnector = odooConnector
@@ -35,7 +40,6 @@ class TreeViewList(QtWidgets.QWidget):
         self.widgets_to_add_in_line = {}
         self.tableWidget = False
         self.viewCheckBoxes = viewCheckBoxes
-        self.rpc = rpc
         self.widgetContents = None
 
     def computeRecursion(self, parent):

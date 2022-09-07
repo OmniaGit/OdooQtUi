@@ -14,16 +14,21 @@ from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
 
 
 class Many2one(OdooFieldTemplate):
-    def __init__(self, qtParent, xmlField, fieldsDefinition, rpc, odooConnector=None, isChatterWidget=False):
-        super(Many2one, self).__init__(qtParent, xmlField, fieldsDefinition, rpc)
+    def __init__(self,
+                 qtParent,
+                 xmlField,
+                 fieldsDefinition,
+                 odooConnector=None,
+                 isChatterWidget=False):
+        super(Many2one, self).__init__(qtParent, xmlField, fieldsDefinition, odooConnector)
         self.isChatterWidget = isChatterWidget
         self.labelQtObj = False
         self.widgetQtObj = False
         self.editButton = False
+        self.odooConnector=odooConnector
         self.itemToIdRel = {}
         self.skipSearch = False
         self.currentValue = False
-        self.odooConnector = odooConnector
         self.relation = self.fieldPyDefinition.get('relation', '')
         self.canCreate = json.loads(self.fieldXmlAttributes.get('can_create', 'true'))
         self.canWrite = json.loads(self.fieldXmlAttributes.get('can_write', 'true'))
@@ -33,7 +38,7 @@ class Many2one(OdooFieldTemplate):
     def getItems(self, search=False):
         outVal = ['']
         if self.relation and search:
-            for singleDict in self.rpc.readSearch(self.relation, ['name']):
+            for singleDict in self.odooConnector.rpc_connector.readSearch(self.relation, ['name']):
                 val = singleDict.get('name', '')
                 if val:
                     outVal.append(val)
@@ -99,7 +104,7 @@ class Many2one(OdooFieldTemplate):
                     self.currentValue = [objId, text]
                     break
             if not found:
-                res = self.rpc.read(self.relation, ['name'], [val])
+                res = self.odooConnector.rpc_connector.read(self.relation, ['name'], [val])
                 if res:
                     relDict = res[0]
                     newTextVal = relDict.get('name', '')
@@ -186,7 +191,7 @@ class Many2one(OdooFieldTemplate):
             valuesToUpdate = {}
             for fieldName, fieldObj in list(self.viewObj.fieldsChanged.items()):
                 valuesToUpdate[fieldName] = fieldObj.value
-            self.rpc.write(self.relation, valuesToUpdate, self.currentValue[0])
+            self.odooConnector.rpc_connector.write(self.relation, valuesToUpdate, self.currentValue[0])
             if 'name' in valuesToUpdate:
                 oldName = ''
                 for val, objId in list(self.itemToIdRel.items()):
@@ -204,7 +209,7 @@ class Many2one(OdooFieldTemplate):
                 self.valueTemplateChanged()
 
     def setViewObject(self):
-        self.viewObj = self.odooConnector.initFormViewObj(self.relation, rpcObj=self.rpc)
+        self.viewObj = self.odooConnector.initFormViewObj(self.relation)
 
     def indexChanged(self, res=False):
         currText = str(self.widgetQtObj2.currentText())
@@ -235,7 +240,7 @@ class Many2one(OdooFieldTemplate):
                 valuesToCreate = {}
                 for fieldName, fieldObj in list(self.viewObj.interfaceFieldsDict.items()):
                     valuesToCreate[fieldName] = fieldObj.value
-                res = self.rpc.create(self.relation, valuesToCreate)
+                res = self.odooConnector.rpc_connector.create(self.relation, valuesToCreate)
                 if res:
                     name = str(valuesToCreate.get('name', ''))
                     self.itemToIdRel[name] = res
