@@ -175,7 +175,7 @@ class LoginDialComplete(LoginDial):
         self.app_name = app_name
         self.odooConnector = odooConnector
         self.availableConnTypes = self.odooConnector.rpc_connector.availableConnTypes
-        super(LoginDialComplete, self).__init__(connType, availableConnTypes=[])
+        super(LoginDialComplete, self).__init__(connType, availableConnTypes=self.availableConnTypes)
         self.connType = connType
         if not self.odooConnector.rpc_connector.userLogged:
             self.connectFromFile()
@@ -195,6 +195,7 @@ class LoginDialComplete(LoginDial):
             self.setNotLogged()
         self.initFields()
         self.setEvents()
+        self.showRainbowman=True
     
     def setLogged(self):
         utils.logMessage('info', 'User logged reading from stored file', '__init__')
@@ -213,30 +214,15 @@ class LoginDialComplete(LoginDial):
         self.pushButton_next.setHidden(False)
         self.pushButton_ok.setHidden(True)
 
-    def connectFromFile(self):
+    def connectFromFile(self, app_name='odoo_plm'):
         self.dbName, self.username, self.userpass, self.serverIp, self.serverPort, self.scheme, self.connType, self.dbList = utils.loadFromFile(app_name)
-        utils.logMessage('info', '''
-                                Try login with stored settings:
-                                database= %r
-                                user= %r
-                                server= %r
-                                port= %r
-                                scheme= %r
-                                connection type=%r
-                                ''' % (self.dbName,
-                                       self.username,
-                                       self.serverIp,
-                                       self.serverPort,
-                                       self.scheme,
-                                       self.connType), '__init__')
-        self.odooConnector.rpc_connector.initConnection(self.connType,
-                                         '',
-                                         '',
-                                         '',
-                                         self.serverPort,
-                                         self.scheme,
-                                         self.serverIp)
-        self.loginWithUserDial()
+        utils.logMessage('info',
+                         'Try login with stored settings:',
+                         'connectFromFile')
+        try:
+            self.loginWithUserDial()
+        except Exception as ex:
+            utils.logWarning("Unable to get login information from file", "connectFromFile")
         
     def setEvents(self):
         self.pushButton_next.clicked.connect(self.nextPage)
