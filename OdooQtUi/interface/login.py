@@ -18,6 +18,7 @@ from PySide2.QtGui import QPixmap
 from PySide2.QtCore import Qt
 from PySide2.QtCore import Slot
 
+
 class RainbowMan(QSplashScreen):
     def __init__(self, parent=None):
         super(RainbowMan, self).__init__(parent)
@@ -48,6 +49,7 @@ class LoginDial(QtWidgets.QDialog, Ui_dialog_login):
         self.page_2.layout().addWidget(self.progress, 4, 0, 1,2)
         self.progress.setRange(0,1)
         
+
 
     def setEvents(self):
         self.comboBox_conn_type.currentIndexChanged.connect(self.connTypeChanged)
@@ -173,7 +175,7 @@ class LoginDialComplete(LoginDial):
         self.app_name = app_name
         self.odooConnector = odooConnector
         self.availableConnTypes = self.odooConnector.rpc_connector.availableConnTypes
-        super(LoginDialComplete, self).__init__(connType, availableConnTypes=self.availableConnTypes)
+        super(LoginDialComplete, self).__init__(connType, availableConnTypes=[])
         self.connType = connType
         if not self.odooConnector.rpc_connector.userLogged:
             self.connectFromFile()
@@ -193,7 +195,6 @@ class LoginDialComplete(LoginDial):
             self.setNotLogged()
         self.initFields()
         self.setEvents()
-        self.showRainbowman=True
     
     def setLogged(self):
         utils.logMessage('info', 'User logged reading from stored file', '__init__')
@@ -212,21 +213,37 @@ class LoginDialComplete(LoginDial):
         self.pushButton_next.setHidden(False)
         self.pushButton_ok.setHidden(True)
 
-    def connectFromFile(self, app_name='odoo_plm'):
+    def connectFromFile(self):
         self.dbName, self.username, self.userpass, self.serverIp, self.serverPort, self.scheme, self.connType, self.dbList = utils.loadFromFile(app_name)
-        utils.logMessage('info',
-                         'Try login with stored settings:',
-                         'connectFromFile')
-        try:
-            self.loginWithUserDial()
-        except Exception as ex:
-            utils.logWarning("Unable to get login information from file", "connectFromFile")
+        utils.logMessage('info', '''
+                                Try login with stored settings:
+                                database= %r
+                                user= %r
+                                server= %r
+                                port= %r
+                                scheme= %r
+                                connection type=%r
+                                ''' % (self.dbName,
+                                       self.username,
+                                       self.serverIp,
+                                       self.serverPort,
+                                       self.scheme,
+                                       self.connType), '__init__')
+        self.odooConnector.rpc_connector.initConnection(self.connType,
+                                         '',
+                                         '',
+                                         '',
+                                         self.serverPort,
+                                         self.scheme,
+                                         self.serverIp)
+        self.loginWithUserDial()
         
     def setEvents(self):
         self.pushButton_next.clicked.connect(self.nextPage)
         self.pushButton_ok.clicked.connect(self.acceptDial)
         self.pushButton_cancel.clicked.connect(self.cancelDial)
         self.pushButton_back.clicked.connect(self.previousPage)
+
 
     def initFields(self):
         super(LoginDialComplete, self).initFields(self.odooConnector.rpc_connector.userLogged,
@@ -239,8 +256,7 @@ class LoginDialComplete(LoginDial):
                                       self.dbList)
     def accept(self)->None:
         super(LoginDialComplete, self).accept()
-    
-    @Slot()
+
     def acceptDial(self):
         self.showRainbowman= not self.showRainbowman
         if not self.showRainbowman:
@@ -271,6 +287,7 @@ class LoginDialComplete(LoginDial):
             QApplication.processEvents()            
         finally:
             self.progress.setRange(0,1)
+
 
     def cancelDial(self):
         self.loginWithUserDial()
