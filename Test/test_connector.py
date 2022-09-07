@@ -28,21 +28,54 @@ if __name__ == '__main__':
     import time
     ts = time.time()
     
-    connectorObj = MainConnector(contextUser={'odooPLM': True})
-    connectorObj.loginWithDial()
+    connectorObj = MainConnector(app_name="Test_odooQtUi",
+                                 contextUser={'odooPLM': True})
+    if not connectorObj.loginFromStorage():
+        connectorObj.loginWithDial()
 
     def do_test():
-        def tryForm(odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', useHeader=False, useChatter=False, idToLoad=False):
-            tmplViewObj = connectorObj.initFormViewObj(odooObjectName, viewName, view_id, rpcObj, activeLanguage, useHeader, useChatter)
+        def tryForm(odooObjectName,
+                    viewName='',
+                    view_id=False,
+                    useHeader=False,
+                    useChatter=False,
+                    idToLoad=False):
+            tmplViewObj = connectorObj.initFormViewObj(odooObjectName=odooObjectName,
+                                                       viewName=viewName,
+                                                       view_id=view_id,
+                                                       useHeader=useHeader,
+                                                       useChatter=useChatter,
+                                                       hideFormContent=False)
             if idToLoad:
-                tmplViewObj.loadIds([idToLoad])
+                tmplViewObj.loadIds(idToLoad)
             return tmplViewObj
 
-        def trySearchView(odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', searchMode='ilike', allFieldsDef={}):
-            return connectorObj.initSearchViewObj(odooObjectName, viewName, view_id, rpcObj, activeLanguage, searchMode, allFieldsDef)
+        def trySearchView(odooObjectName,
+                          viewName='',
+                          view_id=False, 
+                          searchMode='ilike',
+                          allFieldsDef={}):
+            return connectorObj.initSearchViewObj(odooObjectName=odooObjectName,
+                                                  viewName=viewName,
+                                                  view_id=view_id, 
+                                                  searchMode=searchMode,
+                                                  allFieldsDef=allFieldsDef)
 
-        def tryListView(odooObjectName, viewName='', view_id=False, rpcObj=None, activeLanguage='', viewCheckBoxes={}, viewFilter=False, readonlyFields={}, invisibleFields={}, forceFieldValues={}, forceIds=False):
-            tmplViewObj = connectorObj.initTreeListViewObject(odooObjectName, viewName, view_id, rpcObj, activeLanguage, viewCheckBoxes, viewFilter)
+        def tryListView(odooObjectName,
+                        viewName='',
+                        view_id=False,
+                        viewCheckBoxes={},
+                        viewFilter=False,
+                        readonlyFields={},
+                        invisibleFields={},
+                        forceFieldValues={},
+                        forceIds=False):
+            tmplViewObj = connectorObj.initTreeListViewObject(odooObjectName=odooObjectName,
+                                                              viewName=viewName, view_id=view_id,
+                                                              viewCheckBoxes=viewCheckBoxes,
+                                                              viewFilter=viewFilter,
+                                                              deafult_filter=[],
+                                                              remove_button=False)
             if forceIds:
                 tmplViewObj.loadIds(forceIds, forceFieldValues, readonlyFields, invisibleFields)
             else:
@@ -50,8 +83,15 @@ if __name__ == '__main__':
             return tmplViewObj
 
         #tmplViewObj = tryForm('sale.order', useChatter=False)
-        #tmplViewObj = tryForm('product.product', 'plm.base.component', idToLoad=3572, useChatter=True)
-        tmplViewObj = tryListView('product.template', viewFilter=True)
+        product_ids = connectorObj.rpc_connector.search(obj='product.template',
+                                                        filterList=[],
+                                                        limit=1)
+        tmplViewObj = tryForm(odooObjectName='product.template',
+                              #viewName='plm.base.component', 
+                              idToLoad=product_ids,
+                              useHeader=True,
+                              useChatter=True)
+        #tmplViewObj = tryListView('product.template', viewFilter=True)
 #         lay = QtWidgets.QVBoxLayout()
 #         lay.addWidget(tmplViewObj)
 #         lay.setMargin(0)
@@ -74,4 +114,5 @@ if __name__ == '__main__':
         dialog.move(100, 100)
         dialog.exec_()
 
-    do_test()
+    if connectorObj.userLogged:
+        do_test()

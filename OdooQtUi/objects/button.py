@@ -7,21 +7,26 @@ import json
 
 from PySide2 import QtGui
 from PySide2 import QtWidgets
+#
 from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.utils_odoo_conn import constants
+from OdooQtUi.utils_odoo_conn.utilsUi import popError
 from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
-
+#
 
 class Button(OdooFieldTemplate):
     def __init__(self,
+                 qtParent,
                  xmlObject,
                  forceHidden=False,
                  model='',
                  odooConnector=False):
-        super(Button, self).__init__(None, xmlObject, fieldsDefinition={}, odooConnector=odooConnector)
+        super(Button, self).__init__(qtParent=qtParent,
+                                     xmlField=xmlObject,
+                                     fieldsDefinition={},
+                                     odooConnector=odooConnector)
         self.xmlObject = xmlObject
         self.model=model
-        self.odooConnector=odooConnector
         self.buttonAttribs = self.xmlObject.attrib
         self.buttonString = self.buttonAttribs.get('string', '')
         self.buttonType = self.buttonAttribs.get('type', '')
@@ -62,9 +67,11 @@ class Button(OdooFieldTemplate):
             self.show()
 
     def buttonClicked(self):
-        self.odooConnector.callButtonFunction(self.model, self.odooId, self.buttonType, self.buttonName)
-        self.parent().loadIds(self.odooId)
-        pass
+        try:
+            self.odooConnector.callButtonFunction(self.model, self.odooId, self.buttonType, self.buttonName)
+            self.parent().loadIds(self.odooId)
+        except Exception as ex:
+            popError(self, ex)
 
         
         

@@ -205,7 +205,7 @@ class TemplateTreeListView(TemplateView):
             model_index = args[0]
             row_index = model_index.row()
             obj_id = self.idLineRel.get(row_index, False)
-            viewObj = self.odooConnector.initFormViewObj(self.model, rpcObj=self.rpcObject)
+            viewObj = self.odooConnector.initFormViewObj(self.model)
             viewObj.loadIds([obj_id])
             dialog = QtWidgets.QDialog()
             mainLay = QtWidgets.QVBoxLayout()
@@ -233,7 +233,7 @@ class TemplateTreeListView(TemplateView):
                 valuesToUpdate = {}
                 for fieldName, fieldObj in list(viewObj.fieldsChanged.items()):
                     valuesToUpdate[fieldName] = fieldObj.value
-                self.rpcObject.write(self.model, valuesToUpdate, obj_id)
+                self.odooConnector.rpc_connector.write(self.model, valuesToUpdate, obj_id)
         except Exception as ex:
             logError(ex)
 

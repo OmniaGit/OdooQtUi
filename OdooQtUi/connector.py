@@ -149,14 +149,18 @@ class MainConnector(object):
         perform the login operation from the storage file
         :return: True is logged, False is not logged         
         """
-        dbName, username, userpass, serverIp, serverPort, scheme, connType, _dbList = utils.loadFromFile(self.app_name)
-        self.loginWithUser(user=username,
-                           password=userpass,
-                           dbName=dbName,
-                           xmlrpcServerIP=serverIp,
-                           xmlrpcPort=serverPort,
-                           scheme=scheme,
-                           loginType=connType)
+        try:
+            dbName, username, userpass, serverIp, serverPort, scheme, connType, _dbList = utils.loadFromFile(self.app_name)
+       
+            self.loginWithUser(user=username,
+                               password=userpass,
+                               dbName=dbName,
+                               xmlrpcServerIP=serverIp,
+                               xmlrpcPort=serverPort,
+                               scheme=scheme,
+                               loginType=connType)
+        except Exception as ex:
+            logging.error("Unable to autologin %s" % ex)
         return self.userLogged
         
     @property
@@ -242,7 +246,7 @@ class MainConnector(object):
                                      viewFilter,
                                      viewCheckBoxes)
             if viewFilter:
-                allFieldsDef = self.fieldsGet(odooObjectName)
+                allFieldsDef = self.rpc_connector.fieldsGet(odooObjectName)
                 viewObjSearch = self.initSearchViewObj(odooObjectName,
                                                        viewName='',
                                                        view_id='',
@@ -267,7 +271,7 @@ class MainConnector(object):
                                  viewName=viewName,
                                  view_id=view_id,
                                  searchMode=searchMode)
-        return TemplateSearchView(odooConnector=odooConnector,
+        return TemplateSearchView(odooConnector=self,
                                   viewObject=viewObj,
                                   allFieldsDef=allFieldsDef)
 
@@ -391,7 +395,7 @@ class MainConnector(object):
                            entity_id,
                            buttonType,
                            buttonName):
-        ret = self.rpc_connector.callCustomMethod(model,  buttonName, [entity_id])
+        ret = self.rpc_connector.callCustomMethod(model,  buttonName, [entity_id], forceRaise_error=True)
         if isinstance(ret , dict):
             action = ret.get('action')
             if action:

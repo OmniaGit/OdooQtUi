@@ -184,7 +184,10 @@ class TemplateFormView(TemplateView):
                                       xmlParent=childXlmElement,
                                       row_widget_limit=colspan)
             elif childXmlTag == 'button':
-                buttonObj = button.Button(childXlmElement)
+                buttonObj = button.Button(self,
+                                          xmlObject=childXlmElement,
+                                          model=self.model,
+                                          odooConnector=self.odooConnector)
                 key = 'button_' + str(buttonObj.buttonString).replace(' ', '_')
                 self.appendToglobalMapping(key, buttonObj)
                 qvboxLayout.addWidget(buttonObj)
@@ -251,7 +254,8 @@ class TemplateFormView(TemplateView):
         utilsUi.setLayoutMarginAndSpacing(headerLayout)
         for xmlObj in archHeader:
             if xmlObj.tag == 'button':
-                buttonObj = button.Button(xmlObj,
+                buttonObj = button.Button(qtParent=self,
+                                          xmlObject=xmlObj,
                                           model=self.model,
                                           odooConnector=self.odooConnector)
                 headerLayout.addWidget(buttonObj)
@@ -337,7 +341,7 @@ class TemplateFormView(TemplateView):
         self.chatterButton.clicked.connect(self.showChatter)
         self.chatterWidgets = []
         count = 0
-        for fieldObj in childElement.getchildren():
+        for fieldObj in childElement:
             if fieldObj.tag == 'field':
                 qtWidgetField = self.computeField(fieldObj, isChatterWidget=True)
                 if qtWidgetField:

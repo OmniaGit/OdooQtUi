@@ -319,7 +319,7 @@ class XmlRpcConnection(object):
         return functionName
     
     #@utils.timeit
-    def callOdooFunction(self, odooObj, functionName, parameters=[], kwargParameters={}, forceHideInterface=False):
+    def callOdooFunction(self, odooObj, functionName, parameters=[], kwargParameters={}, forceHideInterface=False, forceRaise_error=False):
         '''
             @odooObj: product.product, product.template ...
             @functionName: 'search', 'read', ...
@@ -339,7 +339,7 @@ class XmlRpcConnection(object):
                                                   parameters,
                                                   kwargParameters)
         except socket.error as err:
-            if self.raise_error:
+            if self.raise_error or forceRaise_error:
                 raise err
             message = 'Unable to communicate with the server: %r calling %r on %r' % (err, functionName, odooObj)
             utils.logMessage('error', message, 'callOdooFunction')
@@ -348,7 +348,7 @@ class XmlRpcConnection(object):
             else:
                 self._logError(err, message, utils.getFunctionName())
         except xmlrpc.Fault as err:
-            if self.raise_error:
+            if self.raise_error or forceRaise_error:
                 raise err
             try:
                 self.last_error = str(err)
@@ -368,7 +368,7 @@ class XmlRpcConnection(object):
                                                    parameters)
             except Exception as ex:
 
-                if self.raise_error:
+                if self.raise_error or forceRaise_error:
                     raise err
                 self.last_error = str(ex)
                 utils.logMessage('error', ex, 'callOdooFunction')
@@ -378,7 +378,7 @@ class XmlRpcConnection(object):
                 else:
                     self._logError(ex, message, utils.getFunctionName())
         except Exception as ex:
-            if self.raise_error:
+            if self.raise_error or forceRaise_error:
                 raise err
             self.last_error = str(ex)
             utils.logMessage('error', ex, 'callOdooFunction')

@@ -351,8 +351,8 @@ class LoginDialComplete(LoginDial):
             'server_port': self.serverPort,
             'scheme': self.scheme,
             'conn_type': self.connType,
-            'conn_list': self.availableConnTypes,
-            'db_list': self.dbList,
+            # 'conn_list': self.availableConnTypes,
+            # 'db_list': self.dbList,
         }
         toWrite = json.dumps(toWriteDict)
         filePath = utils.getLoginFile(self.app_name)
