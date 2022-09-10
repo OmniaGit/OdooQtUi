@@ -16,6 +16,7 @@ from OdooQtUi.utils_odoo_conn import constants
 from functools import partial
 from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
 import base64
+from pickle import TRUE
 
 
 class One2many(OdooFieldTemplate):
@@ -43,7 +44,8 @@ class One2many(OdooFieldTemplate):
         self.currentValue = []
         self.messaggesLay = QtWidgets.QVBoxLayout()
         self.messaggesLay.setSpacing(15)
-        if self.odooWidgetType == 'mail_followers':
+        #if self.odooWidgetType == 'mail_followers':
+        if self.relation=='mail.follower' and self.isChatterWidget:
             self.treeViewObj = QtWidgets.QWidget()
             self.treeViewObj.treeObj = None
         elif self.odooWidgetType == 'mail_thread':
@@ -170,7 +172,8 @@ class One2many(OdooFieldTemplate):
 
     def showChatterWidget(self):
         self.show()
-        if self.odooWidgetType == 'mail_thread':
+        #if self.odooWidgetType == 'mail_thread':
+        if True:
             self.showMessagges()
         elif self.odooWidgetType == 'mail_followers':
             self.showFollowers()

@@ -97,9 +97,8 @@ class Many2many(OdooFieldTemplate):
         def rejectFormDial():
             formdialog.reject()
 
-        raise Exception('To be moved inside list view with a flag like remove button')
         try:
-            tmpviewObjForm = self.odooConnector.initFormViewObj(self.relation, rpcObj=self.odooConnector)
+            tmpviewObjForm = self.odooConnector.initFormViewObj(odooObjectName=self.relation)
             tmpviewObjForm.loadIds([])
             formdialog = QtWidgets.QDialog()
             mainLay = QtWidgets.QVBoxLayout()

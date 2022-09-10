@@ -184,7 +184,7 @@ class TemplateFormView(TemplateView):
                                       xmlParent=childXlmElement,
                                       row_widget_limit=colspan)
             elif childXmlTag == 'button':
-                buttonObj = button.Button(self,
+                buttonObj = button.Button(qtParent=self,
                                           xmlObject=childXlmElement,
                                           model=self.model,
                                           odooConnector=self.odooConnector)
