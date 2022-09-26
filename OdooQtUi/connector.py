@@ -12,7 +12,6 @@ from OdooQtUi.views.form_obj import TemplateFormView
 from OdooQtUi.views.tree_tree_obj import TemplateTreeTreeView
 from OdooQtUi.views.tree_list_obj import TemplateTreeListView
 from OdooQtUi.interface.login import LoginDialComplete
-from _socket import SO_PASSSEC
 
 logger = logging.getLogger()
 logger.setLevel(utils.getDebugSeverity())

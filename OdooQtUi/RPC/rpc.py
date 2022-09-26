@@ -3,11 +3,14 @@ Created on 02 feb 2017
 
 @author: Daniel
 '''
-import logging
+import json
 import socket
+import logging
+import requests
+#
 from OdooQtUi.RPC.XmlRpc.xmlRpc import XmlRpcConnection
 from OdooQtUi.utils_odoo_conn.utils import timeit
-
+#
 class RpcConnection(object):
     def __init__(self):
         self.userId = False
@@ -27,6 +30,7 @@ class RpcConnection(object):
         self.xmlrpcServerIP = ''
         self.connectionType = ''
         self.hostname = socket.gethostname()
+        self._session_id = False
         return super(RpcConnection, self).__init__()
     
     def __str__(self, *args, **kwargs):
@@ -315,5 +319,73 @@ class RpcConnection(object):
         force the underline rpc soket to rise any error that occure
         """   
         self.sockInstance.raise_error = value
+    
+    def loadSessionId(self):
+        """
+        load the odoo session id with the credential stored in the xml-rpc
+        """
+        self._session_id = self.getSessionId()
         
+    def getSessionId(self, reload=False):
+        """
+        create a session id with the connection
+        :reload force to reload even if the session id is olready present
+        :return: session id
+        """
+        if not self._session_id or reload:
+            payload = json.dumps({
+                "jsonrpc": "2.0",
+                "params": {"db": self.databaseName,
+                           "login": self.userName,
+                           "password": self.userPassword}
+                })
+            headers = {'Content-Type': 'application/json'}
+            url = self.getCleanServer() + "/web/session/authenticate"
+            response = requests.request("POST", url, headers=headers, data=payload)
+            response.raise_for_status()
+            self._session_id = response.headers.get('Set-Cookie').split("session_id=")[1].split(";")[0]
+        return self._session_id 
+
+    def http_post(self,
+                  url,
+                  param={},
+                  files={},
+                  headers={},
+                  data={}):
+        """
+        make an http/https call to odoo server with the xml-rep credential
+        """ 
+        out  = False
+        if not self._session_id:
+            self.loadSessionId()
+        headers['Cookie']='session_id='+self._session_id
+        with requests.post(url=self.getCleanServer() + url,
+                           headers=headers,
+                           files=files,
+                           params=param,
+                           data=data) as r:
+            r.raise_for_status()
+            out = r
+        return out
+    
+    def http_get(self,
+                  url,
+                  param={},
+                  headers={},
+                  data={}):
+        """
+        make an http/https call to odoo server with the xml-rep credential
+        """ 
+        out  = False
+        if not self._session_id:
+            self.loadSessionId()
+        headers['Cookie']='session_id='+self._session_id
+        with requests.post(url=self.getCleanServer() + url,
+                           headers=headers,
+                           params=param,
+                           data=data) as r:
+            r.raise_for_status()
+            out = r
+        return out    
+
 connectionObj = RpcConnection()
