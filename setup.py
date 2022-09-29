@@ -11,7 +11,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="OdooQtUi",
-    version="0.0.3",
+    version="0.0.5",
     author="Daniel Smerghetto",
     author_email="daniel.smerghetto@omniasolutions.eu",
     description="The project intend to get a fully qt ui version for odoo, providing form a search view to be used in non web environment, like Allocation extension.",
