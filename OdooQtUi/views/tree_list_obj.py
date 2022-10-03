@@ -139,7 +139,7 @@ class TemplateTreeListView(TemplateView):
         else:
             self.buttToRight.setHidden(False)
         objIds.sort()
-        records = self.odooConnector.rpc_connector.read(self.model, self.labelsOrdered, objIds)
+        records = self.odooConnector.rpc_connector.read(self.model, self.labelsOrdered, objIds) or []
         flagsDict = {}
         fieldDict = {}
         valuesList = []
@@ -158,12 +158,13 @@ class TemplateTreeListView(TemplateView):
                 val = record.get(fieldName, '')
                 xml_obj = self.treeObj.widgets_to_add_in_line[col_index]
                 if row_index == 0:
+                    client_context = self.odooConnector.rpc_connector.contextUser
                     readonly = fieldPyDefinition.get('readonly', xml_obj.attrib.get('readonly', False))
-                    readonly = utils.evaluateBoolean(readonly)
+                    readonly = utils.evaluateBoolean(readonly, context=client_context)
                     required = fieldPyDefinition.get('required', xml_obj.attrib.get('required', False))
-                    required = utils.evaluateBoolean(required)
+                    required = utils.evaluateBoolean(required, context=client_context)
                     invisible = fieldPyDefinition.get('invisible', xml_obj.attrib.get('invisible', False))
-                    invisible = utils.evaluateBoolean(invisible)
+                    invisible = utils.evaluateBoolean(invisible, context=client_context)
                     headers.append(fieldPyDefinition.get('string', fieldName))
                     self.treeObj.tableWidget.setColumnHidden(col_index, invisible)
                 if xml_obj.tag == 'field':

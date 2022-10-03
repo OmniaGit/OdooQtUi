@@ -443,7 +443,7 @@ def getSelectedRowsFromListWidget(listWidget):
     return [str(item.text()) for item in itemsSelected]
 
 
-def evaluateBoolean(val):
+def evaluateBoolean(val, context={}):
     if isinstance(val, bool):
         return val
     elif isinstance(val, str):
