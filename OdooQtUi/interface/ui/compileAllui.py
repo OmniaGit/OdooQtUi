@@ -32,7 +32,7 @@ import logging
 
 def getPyFileName(uiFile):
     fromUiFileName = os.path.basename(uiFile).split('.')[0]
-    fromUiFileName = "ui_" + fromUiFileName + ".py"
+    fromUiFileName = "ui_" + fromUiFileName + ".cythonize_odooplm"
     return os.path.join(os.path.dirname(uiFile), fromUiFileName)
 
 
@@ -46,7 +46,7 @@ for fromFile in glob.glob(srcPath):
         logging.warning("File %s dose not exsists" % fromFile)
         continue
     if sys.platform.find('linux') > 0 or ('linux' in sys.platform) > 0:
-        cmd = r'python /usr/lib/python2.7/dist-packages/PyQt4/uic/pyuic.py -o %s %s' % (toFile, fromFile)
+        cmd = r'python /usr/lib/python2.7/dist-packages/PyQt4/uic/pyuic.cythonize_odooplm -o %s %s' % (toFile, fromFile)
     else:
         cmd = r'pyuic4 -o %s  %s' % (toFile, fromFile)
         #  seems that subprocess dose not finds the python side package dir

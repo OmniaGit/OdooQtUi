@@ -11,13 +11,13 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="OdooQtUi",
-    version="0.0.5",
+    version="0.0.6",
     author="Daniel Smerghetto",
     author_email="daniel.smerghetto@omniasolutions.eu",
     description="The project intend to get a fully qt ui version for odoo, providing form a search view to be used in non web environment, like Allocation extension.",
     long_description=long_description,
     include_package_data=True,
-    install_requires=['PySide2'],
+    install_requires=['PySide2','python-dateutil'],
     long_description_content_type="text/markdown",
     url="https://bitbucket.org/mboscolo/odoo_qt/",
     packages=setuptools.find_packages(),
