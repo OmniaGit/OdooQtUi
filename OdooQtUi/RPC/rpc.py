@@ -18,9 +18,6 @@ class RpcConnection(object):
         self.sockInstance = False
         self.contextUser = {}
         self.useInterface = True
-        self._cache_search = {}
-        self._cache_search_condition = {}
-        self._cache_align_table = {}
         self.db_from_field = ''
         self.userName = ''      
         self.userPassword = ''  
@@ -31,12 +28,18 @@ class RpcConnection(object):
         self.connectionType = ''
         self.hostname = socket.gethostname()
         self._session_id = False
+        self.clearCache()
         return super(RpcConnection, self).__init__()
     
     def __str__(self, *args, **kwargs):
         return "UID: %s DB: %s URL %s" % (self.userName,
                                           self.databaseName,
                                           self.xmlrpcServerIP)
+    def clearCache(self):
+        self._cache_search = {}
+        self._cache_search_condition = {}
+        self._cache_align_table = {}
+        self._cache_read = {}
 
     def logout(self):
         self.userName = ''      
@@ -153,6 +156,17 @@ class RpcConnection(object):
                                       context=localContext,
                                       load=load)
 
+    def readCached(self, obj, fields, ids, context={}, limit=False, load='_classic_read'):
+        if obj not in self._cache_read:
+            self._cache_read[obj] = {}
+        for look_id in ids:
+            if look_id not in self._cache_read[obj]:
+                for item in self.read(obj, fields, ids, context, limit, load):
+                    self._cache_read[obj][look_id] = item
+        return [self._cache_read[obj][x] for x in ids]
+                
+                
+            
     def readSearch(self, obj, fields, filterList=[], order=False, context={}):
         localContext = self.contextUser
         localContext.update(context)
@@ -251,7 +265,8 @@ class RpcConnection(object):
                           objName,
                           objVals,
                           condition,
-                          context={}):
+                          context={},
+                          overWrite=False):
         if not condition:
             raise Exception("You must provide a valid search condition")
         key = "%s_%s" % (objName, condition)
@@ -265,6 +280,12 @@ class RpcConnection(object):
                                      objVals,
                                      context=context)
                 res = [res]
+            else:
+                if overWrite:
+                    self.write(objName,
+                               objVals,
+                               res,
+                               context=context)
             self._cache_search_condition[key] = res
         return self._cache_search_condition[key]
 
@@ -305,7 +326,7 @@ class RpcConnection(object):
         if new_id:
             self.write(objName, att, new_id, context=context)
         else:
-            att[self.db_from_field]=obj_iRpcConnectiond
+            att[self.db_from_field]=obj_id
             new_id = self.create(objName,
                                  att,
                                  context=context)

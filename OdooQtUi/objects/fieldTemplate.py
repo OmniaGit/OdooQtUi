@@ -25,6 +25,8 @@ class OdooFieldTemplate(QtWidgets.QWidget):
         self.parentId = False
         self.odooId=False
         self.parentModel = ''
+        context = self.fieldXmlAttributes.get('context', '{}')
+        self.context = context
         self.fieldName = self.fieldXmlAttributes.get('name', '')
         self.modifiers = json.loads(self.fieldXmlAttributes.get('modifiers', '{}'))
         self.on_change = self.fieldXmlAttributes.get('on_change', '')

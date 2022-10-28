@@ -379,7 +379,7 @@ class XmlRpcConnection(object):
                     self._logError(ex, message, utils.getFunctionName())
         except Exception as ex:
             if self.raise_error or forceRaise_error:
-                raise err
+                raise ex
             self.last_error = str(ex)
             utils.logMessage('error', ex, 'callOdooFunction')
             utils.logMessage('error',

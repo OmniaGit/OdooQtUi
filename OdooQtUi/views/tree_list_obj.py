@@ -159,6 +159,7 @@ class TemplateTreeListView(TemplateView):
                 xml_obj = self.treeObj.widgets_to_add_in_line[col_index]
                 if row_index == 0:
                     client_context = self.odooConnector.rpc_connector.contextUser
+                    client_context.update(utils.evaluateContext(xml_obj.attrib.get('context', '{}'), record))
                     readonly = fieldPyDefinition.get('readonly', xml_obj.attrib.get('readonly', False))
                     readonly = utils.evaluateBoolean(readonly, context=client_context)
                     required = fieldPyDefinition.get('required', xml_obj.attrib.get('required', False))
@@ -240,12 +241,14 @@ class TemplateTreeListView(TemplateView):
 
     def _setFieldsModifiers(self, fieldDict):
         for _row_index, row_vals in fieldDict.items():
-            for fieldName, widget in row_vals.items():
+            for fieldName, fieldObj in row_vals.items():
                 try:
-                    inv = utils.evaluateAttrs(row_vals, widget.invisible)
+                    client_context = self.odooConnector.rpc_connector.contextUser
+                    client_context.update(utils.evaluateContext(fieldObj.context, fieldDict))
+                    inv = utils.evaluateAttrs(row_vals, fieldObj.invisible, client_context)
                     col_index = self.labelsOrdered.index(fieldName)
                     self.treeObj.tableWidget.setColumnHidden(col_index, inv)
-                    ronly = utils.evaluateAttrs(row_vals, widget.readonly)
+                    ronly = utils.evaluateAttrs(row_vals, fieldObj.readonly, client_context)
                     widget.setReadonly(ronly)
                 except Exception as ex:
                     logWarning('Cannot set readonly and invisible attributes for field %r err %r' % (fieldName, ex), '_setFieldsModifiers')
@@ -261,20 +264,22 @@ class TemplateTreeListView(TemplateView):
                 butt.setDisabled(flag)
 
         for row_index, row_vals in self.row_widgets.items():
-            for widget in row_vals.values():
-                if widget.modifiers:
-                    readonlyModif = widget.modifiers.get('readonly', {})
-                    invisibleModif = widget.modifiers.get('invisible', {})
+            for fieldObj in row_vals.values():
+                if fieldObj.modifiers:
+                    readonlyModif = fieldObj.modifiers.get('readonly', {})
+                    invisibleModif = fieldObj.modifiers.get('invisible', {})
+                    client_context = self.odooConnector.rpc_connector.contextUser
+                    client_context.update(utils.evaluateContext(fieldObj.context, fieldDict))
                     if readonlyModif:
-                        val = utils.evaluateAttrs(fieldDict.get(row_index, {}), readonlyModif)
-                        widget.setReadonly(val)
+                        val = utils.evaluateAttrs(fieldDict.get(row_index, {}), readonlyModif, client_context)
+                        fieldObj.setReadonly(val)
                     if invisibleModif:
-                        val = utils.evaluateAttrs(fieldDict.get(row_index, {}), invisibleModif)
-                        hideButtonWithStyle(widget, val)
-                    if widget.readonly:
-                        widget.setReadonly(True)
-                    if widget.invisible:
-                        hideButtonWithStyle(widget, val)
+                        val = utils.evaluateAttrs(fieldDict.get(row_index, {}), invisibleModif, client_context)
+                        hideButtonWithStyle(fieldObj, val)
+                    if fieldObj.readonly:
+                        fieldObj.setReadonly(True)
+                    if fieldObj.invisible:
+                        hideButtonWithStyle(fieldObj, val)
 
     def setRemoveButtons(self):
         rowCount = self.treeObj.tableWidget.rowCount()

@@ -188,7 +188,7 @@ class TemplateFormView(TemplateView):
                                           xmlObject=childXlmElement,
                                           model=self.model,
                                           odooConnector=self.odooConnector)
-                key = 'button_' + str(buttonObj.buttonString).replace(' ', '_')
+                key = 'button_' + str(buttonObj.buttonName).replace(' ', '_')
                 self.appendToglobalMapping(key, buttonObj)
                 qvboxLayout.addWidget(buttonObj)
                 divClass = xmlParent.attrib.get('class', '')
@@ -465,16 +465,21 @@ class TemplateFormView(TemplateView):
     def _setFieldModifiers(self):
         fieldDict = self.interfaceFieldsDict
         for fieldObj in list(fieldDict.values()):
-            readonlyModif = fieldObj.modifiers.get('readonly', {})
+            try:
+                readonlyModif = fieldObj.modifiers.get('readonly', {})
+            except:
+                pass
             invisibleModif = fieldObj.modifiers.get('invisible', {})
+            client_context = self.odooConnector.rpc_connector.contextUser
+            client_context.update(utils.evaluateContext(fieldObj.context, fieldDict))
             if readonlyModif:
-                val = utils.evaluateAttrs(fieldDict, readonlyModif)
+                val = utils.evaluateAttrs(fieldDict, readonlyModif, client_context)
                 fieldObj.setReadonly(val)
                 self.commonEval(val, self.readonlyFields, fieldObj)
             else:
                 fieldObj.setReadonly(fieldObj.readonly)
             if invisibleModif:
-                val = utils.evaluateAttrs(fieldDict, invisibleModif)
+                val = utils.evaluateAttrs(fieldDict, invisibleModif, client_context)
                 fieldObj.setInvisible(val)
                 self.commonEval(val, self.invisibleFields, fieldObj)
             else:

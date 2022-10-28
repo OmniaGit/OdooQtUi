@@ -8,6 +8,7 @@ import sys
 import json
 import stat
 import time
+import copy
 import base64
 import logging
 import datetime
@@ -465,14 +466,30 @@ def evaluateModifiers(modifiers):
     readonlyConditions = modifiers.get('readonly', {})
     return invisibleConditions, readonlyConditions
 
+def evaluateContext(contextStr,fieldsDict):
+    try:
+        fieldsDict = copy.copy(fieldsDict)
+        return eval(contextStr, fieldsDict)
+    except Exception as ex:
+        logging.warn("Unable to evaluate %s" % contextStr)
+        return {}
 
-
-def evaluateAttrs(fieldsDict, toCompute):
+def evaluateAttrs(fieldsDict, toCompute, context={}):
     def evalSingleCondition(cond):
         if len(cond) != 3:
             logMessage('warning', 'Condition lenght != 3: %r' % (cond), 'evalSingleCondition')
             return False
         fieldName, operator, valToCompare = cond
+        #
+        def cleandVal(val, context={}):
+            if isinstance(val, str):
+                try:
+                    val = eval(val)
+                except Exception as ex:
+                    logging.warn("Unable to eval %s" % val)
+            return val
+        #
+        valToCompare=cleandVal(valToCompare, context)
         headerFieldName='header_'+fieldName
         fieldObj=None
         if fieldName in fieldsDict:
@@ -488,12 +505,20 @@ def evaluateAttrs(fieldsDict, toCompute):
         elif operator == '!=':
             return fieldVal != valToCompare
         elif operator == '>':
+            if isinstance(fieldVal, list) and isinstance(valToCompare,(int, float)):
+                fieldVal=len(fieldVal)
             return fieldVal > valToCompare
         elif operator == '<':
+            if isinstance(fieldVal, list) and isinstance(valToCompare,(int, float)):
+                fieldVal=len(fieldVal)
             return fieldVal < valToCompare
         elif operator == '>=':
+            if isinstance(fieldVal, list) and isinstance(valToCompare,(int, float)):
+                fieldVal=len(fieldVal)
             return fieldVal >= valToCompare
         elif operator == '<=':
+            if isinstance(fieldVal, list) and isinstance(valToCompare,(int, float)):
+                fieldVal=len(fieldVal)
             return fieldVal <= valToCompare
         elif operator == 'in':
             if not isinstance(valToCompare, (list, tuple)):
@@ -520,7 +545,10 @@ def evaluateAttrs(fieldsDict, toCompute):
     if isinstance(toCompute, bool):
         return toCompute
     if len(toCompute) == 1:
-        return evalSingleCondition(toCompute[0])
+        try:
+            return evalSingleCondition(toCompute[0])
+        except:
+            pass
 
     conditions = []
     operators = []
@@ -536,7 +564,10 @@ def evaluateAttrs(fieldsDict, toCompute):
                 logMessage('warning', 'Operator %r not implemented' % (singleCompute), 'evaluateAttrs')
         if not operators:
             operators.append('&')
-        res = evalSingleCondition(singleCompute)
+        try:
+            res = evalSingleCondition(singleCompute)
+        except Exception as ex:
+            pass
         conditions.append(res)
 
     return _evalSimple(conditions, operators)
