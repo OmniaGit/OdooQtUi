@@ -255,7 +255,6 @@ class LoginDialComplete(LoginDial):
             if self.odooConnector.rpc_connector.userLogged:
                 utils.writeToFile(self.dbName, self.username, self.userpass, self.serverIp, self.serverPort,
                                   self.scheme, self.connType, self.dbList, self.app_name)
-                self.writeToFile()
                 self.label_status.setText('User Logged')
                 self.lineEdit_username.setStyleSheet(constants.LOGIN_LINEEDIT_STYLE)
                 self.lineEdit_password.setStyleSheet(constants.LOGIN_LINEEDIT_STYLE)
