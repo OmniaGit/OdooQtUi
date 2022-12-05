@@ -13,7 +13,7 @@ class Datetime(OdooFieldTemplate):
         self.isChatterWidget = isChatterWidget
         self.labelQtObj = False
         self.widgetQtObj = False
-        self.currentValue = ''
+        self.currentValue = False
         self.getQtObject()
 
     def getQtObject(self):
