@@ -161,7 +161,18 @@ class MainConnector(object):
         except Exception as ex:
             logging.error("Unable to autologin %s" % ex)
         return self.userLogged
-        
+
+    def loginToStorage(self):
+        utils.writeToFile(self.rpc_connector.databaseName,
+                          self.rpc_connector.userName,
+                          self.rpc_connector.userPassword,
+                          self.rpc_connector.xmlrpcServerIP,
+                          self.rpc_connector.xmlrpcPort,
+                          self.rpc_connector.scheme,
+                          self.rpc_connector.connectionType,
+                          self.rpc_connector.listDb() or [],
+                          self.app_name)
+
     @property
     def userLogged(self):
         """

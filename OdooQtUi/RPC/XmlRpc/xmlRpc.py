@@ -175,110 +175,61 @@ class XmlRpcConnection(object):
         return []
 
     def search(self, obj, filterList, limit=False, offset=False, order='', context={}):
-        try:
-            kargs = {'context': context}
-            if limit or limit == 0:
-                kargs['limit'] = limit
-            if offset or offset == 0:
-                kargs['offset'] = offset
-            if order:
-                kargs['order'] = order
-            return self.callOdooFunction(obj, 'search', [filterList], kargs)
-        except Exception as ex:
-            msg = 'Error during search with values: object %r, filter %r, parameters %r.' % (obj, filterList, kargs)
-            self._logError(ex, msg, utils.getFunctionName())
-        return []
+        kargs = {'context': context}
+        if limit or limit == 0:
+            kargs['limit'] = limit
+        if offset or offset == 0:
+            kargs['offset'] = offset
+        if order:
+            kargs['order'] = order
+        return self.callOdooFunction(obj, 'search', [filterList], kargs)
 
     def read(self, obj, fields=[], ids=[], limit=False, context={}, load='_classic_read'):
-        try:
-            kargs = {'context': context, 'load': load}
-            return self.callOdooFunction(obj, 'read', [ids, fields], kargs)
-        except Exception as ex:
-            msg = 'Error during read with values: object %r, fields %r, ids %r.' % (obj, fields, ids)
-            self._logError(ex, msg, utils.getFunctionName())
-        return []
+        kargs = {'context': context, 'load': load}
+        return self.callOdooFunction(obj, 'read', [ids, fields], kargs)
 
     def fieldsGet(self, obj, attributesToRead=[], context={}):
         '''
         @attributesToRead: {'attributes': ['string', 'help', 'type']}
         '''
-        try:
-            kargs = {'attributes': attributesToRead, 'context': context}
-            return self.callOdooFunction(obj, 'fields_get', [], kargs)
-        except Exception as ex:
-            msg = 'Error during reading fields with values: object %r, kargs %r.' % (obj, kargs)
-            self._logError(ex, msg, utils.getFunctionName())
-        return {}
+        kargs = {'attributes': attributesToRead, 'context': context}
+        return self.callOdooFunction(obj, 'fields_get', [], kargs)
 
     def defaultGet(self, obj, fieldsToRead=[], context={}):
         '''
         @attributesToRead: {'attributes': ['string', 'help', 'type']}
         '''
-        try:
-            kargs = {'context': context}
-            return self.callOdooFunction(obj, 'default_get', [fieldsToRead], kargs)
-        except Exception as ex:
-            msg = 'Error during reading fields with values: object %r, kargs %r.' % (obj, kargs)
-            self._logError(ex, msg, utils.getFunctionName())
-        return {}
+        kargs = {'context': context}
+        return self.callOdooFunction(obj, 'default_get', [fieldsToRead], kargs)
 
     def readSearch(self, obj, fields, filterList, limit=False, order=False, context={}):
-        try:
-            kargs = {'fields': fields, 'context': context}
-            if order:
-                kargs['order'] = order
-            return self.callOdooFunction(obj, 'search_read', [filterList], kargs)
-        except Exception as ex:
-            msg = 'Error during reading fields with values: object %r, kargs %r, filterList' % (obj, kargs)
-            self._logError(ex, msg, utils.getFunctionName())
-        return []
+        kargs = {'fields': fields, 'context': context}
+        if order:
+            kargs['order'] = order
+        return self.callOdooFunction(obj, 'search_read', [filterList], kargs)
 
     def create(self, obj, values, context={}):
-        try:
-            kargs = {'context': context}
-            return self.callOdooFunction(obj, 'create', [values], kargs)
-        except Exception as ex:
-            msg = 'Error during create with values: object %r, kargs %r, filterList %r.' % (obj, kargs, values)
-            self._logError(ex, msg, utils.getFunctionName())
-        return []
+        kargs = {'context': context}
+        return self.callOdooFunction(obj, 'create', [values], kargs)
 
     def write(self, obj, values, idsToWrite, context={}, kargs={}):
-        try:
-            if 'context' not in kargs:
-                kargs['context'] = context
-            return self.callOdooFunction(obj, 'write', [idsToWrite, values], kargs)
-        except Exception as ex:
-            msg = 'Error during create with values: object %r, kargs %r, filterList %r.' % (obj, kargs, values)
-            self._logError(ex, msg, utils.getFunctionName())
-        return []
+        if 'context' not in kargs:
+            kargs['context'] = context
+        return self.callOdooFunction(obj, 'write', [idsToWrite, values], kargs)
 
     def delete(self, obj, idsToDelete, context={}):
-        try:
-            kargs = {'context': context}
-            return self.callOdooFunction(obj, 'unlink', [idsToDelete], kargs)
-        except Exception as ex:
-            msg = 'Error during create with values: object %r, kargs %r, idsToDelete %r.' % (obj, kargs, idsToDelete)
-            self._logError(ex, msg, utils.getFunctionName())
-        return []
+        kargs = {'context': context}
+        return self.callOdooFunction(obj, 'unlink', [idsToDelete], kargs)
 
     def searchCount(self, obj, filterList, context={}):
-        try:
-            kargs = {'context': context}
-            return self.callOdooFunction(obj, 'search_count', [filterList], kargs)
-        except Exception as ex:
-            msg = 'Error during create with values: object %r, kargs %r, filterList %r.' % (obj, kargs, filterList)
-            self._logError(ex, msg, utils.getFunctionName())
-        return []
+        kargs = {'context': context}
+        return self.callOdooFunction(obj, 'search_count', [filterList], kargs)
 
     def fieldsViewGet(self, odooObj, view_id=False, view_type='form', context={}):
-        try:
-            if not view_id:
-                view_id = False
-            kwargParameters = {'context': context}
-            return self.callOdooFunction(odooObj, 'fields_view_get', [view_id, view_type], kwargParameters)
-        except Exception as ex:
-            self._logError(ex, 'Error during fields view get:', utils.getFunctionName())
-        return {}
+        if not view_id:
+            view_id = False
+        kwargParameters = {'context': context}
+        return self.callOdooFunction(odooObj, 'fields_view_get', [view_id, view_type], kwargParameters)
 
     def on_change(self, odooObj, activeIds, allVals, fieldName, allOnchanges, context):
         try:

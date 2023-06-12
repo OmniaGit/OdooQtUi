@@ -667,14 +667,20 @@ class TemplateFormView(TemplateView):
         save the current values
         """
         to_write = {}
-        for k, v in self.fieldsChanged.items():
-            fieldObj1 = self.interfaceFieldsDict.get(k)
-            if fieldObj1.fieldType in ['one2many','many2many']:
-                to_write[k] = [(6, False, v.value)]
-            else:
-                to_write[k] = v.value
         if self.activeIds:
+            for k, v in self.fieldsChanged.items():
+                fieldObj1 = self.interfaceFieldsDict.get(k)
+                if fieldObj1.fieldType in ['one2many','many2many']:
+                    to_write[k] = [(6, False, v.value)]
+                else:
+                    to_write[k] = v.value
             self.odooConnector.rpc_connector.write(self.model, to_write,  self.activeIds)
         else:
-            self.activeIds = [self.odooConnector.rpc_connector.create(self.model, to_write)]
+            for k, v in self.getAllFieldsValues().items():
+                fieldObj1 = self.interfaceFieldsDict.get(k)
+                if fieldObj1.fieldType in ['one2many','many2many']:
+                    to_write[k] = [(6, False, v)]
+                else:
+                    to_write[k] = v
+            self.activeIds = self.odooConnector.rpc_connector.create(self.model, to_write)
         return self.activeIds

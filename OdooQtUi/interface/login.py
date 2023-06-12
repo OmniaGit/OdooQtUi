@@ -246,14 +246,15 @@ class LoginDialComplete(LoginDial):
     def acceptDial(self):
         self.showRainbowman= not self.showRainbowman
         if not self.showRainbowman:
-           return
+            return
         self.progress.setRange(0,0)
         try:
             QApplication.processEvents() 
             self.transferDbInfoFromInterface()
             self.loginWithUserDial()
             if self.odooConnector.rpc_connector.userLogged:
-                self.writeToFile()
+                utils.writeToFile(self.dbName, self.username, self.userpass, self.serverIp, self.serverPort,
+                                  self.scheme, self.connType, self.dbList, self.app_name)
                 self.label_status.setText('User Logged')
                 self.lineEdit_username.setStyleSheet(constants.LOGIN_LINEEDIT_STYLE)
                 self.lineEdit_password.setStyleSheet(constants.LOGIN_LINEEDIT_STYLE)
@@ -342,19 +343,3 @@ class LoginDialComplete(LoginDial):
                                                               self.scheme,
                                                               self.serverIp)
 
-    def writeToFile(self):
-        toWriteDict = {
-            'db_name': self.dbName,
-            'user_name': self.username,
-            'user_pass': self.userpass,
-            'server_ip': self.serverIp,
-            'server_port': self.serverPort,
-            'scheme': self.scheme,
-            'conn_type': self.connType,
-            # 'conn_list': self.availableConnTypes,
-            # 'db_list': self.dbList,
-        }
-        toWrite = json.dumps(toWriteDict)
-        filePath = utils.getLoginFile(self.app_name)
-        with open(filePath, 'w') as outFile:
-            outFile.write(toWrite)

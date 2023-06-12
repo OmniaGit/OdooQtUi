@@ -19,7 +19,7 @@ except AttributeError:
         return s
 
 try:
-    _encoding = QtWidgets.QApplication.UnicodeUTF8
+    _encoding = QtWidgets.QApplication.strUTF8
 
     def _translate(context, text, disambig):
         return QtWidgets.QApplication.translate(context, text, disambig, _encoding)

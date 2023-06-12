@@ -621,6 +621,24 @@ def getDebugSeverity():
         return logging.INFO
 
 
+def writeToFile(dbName, username, userpass, serverIp, serverPort, scheme, connType, dbList=[], app_name='OdooQtUi'):
+    toWriteDict = {
+        'db_name': dbName,
+        'user_name': username,
+        'user_pass': userpass,
+        'server_ip': serverIp,
+        'server_port': serverPort,
+        'scheme': scheme,
+        'conn_type': connType,
+        # 'conn_list': self.availableConnTypes,
+        'db_list': dbList,
+    }
+    toWrite = json.dumps(toWriteDict)
+    filePath = getLoginFile(app_name)
+    with open(filePath, 'w') as outFile:
+        outFile.write(toWrite)
+
+
 def loadFromFile(app_name='OdooQtUi'):
     dbName = ''
     username = ''
