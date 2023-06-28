@@ -4,7 +4,6 @@ Created on 3 Feb 2017
 @author: Daniel Smerghetto
 '''
 
-from OdooQtUi.utils_odoo_conn import utils
 import socket
 try:
     import xmlrpc.client as xmlrpc
@@ -12,13 +11,14 @@ try:
 except Exception as ex:
     import xmlrpclib as xmlrpc
     import httplib
+from OdooQtUi.utils_odoo_conn import utils
 USE_INTERFACE = True
 try:
+    
     from OdooQtUi.utils_odoo_conn import utilsUi
 except Exception as ex:
     utils.logError(ex, '')
     USE_INTERFACE = False
-
 
 
 class XmlRpcConnection(object):
