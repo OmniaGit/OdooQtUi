@@ -22,6 +22,68 @@ from OdooQtUi.utils_odoo_conn.utils import logMessage
 
 DEFAULT_ICON_PATH = ''
 
+QPROGRESS_STYLESHEET="""QDialog {border: 1.5px solid;
+                                       border-radius: 5px;
+                                       border-color: #9d5e96;
+                                       color: white;
+                                       }
+                              QProgressBar{text-align: center;
+                                            border-radius: 5px;  
+                                            border: 1px solid grey; 
+                                          }
+                              QProgressBar::chunk {background-color:  #9d5e96;
+                                                   width: 10px;
+                                                  }
+                                       """
+                                       
+class OpenProgressBar(QtWidgets.QProgressDialog):
+    def __init__(self,
+                 parentHWnd=None):
+        super(OpenProgressBar,self).__init__()
+        self.setStyleSheet(QPROGRESS_STYLESHEET)
+        self.setCancelButton(None)
+        self._parentHWnd=parentHWnd
+                     
+    def _init(self,
+              maxIndex=100,
+              message="Progress",
+              step=7): 
+        try:
+            self.setWindowTitle(message)
+            self.setLabelText(message)
+            self.setRange(0, maxIndex)
+            self._step=step
+            self._actualIndex=0
+            self.message=message
+            self.repaint()
+        except Exception as e:
+            self.showError(e)  
+            
+    def reInit(self,maxIndex=100,message="Progress",step=7):
+        try:
+            self.show()
+            self._init(maxIndex, message, step)
+        except Exception as e:
+            self.showError(e)
+            
+    def goOn(self,
+             message=None):
+        if (message == None) or (len(message)<1):
+            message=self.message
+        self.setLabelText(message)
+        self._actualIndex = self._actualIndex + self._step
+        self.setValue(self._actualIndex)
+        self.repaint()
+
+    def close(self):
+        """
+            overwrite the close event
+        """
+        try:
+            super(OpenProgressBar, self).close()
+        except Exception as ex:
+            logging.error('Error closing the progressbar window. Error: %r' % (ex))
+            
 def getQtImageFromContent(content, imageWidth=100, imageHeight=100, b64decode=True):
     label = QtWidgets.QLabel()
     pixmap = QtGui.QPixmap()
