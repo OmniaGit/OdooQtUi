@@ -23,18 +23,25 @@ class Many2many(OdooFieldTemplate):
                  odooConnector=None,
                  isChatterWidget=False,
                  parent_view_type=''):
-        super(Many2many, self).__init__(qtParent, xmlField, fieldsDefinition, odooConnector)
-        self.qtParent = qtParent
-        self.isChatterWidget = isChatterWidget
+        super(Many2many, self).__init__(qtParent,
+                                        xmlField,
+                                        fieldsDefinition,
+                                        odooConnector)
         self.labelQtObj = False
         self.widgetQtObj = False
         self.treeViewObj = False
-        self.label_name_values = False
         self.btnAddAnItem = None
+        self.qtParent = qtParent
+        self.label_name_values = False
+        self.isChatterWidget = isChatterWidget
         self.odooConnector = odooConnector
         self.relation = self.fieldPyDefinition.get('relation', '')
-        self.canCreate = json.loads(self.fieldXmlAttributes.get('can_create', 'true'))
-        self.canWrite = json.loads(self.fieldXmlAttributes.get('can_write', 'true'))
+        if odooConnector.rpc_connector.serverVersion>=17:
+            self.canCreate = self.fieldXmlAttributes.get('can_create', True)
+            self.canWrite = self.fieldXmlAttributes.get('can_write', True)
+        else:
+            self.canCreate = json.loads(self.fieldXmlAttributes.get('can_create', 'true'))
+            self.canWrite = json.loads(self.fieldXmlAttributes.get('can_write', 'true'))
         self.qtVBoxLayout = QtWidgets.QVBoxLayout()
         self.evaluatedIds = {}
         self.loaded_ids = []
@@ -59,6 +66,9 @@ class Many2many(OdooFieldTemplate):
             self.qtVBoxLayout.addWidget(self.label_name_values)
         
         self.qtHorizontalWidget.addLayout(self.qtVBoxLayout)
+
+    def __str__(self)->str:
+        return f"<{self.fieldName}> : {self.relation}"
 
     @property
     def currentValue(self):

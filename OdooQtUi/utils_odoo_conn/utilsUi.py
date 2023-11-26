@@ -42,7 +42,12 @@ def setDefaultIconPath(iconPath):
     DEFAULT_ICON_PATH = iconPath
 
 
-def commonPopulateTable(headers, values, tableWidget, flags={}, add=False, fontSize=False):
+def commonPopulateTable(headers,
+                        values,
+                        tableWidget,
+                        flags={}, 
+                        add=False,
+                        fontSize=False):
     '''
         @headers: [header1, header2, ...]
         @flags: {'colIndex': flags}
@@ -73,9 +78,8 @@ def commonPopulateTable(headers, values, tableWidget, flags={}, add=False, fontS
             else:
                 colVal = menuObj.__dict__.get(colName, '')
             rowDict[colName] = colVal
-            if not isinstance(colVal, str):
-                #tableWidget.setCellWidget(rowPosition, colIndex, colVal)
-                pass
+            if isinstance(colVal, QtWidgets.QWidget):
+                tableWidget.setCellWidget(rowPosition, colIndex, colVal)
             else:
                 twItem = QtWidgets.QTableWidgetItem(colVal)
                 if fontSize:
@@ -155,9 +159,12 @@ def getIconPath(iconName):
 
 
 class AdvancedErrorPopUP(QtWidgets.QDialog):
-    def __init__(self, parent, messageBody="", mess_type='warning', short_text_header=''):
-        QtWidgets.QDialog.__init__(self)
-        self.setWindowFlags(QtCore.Qt.MSWindowsFixedSizeDialogHint);
+    def __init__(self,
+                 parent,
+                 messageBody="", 
+                 mess_type='warning', 
+                 short_text_header=''):
+        QtWidgets.QDialog.__init__(self, parent)
         self.mainLayout = QtWidgets.QVBoxLayout(self)
         top_widget = QtWidgets.QWidget()
         hlay = QtWidgets.QHBoxLayout(top_widget)
@@ -238,18 +245,28 @@ def popError(parent, ex):
 def popWarning(parent, ex):
     """
         pop an warning message
+        :parent qt parent windows
+        :ex python Exception object
     """
     popMessage(parent, ex, 'WARNING')
 
-def popInfo(parent, ex):
+def popInfo(parent,
+            ex):
     """
         pop an warning message
+        :parent qt parent windows
+        :ex python Exception object
     """
     popMessage(parent, ex, 'INFO')
 
-def popMessage(parent, ex, msg_type='info', short_text_header=''):
+def popMessage(parent,
+               ex, 
+               msg_type='info', 
+               short_text_header=''):
     """
         pop an warning message
+        :parent qt parent windows
+        :ex python Exception object or string 
     """
     dialObj = AdvancedErrorPopUP(parent,
                                  messageBody=ex,
@@ -257,3 +274,4 @@ def popMessage(parent, ex, msg_type='info', short_text_header=''):
                                  short_text_header=short_text_header)
     logMessage(msg_type, ex, 'popMessage')
     dialObj.exec_()
+

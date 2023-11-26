@@ -27,18 +27,17 @@ import logging
 import datetime
 import sys
 import site
-from PySide2 import QtCore, QtGui, QtWebKit
+from PySide2.QtCore import *
+from PySide2.QtWidgets import *
+from PySide2.QtGui import *
+from PySide2.QtWebEngineWidgets import QWebEngineView
 from urllib.parse import urljoin
 
 
-
-
-
-class BaseWebForm(QtWebKit.QWebView):
+class BaseWebForm(QWebEngineView):
     def __init__(self):
         super(BaseWebForm, self).__init__()
-        self.setupUi(self)
-        self._baseUrl = 'https://www.odooplm.cloud/'  # in future load it from local setting
+        self._baseUrl = 'http://localhost:8069/'  # in future load it from local setting
 
 class FormYesNow(BaseWebForm):
     pass
@@ -49,14 +48,14 @@ class TreeYesNow(BaseWebForm):
 class Login(BaseWebForm):
     def __init__(self):
         super(Login, self).__init__()
-        self.load(QtCore.QUrl(urljoin(self._baseUrl, r'web/database/login')))
+        self.load(QUrl(urljoin(self._baseUrl, r'web/database/login')))
 
 
         
 
 
 if __name__ == '__main__':
-    app = QtGui.QApplication(sys.argv) 
+    app = QApplication(sys.argv) 
     l = Login()
     l.show()   
     sys.exit(app.exec_())

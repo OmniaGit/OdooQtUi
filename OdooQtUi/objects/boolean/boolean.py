@@ -20,7 +20,10 @@ class Boolean(OdooFieldTemplate):
         self.widgetQtObj = False
         self.currentValue = False
         self.getQtObject()
-
+    
+    def __str__(self)->str:
+        return f"<{self.fieldName}> : {self.currentValue}"
+    
     def getQtObject(self):
         self.labelQtObj = QtWidgets.QLabel(self.fieldStringInterface)
         self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)

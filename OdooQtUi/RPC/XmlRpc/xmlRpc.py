@@ -304,7 +304,7 @@ class XmlRpcConnection(object):
             try:
                 self.last_error = str(err)
                 if self.useInterface and not forceHideInterface:
-                    utilsUi.popError(self, err)
+                    utilsUi.popError(None, err)
                     return None
                 else:
                     err_str = err.faultString or err.faultCode
@@ -323,9 +323,9 @@ class XmlRpcConnection(object):
                     raise err
                 self.last_error = str(ex)
                 utils.logMessage('error', ex, 'callOdooFunction')
-                message = 'Unable to communicate with the server: %r' % ex.faultCode
+                message = 'Unable to communicate with the server: %r' % ex
                 if self.useInterface and not forceHideInterface:
-                    utilsUi.popError(None, message)
+                    utilsUi.popError(None, ex)
                 else:
                     self._logError(ex, message, utils.getFunctionName())
         except Exception as ex:
@@ -340,7 +340,7 @@ class XmlRpcConnection(object):
                                                                                                  kwargParameters),
                              'callOdooFunction')
             if self.useInterface and not forceHideInterface:
-                utilsUi.popError(self, ex)
+                utilsUi.popError(None, ex)
             else:
                 self._logError(ex, '', utils.getFunctionName())
         return None

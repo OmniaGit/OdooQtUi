@@ -54,8 +54,10 @@ class TreeViewList(QtWidgets.QWidget):
                 self.orderedFields.append(fieldName)
                 headers.append(self.fieldsNameTypeRel.get(fieldName, {}).get('string', fieldName))
             elif childTag == 'button':
-                headers.append('')
-                self.orderedFields.append('')
+                function_call = childElement.attrib.get('name', '')
+                name =  childElement.attrib.get('string', '')
+                headers.append(name)
+                self.orderedFields.append(function_call)
             self.widgets_to_add_in_line[len(self.orderedFields) - 1] = childElement
         self.tableWidget = QtWidgets.QTableWidget()
         self.tableWidget.horizontalHeader().setStretchLastSection(True)
