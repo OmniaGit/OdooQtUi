@@ -62,6 +62,9 @@ class One2many(OdooFieldTemplate):
                                                                          viewFilter=False)
         self.getQtObject(parent_view_type)
 
+    def __str__(self)->str:
+        return f"<{self.fieldName}> : {self.relation}"
+    
     def getMessageChatterWidget(self):
         label = QtWidgets.QLabel('-----------------  Chat  -----------------')
         label.setStyleSheet(constants.BUTTON_STYLE + constants.VIOLET_BACKGROUND)

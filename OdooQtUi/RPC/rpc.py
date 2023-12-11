@@ -53,7 +53,14 @@ class RpcConnection(object):
     def getCleanServer(self):
         return self.url.split("/xmlrpc")[0]
         
-    def initConnection(self, connectionType, userName, userPassword, databaseName, xmlrpcPort=8069, scheme='http', xmlrpcServerIP='127.0.0.1'):
+    def initConnection(self,
+                       connectionType,
+                       userName,
+                       userPassword,
+                       databaseName,
+                       xmlrpcPort=8069,
+                       scheme='http',
+                       xmlrpcServerIP='127.0.0.1'):
         self.userName = userName
         self.userPassword = userPassword
         self.databaseName = databaseName
@@ -266,7 +273,8 @@ class RpcConnection(object):
                           objVals,
                           condition,
                           context={},
-                          overWrite=False):
+                          overWrite=False,
+                          only_get=False):
         if not condition:
             raise Exception("You must provide a valid search condition")
         key = "%s_%s" % (objName, condition)
@@ -274,18 +282,21 @@ class RpcConnection(object):
             res = self.search(objName,
                               condition,
                               context)
-
-            if not res:
-                res = self.create(objName,
-                                     objVals,
-                                     context=context)
-                res = [res]
+            if only_get:
+                if not res:
+                    return False
             else:
-                if overWrite:
-                    self.write(objName,
-                               objVals,
-                               res,
-                               context=context)
+                if not res:
+                    res = self.create(objName,
+                                         objVals,
+                                         context=context)
+                    res = [res]
+                else:
+                    if overWrite:
+                        self.write(objName,
+                                   objVals,
+                                   res,
+                                   context=context)
             self._cache_search_condition[key] = res
         return self._cache_search_condition[key]
 

@@ -55,8 +55,8 @@ class ViewOdooObj(object):
             self.localViewId == localViewId and \
             self.localViewFilter == localViewFilter and \
             self.loginInfos == loginInfos and \
-            self.localViewCheckBoxes == viewCheckBoxes:
-            self.hideFormContent == hideFormContent
+            self.localViewCheckBoxes == viewCheckBoxes and \
+            self.hideFormContent == hideFormContent:
             return True
         return False
 

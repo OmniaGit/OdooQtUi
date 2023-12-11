@@ -14,8 +14,6 @@ import logging
 import datetime
 import inspect
 import subprocess
-import random
-import hashlib
 from os.path import expanduser
 from datetime import timedelta
 try:
@@ -25,11 +23,6 @@ except Exception as ex:
 
 try:
     import Image
-    import win32gui
-    import win32con
-    import win32api
-    import win32ui
-    import win32com.client
     from win32com.client import Dispatch
 except Exception as ex:
     logging.error('Windows imports cannot be loaded')
@@ -38,7 +31,6 @@ except Exception as ex:
 
 TRY_ICON_OBJ = None
 DB_INST = None
-
 
 getFunctionName = lambda: inspect.stack()[1][3]
 
@@ -61,25 +53,23 @@ def startUpEnable(pathFrom, startUpflag=False):
     try:
         if not pathFrom:
             return
-        objShell = win32com.client.Dispatch("WScript.Shell")
+        osName = getOS()
+        if osName != 'WINDOWS':
+            logging.warning("OS not supported")
+            return
+        objShell = Dispatch("WScript.Shell")
         userMenu = objShell.SpecialFolders("StartMenu")
         pathTo = os.path.join(userMenu, 'Programs\Startup', os.path.basename(str(pathFrom)))
         filename, file_extension = os.path.splitext(pathTo)
         file_extension = file_extension
         linkPath = filename + '.lnk'
         if startUpflag:
-            osName = getOS()
-            if osName == 'WINDOWS':
-                shell = Dispatch('WScript.Shell')
-                shortcut = shell.CreateShortCut(linkPath)
-                shortcut.Targetpath = pathFrom
-                shortcut.WorkingDirectory = os.path.dirname(pathFrom)
-                shortcut.IconLocation = pathFrom
-                shortcut.save()
-            elif osName == 'LINUX':
-                pass
-                # To try on linux
-                # os.symlink(pathFrom, pathTo)
+            shell = Dispatch('WScript.Shell')
+            shortcut = shell.CreateShortCut(linkPath)
+            shortcut.Targetpath = pathFrom
+            shortcut.WorkingDirectory = os.path.dirname(pathFrom)
+            shortcut.IconLocation = pathFrom
+            shortcut.save()
         else:
             if os.path.exists(linkPath):
                 os.remove(linkPath)
@@ -88,12 +78,20 @@ def startUpEnable(pathFrom, startUpflag=False):
 
 
 def getBaseVolumeName():
+    """
+    Get the name of the base volume dist
+    :return: <the name>
+    """
     volumePath = expanduser("~").split(':')[0] + ':\\'
     logging.debug('[getBaseVolumeName] volumePath: %s' % (volumePath))
     return volumePath
 
 
 def getExeList():
+    """
+    Get list of available product executable product 
+    :return: [<progrm.exe>,<program2.exe>]
+    """
     exeList = []
     if getOS() == 'WINDOWS':
         exeList = getExeFromPath(os.path.join(getBaseVolumeName(), 'Program Files'))
@@ -103,6 +101,9 @@ def getExeList():
 
 
 def getProgramFiles():
+    """
+    Get program file main folder
+    """
     exeList = []
     if getOS() == 'WINDOWS':
         exeList = getExeFromPath(os.path.join(getBaseVolumeName(), 'Program Files'))
@@ -111,6 +112,10 @@ def getProgramFiles():
 
 
 def getProgramFiles86():
+    """
+    Get program file main folder (32 Bit)
+    :return: [] 
+    """
     exeList = []
     if getOS() == 'WINDOWS':
         exeList = getExeFromPath(os.path.join(getBaseVolumeName(), 'Program Files (x86)'))
@@ -119,6 +124,10 @@ def getProgramFiles86():
 
 
 def getPythonPathExe():
+    """
+    Get the python binary path
+    :return: tipically in windows C:\pythonx.x
+    """
     exeList = []
     pythonExePath = sys.executable
     if os.path.exists(pythonExePath):
@@ -128,7 +137,11 @@ def getPythonPathExe():
     return exeList
 
 
-def getExeFromPath(startingPath='', extension='.exe'):
+def getExeFromPath(startingPath=''):
+    """
+    Get executable file from path
+    :return: [<progrm.exe>,<program2.exe>]
+    """
     outExeList = []
     executable = stat.S_IEXEC | stat.S_IXGRP | stat.S_IXOTH
     if os.path.exists(startingPath):
@@ -151,27 +164,33 @@ def distance2(a, b):
 
 
 def getModulePath():
+    """
+    Return the path of the module current module path
+    :return: the path
+    """
     currPath = getCurrentPath()
     utilsDir = os.path.dirname(currPath)
     return utilsDir
 
 
-def computePath(path):
-    if os.path.exists(path):
-        return path
-    else:
-        logging.warning('[computePath] path "%s" does not exist.' % (path))
-    return ''
-
-
 def getImagePath(imageName):
-    iconsDir = getIconsDirectory()
-    return computePath(os.path.join(iconsDir, imageName))
+    """
+    Get the full path of an image name looking at the pre defined icon/image repository/folder
+    :imageName name of the image es. my_image.bmp
+    :return: image fill path or empty string if not found
+    """
+    path = getIconsDirectory()
+    if os.path.exists(path):
+        return os.path.join(path, imageName)
+    return ''
 
 
 def getIconsDirectory(folder_name='images', curr_file=''):
     """
-        Gets icons directory path
+    Gets icons directory path
+    :folder_name Image forlder name 
+    :curr_file where to start looking first.. if empty look at __file__
+    :return: image directory pth
     """
     if not curr_file:
         curr_file = __file__
@@ -195,78 +214,15 @@ def getIconsDirectory(folder_name='images', curr_file=''):
     return iconsDir
 
 
-def getUsefulRandom():
-    dataEnv = os.environ.get('APPDATA', None)
-    if not dataEnv:
-        dataEnv = os.environ.get('PROGRAMFILES', None)
-    if not dataEnv:
-        dataEnv = getModulePath()
-    randomFilePath = os.path.join(dataEnv, 'randomFile.txt')
-    return randomFilePath
-
-
-def getUsefulPath():
-    mainDir = getModulePath()
-    dirPath = os.path.join(mainDir, 'usefulfiles')
-    if not os.path.exists(dirPath):
-        os.makedirs(dirPath)
-    return dirPath
-
-
-def getUsefulPython():
-    mainDir = getModulePath()
-    dirPath = os.path.join(mainDir, 'usefulRunning')
-    if not os.path.exists(dirPath):
-        os.makedirs(dirPath)
-    return dirPath
-
-
 def getCurrentPath():
     """
-       Inizialize all the folder needed for the application
+    Inizialize all the folder needed for the application
     """
     modulePath = os.path.dirname(__file__)
     splitLibrary = modulePath.split('library.zip')  # This is needed when we use py2exe and the file is zipped in the library.zip
     if len(splitLibrary) > 1:
         modulePath = splitLibrary[0]
     return modulePath
-
-
-def packFile(filePath):
-    """
-        get a base64 stream of a file
-    """
-    content = None
-    logging.debug("PackFile: Processing file (%r)." % (filePath))
-    try:
-        with open(filePath, "rb") as filedata:
-            content = base64.encodestring("".join(filedata.readlines()))
-    except Exception as _ex:
-        try:
-            with open(filePath, "rb") as filedata:
-                content = base64.encodebytes(filedata.read())
-        except Exception as ex:
-            logging.warning("PackFile : broken stream on file : %r. Err: %r" % (filePath, ex))
-            raise Exception("PackFile : broken stream on file : %r." % (filePath))
-    return content
-
-
-def unpackFile(content, toFile, timeStamp=False, deltaTime=None):
-    """
-       Unpack the content into a file
-    """
-    if not(content) or (content is None):
-        return
-    try:
-        filedata = file(toFile, 'wb')
-        logging.debug("unpackFile: Processing file (%s)." % (toFile))
-        value = base64.decodestring(content)
-        filedata.write(value)
-        filedata.close()
-    except Exception as _ex:
-        with open(toFile, 'wb') as file_obj:
-            file_obj.write(base64.b64decode(content))
-    setupTimeOnFile(timeStamp, toFile, deltaTime)
 
 
 def setupTimeOnFile(timeStamp, toFile, deltaTime=None):
@@ -314,6 +270,10 @@ def openByDefaultEditor(path):
 
 
 def getOS():
+    """
+    Get the operating system
+    :return: 'LINUX' or 'WINDOWS' or 'UNKNOWN'
+    """
     platform = sys.platform
     if 'linux' in platform:
         return 'LINUX'
@@ -448,10 +408,14 @@ def evaluateBoolean(val, context={}):
     if isinstance(val, bool):
         return val
     elif isinstance(val, str):
-        invisible = eval(val)
-        if invisible:
-            return True
-        return False
+        try:
+            fieldsDict = copy.copy(context)
+            invisible = eval(val, fieldsDict)
+            if invisible:
+                return True
+            return False
+        except Exception as ex:
+            logging.error(ex)
     elif isinstance(val, (int)):
         if val == 0:
             return False
@@ -466,13 +430,16 @@ def evaluateModifiers(modifiers):
     readonlyConditions = modifiers.get('readonly', {})
     return invisibleConditions, readonlyConditions
 
-def evaluateContext(contextStr,fieldsDict):
+
+def evaluateContext(contextStr,
+                    fieldsDict):
     try:
         fieldsDict = copy.copy(fieldsDict)
         return eval(contextStr, fieldsDict)
     except Exception as ex:
         logging.warn("Unable to evaluate %s" % contextStr)
         return {}
+
 
 def evaluateAttrs(fieldsDict, toCompute, context={}):
     def evalSingleCondition(cond):
