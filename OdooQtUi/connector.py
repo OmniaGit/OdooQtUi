@@ -79,7 +79,7 @@ class MainConnector(object):
         :raise_error in case of rpc call has an error rise an expception
         """
         self.rpc_connector = RpcConnection()
-        self.rpc_connector.contextUser.update(contextUser)
+        self.rpc_connector.contextUser.update(contextUser.copy())
         self.activeLanguage = 'en_US'
         self.app_name = app_name
         self.loadedViews = []
@@ -139,7 +139,7 @@ class MainConnector(object):
                                                xmlrpcPort=xmlrpcPort, 
                                                scheme=scheme, 
                                                xmlrpcServerIP=xmlrpcServerIP)
-        self.rpc_connector.contextUser.update(context)
+        self.rpc_connector.contextUser.update(context.copy())
         self.activeLanguage = self.rpc_connector.contextUser.get('lang', 'en_US')
         self.rpc_connector.setXmlRpcError(self._raise_error)
     
@@ -191,7 +191,7 @@ class MainConnector(object):
         loginDialInst.exec_()
         if self.userLogged:
             self.loadedViews = [] # reset the cashed view because you can change db
-            self.rpc_connector.contextUser.update(context) 
+            self.rpc_connector.contextUser.update(context.copy()) 
             self.activeLanguage = self.rpc_connector.contextUser.get('lang', 'en_US')
             return True
         return False
