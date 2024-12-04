@@ -418,6 +418,13 @@ class RpcConnection(object):
                            data=data) as r:
             r.raise_for_status()
             out = r
-        return out    
+        return out
+    
+    def action_archive(self, obj, obj_id):
+        self.callCustomMethod(obj, 'plm_lite_archive', [obj_id])
+    
+    def isActive(self, obj, obj_id):
+        for res in self.read(obj, ['active'], [obj_id]):
+            return res.get('active')
 
 connectionObj = RpcConnection()
