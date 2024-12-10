@@ -1,0 +1,23 @@
+Verificare che i campi relazionati si comportino bene con readonly e required
+Implementare campo preview
+#Implementare campo stato workflow
+Aggiungere rpc context
+Dividere loadIds tra form e tree
+Implementare campo one2many
+Implementare widget radio buttons
+Implementare widget many2many_tags
+Mettere timeout sul login perchè si blocca
+ss
+#Link di riferimento https://packaging.python.org/tutorials/packaging-projects/
+#
+# compile on pip for uploading to pypi
+#
+#python3 setup.py sdist bdist_wheel
+#
+# IN TEST test.pypi.org
+#
+#python3 -m twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+#
+# IN PRUDUCTION push to pypi
+#
+python3 -m twine upload dist/*
