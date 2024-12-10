@@ -7,6 +7,7 @@ FONT_SIZE = "font-size: 11px;"
 # Form color
 VIOLET_BACKGROUND = 'background-color:#875a7b;'
 LOGIN_MAIN = VIOLET_BACKGROUND
+
 BACKGROUND_RED = 'background-color:#94313d;'
 BACKGROUND_WHITE = 'background-color:white;'
 BACKGROUND_GREY = 'background-color:#dfd9d9;'
@@ -15,6 +16,7 @@ READONLY_STYLE = 'background-color:#ebebeb;'
 COMMON_FIELDS_REQUIRED_BACKGROUND = 'background-color: rgb(210,210,255)'
 LAY_OUT_SPACING = 4
 
+COLOR_BLACK = 'color: black;'
 COLOR_WHITE = 'color:white;'
 BOLD_FONT = 'font-weight: bold;'
 COMMON_FIELDS_BORDER = 'border: 2px solid #cfcfcf;'
@@ -22,7 +24,7 @@ NO_RIGHT_BORDER = 'border-right-style: none;'
 NO_LEFT_BORDER = 'border-left-style: none;'
 NO_TOP_BORDER = 'border-top-style: none;'
 COMMON_FIELDS_BOTTOM_BORDER = COMMON_FIELDS_BORDER + NO_RIGHT_BORDER + NO_LEFT_BORDER + NO_TOP_BORDER
-MAIN_STYLE = 'background-color:#ffffff;'
+MAIN_STYLE = 'background-color:#ffffff;' + COLOR_BLACK
 
 BUTTON_ODOO_DEFAULT_COLOR = 'background-color: #00A09D;'
 BUTTON_COMMON = 'border-radius: 0px;border: none;color: white;padding: 5px 10px;' + FONT_SIZE
@@ -35,7 +37,7 @@ BUTTON_STYLE_MANY_2_ONE = 'background-color: #3eb2df;border-color: #21b799;max-w
 BUTTON_STYLE_MANY_2_ONE__2 = 'background-color: #3eb2df;border-color: #21b799;' + BOLD_FONT + BUTTON_COMMON
 BUTTON_STYLE_LINK = 'color: #008784;' + BOLD_FONT
 BUTTON_ADD_AN_ITEM = 'border: none;color:blue;background-color:white;' + BOLD_FONT
-LABEL_STYLE = 'margin-right: 0px;' + BOLD_FONT + FONT_SIZE
+LABEL_STYLE = 'margin-right: 0px;' + BOLD_FONT + FONT_SIZE + COLOR_BLACK
 LABEL_STYLE_STATUSBAR = 'background-color: grey;color:white;max-width:100px;border: 0.1px solid white;border-bottom-right-radius: 10px;border-top-right-radius: 10px;'
 LABEL_STYLE_STATUSBAR_ACTIVE = LABEL_STYLE_STATUSBAR + 'background-color:blue;'
 LABEL_SEPARATOR = LABEL_STYLE + FONT_SIZE + BOLD_FONT
@@ -56,12 +58,27 @@ QTableWidget {border-left: 3px solid #875a7b;
                 background-color: white;} 
 }
 """
+
+INPUT_FIELDS_STYLE = """
+QLineEdit, QTextEdit, QComboBox, QSpinBox, QDoubleSpinBox, QDateEdit, QTimeEdit, QDateTimeEdit {
+    color: black; /* Ensures black text for all input fields */
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 4px;
+}
+"""
+
+
 TABLE_VIEW_LIST_LIST = """QTreeView {border-left: 3px solid #875a7b;
                 border-right: 3px solid #875a7b;
                 border-bottom: 3px solid #875a7b;
                 alternate-background-color: #DDEDF0;
                 background-color: white;} 
 """
+
+LOGIN_LINEEDIT_STYLE = 'min-width:200px;height: 16px;padding: 6px 12px;border: 1px solid #ccc;border-radius: 4px;background-color: rgb(250, 255, 189);color: rgb(0, 0, 0);' + FONT_SIZE  # Explicit black color
+LOGIN_COMBO_STYLE = 'QComboBox {background-color: #eee;color: rgb(0, 0, 0);height: 16px;padding: 6px 12px;' + FONT_SIZE + 'border-radius: 4px;border: 1px solid #ccc;} QScrollBar {background-color:#875a7b} '
+
 # #167F92
 #hover
 #QTableWidget::item::hover {
@@ -87,8 +104,8 @@ TREE_LIST_BACKGROUND_COLOR = 'background-color:#ffffff;'
 
 DEBUG = False
 
-ODOO_STYLE ="""
-QDialog {{background-color:#875a7b;}}
+ODOO_STYLE = """
+QDialog {{background-color:#875a7b; color: black;}}
 QPushButton {{{push_button}}}
 QPushButton:hover {{{push_button_hover}}}
 QTreeView {{border-left: 3px solid #875a7b;

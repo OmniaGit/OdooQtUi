@@ -277,7 +277,7 @@ class Many2many(OdooFieldTemplate):
             else:
                 self.btnAddAnItem.show()
         if self.widgetQtObj:
-            self.widgetQtObj.setHidden(val)
+            self.widgetQtObj.setHidden(bool(val))
         if self.treeViewObj:
             if val:
                 self.treeViewObj.buttToLeft.hide()
@@ -285,11 +285,11 @@ class Many2many(OdooFieldTemplate):
             else:
                 self.treeViewObj.buttToLeft.show()
                 self.treeViewObj.buttToRight.show()
-            self.treeViewObj.treeObj.tableWidget.setHidden(val)
+            self.treeViewObj.treeObj.tableWidget.setHidden(bool(val))
             #self.treeViewObj.treeObj.widgetContents.setHidden(val)
         if self.label_name_values:
-            self.label_name_values.setHidden(val)
-        self.labelQtObj.setHidden(val)
+            self.label_name_values.setHidden(bool(val))
+        self.labelQtObj.setHidden(bool(val))
         if val:
             self.createButt.hide()
         else:

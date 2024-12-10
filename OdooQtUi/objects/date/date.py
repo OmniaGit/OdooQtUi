@@ -63,8 +63,8 @@ class Date(OdooFieldTemplate):
         if self.isChatterWidget:
             return
         super(Date, self).setInvisible(val)
-        self.labelQtObj.setHidden(val)
-        self.widgetQtObj.setHidden(val)
+        self.labelQtObj.setHidden(bool(val))
+        self.widgetQtObj.setHidden(bool(val))
 
     @property
     def value(self):

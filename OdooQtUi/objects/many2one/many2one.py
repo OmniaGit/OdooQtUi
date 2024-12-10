@@ -161,7 +161,7 @@ class Many2one(OdooFieldTemplate):
         super(Many2one, self).setInvisible(val)
         self.labelQtObj.setHidden(val)
         if self.widgetQtObj2:
-            self.widgetQtObj2.setHidden(val)
+            self.widgetQtObj2.setHidden(bool(val))
         if self.currentValue and not val:
             if self.editButton:
                 self.editButton.show()

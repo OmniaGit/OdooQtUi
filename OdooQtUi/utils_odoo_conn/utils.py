@@ -22,7 +22,7 @@ except Exception as ex:
     pass
 
 try:
-    import Image
+    from PIL import Image
     from win32com.client import Dispatch
 except Exception as ex:
     logging.error('Windows imports cannot be loaded')

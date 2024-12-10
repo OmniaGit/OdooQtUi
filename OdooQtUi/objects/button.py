@@ -8,11 +8,10 @@ import json
 from PySide6 import QtGui
 from PySide6 import QtWidgets
 #
-from OdooQtUi.utils_odoo_conn import utils
-from OdooQtUi.utils_odoo_conn import constants
-from OdooQtUi.utils_odoo_conn.utilsUi import popError
-from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
-#
+from ..utils_odoo_conn import utils, constants
+from ..utils_odoo_conn.utilsUi import popError
+from ..objects.fieldTemplate import OdooFieldTemplate
+
 
 class Button(OdooFieldTemplate):
     def __init__(self,

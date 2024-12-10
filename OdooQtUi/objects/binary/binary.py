@@ -136,8 +136,8 @@ class Binary(OdooFieldTemplate):
             super(Binary, self).setReadonly(val)
             self.widgetQtObj.setEnabled(False)
             self.widgetQtObj.setStyleSheet(constants.CHAR_STYLE + constants.READONLY_STYLE)
-            self.buttonClear.setHidden(val)
-            self.buttonEdit.setHidden(val)
+            self.buttonClear.setHidden(bool(val))
+            self.buttonEdit.setHidden(bool(val))
             if self.required:
                 utilsUi.setRequiredBackground(self.widgetQtObj, constants.CHAR_STYLE)
 
@@ -146,11 +146,11 @@ class Binary(OdooFieldTemplate):
             return
         super(Binary, self).setInvisible(val)
         if self.labelQtObj:
-            self.labelQtObj.setHidden(val)
-        self.widgetQtObj.setHidden(val)
+            self.labelQtObj.setHidden(bool(val))
+        self.widgetQtObj.setHidden(bool(val))
         if self.xmlWidget != 'image':
-            self.buttonClear.setHidden(val)
-            self.buttonEdit.setHidden(val)
+            self.buttonClear.setHidden(bool(val))
+            self.buttonEdit.setHidden(bool(val))
 
     @property
     def value(self):

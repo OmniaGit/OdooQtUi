@@ -74,8 +74,8 @@ class Charachter(OdooFieldTemplate):
             if self.isChatterWidget:
                 return
             super(Charachter, self).setInvisible(val)
-            self.labelQtObj.setHidden(val)
-            self.widgetQtObj.setHidden(val)
+            self.labelQtObj.setHidden(bool(val))
+            self.widgetQtObj.setHidden(bool(val))
         except Exception as ex:
             logging.error(f"Unable to set invisible {self.fieldName} due to errro {ex}")
             

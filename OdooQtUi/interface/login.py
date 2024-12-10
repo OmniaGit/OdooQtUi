@@ -20,8 +20,8 @@ from PySide6.QtCore import Slot
 
 
 class RainbowMan(QSplashScreen):
-    def __init__(self, parent=None):
-        super(RainbowMan, self).__init__(parent)
+    def __init__(self):
+        super(RainbowMan, self).__init__()
         self.setWindowFlag(Qt.FramelessWindowHint)
         pixmap = QPixmap(utils.getImagePath("rainbow_man.png"))
         self.setPixmap(pixmap)
@@ -259,7 +259,7 @@ class LoginDialComplete(LoginDial):
                 self.lineEdit_username.setStyleSheet(constants.LOGIN_LINEEDIT_STYLE)
                 self.lineEdit_password.setStyleSheet(constants.LOGIN_LINEEDIT_STYLE)
                 self.label_status.setStyleSheet('')
-                splash = RainbowMan(self)
+                splash = RainbowMan()
                 splash.show()
                 splash.progress()
                 self.accept()

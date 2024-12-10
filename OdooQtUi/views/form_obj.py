@@ -13,23 +13,21 @@ from PySide6 import QtCore
 from PySide6 import QtGui
 from PySide6 import QtWidgets
 
-from OdooQtUi.views.templateView import TemplateView
-from OdooQtUi.utils_odoo_conn import utils
-from OdooQtUi.utils_odoo_conn import utilsUi
-from OdooQtUi.utils_odoo_conn import constants
-from OdooQtUi.objects.selection.selection import Selection
-from OdooQtUi.objects.boolean.boolean import Boolean
-from OdooQtUi.objects.char.char import Charachter
-from OdooQtUi.objects.date.date import Date
-from OdooQtUi.objects.datetimee.datetimee import Datetime
-from OdooQtUi.objects.float.float import Float
-from OdooQtUi.objects.integer.integer import Integer
-from OdooQtUi.objects.many2many.many2many import Many2many
-from OdooQtUi.objects.many2one.many2one import Many2one
-from OdooQtUi.objects.one2many.one2many import One2many
-from OdooQtUi.objects.binary.binary import Binary
-from OdooQtUi.objects.text.text import Text
-from OdooQtUi.objects import button
+from ..views.templateView import TemplateView
+from ..utils_odoo_conn import utils, utilsUi, constants
+from ..objects import button
+from ..objects.selection.selection import Selection
+from ..objects.char.char import Charachter
+from ..objects.date.date import Date
+from ..objects.datetimee.datetimee import Datetime
+from ..objects.float.float import Float
+from ..objects.integer.integer import Integer
+from ..objects.many2many.many2many import Many2many
+from ..objects.boolean.boolean import Boolean
+from ..objects.many2one.many2one import Many2one
+from ..objects.one2many.one2many import One2many
+from ..objects.binary.binary import Binary
+from ..objects.text.text import Text
 
 
 class TemplateFormView(TemplateView):
@@ -116,6 +114,7 @@ class TemplateFormView(TemplateView):
                 if layout:
                     if self.useHeader:
                         qvboxLayout.addLayout(layout)
+
                     else:
                         layout.deleteLater()
                 if mapping:

@@ -8,8 +8,8 @@ import socket
 import logging
 import requests
 #
-from OdooQtUi.RPC.XmlRpc.xmlRpc import XmlRpcConnection
-from OdooQtUi.utils_odoo_conn.utils import timeit
+from .XmlRpc.xmlRpc import XmlRpcConnection
+from ..utils_odoo_conn.utils import timeit
 #
 class RpcConnection(object):
     def __init__(self):

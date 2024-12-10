@@ -11,7 +11,9 @@ try:
 except Exception as ex:
     import xmlrpclib as xmlrpc
     import httplib
-from OdooQtUi.utils_odoo_conn import utils
+
+from ...utils_odoo_conn import utils, utilsUi
+
 USE_INTERFACE = True
 try:
     

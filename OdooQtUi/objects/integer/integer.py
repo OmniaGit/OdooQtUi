@@ -65,8 +65,8 @@ class Integer(OdooFieldTemplate):
         if self.isChatterWidget:
             return
         super(Integer, self).setInvisible(val)
-        self.labelQtObj.setHidden(val)
-        self.widgetQtObj.setHidden(val)
+        self.labelQtObj.setHidden(bool(val))
+        self.widgetQtObj.setHidden(bool(val))
 
     @property
     def value(self):

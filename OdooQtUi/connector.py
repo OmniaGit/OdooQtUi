@@ -5,13 +5,13 @@ Created on 02 feb 2017
 '''
 import logging
 
-from OdooQtUi.utils_odoo_conn import utils
-from OdooQtUi.RPC.rpc import RpcConnection
-from OdooQtUi.views.search_obj import TemplateSearchView
-from OdooQtUi.views.form_obj import TemplateFormView
-from OdooQtUi.views.tree_tree_obj import TemplateTreeTreeView
-from OdooQtUi.views.tree_list_obj import TemplateTreeListView
-from OdooQtUi.interface.login import LoginDialComplete
+from .utils_odoo_conn import utils
+from .RPC.rpc import RpcConnection
+from .views.search_obj import TemplateSearchView
+from .views.form_obj import TemplateFormView
+from .views.tree_tree_obj import TemplateTreeTreeView
+from .views.tree_list_obj import TemplateTreeListView
+from .interface.login import LoginDialComplete
 
 logger = logging.getLogger()
 logger.setLevel(utils.getDebugSeverity())

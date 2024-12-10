@@ -4,12 +4,15 @@ Created on 3 Feb 2017
 @author: Daniel Smerghetto
 '''
 import xml.etree.cElementTree as ElementTree
+from PySide6.QtWidgets import QCompleter
 from PySide6 import QtGui
 from PySide6 import QtCore
 from functools import partial
-from utils_odoo_conn import constants
-from utils_odoo_conn import utils
-from utils_odoo_conn import utilsUi
+from ...utils_odoo_conn import constants, utilsUi
+
+# from OdooQtUi.utils_odoo_conn import constants
+# from OdooQtUi.utils_odoo_conn import utils
+# from OdooQtUi.utils_odoo_conn import utilsUi
 import logging
 import copy
 # Do not delete these, are necessary to compute filters coming from server
@@ -728,7 +731,7 @@ class SearchView(object):
             return self.computeArchRecursion(ElementTree.XML(self.arch))
 
 
-class CustomQCompleter(QtGui.QCompleter):
+class CustomQCompleter(QCompleter):
     def __init__(self, parent=None):
         super(CustomQCompleter, self).__init__(parent)
         self.local_completion_prefix = ""

@@ -560,22 +560,22 @@ class One2many(OdooFieldTemplate):
             if self.isChatterWidget:
                 return
             if self.widgetQtObj:
-                self.widgetQtObj.setHidden(val)
+                self.widgetQtObj.setHidden(bool(val))
             if self.treeViewObj:
-                self.treeViewObj.buttToLeft.setHidden(val)
-                self.treeViewObj.buttToRight.setHidden(val)
-                self.treeViewObj.treeObj.tableWidget.setHidden(val)
+                self.treeViewObj.buttToLeft.setHidden(bool(val))
+                self.treeViewObj.buttToRight.setHidden(bool(val))
+                self.treeViewObj.treeObj.tableWidget.setHidden(bool(val))
                 if  self.treeViewObj.treeObj.widgetContents:
-                    self.treeViewObj.treeObj.widgetContents.setHidden(val)
+                    self.treeViewObj.treeObj.widgetContents.setHidden(bool(val))
             if self.label_name_values:
-                self.label_name_values.setHidden(val)
-            self.labelQtObj.setHidden(val)
-            self.createButt.setHidden(val)
+                self.label_name_values.setHidden(bool(val))
+            self.labelQtObj.setHidden(bool(val))
+            self.createButt.setHidden(bool(val))
             if self.labelQtObj:
-                self.labelQtObj.setHidden(val)
+                self.labelQtObj.setHidden(bool(val))
             if self.createButt:
-                self.createButt.setHidden(val)
-            super(One2many, self).setInvisible(val)
+                self.createButt.setHidden(bool(val))
+            super(One2many, self).setInvisible(bool(val))
         except Exception as ex:
             utils.logError(ex, 'setInvisible')
 

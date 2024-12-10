@@ -1,6 +1,5 @@
 '''
 Created on 24 Mar 2017
-
 @author: dsmerghetto
 '''
 from PySide6 import QtWidgets

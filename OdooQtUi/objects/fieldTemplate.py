@@ -89,7 +89,7 @@ class OdooFieldTemplate(QtWidgets.QWidget):
 
     def hideTranslateButton(self, val):
         if self.translateButton:
-            self.translateButton.setHidden(val)
+            self.translateButton.setHidden(bool(val))
 
     def valueChanged(self):
         utils.logMessage('warning', 'valueChanged not implemented for field: %r' % (self.fieldName), 'valueChanged')

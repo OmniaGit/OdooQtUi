@@ -15,10 +15,8 @@ from PySide6 import QtCore
 from PySide6 import QtWidgets
 #
 import OdooQtUi
-#
-from OdooQtUi.utils_odoo_conn import constants
-from OdooQtUi.utils_odoo_conn import utils
-from OdooQtUi.utils_odoo_conn.utils import logMessage
+from ..utils_odoo_conn import constants, utils
+from ..utils_odoo_conn.utils import logMessage
 
 DEFAULT_ICON_PATH = ''
 
