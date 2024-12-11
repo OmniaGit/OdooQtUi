@@ -380,7 +380,7 @@ class MainConnector(object):
 
     def _getViewDefinition(self, odooObjectName, viewType='', viewName='', view_id=False):
         if viewType == 'tree_list':
-            if self.serverVersion>17:
+            if self.rpc_connector.serverVersion>17:
                 viewType = 'list'
             else:
                 viewType = 'tree'

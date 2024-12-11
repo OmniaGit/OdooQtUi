@@ -45,7 +45,7 @@ class TreeViewList(QtWidgets.QWidget):
     def computeRecursion(self, parent):
         headers = []
         mainVLay = QtWidgets.QVBoxLayout()
-        mainVLay.setMargin(0)
+        #mainVLay.setMargin(0)
         mainVLay.setSpacing(0)
         for childElement in parent: #.getchildren():
             childTag = childElement.tag

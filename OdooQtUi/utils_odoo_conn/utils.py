@@ -416,12 +416,13 @@ def evaluateBoolean(val, context={}):
             return False
         except Exception as ex:
             logging.error(ex)
+            return False
     elif isinstance(val, (int)):
         if val == 0:
             return False
         else:
             return True
-
+    raise Exception(f"{val} not managed")
 
 def evaluateModifiers(modifiers):
     if isinstance(modifiers, str):
