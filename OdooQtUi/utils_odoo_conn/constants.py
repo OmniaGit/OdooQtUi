@@ -49,9 +49,9 @@ DATE_STYLE = COMMON_FIELDS_BOTTOM_BORDER
 TEXT_STYLE = BACKGROUND_WHITE
 NOOTEBOOK_STYLE = 'border-left-style: none;border-right-style: none;border-bottom-style: none;border-top-style: none;'
 NOOTEBOOK_TABBAR_STYLE = 'QTabBar::tab:!selected {border: 3px solid grey;border-left-style: none;border-right-style: none;border-top-style: none;min-width:180px;} QTabBar::tab:selected {border: 3px solid #875a7b;border-left-style: none;border-right-style: none;border-top-style: none;color: #875a7b;' + FONT_SIZE + 'min-width:150px} QTabBar::tab:hover {border: 3px solid #875a7b;border-left-style: none;border-right-style: none;border-top-style: none;color: #875a7b;' + FONT_SIZE + 'font-weight: bold;min-width:150px}'
-MANY_2_MANY_H_HEADER = '::section {color:white;padding:3px;background-color:#7C7BAD;text-align:left;border:none;%s}' % BOLD_FONT
+MANY_2_MANY_H_HEADER = 'color:white;padding:3px;background-color:#7C7BAD;text-align:left;border:none;%s' % BOLD_FONT
 TABLE_LIST_LIST = """QScrollBar {background-color:#875a7b}
-QTableWidget {border-left: 3px solid #875a7b;
+QTableWidget { border-left: 3px solid #875a7b;
                 border-right: 3px solid #875a7b;
                 border-bottom: 3px solid #875a7b;
                 alternate-background-color: #DDEDF0;
@@ -92,8 +92,6 @@ SEARCH_FILTER_TOOLBUTTON = 'background-color: #7c7bad;min-width: 130px;min-heigh
 SEARCH_ADVANCED_BUTTON = 'background-color: #7c7bad;color:white;width: 25px;min-height:25px;%s%s' % (BOLD_FONT, FONT_SIZE)
 OPERATOR_LABEL = 'background-color: #7c7bad;border: 1px solid black;width:30px;color:white;'
 # Login dialog
-LOGIN_LINEEDIT_STYLE = 'min-width:200px;height: 16px;padding: 6px 12px;border: 1px solid #ccc;border-radius: 4px;background-color: rgb(250, 255, 189);color: rgb(0, 0, 0);' + FONT_SIZE
-LOGIN_COMBO_STYLE = 'QComboBox {background-color: #eee;color: rgb(0, 0, 0);height: 16px;padding: 6px 12px;' + FONT_SIZE + 'border-radius: 4px;border: 1px solid #ccc;} QScrollBar {background-color:#875a7b} '
 LOGIN_ACCEPT_BUTTON = 'border-radius: 4px;color: white;background-color: #337ab7;border: 2px solid black;padding: 5px 10px;' + FONT_SIZE
 LOGIN_NEXT_BACK_BUTTONS = LOGIN_ACCEPT_BUTTON + 'background-color: #59be50;'
 LOGIN_CANCEL_BUTTON = LOGIN_ACCEPT_BUTTON + 'background-color: #a30e0e;'

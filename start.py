@@ -6,8 +6,7 @@ Created on 02 feb 2017
 import sys
 import logging
 
-from OdooQtUi.utils_odoo_conn import utils
-from OdooQtUi.utils_odoo_conn import constants
+from OdooQtUi.utils_odoo_conn import constants, utils
 from OdooQtUi.RPC.rpc import connectionObj
 from OdooQtUi.views.search_obj import TemplateSearchView
 from OdooQtUi.views.form_obj import TemplateFormView
@@ -15,7 +14,6 @@ from OdooQtUi.views.tree_tree_obj import TemplateTreeTreeView
 from OdooQtUi.views.tree_list_obj import TemplateTreeListView
 from OdooQtUi.interface.login import LoginDialComplete
 
-from PySide6 import QtGui
 from PySide6 import QtWidgets
 
 logger = logging.getLogger()
@@ -67,7 +65,7 @@ class MainConnector(object):
 
     def loginWithDial(self):
         loginDialInst = LoginDialComplete()
-        loginDialInst.interfaceDial.exec_()
+        loginDialInst.interfaceDial.exec()
         if connectionObj.userLogged:
             self.activeLanguage = connectionObj.contextUser.get('lang', 'en_US')
             return True
@@ -187,7 +185,7 @@ if __name__ == '__main__':
     import time
     ts = time.time()
 
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
 
     @utils.timeit
     def do_test():
@@ -217,18 +215,18 @@ if __name__ == '__main__':
         # tmplViewObj = tryForm('product.product', idToLoad=284, useChatter=True)
         tmplViewObj = tryForm('product.product', idToLoad=1, useChatter=True)
         # viewCheckBoxes = {0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled}
-        dialog = QtGui.QDialog()
-        lay = QtGui.QVBoxLayout()
+        dialog = QtWidgets.QDialog()
+        lay = QtWidgets.QVBoxLayout()
         lay.addWidget(tmplViewObj)
         dialog.setLayout(lay)
         dialog.setStyleSheet(constants.VIOLET_BACKGROUND)
         dialog.resize(1200, 600)
         dialog.move(100, 100)
         dialog.show()
-        dialog.exec_()
+        dialog.exec()
         time.sleep(2)
-        dialog.exec_()
+        dialog.exec()
     while 1:
         do_test()
 
-    app.exec_()
+    app.exec()

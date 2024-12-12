@@ -223,5 +223,4 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     app.setStyle('plastique')
     dialog = OmniaMenuFilterSql()
-    print(dialog.exec_())
-    sys.exit(app.exec_())
+    sys.exit(app.exec())

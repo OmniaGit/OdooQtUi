@@ -5,12 +5,10 @@ Created on 24 Mar 2017
 from PySide6 import QtWidgets
 from .parser.tree_list import TreeViewList
 from .templateView import TemplateView
-from OdooQtUi.utils_odoo_conn import utils, utilsUi
-from OdooQtUi.utils_odoo_conn import constants
+from ..utils_odoo_conn import utils, utilsUi, constants
+from ..utils_odoo_conn.utils import logWarning, logError
 from PySide6 import QtCore
 from functools import partial
-from OdooQtUi.utils_odoo_conn.utils import logWarning, logError
-
 
 class TemplateTreeListView(TemplateView):
     """
@@ -230,7 +228,7 @@ class TemplateTreeListView(TemplateView):
             dialog.setStyleSheet(constants.BACKGROUND_WHITE)
             dialog.adjustSize()
             dialog.resize(1000, 750)
-            if dialog.exec_() == QtWidgets.QDialog.Accepted:
+            if dialog.exec() == QtWidgets.QDialog.Accepted:
                 valuesToUpdate = {}
                 for fieldName, fieldObj in list(viewObj.fieldsChanged.items()):
                     valuesToUpdate[fieldName] = fieldObj.value

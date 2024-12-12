@@ -10,18 +10,12 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import logging
-import PySide6
 from PySide6 import QtWidgets
-from PySide6 import QtGui
 from OdooQtUi.connector import MainConnector
 from OdooQtUi.utils_odoo_conn import constants
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
-# dirname = os.path.dirname(PySide6.__file__)
-# plugin_path = os.path.join(dirname, 'Qt', 'plugins', 'platforms')
-# os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = plugin_path
-#os.environ['QT_DEBUG_PLUGINS']='1'
 
 app = QtWidgets.QApplication(sys.argv)
 
@@ -85,7 +79,6 @@ if __name__ == '__main__':
                 tmplViewObj.loadForceEmptyIds(forceFieldValues, readonlyFields, invisibleFields)
             return tmplViewObj
 
-        #tmplViewObj = tryForm('sale.order', useChatter=False)
         product_ids = connectorObj.rpc_connector.search(obj='product.template',
                                                         filterList=[('id','>',0)],
                                                         limit=1)
@@ -94,19 +87,9 @@ if __name__ == '__main__':
                               idToLoad=product_ids,
                               useHeader=True,
                               useChatter=True)
-        #tmplViewObj = tryListView('product.template', viewFilter=True)
-#         lay = QtWidgets.QVBoxLayout()
-#         lay.addWidget(tmplViewObj)
-#         lay.setMargin(0)
-#         lay.setContentsMargins(0,0,0,0)
-#         dialog = QtWidgets.QDialog()
-#         dialog.setLayout(lay)
-#         dialog.exec_()
         scroll = QtWidgets.QScrollArea()
         scroll.setWidget(tmplViewObj)
         scroll.setWidgetResizable(True)
-        # tmplViewObj = tryForm('product.product', idToLoad=1345, useChatter=False)
-        # viewCheckBoxes = {0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled}
         dialog = QtWidgets.QDialog()
         lay = QtWidgets.QVBoxLayout()
         lay.addWidget(scroll)

@@ -222,6 +222,6 @@ if __name__ == "__main__":
     w = OmniaDataTable(dialog, header=header, data=data)
     w.confirmEvent += cc
     verticalLayout.addWidget(w)
-    dialog.exec_()
+    dialog.exec()
     print("sr", w.selectedRow)
-    sys.exit(app.exec_())
+    sys.exit(app.exec())

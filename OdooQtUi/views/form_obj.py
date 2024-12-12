@@ -640,7 +640,7 @@ class TemplateFormView(TemplateView):
         translationDial.resize(800, 400)
         tableWidget.resizeColumnsToContents()
         tableWidget.horizontalHeader().setStretchLastSection(True)
-        if translationDial.exec_() == QtWidgets.QDialog.Accepted:
+        if translationDial.exec() == QtWidgets.QDialog.Accepted:
             rowsDict = utils.getRowsFromTableWidget(tableWidget, 'dict', fieldNames)
             for rowDict in list(rowsDict.values()):
                 elemId = False

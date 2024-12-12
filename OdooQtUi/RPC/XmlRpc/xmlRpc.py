@@ -16,8 +16,7 @@ from ...utils_odoo_conn import utils, utilsUi
 
 USE_INTERFACE = True
 try:
-    
-    from OdooQtUi.utils_odoo_conn import utilsUi
+    from ...utils_odoo_conn import utilsUi
 except Exception as ex:
     utils.logError(ex, '')
     USE_INTERFACE = False

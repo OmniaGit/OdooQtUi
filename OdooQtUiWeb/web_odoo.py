@@ -229,7 +229,7 @@ class QtOdooUiDilog(QDialog):
                                action_id=398)
         self.exec()
         
-    def show_tree(self):
+    # def show_tree(self):
 
     
     

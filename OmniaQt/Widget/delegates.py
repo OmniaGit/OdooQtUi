@@ -94,7 +94,7 @@ class SqlAlchemyQueyDelegateItem(QtGui.QItemDelegate):
                                      editableField=[],
                                      parent=parent,
                                      standardFilter=self._sqlAlchemyPreFilter)
-        if d.exec_()==QtWidgets.QDialog.Accepted:
+        if d.exec()==QtWidgets.QDialog.Accepted:
             def updateLatest(values):
                 for sqlAlchemyObject in values:
                     if isinstance(sqlAlchemyObject,tuple):

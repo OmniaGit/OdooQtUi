@@ -6,11 +6,12 @@ Created on 02 feb 2017
 import json
 
 from PySide6 import QtGui
-from PySide6 import QtCore
-from PySide6 import QtWidgets
-from OdooQtUi.utils_odoo_conn import utils
-from OdooQtUi.utils_odoo_conn import utilsUi
-from OdooQtUi.utils_odoo_conn import constants
+from PySide6 import QtCore, QtWidgets
+from ..utils_odoo_conn import utils, utilsUi, constants
+
+# from OdooQtUi.utils_odoo_conn import utils
+# from OdooQtUi.utils_odoo_conn import utilsUi
+# from OdooQtUi.utils_odoo_conn import constants
 
 
 class OdooFieldTemplate(QtWidgets.QWidget):

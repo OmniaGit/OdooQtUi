@@ -28,10 +28,10 @@ from PySide6 import QtCore, QtWidgets, QtGui
 #
 from sqlalchemy     import *
 from sqlalchemy.orm import undefer,defer
-#
-from OmniaQt.Model.omniaModel           import SqlAlchemyModel 
-from OmniaQt.Widget.omniaDataTable      import OmniaDataTable,OmniaHorizontalHeader
-from OmniaQt.Widget.delegates           import SqlAlchemyQueyDelegateItem,SqlAlchemyEditDelegateItem,DelegateSwap
+
+from ...OmniaQt.Model.omniaModel import SqlAlchemyModel
+from ...OmniaQt.Widget.omniaDataTable import OmniaDataTable,OmniaHorizontalHeader
+from ...OmniaQt.Widget.delegates import SqlAlchemyQueyDelegateItem,SqlAlchemyEditDelegateItem,DelegateSwap
 #
 class SqlAlchemyFilterViewWidget(OmniaDataTable):
     """
@@ -82,9 +82,9 @@ class SqlAlchemyFilterViewWidget(OmniaDataTable):
         contexMenu=QtWidgets.QMenu(self)
         #
         # Create Actions
-        #
-        addAction           =   QtGui.QAction("Aggiungi", self, triggered=self._newLibrary)
-        delAction           =   QtGui.QAction("Cancella", self, triggered=self._addLibrary)
+        addAction = QtGui.QAction.triggered(self._newLibrary)
+        addAction = QtGui.QAction.triggered(self._newLibrary)
+        delAction = QtGui.QAction.triggered(self._addLibrary)
         #
         # Add action to the context menu   
         #
@@ -104,10 +104,10 @@ class SqlAlchemyFilterViewWidget(OmniaDataTable):
             for name,condition,value in  columnFilter.filterTuple:
                 attribute=self.sqlAlchemyObject.__dict__.get(name,False)
                 if attribute:
-                    if unicode(condition).lower() == 'like':
-                        flt.append(attribute.like(value))
-                    else:
-                        flt.append(attribute==value)
+                    # if unicode(condition).lower() == 'like':
+                    flt.append(attribute.like(value))
+                    # else:
+                    #     flt.append(attribute==value)
         self.tableObj.data=self.getAllData(tuple(flt))
         self.tableObj.populateModel()
       
@@ -193,8 +193,8 @@ class SqlAlchemyDialogEditView(QtWidgets.QDialog):
         self.accept()
         try:
             self.close()
-        except Exception, ex:
-            print ex
+        except Exception as ex:
+            print(ex)
                     
     
     def on_buttonBox_rejected(self):
@@ -370,8 +370,8 @@ class SqlAlchemyDialogEditDialog(QtWidgets.QDialog):
         self.accept()
         try:
             self.close()
-        except Exception, ex:
-            print ex
+        except Exception as ex:
+            print(ex)
     
     @property
     def values(self):

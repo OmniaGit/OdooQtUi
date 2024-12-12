@@ -107,7 +107,7 @@ if __name__ == '__main__':
     form = Form()
     form.show()
     # Run the main Qt loop
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
 
 
 

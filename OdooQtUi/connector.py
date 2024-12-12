@@ -4,6 +4,7 @@ Created on 02 feb 2017
 @author: Daniel Smerghetto
 '''
 import logging
+from PySide6 import QtWidgets
 
 from .utils_odoo_conn import utils
 from .RPC.rpc import RpcConnection
@@ -188,7 +189,7 @@ class MainConnector(object):
         """
         loginDialInst = LoginDialComplete(app_name=self.app_name,
                                           odooConnector=self)
-        loginDialInst.exec_()
+        loginDialInst.exec()
         if self.userLogged:
             self.loadedViews = [] # reset the cashed view because you can change db
             self.rpc_connector.contextUser.update(context.copy()) 
@@ -369,6 +370,7 @@ class MainConnector(object):
                 return viewObj
         return False
 
+
     def _searchForView(self, model, viewName, viewType):
         viewIds = self.rpc_connector.search('ir.ui.view', [('name', '=', viewName),
                                                            ('model', '=', model),
@@ -379,8 +381,9 @@ class MainConnector(object):
         return False
 
     def _getViewDefinition(self, odooObjectName, viewType='', viewName='', view_id=False):
+
         if viewType == 'tree_list':
-            if self.rpc_connector.serverVersion>17:
+            if self.rpc_connector.serverVersion > 17:
                 viewType = 'list'
             else:
                 viewType = 'tree'

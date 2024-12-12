@@ -6,22 +6,19 @@ Created on 3 Feb 2017
 import json
 import xml.etree.cElementTree as ElementTree
 from PySide6 import QtWidgets
-from OdooQtUi.utils_odoo_conn import constants
-from OdooQtUi.utils_odoo_conn import utilsUi
-from OdooQtUi.objects.selection.selection import Selection
-from OdooQtUi.objects.boolean.boolean import Boolean
-from OdooQtUi.objects.char.char import Charachter
-from OdooQtUi.objects.date.date import Date
-from OdooQtUi.objects.datetimee.datetimee import Datetime
-from OdooQtUi.objects.float.float import Float
-from OdooQtUi.objects.integer.integer import Integer
-from OdooQtUi.objects.many2many.many2many import Many2many
-from OdooQtUi.objects.many2one.many2one import Many2one
-from OdooQtUi.objects.text.text import Text
-from OdooQtUi.objects.text.text import TextHtml
-from OdooQtUi.objects.one2many.one2many import One2many
-from OdooQtUi.utils_odoo_conn import utils
-from OdooQtUi.utils_odoo_conn.utils import timeit
+from ...utils_odoo_conn import constants, utilsUi, utils
+from ...objects.selection.selection import Selection
+from ...objects.boolean.boolean import Boolean
+from ...objects.char.char import Charachter
+from ...objects.date.date import Date
+from ...objects.datetimee.datetimee import Datetime
+from ...objects.float.float import Float
+from ...objects.integer.integer import Integer
+from ...objects.many2many.many2many import Many2many
+from ...objects.many2one.many2one import Many2one
+from ...objects.text.text import Text
+from ...objects.text.text import TextHtml
+from ...objects.one2many.one2many import One2many
 
 
 class TreeViewList(QtWidgets.QWidget):
@@ -45,7 +42,7 @@ class TreeViewList(QtWidgets.QWidget):
     def computeRecursion(self, parent):
         headers = []
         mainVLay = QtWidgets.QVBoxLayout()
-        #mainVLay.setMargin(0)
+        mainVLay.setContentsMargins(0, 0, 0, 0)
         mainVLay.setSpacing(0)
         for childElement in parent: #.getchildren():
             childTag = childElement.tag

@@ -3,20 +3,13 @@ Created on Mar 28, 2017
 
 @author: daniel
 '''
-import json
 import time
 from .ui.ui_login import Ui_dialog_login
-from PySide6 import QtWidgets
-from PySide6 import QtCore
-
-from OdooQtUi.utils_odoo_conn import utils
-from OdooQtUi.utils_odoo_conn import constants
-from PySide6.QtWidgets import QProgressBar
-from PySide6.QtWidgets import QApplication
-from PySide6.QtWidgets import QSplashScreen
+from PySide6 import QtCore, QtWidgets
+from ..utils_odoo_conn import utils, constants
+from PySide6.QtWidgets import QProgressBar, QApplication, QSplashScreen
 from PySide6.QtGui import QPixmap
 from PySide6.QtCore import Qt
-from PySide6.QtCore import Slot
 
 
 class RainbowMan(QSplashScreen):

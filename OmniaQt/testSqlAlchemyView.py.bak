@@ -23,6 +23,7 @@ Created on 12/mar/2015
 
 @author: mboscolo
 '''
+from Pyside6 import QtWidgets
 from __future__ import print_function
 import sys
 from PyQt4          import QtCore, QtGui
@@ -120,12 +121,12 @@ if __name__=='__main__':
         setup() #use it the first time to create the db and the entity used for testing
     
     # gui staff
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
     app.setStyle('plastique')
     #dialog=SqlAlchemyDialogEditView(None,session,Entity,['name'])
     relDic={'desctiption':('name',Fields,False)}
     dialog=SqlAlchemyDialogEditDialog(session,Entity,['name','desctiption','desctiption2'],editableField=['name','desctiption'],relationDict=relDic,editable=True)
-    dialog.exec_()
+    dialog.exec()
     print("sr",dialog.values)
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
         

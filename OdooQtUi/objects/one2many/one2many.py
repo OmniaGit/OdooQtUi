@@ -11,10 +11,9 @@ from PySide6 import QtGui
 from PySide6 import QtCore
 from PySide6 import QtWidgets
 
-from OdooQtUi.utils_odoo_conn import utils, utilsUi
-from OdooQtUi.utils_odoo_conn import constants
+from ...utils_odoo_conn import utils, utilsUi, constants
+from ...objects.fieldTemplate import OdooFieldTemplate
 from functools import partial
-from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
 import base64
 from pickle import TRUE
 
@@ -453,7 +452,7 @@ class One2many(OdooFieldTemplate):
             cancelButt.setStyleSheet(constants.BUTTON_STYLE_CANCEL)
             dialog.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
             utilsUi.setLayoutMarginAndSpacing(mainLay)
-            if dialog.exec_() == QtWidgets.QDialog.Accepted:
+            if dialog.exec() == QtWidgets.QDialog.Accepted:
                 fieldVals = viewObjForm.getAllFieldsValues()
                 objId = self.rpc.create(self.relation, fieldVals)
                 if objId:

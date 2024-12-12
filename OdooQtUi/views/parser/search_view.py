@@ -4,9 +4,10 @@ Created on 3 Feb 2017
 @author: Daniel Smerghetto
 '''
 import xml.etree.cElementTree as ElementTree
-from PySide6.QtWidgets import QCompleter
-from PySide6 import QtGui
-from PySide6 import QtCore
+from PySide6.QtWidgets import (QCompleter, QWidget, QVBoxLayout, QHBoxLayout,
+                               QToolButton, QPushButton, QSpacerItem, QSizePolicy,
+                               QMenu, QLineEdit)
+from PySide6 import QtGui, QtCore, QtWidgets
 from functools import partial
 from ...utils_odoo_conn import constants, utilsUi
 
@@ -44,43 +45,43 @@ class SearchView(object):
         self.advancedFilterFields = advancedFilterFields
 
     def computeArchRecursion(self, xmlElementParent):
-        widgetContents = QtGui.QWidget()
-        mainLay = QtGui.QVBoxLayout()
-        filterListLay = QtGui.QHBoxLayout()
-        mainHLay = self.computeRecursion(xmlParent=xmlElementParent)
+        widgetContents = QWidget()
+        mainLay = QVBoxLayout()
+        filterListLay = QHBoxLayout()
+        mainHLay = self.computeRecursion(xmlElementParent)
         widgetContents.setStyleSheet('background-color:#ffffff;')
         mainLay.addLayout(mainHLay)
         mainLay.addLayout(filterListLay)
         widgetContents.setLayout(mainLay)
-        outLay = QtGui.QVBoxLayout()
+        outLay = QVBoxLayout()
         outLay.addWidget(widgetContents)
         return outLay
 
     def computeRecursion(self, xmlElementParent):
-        self.mainVLay = QtGui.QVBoxLayout()
-        mainHLay = QtGui.QHBoxLayout()
-        customFiltersLay = QtGui.QHBoxLayout()
-        self.tagsLay = QtGui.QVBoxLayout()
-        self.customFiltersTagsLay = QtGui.QVBoxLayout()
+        self.mainVLay = QVBoxLayout()
+        mainHLay = QHBoxLayout()
+        customFiltersLay = QHBoxLayout()
+        self.tagsLay = QVBoxLayout()
+        self.customFiltersTagsLay = QVBoxLayout()
 
-        self.buttonFilters = QtGui.QToolButton()
+        self.buttonFilters = QToolButton()
         self.buttonFilters.setText('Filters')
         self.buttonFilters.setStyleSheet(constants.SEARCH_FILTER_TOOLBUTTON)
 
-        self.buttonCustomFilters = QtGui.QPushButton()
+        self.buttonCustomFilters = QPushButton()
         self.buttonCustomFilters.setText('Advanced Filter')
         self.buttonCustomFilters.setStyleSheet(constants.SEARCH_FILTER_TOOLBUTTON)
         self.buttonCustomFilters.setHidden(True)
         self.buttonCustomFilters.clicked.connect(self.customAdvancedFilter)
 
         customFiltersLay.addLayout(self.customFiltersTagsLay)
-        spacer = QtGui.QSpacerItem(0, 0, QtGui.QSizePolicy.MinimumExpanding)
+        # spacer = QtGui.QSpacerItem(0, 0, QtGui.QSizePolicy.MinimumExpanding)
+        spacer = QSpacerItem(0, 0, QSizePolicy.MinimumExpanding, QSizePolicy.Minimum)
         customFiltersLay.addSpacerItem(spacer)
         customFiltersLay.addWidget(self.buttonFilters)
         customFiltersLay.addWidget(self.buttonCustomFilters)
-
-        self.toolmenu = QtGui.QMenu()
-        for childElement in xmlElementParent.getchildren():
+        self.toolmenu = QMenu()
+        for childElement in xmlElementParent:
             childTag = childElement.tag
             if childTag == 'filter':
                 filterObj = self.computeFilter(childElement)
@@ -94,24 +95,24 @@ class SearchView(object):
             else:
                 logging.warning('Tag %r not supported and not evaluated' % (childElement))
         self.buttonFilters.setMenu(self.toolmenu)
-        self.buttonFilters.setPopupMode(QtGui.QToolButton.InstantPopup)
+        self.buttonFilters.setPopupMode(QToolButton.InstantPopup)
         self.buttonFilters.setHidden(True)
-        self.linedit = QtGui.QLineEdit()
+        self.linedit = QLineEdit()
         self.linedit.textChanged.connect(self.textChangedEvent)
         self.linedit.returnPressed.connect(self.returnPressedLocal)
         self.completer = CustomQCompleter()
         self.completer.setCaseSensitivity(QtCore.Qt.CaseInsensitive)
         self.completer.setWrapAround(True)
-        self.filterListModel = QtGui.QStringListModel()
+        self.filterListModel = QtCore.QStringListModel()
         self.populateCombo()
         self.completer.setModel(self.filterListModel)
         self.linedit.setCompleter(self.completer)
         
-        self.searchButton = QtGui.QPushButton('Or')
+        self.searchButton = QPushButton('Or')
         self.searchButton.setStyleSheet(constants.BUTTON_STYLE)
         self.searchButton.clicked.connect(self.orCondition)
 
-        self.buttonAdvancedFilter = QtGui.QPushButton('+')
+        self.buttonAdvancedFilter = QPushButton('+')
         self.buttonAdvancedFilter.setStyleSheet(constants.SEARCH_ADVANCED_BUTTON)
         self.buttonAdvancedFilter.clicked.connect(self.advancedFilter)
 
@@ -122,7 +123,7 @@ class SearchView(object):
         
         self.mainVLay.addLayout(mainHLay)
         
-        self.filtersGroupsLay = QtGui.QHBoxLayout()
+        self.filtersGroupsLay = QHBoxLayout()
         self.mainVLay.addLayout(self.filtersGroupsLay)
         self.filtersGroupsLay.addLayout(customFiltersLay)
         self.mainVLay.addLayout(self.tagsLay)
@@ -135,22 +136,22 @@ class SearchView(object):
                             'Less then or equal to', 'Is set', 'Is not set']
         sortedFields = []
         stringFieldRel = {}
-        dial = QtGui.QDialog()
-        mainLay = QtGui.QVBoxLayout()
-        lay = QtGui.QVBoxLayout()
-        mainWidget = QtGui.QWidget()
-        comboCharOperator = QtGui.QComboBox()
+        dial = QtWidgets.QDialog()
+        mainLay = QVBoxLayout()
+        lay = QVBoxLayout()
+        mainWidget = QtWidgets.QWidget()
+        comboCharOperator = QtWidgets.QComboBox()
         comboCharOperator.setStyleSheet(constants.LOGIN_COMBO_STYLE)
-        comboBoolOperator = QtGui.QComboBox()
+        comboBoolOperator = QtWidgets.QComboBox()
         comboBoolOperator.setStyleSheet(constants.LOGIN_COMBO_STYLE)
-        comboDatetimeOperator = QtGui.QComboBox()
+        comboDatetimeOperator = QtWidgets.QComboBox()
         comboDatetimeOperator.setStyleSheet(constants.LOGIN_COMBO_STYLE)
-        comboFloatOperator = QtGui.QComboBox()
+        comboFloatOperator = QtWidgets.QComboBox()
         comboFloatOperator.setStyleSheet(constants.LOGIN_COMBO_STYLE)
-        dateWidget = QtGui.QDateEdit()
-        datetimeWidget = QtGui.QDateTimeEdit()
-        integerSpinboxWidget = QtGui.QSpinBox()
-        mainLineEditWidget = QtGui.QLineEdit()
+        dateWidget = QtWidgets.QDateEdit()
+        datetimeWidget = QtWidgets.QDateTimeEdit()
+        integerSpinboxWidget = QtWidgets.QSpinBox()
+        mainLineEditWidget = QLineEdit()
         
         self.filterMode = '&'
 
@@ -201,25 +202,25 @@ class SearchView(object):
                 integerSpinboxWidget.setHidden(False)
             
         # Ok / Cancel buttons and layout
-        andButton = QtGui.QPushButton('Filter as And')
+        andButton = QPushButton('Filter as And')
         andButton.clicked.connect(acceptDialAnd)
         andButton.setStyleSheet(constants.LOGIN_ACCEPT_BUTTON)
-        orButton = QtGui.QPushButton('Filter as Or')
+        orButton = QPushButton('Filter as Or')
         orButton.setStyleSheet(constants.LOGIN_ACCEPT_BUTTON)
         orButton.clicked.connect(acceptDialOr)
-        cancelButt = QtGui.QPushButton('Cancel')
+        cancelButt = QPushButton('Cancel')
         cancelButt.clicked.connect(rejectDial)
         cancelButt.setStyleSheet(constants.LOGIN_CANCEL_BUTTON)
 
-        okCancelLay = QtGui.QHBoxLayout()
+        okCancelLay = QHBoxLayout()
         okCancelLay.addWidget(cancelButt)
-        spacer = QtGui.QSpacerItem(0, 0, QtGui.QSizePolicy.MinimumExpanding)
+        spacer = QSpacerItem(0, 0, QSizePolicy.MinimumExpanding)
         okCancelLay.addSpacerItem(spacer)
         okCancelLay.addWidget(andButton)
         okCancelLay.addWidget(orButton)
 
         # Fields combo
-        comboAvailableFields = QtGui.QComboBox()
+        comboAvailableFields = QtWidgets.QComboBox()
         comboAvailableFields.setStyleSheet(constants.LOGIN_COMBO_STYLE)
         
         for fieldName in list(self.advancedFilterFields.keys()):
@@ -236,7 +237,7 @@ class SearchView(object):
             comboAvailableFields.addItem(fieldString)
             comboAvailableFields.currentIndexChanged.connect(fieldsCustomComboChanged)
         
-        centerLay = QtGui.QVBoxLayout()
+        centerLay = QVBoxLayout()
         centerLay.addWidget(comboAvailableFields)
         
         # char
@@ -271,7 +272,7 @@ class SearchView(object):
         lay.addWidget(mainWidget)
         dial.setLayout(lay)
         dial.setStyleSheet(constants.VIOLET_BACKGROUND)
-        if dial.exec_() == QtGui.QDialog.Accepted:
+        if dial.exec() == QtGui.QDialog.Accepted:
             newIndex = comboAvailableFields.currentIndex()
             fieldString = sortedFields[newIndex]
             fieldName = stringFieldRel.get(fieldString)
@@ -401,11 +402,11 @@ class SearchView(object):
                 fieldCustomObj.interfaceString = interfaceStr
                 self.customFilters.append(fieldCustomObj)
                 
-                hlay = QtGui.QHBoxLayout()
+                hlay = QHBoxLayout()
                 hlay.setSpacing(0)
-                labelText = QtGui.QLabel()
-                labelOperator = QtGui.QLabel()
-                closeButton = QtGui.QPushButton()
+                labelText = QtWidgets.QLabel()
+                labelOperator = QtWidgets.QLabel()
+                closeButton = QPushButton()
                 labelText.setText(interfaceStr)
                 labelText.setStyleSheet(constants.TAG_TEXT_STYLE)
                 labelOperator.setText(intFilterMode)
@@ -420,18 +421,18 @@ class SearchView(object):
                 
                 rowsCount = self.customFiltersTagsLay.count()
                 if not rowsCount:
-                    rowLay = QtGui.QHBoxLayout()
+                    rowLay = QHBoxLayout()
                     rowLay.addLayout(hlay)
-                    spacer = QtGui.QSpacerItem(0, 0, QtGui.QSizePolicy.MinimumExpanding)
+                    spacer = QSpacerItem(0, 0, QSizePolicy.MinimumExpanding)
                     rowLay.addSpacerItem(spacer)
                     self.customFiltersTagsLay.addLayout(rowLay)
                 else:
                     lastRow = self.customFiltersTagsLay.children()[-1]
                     childrenCount = lastRow.count()
                     if childrenCount >= 4:
-                        rowLay = QtGui.QHBoxLayout()
+                        rowLay = QHBoxLayout()
                         rowLay.addLayout(hlay)
-                        spacer = QtGui.QSpacerItem(0, 0, QtGui.QSizePolicy.MinimumExpanding)
+                        spacer = QSpacerItem(0, 0, QSizePolicy.MinimumExpanding)
                         rowLay.addSpacerItem(spacer)
                         self.customFiltersTagsLay.addLayout(rowLay)
                     else:
@@ -516,7 +517,7 @@ class SearchView(object):
             widget = childLay.widget()
             if widget:
                 widget.setParent(None)
-            if isinstance(childLay, (QtGui.QHBoxLayout, QtGui.QVBoxLayout)):
+            if isinstance(childLay, (QHBoxLayout, QVBoxLayout)):
                 self.clearQLayoutChildren(childLay)
 
     def reloadFilters(self):
@@ -544,7 +545,7 @@ class SearchView(object):
 
         if not filterString:
             return 
-        hlay = QtGui.QHBoxLayout()
+        hlay = QHBoxLayout()
         
         if not objRel:
             objRel = self.lastFieldsQCompleter(filterString)
@@ -554,14 +555,14 @@ class SearchView(object):
             objRel = copy.deepcopy(objRel)  # Copied new filter because if you select the same filter again the value will be overwritten
         
 
-        label = QtGui.QLabel(filterString)
+        label = QtWidgets.QLabel(filterString)
         label.setStyleSheet(constants.TAG_TEXT_STYLE)
         
-        removeButton = QtGui.QPushButton('X')
+        removeButton = QPushButton('X')
         removeButton.setStyleSheet(constants.BUTTON_STYLE)
         removeButton.setMaximumWidth(30)
 
-        labelOperator = QtGui.QLabel(operator)
+        labelOperator = QtWidgets.QLabel(operator)
         labelOperator.setMaximumWidth(50)
         labelOperator.setAlignment(QtCore.Qt.AlignHCenter)
         
@@ -585,7 +586,7 @@ class SearchView(object):
 
         childrenWidgetsCount = self.tagsLay.count()
         if childrenWidgetsCount == 0:
-            hlayRow = QtGui.QHBoxLayout()
+            hlayRow = QHBoxLayout()
             hlayRow.addLayout(hlay)
             self.tagsLay.addLayout(hlayRow)
             removeButton.clicked.connect(partial(self.removeFieldFilter, filterTuple))
@@ -596,7 +597,7 @@ class SearchView(object):
                 rowLay.addLayout(hlay)
                 removeButton.clicked.connect(partial(self.removeFieldFilter, filterTuple))
             else:
-                hlayRow = QtGui.QHBoxLayout()
+                hlayRow = QHBoxLayout()
                 hlayRow.addLayout(hlay)
                 self.tagsLay.addLayout(hlayRow)
                 removeButton.clicked.connect(partial(self.removeFieldFilter, filterTuple))
@@ -744,11 +745,11 @@ class CustomQCompleter(QCompleter):
     def updateModel(self):
         local_completion_prefix = self.local_completion_prefix
 
-        class InnerProxyModel(QtGui.QSortFilterProxyModel):
+        class InnerProxyModel(QtCore.QSortFilterProxyModel):
             def filterAcceptsRow(self, sourceRow, sourceParent):
                 index0 = self.sourceModel().index(sourceRow, 0, sourceParent)
                 searchStr = local_completion_prefix.lower()
-                modelStr = str(self.sourceModel().data(index0, QtCore.Qt.DisplayRole).toLower())
+                modelStr = str(self.sourceModel().data(index0, QtCore.Qt.DisplayRole)).lower()
                 return searchStr in modelStr
 
         proxy_model = InnerProxyModel()

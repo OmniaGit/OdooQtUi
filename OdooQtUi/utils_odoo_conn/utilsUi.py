@@ -333,5 +333,5 @@ def popMessage(parent,
                                  mess_type=msg_type,
                                  short_text_header=short_text_header)
     logMessage(msg_type, ex, 'popMessage')
-    dialObj.exec_()
+    dialObj.exec()
 

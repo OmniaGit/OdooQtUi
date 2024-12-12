@@ -8,10 +8,8 @@ import json
 from PySide6 import QtWidgets
 from PySide6.QtCore import QAbstractItemModel, Qt, QModelIndex
 #
-from OdooQtUi.utils_odoo_conn import constants
-from OdooQtUi.views.templateView import TemplateView
-#
-#
+from ..utils_odoo_conn import constants
+from ..views.templateView import TemplateView
 class TemplateTreeTreeView(TemplateView):
 
     def __init__(self,
@@ -111,8 +109,10 @@ class TreeTreeData(QAbstractItemModel):
             #todo: mettere un pop up di errore o qualcosa ???
             return
         self.treeView = None  
-        self.headers = list(ret[0].values())
-        self.headersKey= list(ret[0].keys())
+        # self.headers = list(ret[0].values())
+        self.headersKey= ret['entities']
+        self.headers = ret['entities']
+        # self.headersKey= list(ret['entities'].keys())
         self.columnsLen = len(self.headers)
 
         def addChilds(parentNode, childNodesAttributes):
@@ -124,7 +124,8 @@ class TreeTreeData(QAbstractItemModel):
                 addChilds(node, childrenAttributes)
          
         self.root = NodeComputed({'name': 'RootNode'})
-        addChilds(self.root, ret[1])
+        # addChilds(self.root, ret[1])
+        addChilds(self.root, ret['entities'])
 
     def flags(self, index):
         defaultFlags = QAbstractItemModel.flags(self, index)
