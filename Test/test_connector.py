@@ -98,6 +98,7 @@ if __name__ == '__main__':
         dialog.setLayout(lay)
         dialog.resize(1200, 800)
         dialog.move(100, 100)
+        dialog.setStyleSheet("color: black;")
         dialog.exec()
 
     if connectorObj.userLogged:

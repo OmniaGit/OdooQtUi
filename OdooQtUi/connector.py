@@ -189,6 +189,7 @@ class MainConnector(object):
         """
         loginDialInst = LoginDialComplete(app_name=self.app_name,
                                           odooConnector=self)
+        loginDialInst.setStyleSheet("color: black;")
         loginDialInst.exec()
         if self.userLogged:
             self.loadedViews = [] # reset the cashed view because you can change db
