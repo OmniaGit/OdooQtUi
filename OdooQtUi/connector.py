@@ -382,7 +382,7 @@ class MainConnector(object):
         return False
 
     def _getViewDefinition(self, odooObjectName, viewType='', viewName='', view_id=False):
-
+        #
         if viewType == 'tree_list':
             if self.rpc_connector.serverVersion > 17:
                 viewType = 'list'
@@ -390,7 +390,11 @@ class MainConnector(object):
                 viewType = 'tree'
         if not view_id and viewName:
             view_id = self._searchForView(odooObjectName, viewName, viewType)
-        fieldsViewDefinition, fieldsDetails = self.rpc_connector.fieldsViewGet(odooObjectName, view_id, viewType)
+        #
+        fieldsViewDefinition, fieldsDetails = self.rpc_connector.fieldsViewGet(odooObjectName, 
+                                                                               view_id, 
+                                                                               viewType)
+        #
         if fieldsViewDefinition:
             arch = fieldsViewDefinition.get('arch', '')
             model = fieldsViewDefinition.get('model', '')
@@ -398,7 +402,8 @@ class MainConnector(object):
             viewId = fieldsViewDefinition.get('id', False)
             fieldsNameTypeRel = fieldsDetails
             return arch, model, viewName, viewId, fieldsNameTypeRel
-        utils.logMessage('warning', 'Unable to read view definition for odooObjectName %r, viewName %r, view_id %r' % (odooObjectName, viewName, view_id), '_getViewDefinition')
+        utils.logMessage('warning', f'Unable to read view definition for odooObjectName {odooObjectName}, viewName {viewName}, view_id {view_id}', '_getViewDefinition')
+        #
         return '', '', '', False, ''
 
     def setXmlRpcError(self, value=False):

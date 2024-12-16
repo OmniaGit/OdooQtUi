@@ -183,7 +183,7 @@ class XmlRpcConnection(object):
             kargs['offset'] = offset
         if order:
             kargs['order'] = order
-        return self.callOdooFunction(obj, 'search', [filterList], kargs)
+        return self.callOdooFunction(obj, 'search', [filterList], kargs) or []
 
     def read(self, obj, fields=[], ids=[], limit=False, context={}, load='_classic_read'):
         kargs = {'context': context, 'load': load}
@@ -226,19 +226,43 @@ class XmlRpcConnection(object):
         kargs = {'context': context}
         return self.callOdooFunction(obj, 'search_count', [filterList], kargs)
 
-    def fieldsViewGet(self, odooObj, view_id=False, view_type='form', context={}):
+    def fieldsViewGet(self, 
+                      odooObj, 
+                      view_id=False, 
+                      view_type='form', 
+                      context={}):
         if not view_id:
             view_id = False
         kwargParameters = {'context': context}
         if self.serverVersion > 16:
             if not view_id:
-                view_id = self.search('ir.ui.view', [('type','=', view_type)], limit=1)
-                view_id = view_id[0]
-            getViewData = self.callOdooFunction(odooObj, 'get_view', [view_id, view_type], kwargParameters)
-            fieldData = self.callOdooFunction(odooObj, 'fields_get', [getViewData['models'][odooObj]])
+                for view_id in self.search('ir.ui.view', 
+                                           [('type','=', view_type),
+                                            ('model','=', odooObj)],
+                                            limit=1):
+                    break
+            if not view_id:
+                # go for generic one
+                for view_id in self.search('ir.ui.view', 
+                                           [('name','=', 'ir.ui.view search')],
+                                            limit=1):
+                    break
+            if not view_id:
+                raise Exception(f"View of type {view_type} on mode {odooObj} not found")    
+            getViewData = self.callOdooFunction(odooObj, 
+                                                'get_view', 
+                                                [view_id, view_type], 
+                                                kwargParameters)
+            fieldData = self.callOdooFunction(odooObj, 
+                                              'fields_get', 
+                                              [getViewData['models'][odooObj]])
             return getViewData, fieldData
+                
         else:
-            return self.callOdooFunction(odooObj, 'fields_view_get', [view_id, view_type], kwargParameters)
+            return self.callOdooFunction(odooObj, 
+                                         'fields_view_get', 
+                                         [view_id, view_type], 
+                                         kwargParameters)
 
     def on_change(self, odooObj, activeIds, allVals, fieldName, allOnchanges, context):
         try:

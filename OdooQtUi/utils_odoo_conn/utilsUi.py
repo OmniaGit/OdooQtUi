@@ -129,6 +129,7 @@ def commonPopulateTable(headers,
         tableWidget.setRowCount(rowPosition + 1)
         rowDict = {}
         for colIndex in colIndexList:
+            colVal = ''
             colName = headers[colIndex]
             if isinstance(menuObj, (list, tuple)):
                 if colIndex >= len(menuObj):
@@ -141,7 +142,7 @@ def commonPopulateTable(headers,
             if isinstance(colVal, QtWidgets.QWidget):
                 tableWidget.setCellWidget(rowPosition, colIndex, colVal)
             else:
-                twItem = QtWidgets.QTableWidgetItem(colVal)
+                twItem = QtWidgets.QTableWidgetItem(f"{colVal}")
                 if fontSize:
                     font = QtGui.QFont()
                     font.setPointSize(fontSize)
