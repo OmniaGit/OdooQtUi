@@ -97,22 +97,16 @@ class TreeTreeData(QAbstractItemModel):
         self.objectName = objectName
         #
         # call the server in  order to retrive all data
-        #
         ret = self.connectorObj.callCustomMethod(self.objectName,
                                                  functionName,
                                                  parameters=[ids])
-        try:
-            ret = json.loads(ret)
-        except Exception:
-            pass
+
         if not ret:
             #todo: mettere un pop up di errore o qualcosa ???
             return
         self.treeView = None  
-        # self.headers = list(ret[0].values())
+        self.headers = list(ret['headers'].values())
         self.headersKey= ret['entities']
-        self.headers = ret['entities']
-        # self.headersKey= list(ret['entities'].keys())
         self.columnsLen = len(self.headers)
 
         def addChilds(parentNode, childNodesAttributes):
@@ -125,7 +119,7 @@ class TreeTreeData(QAbstractItemModel):
          
         self.root = NodeComputed({'name': 'RootNode'})
         # addChilds(self.root, ret[1])
-        addChilds(self.root, ret['entities'])
+        addChilds(self.root, ret['children'])
 
     def flags(self, index):
         defaultFlags = QAbstractItemModel.flags(self, index)

@@ -78,6 +78,7 @@ class MainConnector(object):
     def _initView(self, viewType, rpcObj, activeLanguage, odooObjectName, viewName, view_id, viewFilter=False, viewCheckBoxes={}, searchMode='ilike', useHeader=False, useChatter=False):
         localLang, rpcObj = self._getCommonLangAndRpc(activeLanguage, rpcObj)
         viewObj = self.checkAlreadyLoadedView(viewType, rpcObj, odooObjectName, viewName, view_id, viewFilter, viewCheckBoxes)
+
         if not viewObj:
             viewObj = self.appendLoadedView(viewType, rpcObj, odooObjectName, viewName, view_id, viewFilter, viewCheckBoxes, searchMode, useHeader, useChatter)
         utils.logMessage('info', 'Loading view %s' % (viewObj), '_initView')
