@@ -7,7 +7,6 @@ import json
 #
 from PySide6 import QtWidgets
 from PySide6.QtCore import QAbstractItemModel, Qt, QModelIndex
-#
 from ..utils_odoo_conn import constants
 from ..views.templateView import TemplateView
 class TemplateTreeTreeView(TemplateView):
@@ -104,9 +103,9 @@ class TreeTreeData(QAbstractItemModel):
         if not ret:
             #todo: mettere un pop up di errore o qualcosa ???
             return
-        self.treeView = None  
-        self.headers = list(ret['headers'].values())
-        self.headersKey= ret['entities']
+        self.treeView = None
+        self.headers = list(ret[0].values())
+        self.headersKey = list(ret[0].keys())
         self.columnsLen = len(self.headers)
 
         def addChilds(parentNode, childNodesAttributes):
@@ -116,10 +115,9 @@ class TreeTreeData(QAbstractItemModel):
             for levelAttributes, childrenAttributes in childNodesAttributes:
                 node = NodeComputed(levelAttributes, parent=parentNode)
                 addChilds(node, childrenAttributes)
-         
+
         self.root = NodeComputed({'name': 'RootNode'})
-        # addChilds(self.root, ret[1])
-        addChilds(self.root, ret['children'])
+        addChilds(self.root, ret[1])
 
     def flags(self, index):
         defaultFlags = QAbstractItemModel.flags(self, index)

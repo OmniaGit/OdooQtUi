@@ -34,7 +34,7 @@ from PySide6.QtWidgets import *
 from PySide6.QtGui import *
 from PySide6.QtWebEngineWidgets import *
 from PySide6.QtWebChannel import QWebChannel
-from PySide6.QtWebEngineCore import QWebEngineProfile 
+from PySide6.QtWebEngineCore import QWebEngineProfile
 from PySide6.QtWebEngineCore import QWebEnginePage
 from PySide6.QtNetwork import QNetworkCookie
 
@@ -134,7 +134,7 @@ from PySide6.QtNetwork import QNetworkCookie
 #         self.load_custom_client_js()
 #         print("Javascript executed form python code")
 
-from OdooQtUiWeb.web_odoo import QtOdooUiDilog
+from ..OdooQtUiWeb.web_odoo import QtOdooUiDilog
 
 class MainWindow(QMainWindow):
 
@@ -165,9 +165,9 @@ class MainWindow(QMainWindow):
         
     def show_form(self):
         self.qtOdooBrowser.show_form(
-            odoo_id=,
+            odoo_id='',
             odoo_object='product.product',
-            odoo_action_id=
+            odoo_action_id=''
             )
 
 
