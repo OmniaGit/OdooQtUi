@@ -270,6 +270,7 @@ class LoginDialComplete(LoginDial):
 
 
     def cancelDial(self):
+        return
         self.loginWithUserDial()
 
     def nextPage(self):
