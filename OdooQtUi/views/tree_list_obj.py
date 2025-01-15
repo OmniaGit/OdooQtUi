@@ -2,14 +2,21 @@
 Created on 24 Mar 2017
 @author: dsmerghetto
 '''
+import copy
+from functools import partial
+#
 from PySide6 import QtWidgets
+from PySide6 import QtCore
+#
 from .parser.tree_list import TreeViewList
 from .templateView import TemplateView
-from ..utils_odoo_conn import utils, utilsUi, constants
-from ..utils_odoo_conn.utils import logWarning, logError
-from PySide6 import QtCore
-from functools import partial
-
+from ..utils_odoo_conn import utils
+from ..utils_odoo_conn import utilsUi
+from ..utils_odoo_conn import constants
+from ..utils_odoo_conn.utils import logWarning
+from ..utils_odoo_conn.utils import logError
+#
+#
 class TemplateTreeListView(TemplateView):
     """
     this class is a widget for managing the tree list view
@@ -128,8 +135,17 @@ class TemplateTreeListView(TemplateView):
         objIds = self.odooConnector.rpc_connector.search(self.model, searchFilter, self.passRange)  # to check with many records if 40 stop will work, 40)
         return self._loadIds(objIds, forceFieldValues, readonlyFields, invisibleFields)
 
+    def get_standard_value(self, from_value):
+        new_value = copy.copy(from_value)
+        new_value['uid']= self.odooConnector.rpc_connector.userId
+        return new_value
+        
     @utils.timeit
-    def _loadIds(self, objIds=[], forceFieldValues={}, readonlyFields={}, invisibleFields={}):
+    def _loadIds(self,
+                 objIds=[], 
+                 forceFieldValues={}, 
+                 readonlyFields={}, 
+                 invisibleFields={}):
         self.labelsOrdered = self.treeObj.orderedFields
         if len(objIds) < self.passRange:
             self.buttToRight.setHidden(True)
@@ -145,6 +161,7 @@ class TemplateTreeListView(TemplateView):
         if self.viewCheckBoxes:
             flagsDict = self.viewCheckBoxes
         for row_index, record in enumerate(records):
+            record_to_eval = self.get_standard_value(record)
             if row_index not in self.row_widgets:
                 self.row_widgets[row_index] = {}
             if row_index not in fieldDict:
@@ -156,13 +173,19 @@ class TemplateTreeListView(TemplateView):
                 xml_obj = self.treeObj.widgets_to_add_in_line[col_index]
                 if row_index == 0:
                     client_context = self.odooConnector.rpc_connector.contextUser
-                    client_context.update(utils.evaluateContext(xml_obj.attrib.get('context', '{}'), record))
-                    readonly = fieldPyDefinition.get('readonly', xml_obj.attrib.get('readonly', False))
-                    readonly = utils.evaluateBoolean(readonly, context=client_context.copy())
-                    required = fieldPyDefinition.get('required', xml_obj.attrib.get('required', False))
-                    required = utils.evaluateBoolean(required, context=client_context.copy())
-                    invisible = fieldPyDefinition.get('invisible', xml_obj.attrib.get('invisible', False))
-                    invisible = utils.evaluateBoolean(invisible, context=client_context.copy())
+                    client_context.update(utils.evaluateContext(xml_obj.attrib.get('context', '{}'), record_to_eval))
+                    #
+                    # Not yet implemented
+                    #
+                    #readonly_eval = fieldPyDefinition.get('readonly', xml_obj.attrib.get('readonly', False))
+                    #readonly = utils.evaluateBoolean(readonly_eval, context=client_context.copy())
+                    #required_eval = fieldPyDefinition.get('required', xml_obj.attrib.get('required', False))
+                    #required = utils.evaluateBoolean(required_eval, context=client_context.copy())
+                    #
+                    #
+                    #
+                    invisible_eval = fieldPyDefinition.get('invisible', xml_obj.attrib.get('invisible', False))
+                    invisible = utils.evaluateBoolean(invisible_eval, context=record_to_eval)
                     headers.append(fieldPyDefinition.get('string', fieldName))
                     self.treeObj.tableWidget.setColumnHidden(col_index, invisible)
                 if xml_obj.tag == 'field':
@@ -186,7 +209,9 @@ class TemplateTreeListView(TemplateView):
             self.idLineRel[records.index(record)] = recordId
         if self.remove_button:
             headers.append('')
+        #
         utilsUi.commonPopulateTable(headers, valuesList, self.treeObj.tableWidget, flagsDict, fontSize=constants.FONT_SIZE_LIST_WIDGET)
+        #
         if self.treeObj.tableWidget:
             self.treeObj.tableWidget.setShowGrid(False)
             self.treeObj.tableWidget.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
