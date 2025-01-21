@@ -3,9 +3,12 @@ Created on 17 Feb 2017
 
 @author: dsmerghetto
 '''
+# main UI Button font size
 FONT_SIZE = "font-size: 11px;"
-# Form color
+
+# Add Box Form color
 VIOLET_BACKGROUND = 'background-color:#875a7b;'
+
 LOGIN_MAIN = VIOLET_BACKGROUND
 
 BACKGROUND_RED = 'background-color:#94313d;'
@@ -28,9 +31,9 @@ MAIN_STYLE = 'background-color:#ffffff;' + COLOR_BLACK
 
 BUTTON_ODOO_DEFAULT_COLOR = 'background-color: #00A09D;'
 BUTTON_COMMON = 'border-radius: 0px;border: none;color: white;padding: 5px 10px;' + FONT_SIZE
-BUTTON_STYLE = 'background-color: #21b799;border-color: #21b799;' + BOLD_FONT + BUTTON_COMMON   # Color green
-BUTTON_STYLE_HOVER = 'background-color: #21b780;border-color: #21b799;' + BOLD_FONT + BUTTON_COMMON   # Color green
-BUTTON_STYLE_REVERSED = 'background-color:white; color: #21b799; border: 2px solid #21b799;padding: 3px; margin:1px;' + BOLD_FONT   # Color green
+BUTTON_STYLE = 'background-color: #21b799;border-color: #21b799;' + BOLD_FONT + BUTTON_COMMON  # Color green
+BUTTON_STYLE_HOVER = 'background-color: #21b780;border-color: #21b799;' + BOLD_FONT + BUTTON_COMMON  # Color green
+BUTTON_STYLE_REVERSED = 'background-color:white; color: #21b799; border: 2px solid #21b799;padding: 3px; margin:1px;' + BOLD_FONT  # Color green
 BUTTON_STYLE_OK = 'background-color: #59be50;border-color: #21b799;' + BUTTON_COMMON
 BUTTON_STYLE_CANCEL = 'background-color: #f05050;border-color: #21b799;' + BUTTON_COMMON
 BUTTON_STYLE_MANY_2_ONE = 'background-color: #3eb2df;border-color: #21b799;max-width:30px;max-height:10px;' + BOLD_FONT + BUTTON_COMMON
@@ -50,12 +53,21 @@ TEXT_STYLE = BACKGROUND_WHITE
 NOOTEBOOK_STYLE = 'border-left-style: none;border-right-style: none;border-bottom-style: none;border-top-style: none;'
 NOOTEBOOK_TABBAR_STYLE = 'QTabBar::tab:!selected {border: 3px solid grey;border-left-style: none;border-right-style: none;border-top-style: none;min-width:180px;} QTabBar::tab:selected {border: 3px solid #875a7b;border-left-style: none;border-right-style: none;border-top-style: none;color: #875a7b;' + FONT_SIZE + 'min-width:150px} QTabBar::tab:hover {border: 3px solid #875a7b;border-left-style: none;border-right-style: none;border-top-style: none;color: #875a7b;' + FONT_SIZE + 'font-weight: bold;min-width:150px}'
 MANY_2_MANY_H_HEADER = 'color:white;padding:3px;background-color:#7C7BAD;text-align:left;border:none;%s' % BOLD_FONT
-TABLE_LIST_LIST = """QScrollBar {background-color:#875a7b}
-QTableWidget { border-left: 3px solid #875a7b;
-                border-right: 3px solid #875a7b;
-                border-bottom: 3px solid #875a7b;
-                alternate-background-color: #DDEDF0;
-                background-color: white;} 
+
+# selected Box detailed view in Main UI
+TABLE_LIST_LIST = """
+QScrollBar {
+    background-color: #875a7b;
+}
+QTableWidget {
+    
+    alternate-background-color: #DDEDF0;
+    background-color: white;
+}
+QHeaderView::section {
+    background-color: #875a7b;
+    color: white;
+    padding: 4px;
 }
 """
 
@@ -68,7 +80,6 @@ QLineEdit, QTextEdit, QComboBox, QSpinBox, QDoubleSpinBox, QDateEdit, QTimeEdit,
 }
 """
 
-
 TABLE_VIEW_LIST_LIST = """QTreeView {border-left: 3px solid #875a7b;
                 border-right: 3px solid #875a7b;
                 border-bottom: 3px solid #875a7b;
@@ -80,9 +91,9 @@ LOGIN_LINEEDIT_STYLE = 'min-width:200px;height: 16px;padding: 6px 12px;border: 1
 LOGIN_COMBO_STYLE = 'QComboBox {background-color: #eee;color: rgb(0, 0, 0);height: 16px;padding: 6px 12px;' + FONT_SIZE + 'border-radius: 4px;border: 1px solid #ccc;} QScrollBar {background-color:#875a7b} '
 
 # #167F92
-#hover
-#QTableWidget::item::hover {
-#color:white;background-color:#167F92;
+# hover
+# QTableWidget::item::hover {
+# color:white;background-color:#167F92;
 FONT_SIZE_LIST_WIDGET = 8
 
 TAG_TEXT_STYLE = 'background-color: #c5c5c5;color: black;padding: 0px 5px 0px 5px;max-width: 500px;border: 1px solid black;' + FONT_SIZE
@@ -91,6 +102,7 @@ TAG_BUTTON_STYLE = 'color: black;margin-left:20px;display: flex;padding: 0px 5px
 SEARCH_FILTER_TOOLBUTTON = 'background-color: #7c7bad;min-width: 130px;min-height:25px;color: white;' + BOLD_FONT + FONT_SIZE
 SEARCH_ADVANCED_BUTTON = 'background-color: #7c7bad;color:white;width: 25px;min-height:25px;%s%s' % (BOLD_FONT, FONT_SIZE)
 OPERATOR_LABEL = 'background-color: #7c7bad;border: 1px solid black;width:30px;color:white;'
+
 # Login dialog
 LOGIN_ACCEPT_BUTTON = 'border-radius: 4px;color: white;background-color: #337ab7;border: 2px solid black;padding: 5px 10px;' + FONT_SIZE
 LOGIN_NEXT_BACK_BUTTONS = LOGIN_ACCEPT_BUTTON + 'background-color: #59be50;'
@@ -102,15 +114,3 @@ TREE_LIST_BACKGROUND_COLOR = 'background-color:#ffffff;'
 
 DEBUG = False
 
-ODOO_STYLE = """
-QDialog {{background-color:#875a7b; color: black;}}
-QPushButton {{{push_button}}}
-QPushButton:hover {{{push_button_hover}}}
-QTreeView {{border-left: 3px solid #875a7b;
-                border-right: 3px solid #875a7b;
-                border-bottom: 3px solid #875a7b;
-                alternate-background-color: #DDEDF0;
-                background-color: white;}} 
-
-""".format(push_button=BUTTON_STYLE,
-           push_button_hover=BUTTON_STYLE_REVERSED)
