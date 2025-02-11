@@ -110,7 +110,7 @@ class TemplateTreeListView(TemplateView):
                 utils.logMessage('warning', 'Field object %r not found in fields' % (fieldName), 'forceRecordVals')
                 return
             fieldObj.setValue(valuesDict.get(fieldName))
-        self.idValsRel[recordID] = self.idValsRel[recordID].update(valuesDict)
+        self.idValsRel[recordID] = self.idValsRel[recordID].update(valuesDict.copy())
 
     @utils.timeit
     def loadIds(self, objIds=[], forceFieldValues={}, readonlyFields={}, invisibleFields={}):
@@ -175,11 +175,11 @@ class TemplateTreeListView(TemplateView):
                     client_context = self.odooConnector.rpc_connector.contextUser
                     client_context.update(utils.evaluateContext(xml_obj.attrib.get('context', '{}'), record))
                     readonly = fieldPyDefinition.get('readonly', xml_obj.attrib.get('readonly', False))
-                    readonly = utils.evaluateBoolean(readonly, context=client_context)
+                    readonly = utils.evaluateBoolean(readonly, context=client_context.copy())
                     required = fieldPyDefinition.get('required', xml_obj.attrib.get('required', False))
-                    required = utils.evaluateBoolean(required, context=client_context)
+                    required = utils.evaluateBoolean(required, context=client_context.copy())
                     invisible = fieldPyDefinition.get('invisible', xml_obj.attrib.get('invisible', False))
-                    invisible = utils.evaluateBoolean(invisible, context=client_context)
+                    invisible = utils.evaluateBoolean(invisible, context=client_context.copy())
                     headers.append(fieldPyDefinition.get('string', fieldName))
                     self.treeObj.tableWidget.setColumnHidden(col_index, invisible)
                 if xml_obj.tag == 'field':

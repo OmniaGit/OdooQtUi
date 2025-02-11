@@ -1,6 +1,23 @@
-*.project
-*.pydevproject
-*.pyc.settings
-dist
+# Add any directories, files, or patterns you don't want to be tracked by version control
+
+
+# python #
+######################
 *.pyc
-/build/
+*.pyd
+
+# Compiled source #
+###################
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+
+# python Compiled log#
+###################
+*.err
+*.log
+
+.*
