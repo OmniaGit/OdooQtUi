@@ -24,11 +24,7 @@ except Exception as ex:
     pass
 
 try:
-    import Image
-    import win32gui
-    import win32con
-    import win32api
-    import win32ui
+    from PIL import Image
     import win32com.client
     from win32com.client import Dispatch
 except Exception as ex:
