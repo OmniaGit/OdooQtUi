@@ -102,7 +102,7 @@ class TreeTreeData(QAbstractItemModel):
         #
         ret = self.connectorObj.callCustomMethod(self.objectName,
                                                  functionName,
-                                                 parameters=ids)
+                                                 parameters=[ids])
         try:
             ret = json.loads(ret)
         except Exception:
@@ -135,7 +135,10 @@ class TreeTreeData(QAbstractItemModel):
 
     def headerData(self, section, orientation, role):
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
-            return self.headers[section]
+            try:
+                return self.headers[section]
+            except:
+                pass
 
     def insertRow(self, row, parent):
         return self.insertRows(row, 1, parent)

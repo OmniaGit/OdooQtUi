@@ -10,8 +10,11 @@ import requests
 #
 from OdooQtUi.RPC.XmlRpc.xmlRpc import XmlRpcConnection
 from OdooQtUi.utils_odoo_conn.utils import timeit
+
+
 #
 class RpcConnection(object):
+
     def __init__(self):
         self.userId = False
         self.availableConnTypes = ['xmlrpc', 'secure-xmlrpc']
@@ -35,6 +38,7 @@ class RpcConnection(object):
         return "UID: %s DB: %s URL %s" % (self.userName,
                                           self.databaseName,
                                           self.xmlrpcServerIP)
+
     def clearCache(self):
         self._cache_search = {}
         self._cache_search_condition = {}
@@ -53,7 +57,14 @@ class RpcConnection(object):
     def getCleanServer(self):
         return self.url.split("/xmlrpc")[0]
         
-    def initConnection(self, connectionType, userName, userPassword, databaseName, xmlrpcPort=8069, scheme='http', xmlrpcServerIP='127.0.0.1'):
+    def initConnection(self,
+                       connectionType,
+                       userName,
+                       userPassword,
+                       databaseName,
+                       xmlrpcPort=8069,
+                       scheme='http',
+                       xmlrpcServerIP='127.0.0.1'):
         self.userName = userName
         self.userPassword = userPassword
         self.databaseName = databaseName
@@ -78,6 +89,7 @@ class RpcConnection(object):
                 self.scheme,
                 self.xmlrpcServerIP,
                 self.connectionType]
+
     @property
     def url(self):
         return self.sockInstance.urlYesLogin
@@ -124,19 +136,19 @@ class RpcConnection(object):
         if not res:
             logging.warning('Unable to get user context.')
             res = {}
-        self.contextUser.update(res)
+        self.contextUser.update(res.copy())
     
     @timeit
-    def callCustomMethod(self, odooObj, functionName, parameters=[], kwargParameters={}, context={},forceHideInterface=False, forceRaise_error=False):
+    def callCustomMethod(self, odooObj, functionName, parameters=[], kwargParameters={}, context={}, forceHideInterface=False, forceRaise_error=False):
         localContext = self.contextUser
-        localContext.update(context)
+        localContext.update(context.copy())
         if localContext:
             kwargParameters['context'] = localContext
         return self.sockInstance.callOdooFunction(odooObj, functionName, parameters, kwargParameters, forceHideInterface, forceRaise_error)
 
     def search(self, obj, filterList, limit=False, offset=False, context={}):
         localContext = self.contextUser
-        localContext.update(context)
+        localContext.update(context.copy())
         res = self.sockInstance.search(obj, filterList, limit, offset, context=localContext)
         if not res:
             return []
@@ -146,7 +158,7 @@ class RpcConnection(object):
         if not ids:
             return []
         localContext = self.contextUser
-        localContext.update(context)
+        localContext.update(context.copy())
         if isinstance(ids, int):
             ids = [ids]
         return self.sockInstance.read(obj,
@@ -164,12 +176,10 @@ class RpcConnection(object):
                 for item in self.read(obj, fields, ids, context, limit, load):
                     self._cache_read[obj][look_id] = item
         return [self._cache_read[obj][x] for x in ids]
-                
-                
             
     def readSearch(self, obj, fields, filterList=[], order=False, context={}):
         localContext = self.contextUser
-        localContext.update(context)
+        localContext.update(context.copy())
         return self.sockInstance.readSearch(obj,
                                             fields,
                                             filterList,
@@ -178,34 +188,34 @@ class RpcConnection(object):
 
     def write(self, obj, values, idsToWrite, context={}):
         localContext = self.contextUser
-        localContext.update(context)
+        localContext.update(context.copy())
         return self.sockInstance.write(obj, values, idsToWrite, context=localContext)
 
     def writeSearch(self, obj, values, filterList, context={}):
         localContext = self.contextUser
-        localContext.update(context)
+        localContext.update(context.copy())
         idsToWrite = self.search(obj, filterList)
         return self.write(obj, values, idsToWrite, context=localContext)
 
     def delete(self, obj, idsToUnlink, context={}):
         localContext = self.contextUser
-        localContext.update(context)
+        localContext.update(context.copy())
         return self.sockInstance.delete(obj, idsToUnlink, context=localContext)
 
     def deleteSearch(self, obj, filterList, context={}):
         localContext = self.contextUser
-        localContext.update(context)
+        localContext.update(context.copy())
         idsToUnlink = self.search(obj, filterList)
         return self.delete(obj, idsToUnlink, context=localContext)
 
     def searchCount(self, obj, filterList, context={}):
         localContext = self.contextUser
-        localContext.update(context)
+        localContext.update(context.copy())
         return self.sockInstance.searchCount(obj, filterList, context=localContext)
 
     def create(self, obj, values, context={}):
         localContext = self.contextUser
-        localContext.update(context)
+        localContext.update(context.copy())
         return self.sockInstance.create(obj, values, context=localContext)
 
     def fieldsGet(self, obj, attributesToRead=[], context={}):
@@ -213,7 +223,7 @@ class RpcConnection(object):
         @attributesToRead: ['string', 'help', 'type']
         '''
         localContext = self.contextUser
-        localContext.update(context)
+        localContext.update(context.copy())
         return self.sockInstance.fieldsGet(obj, attributesToRead, context=localContext)
 
     def defaultGet(self, obj, fieldsToRead=[], context={}):
@@ -221,30 +231,30 @@ class RpcConnection(object):
         @attributesToRead: ['string', 'help', 'type']
         '''
         localContext = self.contextUser
-        localContext.update(context)
+        localContext.update(context.copy())
         return self.sockInstance.defaultGet(obj, fieldsToRead, context=localContext)
 
     def fieldsViewGet(self, obj, view_id, view_type, context={}):
         localContext = self.contextUser
-        localContext.update(context)
+        localContext.update(context.copy())
         return self.sockInstance.fieldsViewGet(obj, view_id, view_type, context=localContext)
 
     def on_change(self, obj, activeIds, allVals, fieldName, allOnchanges, context={}):
         localContext = self.contextUser
-        localContext.update(context)
+        localContext.update(context.copy())
         return self.sockInstance.on_change(obj, activeIds, allVals, fieldName, allOnchanges, context=localContext)
 
     def EnableException(self):
         """
         enable at low level xml-rpc call exceprion
         """
-        self.sockInstance.raise_error=True
+        self.sockInstance.raise_error = True
     
     def DisableException(self):
         """
         diseble at low level xml-rpc call exceprion
         """
-        self.sockInstance.raise_error=True
+        self.sockInstance.raise_error = True
 
     def cacheSearch(self,
                     objName,
@@ -256,8 +266,8 @@ class RpcConnection(object):
         if key not in self._cache_search_condition:
             self._cache_search_condition[key] = self.search(objName,
                                                                 condition,
-                                                                limit, 
-                                                                offset, 
+                                                                limit,
+                                                                offset,
                                                                 context)
         return self._cache_search_condition[key]
         
@@ -266,7 +276,8 @@ class RpcConnection(object):
                           objVals,
                           condition,
                           context={},
-                          overWrite=False):
+                          overWrite=False,
+                          only_get=False):
         if not condition:
             raise Exception("You must provide a valid search condition")
         key = "%s_%s" % (objName, condition)
@@ -274,18 +285,21 @@ class RpcConnection(object):
             res = self.search(objName,
                               condition,
                               context)
-
-            if not res:
-                res = self.create(objName,
-                                     objVals,
-                                     context=context)
-                res = [res]
+            if only_get:
+                if not res:
+                    return False
             else:
-                if overWrite:
-                    self.write(objName,
-                               objVals,
-                               res,
-                               context=context)
+                if not res:
+                    res = self.create(objName,
+                                         objVals,
+                                         context=context)
+                    res = [res]
+                else:
+                    if overWrite:
+                        self.write(objName,
+                                   objVals,
+                                   res,
+                                   context=context)
             self._cache_search_condition[key] = res
         return self._cache_search_condition[key]
 
@@ -308,7 +322,7 @@ class RpcConnection(object):
                             objName,
                             attributes,
                             cleanAttributes=[],
-                            mapAttributes = {},
+                            mapAttributes={},
                             context={}):
         att = attributes.copy()
         map = mapAttributes.copy()
@@ -326,11 +340,11 @@ class RpcConnection(object):
         if new_id:
             self.write(objName, att, new_id, context=context)
         else:
-            att[self.db_from_field]=obj_id
+            att[self.db_from_field] = obj_id
             new_id = self.create(objName,
                                  att,
                                  context=context)
-        if isinstance(new_id, (list,tuple)):
+        if isinstance(new_id, (list, tuple)):
             for _id in new_id:
                 return _id
         return new_id    
@@ -376,10 +390,10 @@ class RpcConnection(object):
         """
         make an http/https call to odoo server with the xml-rep credential
         """ 
-        out  = False
+        out = False
         if not self._session_id:
             self.loadSessionId()
-        headers['Cookie']='session_id='+self._session_id
+        headers['Cookie'] = 'session_id=' + self._session_id
         with requests.post(url=self.getCleanServer() + url,
                            headers=headers,
                            files=files,
@@ -397,16 +411,24 @@ class RpcConnection(object):
         """
         make an http/https call to odoo server with the xml-rep credential
         """ 
-        out  = False
+        out = False
         if not self._session_id:
             self.loadSessionId()
-        headers['Cookie']='session_id='+self._session_id
+        headers['Cookie'] = 'session_id=' + self._session_id
         with requests.post(url=self.getCleanServer() + url,
                            headers=headers,
                            params=param,
                            data=data) as r:
             r.raise_for_status()
             out = r
-        return out    
+        return out
+    
+    def action_archive(self, obj, obj_id):
+        self.callCustomMethod(obj, 'plm_lite_archive', [obj_id])
+    
+    def isActive(self, obj, obj_id):
+        for res in self.read(obj, ['active'], [obj_id]):
+            return res.get('active')
+
 
 connectionObj = RpcConnection()

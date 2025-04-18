@@ -3,6 +3,8 @@ Created on Mar 28, 2017
 
 @author: daniel
 '''
+import os
+import sys
 import json
 import time
 from .ui.ui_login import Ui_dialog_login
@@ -18,11 +20,23 @@ from PySide2.QtGui import QPixmap
 from PySide2.QtCore import Qt
 from PySide2.QtCore import Slot
 
+# def resource_path():
+#         """ Get absolute path to resource, works for dev and for PyInstaller """
+#         if hasattr(sys, '_MEIPASS'):
+#             path = os.path.join(sys._MEIPASS, "src", "images")
+#         else:
+#             BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+#             main_folder = os.path.abspath(os.path.join(BASE_DIR, "..", "..","..",".."))
+#             path = os.path.normpath(os.path.join(main_folder,"odooplmclient_bitbucket_new", "src", "images"))
+#
+#         return path
+
 
 class RainbowMan(QSplashScreen):
     def __init__(self, parent=None):
         super(RainbowMan, self).__init__(parent)
         self.setWindowFlag(Qt.FramelessWindowHint)
+        # rainbow_man_png = os.path.join(resource_path(), "rainbow_man.png")
         pixmap = QPixmap(utils.getImagePath("rainbow_man.png"))
         self.setPixmap(pixmap)
 
@@ -49,8 +63,6 @@ class LoginDial(QtWidgets.QDialog, Ui_dialog_login):
         self.page_2.layout().addWidget(self.progress, 4, 0, 1,2)
         self.progress.setRange(0,1)
         
-
-
     def setEvents(self):
         self.comboBox_conn_type.currentIndexChanged.connect(self.connTypeChanged)
         self.lineEdit_scheme.textChanged.connect(self.schemeChanged)
@@ -230,7 +242,6 @@ class LoginDialComplete(LoginDial):
         self.pushButton_cancel.clicked.connect(self.cancelDial)
         self.pushButton_back.clicked.connect(self.previousPage)
 
-
     def initFields(self):
         super(LoginDialComplete, self).initFields(self.odooConnector.rpc_connector.userLogged,
                                       self.userpass,
@@ -240,6 +251,7 @@ class LoginDialComplete(LoginDial):
                                       self.username,
                                       self.dbName,
                                       self.dbList)
+    
     def accept(self)->None:
         super(LoginDialComplete, self).accept()
 
@@ -277,7 +289,7 @@ class LoginDialComplete(LoginDial):
 
 
     def cancelDial(self):
-        self.loginWithUserDial()
+        self.close()
 
     def nextPage(self):
         xmlrpcServerIP = str(self.lineEdit_server.text())

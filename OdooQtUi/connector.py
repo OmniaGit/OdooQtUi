@@ -55,8 +55,8 @@ class ViewOdooObj(object):
             self.localViewId == localViewId and \
             self.localViewFilter == localViewFilter and \
             self.loginInfos == loginInfos and \
-            self.localViewCheckBoxes == viewCheckBoxes:
-            self.hideFormContent == hideFormContent
+            self.localViewCheckBoxes == viewCheckBoxes and \
+            self.hideFormContent == hideFormContent:
             return True
         return False
 
@@ -79,12 +79,14 @@ class MainConnector(object):
         :raise_error in case of rpc call has an error rise an expception
         """
         self.rpc_connector = RpcConnection()
-        self.rpc_connector.contextUser.update(contextUser)
+        self.rpc_connector.contextUser.update(contextUser.copy())
         self.activeLanguage = 'en_US'
         self.app_name = app_name
         self.loadedViews = []
         self._parentWindow = parentWindow
         self._raise_error = raise_error
+        self.odoo_version = 12.0 
+
     
     @property
     def deltaTime(self):
@@ -139,7 +141,8 @@ class MainConnector(object):
                                                xmlrpcPort=xmlrpcPort, 
                                                scheme=scheme, 
                                                xmlrpcServerIP=xmlrpcServerIP)
-        self.rpc_connector.contextUser.update(context)
+        self.odoo_version = self.rpc_connector.serverVersion
+        self.rpc_connector.contextUser.update(context.copy())
         self.activeLanguage = self.rpc_connector.contextUser.get('lang', 'en_US')
         self.rpc_connector.setXmlRpcError(self._raise_error)
     
@@ -161,6 +164,8 @@ class MainConnector(object):
         except Exception as ex:
             logging.error("Unable to autologin %s" % ex)
         return self.userLogged
+    
+    
 
     def loginToStorage(self):
         utils.writeToFile(self.rpc_connector.databaseName,
@@ -191,7 +196,7 @@ class MainConnector(object):
         loginDialInst.exec_()
         if self.userLogged:
             self.loadedViews = [] # reset the cashed view because you can change db
-            self.rpc_connector.contextUser.update(context) 
+            self.rpc_connector.contextUser.update(context.copy()) 
             self.activeLanguage = self.rpc_connector.contextUser.get('lang', 'en_US')
             return True
         return False
@@ -414,5 +419,4 @@ class MainConnector(object):
                 pass
         return ret
         
-
         

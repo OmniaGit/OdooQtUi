@@ -742,6 +742,7 @@ class CustomQCompleter(QtGui.QCompleter):
         local_completion_prefix = self.local_completion_prefix
 
         class InnerProxyModel(QtGui.QSortFilterProxyModel):
+
             def filterAcceptsRow(self, sourceRow, sourceParent):
                 index0 = self.sourceModel().index(sourceRow, 0, sourceParent)
                 searchStr = local_completion_prefix.lower()

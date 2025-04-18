@@ -4,4 +4,5 @@ encoding//OdooQtUi/interface/ui/ui_login.py=utf-8
 encoding//OdooQtUi/views/form_obj.py=utf-8
 encoding//Test/test_connector.py=utf-8
 encoding//Test/ui_test.py=utf-8
+encoding//Test/web_odoo.py=utf-8
 encoding//webInterface/odooWebInterface.py=utf-8

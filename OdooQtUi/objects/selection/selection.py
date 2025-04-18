@@ -4,6 +4,7 @@ Created on 06 feb 2017
 @author: Daniel
 '''
 import json
+import logging
 from PySide2 import QtCore
 from PySide2 import QtWidgets
 from OdooQtUi.utils_odoo_conn import utils, utilsUi
@@ -31,6 +32,9 @@ class Selection(OdooFieldTemplate):
             if self.invisible:
                 self.widgetQtObj.hide()
 
+    def __str__(self)->str:
+        return f"<{self.fieldName}> : {self.value}"
+       
     def populateMapping(self, items):
         for odooName, interfaceName in items:
             odooName = str(odooName)
@@ -119,15 +123,21 @@ class Selection(OdooFieldTemplate):
                     self.widgetQtObj.setStyleSheet(constants.SELECTION_STYLE)
 
     def setInvisible(self, val=False):
-        if self.isChatterWidget:
-            return
-        super(Selection, self).setInvisible(val)
-        if self.labelQtObj:
-            self.labelQtObj.setContentsMargins(0,0,0,0)
-            self.labelQtObj.setHidden(val)
-        if self.widgetQtObj:
-            self.widgetQtObj.setContentsMargins(0,0,0,0)
-            self.widgetQtObj.setHidden(val)
+        try:
+            if self.isChatterWidget:
+                return
+            if isinstance(val, (str,list, tuple,dict)):
+                logging.warning(f'{val} not of supported type force to False')
+                val=False
+            super(Selection, self).setInvisible(val)
+            if self.labelQtObj:
+                self.labelQtObj.setContentsMargins(0,0,0,0)
+                self.labelQtObj.setHidden(val)
+            if self.widgetQtObj:
+                self.widgetQtObj.setContentsMargins(0,0,0,0)
+                self.widgetQtObj.setHidden(val)
+        except Exception as ex:
+            logging.error(f"Unable to set invisible {self.fieldName} due to errro {ex}")
 
     @property
     def value(self):

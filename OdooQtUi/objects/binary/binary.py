@@ -34,6 +34,9 @@ class Binary(OdooFieldTemplate):
             pass
         self.getQtObject()
 
+    def __str__(self)->str:
+        return f"<{self.fieldName}> : {self.fileName}"
+    
     def getQtObject(self):
         if self.xmlWidget == 'image':
             self.widgetQtObj = QtWidgets.QLabel()

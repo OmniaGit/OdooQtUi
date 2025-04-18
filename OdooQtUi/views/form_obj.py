@@ -501,11 +501,11 @@ class TemplateFormView(TemplateView):
     def setInvisibleField(self, fieldName, val=False):
         fieldObj = self.interfaceFieldsDict.get(fieldName, None)
         if not fieldObj:
-            utils.logMessage('warning', 'Field %r not found in the local fields' % (fieldName), 'setInvisibleField')
+            utils.logMessage('warning', f'Field {fieldName} not found in the local fields', 'setInvisibleField')
             return
         fieldObj.setInvisible(val)
         self.commonEval(val, self.invisibleFields, fieldObj)
-
+    
     def setReadonlyField(self, fieldName, val=False):
         fieldObj = self.interfaceFieldsDict.get(fieldName, None)
         if not fieldObj:

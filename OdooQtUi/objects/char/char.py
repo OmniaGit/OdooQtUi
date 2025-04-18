@@ -3,6 +3,7 @@ Created on 7 Feb 2017
 
 @author: dsmerghetto
 '''
+import logging
 
 from PySide2 import QtGui
 from PySide2 import QtWidgets
@@ -22,6 +23,9 @@ class Charachter(OdooFieldTemplate):
         self.translatable = utils.evaluateBoolean(self.fieldPyDefinition.get('translate', False))
         self.getQtObject()
 
+    def __str__(self)->str:
+        return f"<{self.fieldName}> : {self.currentValue}"
+    
     def getQtObject(self):
         self.labelQtObj = QtWidgets.QLabel(self.fieldStringInterface)
         self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
@@ -66,12 +70,15 @@ class Charachter(OdooFieldTemplate):
                 self.widgetQtObj.setStyleSheet(constants.CHAR_STYLE)
 
     def setInvisible(self, val=False):
-        if self.isChatterWidget:
-            return
-        super(Charachter, self).setInvisible(val)
-        self.labelQtObj.setHidden(val)
-        self.widgetQtObj.setHidden(val)
-
+        try:
+            if self.isChatterWidget:
+                return
+            super(Charachter, self).setInvisible(val)
+            self.labelQtObj.setHidden(val)
+            self.widgetQtObj.setHidden(val)
+        except Exception as ex:
+            logging.error(f"Unable to set invisible {self.fieldName} due to errro {ex}")
+            
     @property
     def value(self):
         return self.currentValue

@@ -15,7 +15,10 @@ class Datetime(OdooFieldTemplate):
         self.widgetQtObj = False
         self.currentValue = False
         self.getQtObject()
-
+    
+    def __str__(self)->str:
+        return f"<{self.fieldName}> : {self.value}"
+    
     def getQtObject(self):
         self.labelQtObj = QtWidgets.QLabel(self.fieldStringInterface)
         self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)

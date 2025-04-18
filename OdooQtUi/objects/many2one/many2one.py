@@ -4,7 +4,6 @@ Created on 7 Feb 2017
 @author: dsmerghetto
 '''
 import json
-from PySide2 import QtGui
 from PySide2 import QtCore
 from PySide2 import QtWidgets
 
@@ -20,7 +19,10 @@ class Many2one(OdooFieldTemplate):
                  fieldsDefinition,
                  odooConnector=None,
                  isChatterWidget=False):
-        super(Many2one, self).__init__(qtParent, xmlField, fieldsDefinition, odooConnector)
+        super(Many2one, self).__init__(qtParent,
+                                       xmlField,
+                                       fieldsDefinition,
+                                       odooConnector)
         self.isChatterWidget = isChatterWidget
         self.labelQtObj = False
         self.widgetQtObj = False
@@ -30,11 +32,18 @@ class Many2one(OdooFieldTemplate):
         self.skipSearch = False
         self.currentValue = False
         self.relation = self.fieldPyDefinition.get('relation', '')
-        self.canCreate = json.loads(self.fieldXmlAttributes.get('can_create', 'true'))
-        self.canWrite = json.loads(self.fieldXmlAttributes.get('can_write', 'true'))
+        if odooConnector.rpc_connector.serverVersion>=17:
+            self.canCreate = self.fieldXmlAttributes.get('can_create', True)
+            self.canWrite = self.fieldXmlAttributes.get('can_write', True)
+        else:
+            self.canCreate = json.loads(self.fieldXmlAttributes.get('can_create', 'true'))
+            self.canWrite = json.loads(self.fieldXmlAttributes.get('can_write', 'true'))
         self.availableItems = self.getItems()
         self.getQtObject()
 
+    def __str__(self)->str:
+        return f"<{self.fieldName}> : {self.relation}"
+    
     def getItems(self, search=False):
         outVal = ['']
         if self.relation and search:
