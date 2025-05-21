@@ -428,4 +428,3 @@ class RpcConnection(object):
             return res.get('active')
 
 connectionObj = RpcConnection()
->>>>>>> 9c2ebf1b24ad9c094679aab8836fa4d839194dca

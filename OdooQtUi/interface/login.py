@@ -15,7 +15,7 @@ from PySide2.QtWidgets import QProgressBar
 from PySide2.QtWidgets import QApplication
 from PySide2.QtWidgets import QSplashScreen
 from PySide2.QtGui import QPixmap
-from PySide2.QtCore import Qt
+from PySide2.QtCore import Qt, QSettings
 from PySide2.QtCore import Slot
 
 
@@ -35,9 +35,12 @@ class RainbowMan(QSplashScreen):
         self.close()
         QApplication.processEvents()
             
-class LoginDial(QtWidgets.QDialog, Ui_dialog_login):
+class LoginDial(QtWidgets.QDialog, 
+                Ui_dialog_login):
 
-    def __init__(self, connType='xmlrpc', availableConnTypes=[]):
+    def __init__(self, 
+                 connType='xmlrpc', 
+                 availableConnTypes=[]):
         super(LoginDial, self).__init__()
         self.availableConnTypes = availableConnTypes
         self.connType = connType
@@ -48,9 +51,32 @@ class LoginDial(QtWidgets.QDialog, Ui_dialog_login):
         self.progress = QProgressBar()
         self.page_2.layout().addWidget(self.progress, 4, 0, 1,2)
         self.progress.setRange(0,1)
-        
-
-
+        self._settings = QSettings("OmniaQtUI", "login")
+         
+    def save_login_settings(self):
+        #
+        currentText = str(self.comboBox_conn_type.currentText())
+        self.settings.setValue("comboBox_conn_type", currentText)
+        #
+        database = str(self.comboBox_database)
+        self.settings.setValue("comboBox_database", database)
+        #
+        self.settings.setValue('lineEdit_password',self.lineEdit_password.Text())
+        self.settings.setValue('lineEdit_port',self.lineEdit_port.Text())
+        self.settings.setValue('lineEdit_scheme',self.lineEdit_scheme.Text())
+        self.settings.setValue('lineEdit_server',self.lineEdit_server.Text())
+        self.settings.setValue('lineEdit_username',self.lineEdit_username.Text())
+    
+    def get_login_settings(self):
+        #
+        self.comboBox_conn_type.setCurrentIndex(self.settings.value("comboBox_conn_type", 4, int))
+        #
+        self.lineEdit_password.setText(self.settings.setValue('lineEdit_password'))
+        self.lineEdit_port.setText(self.settings.setValue('lineEdit_port'))
+        self.lineEdit_scheme.setText(self.settings.setValue('lineEdit_scheme'))
+        self.lineEdit_server.setText(self.settings.setValue('lineEdit_server'))
+        self.lineEdit_username.setText(self.settings.setValue('lineEdit_username'))
+            
     def setEvents(self):
         self.comboBox_conn_type.currentIndexChanged.connect(self.connTypeChanged)
         self.lineEdit_scheme.textChanged.connect(self.schemeChanged)
@@ -178,7 +204,7 @@ class LoginDialComplete(LoginDial):
         super(LoginDialComplete, self).__init__(connType, availableConnTypes=self.availableConnTypes)
         self.connType = connType
         if not self.odooConnector.rpc_connector.userLogged:
-            self.connectFromFile()
+            self.connectFromFile(self.app_name)
         else:
             self.dbName = self.odooConnector.rpc_connector.databaseName
             self.username = self.odooConnector.rpc_connector.userName
@@ -195,8 +221,7 @@ class LoginDialComplete(LoginDial):
             self.setNotLogged()
         self.initFields()
         self.setEvents()
-        self.showRainbowman=True
-    
+        
     def setLogged(self):
         utils.logMessage('info', 'User logged reading from stored file', '__init__')
         self.label_status.setText('User Already Logged!')
@@ -215,7 +240,14 @@ class LoginDialComplete(LoginDial):
         self.pushButton_ok.setHidden(True)
 
     def connectFromFile(self, app_name='odoo_plm'):
-        self.dbName, self.username, self.userpass, self.serverIp, self.serverPort, self.scheme, self.connType, self.dbList = utils.loadFromFile(app_name)
+        self.dbName,  \
+        self.username, \
+        self.userpass, \
+        self.serverIp, \
+        self.serverPort, \
+        self.scheme, \
+        self.connType, \
+        self.dbList = utils.loadFromFile(app_name)
         utils.logMessage('info',
                          'Try login with stored settings:',
                          'connectFromFile')
@@ -244,17 +276,21 @@ class LoginDialComplete(LoginDial):
         super(LoginDialComplete, self).accept()
 
     def acceptDial(self):
-        self.showRainbowman= not self.showRainbowman
-        if not self.showRainbowman:
-            return
         self.progress.setRange(0,0)
         try:
             QApplication.processEvents() 
             self.transferDbInfoFromInterface()
             self.loginWithUserDial()
             if self.odooConnector.rpc_connector.userLogged:
-                utils.writeToFile(self.dbName, self.username, self.userpass, self.serverIp, self.serverPort,
-                                  self.scheme, self.connType, self.dbList, self.app_name)
+                utils.writeToFile(self.dbName, 
+                                  self.username, 
+                                  self.userpass, 
+                                  self.serverIp, 
+                                  self.serverPort,
+                                  self.scheme, 
+                                  self.connType, 
+                                  self.dbList, 
+                                  self.app_name)
                 self.label_status.setText('User Logged')
                 self.lineEdit_username.setStyleSheet(constants.LOGIN_LINEEDIT_STYLE)
                 self.lineEdit_password.setStyleSheet(constants.LOGIN_LINEEDIT_STYLE)
@@ -277,7 +313,8 @@ class LoginDialComplete(LoginDial):
 
 
     def cancelDial(self):
-        self.loginWithUserDial()
+        self.close()
+        #self.loginWithUserDial()
 
     def nextPage(self):
         xmlrpcServerIP = str(self.lineEdit_server.text())
