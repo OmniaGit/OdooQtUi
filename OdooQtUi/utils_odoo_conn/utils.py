@@ -596,7 +596,29 @@ def getDebugSeverity():
         return logging.INFO
 
 
-def writeToFile(dbName, username, userpass, serverIp, serverPort, scheme, connType, dbList=[], app_name='OdooQtUi'):
+def writeToFile(dbName, 
+                username, 
+                userpass, 
+                serverIp, 
+                serverPort, 
+                scheme, 
+                connType, 
+                dbList=[], 
+                app_name='OdooQtUi'):
+    """
+    write odoo login information to file
+    """
+    #
+    if not any((dbName,
+               username,
+               userpass,
+               serverIp,
+               serverPort,
+               scheme,
+               connType
+               )):
+        return
+    #
     toWriteDict = {
         'db_name': dbName,
         'user_name': username,
@@ -605,7 +627,6 @@ def writeToFile(dbName, username, userpass, serverIp, serverPort, scheme, connTy
         'server_port': serverPort,
         'scheme': scheme,
         'conn_type': connType,
-        # 'conn_list': self.availableConnTypes,
         'db_list': dbList,
     }
     toWrite = json.dumps(toWriteDict)
@@ -615,6 +636,9 @@ def writeToFile(dbName, username, userpass, serverIp, serverPort, scheme, connTy
 
 
 def loadFromFile(app_name='OdooQtUi'):
+    """
+    load odoo login information from file
+    """
     dbName = ''
     username = ''
     userpass = ''
@@ -625,6 +649,7 @@ def loadFromFile(app_name='OdooQtUi'):
     dbList = []
     filePath = getLoginFile(app_name)
     fileDict = {}
+    #
     if os.path.exists(filePath):
         with open(filePath, 'r') as readFile:
             content = readFile.read()
@@ -638,6 +663,7 @@ def loadFromFile(app_name='OdooQtUi'):
             scheme = fileDict.get('scheme', '')
             connType = fileDict.get('conn_type', '')
             dbList = fileDict.get('db_list', [])
+    #
     return dbName, username, userpass, serverIp, serverPort, scheme, connType, dbList
 
 
@@ -675,4 +701,4 @@ def html_traceback(exc_value):
                <b>'message'    </b>: %s<br>""" % (error_lines,
                                                   tbe.exc_type.__name__,
                                                   str(tbe).replace("\n", "<br>"))
-    return result
+
