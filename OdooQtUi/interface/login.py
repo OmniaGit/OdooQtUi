@@ -20,17 +20,6 @@ from PySide2.QtGui import QPixmap
 from PySide2.QtCore import Qt
 from PySide2.QtCore import Slot
 
-# def resource_path():
-#         """ Get absolute path to resource, works for dev and for PyInstaller """
-#         if hasattr(sys, '_MEIPASS'):
-#             path = os.path.join(sys._MEIPASS, "src", "images")
-#         else:
-#             BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-#             main_folder = os.path.abspath(os.path.join(BASE_DIR, "..", "..","..",".."))
-#             path = os.path.normpath(os.path.join(main_folder,"odooplmclient_bitbucket_new", "src", "images"))
-#
-#         return path
-
 
 class RainbowMan(QSplashScreen):
     def __init__(self, parent=None):

@@ -70,6 +70,13 @@ class XmlRpcConnection(object):
         else:
             t.set_timeout(self.timeout)
         return t
+    
+    
+    def checkVersion(self):
+        
+        odooVerInfo = xmlrpc.ServerProxy('{}2/common'.format(self.urlCommon), transport=self.timeoutTransport(self.login_timeout),allow_none=True)
+        odooVerDict = odooVerInfo.version()
+        return odooVerDict
 
     def _assignServerVersion(self):
         """
