@@ -30,7 +30,9 @@ class RainbowMan(QSplashScreen):
             
 class LoginDial(QtWidgets.QDialog, Ui_dialog_login):
 
-    def __init__(self, connType='xmlrpc', availableConnTypes=[]):
+    def __init__(self, 
+                 connType='xmlrpc', 
+                 availableConnTypes=[]):
         super(LoginDial, self).__init__()
         self.availableConnTypes = availableConnTypes
         self.connType = connType
@@ -41,8 +43,6 @@ class LoginDial(QtWidgets.QDialog, Ui_dialog_login):
         self.progress = QProgressBar()
         self.page_2.layout().addWidget(self.progress, 4, 0, 1,2)
         self.progress.setRange(0,1)
-        
-
 
     def setEvents(self):
         self.comboBox_conn_type.currentIndexChanged.connect(self.connTypeChanged)
@@ -168,7 +168,8 @@ class LoginDialComplete(LoginDial):
         self.app_name = app_name
         self.odooConnector = odooConnector
         self.availableConnTypes = self.odooConnector.rpc_connector.availableConnTypes
-        super(LoginDialComplete, self).__init__(connType, availableConnTypes=self.availableConnTypes)
+        super(LoginDialComplete, self).__init__(connType, 
+                                                availableConnTypes=self.availableConnTypes)
         self.connType = connType
         if not self.odooConnector.rpc_connector.userLogged:
             self.connectFromFile()
