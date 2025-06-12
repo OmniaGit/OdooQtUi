@@ -315,7 +315,10 @@ def popError(parent, ex):
         err = str(ex)
     else:
         err = str(ex.faultCode)
-    popMessage(parent, messageBody, 'ERROR', err)
+    popMessage(parent, 
+               messageBody, 
+               'ERROR', 
+               err)
 
 
 def popWarning(parent, ex):

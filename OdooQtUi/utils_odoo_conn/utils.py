@@ -701,4 +701,4 @@ def html_traceback(exc_value):
                <b>'message'    </b>: %s<br>""" % (error_lines,
                                                   tbe.exc_type.__name__,
                                                   str(tbe).replace("\n", "<br>"))
-
+    return result
