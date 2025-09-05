@@ -5,19 +5,24 @@ Created on Mar 28, 2017
 '''
 import time
 from .ui.ui_login import Ui_dialog_login
-from PySide6 import QtCore, QtWidgets
+from PySide2 import QtCore, QtWidgets
 from ..utils_odoo_conn import utils, constants
-from PySide6.QtWidgets import QProgressBar, QApplication, QSplashScreen
-from PySide6.QtGui import QPixmap
-from PySide6.QtCore import Qt
+from PySide2.QtWidgets import QProgressBar, QApplication, QSplashScreen
+from PySide2.QtGui import QPixmap
+from PySide2.QtCore import Qt
 
 
 class RainbowMan(QSplashScreen):
     def __init__(self):
-        super(RainbowMan, self).__init__()
-        self.setWindowFlag(Qt.FramelessWindowHint)
-        pixmap = QPixmap(utils.getImagePath("rainbow_man.png"))
-        self.setPixmap(pixmap)
+            super(RainbowMan, self).__init__()
+            # Frameless + Always on top
+            self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
+            self.setWindowModality(Qt.ApplicationModal)
+            pixmap = QPixmap(utils.getImagePath("rainbow_man.png"))
+            self.setPixmap(pixmap)
+            self.show()
+            self.raise_()
+            self.activateWindow()
 
     def progress(self):
         for i in range(10):
@@ -37,6 +42,7 @@ class LoginDial(QtWidgets.QDialog, Ui_dialog_login):
         self.availableConnTypes = availableConnTypes
         self.connType = connType
         self.setupUi(self)
+        self.pushButton_cancel.clicked.connect(self.reject)
         self.setStyleWidgets()
         self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
         self.setEvents()

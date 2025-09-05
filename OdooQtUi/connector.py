@@ -4,7 +4,7 @@ Created on 02 feb 2017
 @author: Daniel Smerghetto
 '''
 import logging
-from PySide6 import QtWidgets
+from PySide2 import QtWidgets
 
 from .utils_odoo_conn import utils
 from .RPC.rpc import RpcConnection
@@ -74,7 +74,7 @@ class MainConnector(object):
                  raise_error=False):
         """
         create the main odoo connector
-        :parentWindow PySide6 main window
+        :parentWindow PySide2 main window
         :contextUser dict like context to be used for all the xml-rpc call
         :app_name str object that specifie the application name
         :raise_error in case of rpc call has an error rise an expception

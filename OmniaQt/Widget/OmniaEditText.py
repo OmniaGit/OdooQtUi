@@ -23,8 +23,7 @@
 Created on 30/ott/2012
 @author: mboscolo
 '''
-from PySide6 import QtWidgets
-from PySide6 import QtCore 
+from PySide2 import QtWidgets, QtCore 
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -223,4 +222,5 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     app.setStyle('plastique')
     dialog = OmniaMenuFilterSql()
-    sys.exit(app.exec())
+    app.exec_()
+    # sys.exit(app.exec())

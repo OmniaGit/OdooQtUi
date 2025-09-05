@@ -26,7 +26,7 @@ Created on 12/mar/2015
 from __future__ import print_function
 from builtins import map
 import sys
-from PySide6 import QtWidgets
+from PySide2 import QtWidgets
 # Sql Alchemy imports
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import *
@@ -128,5 +128,6 @@ if __name__=='__main__':
     dialog=SqlAlchemyDialogEditDialog(session,Entity,['name','desctiption','desctiption2'],editableField=['name','desctiption'],relationDict=relDic,editable=True)
     dialog.exec()
     print("sr",dialog.values)
-    sys.exit(app.exec())
+    app.exec_()
+    # sys.exit(app.exec())
         

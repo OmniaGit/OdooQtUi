@@ -7,9 +7,9 @@
 #
 # WARNING! All changes made in this file will be lost!
 
-from PySide6 import QtCore
-from PySide6 import QtGui
-from PySide6 import QtWidgets
+from PySide2 import QtCore
+from PySide2 import QtGui
+from PySide2 import QtWidgets
 
 
 try:
@@ -130,6 +130,7 @@ class Ui_dialog_login(object):
         dialog_login.setTabOrder(self.lineEdit_password, self.pushButton_ok)
         dialog_login.setTabOrder(self.pushButton_ok, self.pushButton_cancel)
         dialog_login.setTabOrder(self.pushButton_cancel, self.pushButton_back)
+
 
     def retranslateUi(self, dialog_login):
         dialog_login.setWindowTitle(_translate("dialog_login", "Dialog", None))

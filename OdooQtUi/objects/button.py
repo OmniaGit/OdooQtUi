@@ -5,8 +5,7 @@ Created on 06 feb 2017
 '''
 import json
 
-from PySide6 import QtGui
-from PySide6 import QtWidgets
+from PySide2 import QtWidgets, QtGui
 #
 from ..utils_odoo_conn import utils, constants
 from ..utils_odoo_conn.utilsUi import popError

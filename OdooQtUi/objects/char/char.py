@@ -5,15 +5,10 @@ Created on 7 Feb 2017
 '''
 import logging
 
-from PySide6 import QtGui
-from PySide6 import QtWidgets
+from PySide2 import QtWidgets, QtGui
 
 from ...utils_odoo_conn import utils, utilsUi, constants
 from ...objects.fieldTemplate import OdooFieldTemplate
-
-# from OdooQtUi.utils_odoo_conn import utils, utilsUi
-# from OdooQtUi.utils_odoo_conn import constants
-# from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
 
 
 class Charachter(OdooFieldTemplate):

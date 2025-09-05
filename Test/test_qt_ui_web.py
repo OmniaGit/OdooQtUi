@@ -29,111 +29,13 @@ import json
 import logging
 from urllib.parse import urlencode
 
-from PySide6.QtCore import *
-from PySide6.QtWidgets import *
-from PySide6.QtGui import *
-from PySide6.QtWebEngineWidgets import *
-from PySide6.QtWebChannel import QWebChannel
-from PySide6.QtWebEngineCore import QWebEngineProfile
-from PySide6.QtWebEngineCore import QWebEnginePage
-from PySide6.QtNetwork import QNetworkCookie
-
-# class QtOdoo(QObject):
-#
-#     _storedRecord={}
-#
-#     @Slot(str, str)
-#     def onRecordSaved(self,
-#                       model_name,
-#                       datas):
-#         """
-#         Event fired by odoo framework on record saved
-#         :model_name odoo table name
-#         :datas json dict_like with the all the record values
-#         """
-#         print("onRecordSaved")
-#         record_datas = json.loads(datas)
-#         datas_id = record_datas.get('id')
-#
-#         if datas_id in self._storedRecord[model_name]:
-#             self._storedRecord[model_name][datas_id]= record_datas
-#         else:
-#             self._storedRecord[model_name] = {datas_id: record_datas}
-#
-#     @Slot(str, result=str)
-#     def getRef(self, o):
-#         print("inside getRef", o)
-#         #py_obj = json.loads(o)
-#         #py_obj["c"] = ("Hello", "from", "Ppython")
-#         #return "json.dumps(py_obj)"
-#         return "{'message':{'id':5}}"
-#
-#     @Slot(str)
-#     def printRef(self, o):
-#         print("printRef Called")
-#         py_obj = json.loads(o)
-#         #print("inside printRef", py_obj)
-#         pass
-    
-# class MainWindow(QMainWindow):
-#
-#     def __init__(self, *args, **kwargs):
-#         super(MainWindow,self).__init__(*args, **kwargs)
-#         self.qtodoo = QtOdoo()
-#         self.webchannel = QWebChannel(self)
-#         self.browser = QWebEngineView()#
-#         #self.profile = QWebEngineProfile('odooPLM', self.browser)
-#         #self.profile.setPersistentCookiesPolicy(QWebEngineProfile.ForcePersistentCookies)
-#         #cookie_store = self.profile.cookieStore()
-#         #cookie_store.loadAllCookies()
-#         #cookie_store.cookieAdded.connect(self.onCookieAdded)
-#         self.cookies = []
-#         self.page = self.browser.page()
-#         self.browser
-#         #self.page.profile().setPersistentCookiesPolicy(QWebEngineProfile.ForcePersistentCookies)
-#         self.page.setWebChannel(self.webchannel)
-#         self.webchannel.registerObject("qtodoo", self.qtodoo)
-#
-#         #self.browser.setUrl(QUrl("https://www.v15.odooplm.cloud/"))
-#         #self.browser.setUrl(QUrl("http://localhost:8069/"))
-#         self.browser.setUrl(QUrl("http://localhost:8069/web?debug=assets#id=647&cids=1&menu_id=217&action=398&model=product.product&view_type=form"))
-#         #self.browser.setUrl(QUrl("http://localhost:8069"))
-#         self.browser.loadFinished.connect(self.on_load_finished)
-#         #
-#         self.reload_button = QPushButton("Reload", self)
-#         self.reload_button.setToolTip("reload")
-#         self.reload_button.clicked.connect(lambda: self.browser.reload())
-#         #
-#         layout = QVBoxLayout()
-#         layout.addWidget(self.browser)
-#         layout.addWidget(self.reload_button)
-#
-#         container = QWidget()
-#         container.setLayout(layout)
-#
-#         self.setCentralWidget(container)
-#         #
-#
-#     def on_load_finished(self,*args,**karg):
-#         self.load_custom_client_js()
-#
-#     def onCookieAdded(self, cookie):
-#         for c in self.cookies:
-#             if c.hasSameIdentifier(cookie):
-#                 return
-#         self.cookies.append(QNetworkCookie(cookie))
-#         self.toJson()
-#
-#     def load_custom_client_js(self):
-#         #
-#         # Load custom qt javascript
-#         #
-#         with open('./src/qwebchannel.js') as f:
-#             content= f.read()
-#             self.page.runJavaScript(content)
-#         self.load_custom_client_js()
-#         print("Javascript executed form python code")
-
+from PySide2.QtCore import *
+from PySide2.QtWidgets import *
+from PySide2.QtGui import *
+from PySide2.QtWebEngineWidgets import *
+from PySide2.QtWebChannel import QWebChannel
+from PySide2.QtWebEngineCore import QWebEngineProfile, QWebEnginePage
+from PySide2.QtNetwork import QNetworkCookie
 from ..OdooQtUiWeb.web_odoo import QtOdooUiDilog
 
 class MainWindow(QMainWindow):
@@ -185,65 +87,8 @@ def main():
     window = MainWindow()
     window.show()
     ret = app.exec()
-    sys.exit(ret)
+    app.exec_(ret)
+    # sys.exit(ret)
 
 if __name__ == "__main__":
     main()
-
-    
-    # def on_load_finished(self,*args,**karg):
-    #     java ="""
-    #     const loadJs = document.createElement("script");
-    #     loadJs.type="text/javascript";
-    #     loadJs.src="qrc:/src/qwebchannel.js";
-    #     document.head.appendChild(loadJs);
-    #     """    
- #     /*
-    #     setTimeout(function(){
-    #
-    #
-    #     var aa = document.querySelector("[name='action_confirm']");
-    #     console.error("aa");
-    #     console.error(aa);
-    #     console.error("aa");
-    #     if(aa){
-    #     aa.addEventListener('click', function(args){
-    #         console.error("Before");
-    #         new QWebChannel(qt.webChannelTransport, function(channel) {
-    #             console.error("inside");
-    #             backend = channel.objects.backend;
-    #             var x = {a: "1000", b: ["Hello", "From", "JS"]}
-    #             backend.getRef(JSON.stringify(x), function(y) {
-    #             js_obj = JSON.parse(y);
-    #             js_obj["f"] = false;
-    #             backend.printRef(JSON.stringify(js_obj));
-    #     });
-    # });
-    #     })
-    #     }
-    #     else{
-    #     console.error("event is null");
-    #     }
-    #     },10000)
-    #     */
-    #     """
-        #self.page.runJavaScript(java)
-    # promise.then(function(data){
-    #     console.log(window)
-    #     if("QWebChannel" in window){
-    #         new QWebChannel(qt.webChannelTransport, function(channel) {
-    #             const backend = channel.objects.backend;
-    #             console.error("url");
-    #             console.error(url);
-    #             console.error("params");
-    #             console.error(JSON.stringify(params)); 
-    #             console.error("settings");
-    #             console.error(JSON.stringify(settings));
-    #             backend.printRef(JSON.stringify(url));
-    #         });
-    #     }
-    #     return Promise.resolve(data);
-    # }).catch(function(ex){
-    #    console.error("Rpc Error", ex) 
-    # });
-    

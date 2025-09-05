@@ -5,8 +5,7 @@ Created on 06 feb 2017
 '''
 import json
 import logging
-from PySide6 import QtCore
-from PySide6 import QtWidgets
+from PySide2 import QtWidgets, QtCore
 from ...utils_odoo_conn import utils, utilsUi, constants
 from ...objects.fieldTemplate import OdooFieldTemplate
 

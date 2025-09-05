@@ -5,7 +5,7 @@ Created on 3 Feb 2017
 '''
 import json
 import xml.etree.cElementTree as ElementTree
-from PySide6 import QtWidgets
+from PySide2 import QtWidgets
 from ...utils_odoo_conn import constants, utilsUi, utils
 from ...objects.selection.selection import Selection
 from ...objects.boolean.boolean import Boolean

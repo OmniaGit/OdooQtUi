@@ -4,8 +4,7 @@ Created on 7 Feb 2017
 @author: dsmerghetto
 '''
 import json
-from PySide6 import QtCore
-from PySide6 import QtWidgets
+from PySide2 import QtWidgets, QtCore 
 
 from ...utils_odoo_conn import utils, utilsUi, constants
 from ...objects.fieldTemplate import OdooFieldTemplate

@@ -23,7 +23,7 @@ Created on 12/mar/2015
 
 @author: mboscolo
 '''
-from PySide6 import QtCore, QtWidgets, QtGui
+from PySide2 import QtCore, QtWidgets, QtGui
 
 class SqlAlchemyEditDelegateItem(QtGui.QItemDelegate):
     def __init__(self,

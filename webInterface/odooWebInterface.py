@@ -27,10 +27,10 @@ import logging
 import datetime
 import sys
 import site
-from PySide6.QtCore import *
-from PySide6.QtWidgets import *
-from PySide6.QtGui import *
-from PySide6.QtWebEngineWidgets import QWebEngineView
+from PySide2.QtCore import *
+from PySide2.QtWidgets import *
+from PySide2.QtGui import *
+from PySide2.QtWebEngineWidgets import QWebEngineView
 from urllib.parse import urljoin
 
 
@@ -57,8 +57,9 @@ class Login(BaseWebForm):
 if __name__ == '__main__':
     app = QApplication(sys.argv) 
     l = Login()
-    l.show()   
-    sys.exit(app.exec())
+    l.show()  
+    app.exec_() 
+    # sys.exit(app.exec())
     
     
     

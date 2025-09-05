@@ -5,8 +5,8 @@ Created on 24 Mar 2017
 '''
 import json
 #
-from PySide6 import QtWidgets
-from PySide6.QtCore import QAbstractItemModel, Qt, QModelIndex
+from PySide2 import QtWidgets
+from PySide2.QtCore import QAbstractItemModel, Qt, QModelIndex
 from ..utils_odoo_conn import constants
 from ..views.templateView import TemplateView
 class TemplateTreeTreeView(TemplateView):
@@ -277,12 +277,4 @@ class TreeTreeView(QtWidgets.QWidget):
     
     def getRootNode(self):
         return self.abstractModel.root
-        
-       
-    
-        
-        
-        
-        
-        
-        
+            

@@ -24,7 +24,7 @@ Created on 22/lug/2014
 @author: mboscolo
 '''
 #
-from PySide6 import QtCore, QtWidgets, QtGui
+from PySide2 import QtCore, QtWidgets, QtGui
 #
 from sqlalchemy     import *
 from sqlalchemy.orm import undefer,defer

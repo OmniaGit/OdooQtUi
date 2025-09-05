@@ -3,13 +3,13 @@ Created on 3 Feb 2017
 
 @author: Daniel Smerghetto
 '''
-import xml.etree.cElementTree as ElementTree
-from PySide6.QtWidgets import (QCompleter, QWidget, QVBoxLayout, QHBoxLayout,
+import xml.etree.ElementTree as ElementTree
+from PySide2.QtWidgets import (QCompleter, QWidget, QVBoxLayout, QHBoxLayout,
                                QToolButton, QPushButton, QSpacerItem, QSizePolicy,
                                QMenu, QLineEdit)
-from PySide6 import QtGui, QtCore, QtWidgets
+from PySide2 import QtGui, QtCore, QtWidgets
 from functools import partial
-from ...utils_odoo_conn import constants, utilsUi
+from OdooQtUi.utils_odoo_conn import constants, utilsUi
 
 # from OdooQtUi.utils_odoo_conn import constants
 # from OdooQtUi.utils_odoo_conn import utils

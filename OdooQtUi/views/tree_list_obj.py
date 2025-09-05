@@ -2,12 +2,12 @@
 Created on 24 Mar 2017
 @author: dsmerghetto
 '''
-from PySide6 import QtWidgets
+from PySide2 import QtWidgets
 from .parser.tree_list import TreeViewList
 from .templateView import TemplateView
 from ..utils_odoo_conn import utils, utilsUi, constants
 from ..utils_odoo_conn.utils import logWarning, logError
-from PySide6 import QtCore
+from PySide2 import QtCore
 from functools import partial
 
 class TemplateTreeListView(TemplateView):

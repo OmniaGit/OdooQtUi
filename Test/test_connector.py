@@ -10,7 +10,7 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import logging
-from PySide6 import QtWidgets
+from PySide2 import QtWidgets
 from OdooQtUi.connector import MainConnector
 from OdooQtUi.utils_odoo_conn import constants
 logger = logging.getLogger()

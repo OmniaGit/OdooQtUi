@@ -24,9 +24,7 @@ from builtins import str
 Created on 30/ott/2012
 @author: mboscolo
 '''
-from PySide6 import QtWidgets
-from PySide6 import QtCore
-from PySide6 import QtGui
+from PySide2 import QtWidgets, QtCore, QtGui
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -224,4 +222,5 @@ if __name__ == "__main__":
     verticalLayout.addWidget(w)
     dialog.exec()
     print("sr", w.selectedRow)
-    sys.exit(app.exec())
+    app.exec_()
+    # sys.exit(app.exec())

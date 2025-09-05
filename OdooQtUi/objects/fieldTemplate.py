@@ -5,8 +5,7 @@ Created on 02 feb 2017
 '''
 import json
 
-from PySide6 import QtGui
-from PySide6 import QtCore, QtWidgets
+from PySide2 import QtWidgets, QtCore, QtGui
 from ..utils_odoo_conn import utils, utilsUi, constants
 
 # from OdooQtUi.utils_odoo_conn import utils

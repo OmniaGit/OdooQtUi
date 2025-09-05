@@ -29,14 +29,14 @@ import json
 import logging
 from urllib.parse import urlencode
 
-from PySide6.QtCore import *
-from PySide6.QtWidgets import *
-from PySide6.QtGui import *
-from PySide6.QtWebEngineWidgets import *
-from PySide6.QtWebChannel import QWebChannel
-from PySide6.QtWebEngineCore import QWebEngineProfile 
-from PySide6.QtWebEngineCore import QWebEnginePage
-from PySide6.QtNetwork import QNetworkCookie
+from PySide2.QtCore import *
+from PySide2.QtWidgets import *
+from PySide2.QtGui import *
+from PySide2.QtWebEngineWidgets import *
+from PySide2.QtWebChannel import QWebChannel
+from PySide2.QtWebEngineCore import QWebEngineProfile 
+from PySide2.QtWebEngineCore import QWebEnginePage
+from PySide2.QtNetwork import QNetworkCookie
 #
 #
 #

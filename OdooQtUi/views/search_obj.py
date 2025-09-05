@@ -3,8 +3,8 @@ Created on 24 Mar 2017
 
 @author: dsmerghetto
 '''
-from PySide6 import QtCore
-from PySide6.QtCore import QObject
+from PySide2 import QtCore
+from PySide2.QtCore import QObject
 
 from ..utils_odoo_conn import utils
 from ..views.parser.search_view import SearchView

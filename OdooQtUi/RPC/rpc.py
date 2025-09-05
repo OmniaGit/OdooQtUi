@@ -8,9 +8,15 @@ import socket
 import logging
 import requests
 #
-from .XmlRpc.xmlRpc import XmlRpcConnection
-from ..utils_odoo_conn.utils import timeit
+from OdooQtUi.RPC.XmlRpc.xmlRpc import XmlRpcConnection
+from OdooQtUi.utils_odoo_conn.utils import timeit
+from OmniaSolutions.LICENSE.license_validator import UserSessionManager 
 #
+
+from PySide2 import QtGui, QtCore, QtWidgets
+from PySide2.QtWidgets import QMessageBox
+#
+
 class RpcConnection(object):
     def __init__(self):
         self.userId = False
@@ -135,6 +141,35 @@ class RpcConnection(object):
     
     @timeit
     def callCustomMethod(self, odooObj, functionName, parameters=[], kwargParameters={}, context={},forceHideInterface=False, forceRaise_error=False):
+        functions_check_license = ["toggle_check_out", "CheckInById"]
+    
+        if functionName in functions_check_license:
+            try:
+                cad_all = UserSessionManager.get_license_for('cad', 'ALL')
+    
+                if not cad_all:
+                    QMessageBox.warning(
+                        None,
+                        "Upgrade License",
+                        "Your license is not valid for OdooPLMBox or is expired"
+                    )
+                    return False
+    
+                if not UserSessionManager.validate_odoo_version(str(self.serverVersion)):
+                    QMessageBox.warning(
+                        None,
+                        "Odoo Version Mismatch",
+                        f"Your license is not valid for ODOO-{self.serverVersion} version."
+                    )
+                    return False
+    
+            except FileNotFoundError:
+                QMessageBox.warning(
+                    None,
+                    "Missing License",
+                    "There is no license file found."
+                )
+                return False
         localContext = self.contextUser
         localContext.update(context.copy())
         if localContext:

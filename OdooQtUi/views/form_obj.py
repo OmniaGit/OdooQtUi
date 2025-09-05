@@ -9,9 +9,9 @@ import json
 import logging
 import xml.etree.cElementTree as ElementTree
 from functools import partial
-from PySide6 import QtCore
-from PySide6 import QtGui
-from PySide6 import QtWidgets
+from PySide2 import QtCore
+from PySide2 import QtGui
+from PySide2 import QtWidgets
 
 from ..views.templateView import TemplateView
 from ..utils_odoo_conn import utils, utilsUi, constants
