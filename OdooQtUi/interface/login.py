@@ -26,7 +26,11 @@ class RainbowMan(QSplashScreen):
         super(RainbowMan, self).__init__(parent)
         self.setWindowFlag(Qt.FramelessWindowHint)
         # rainbow_man_png = os.path.join(resource_path(), "rainbow_man.png")
+       
         pixmap = QPixmap(utils.getImagePath("rainbow_man.png"))
+        if os.path.exists(os.path.dirname(sys.executable)):
+            pixmap = QPixmap(os.path.join(os.path.dirname(sys.executable), 'src', 'images', 'rainbow_man.png'))
+
         self.setPixmap(pixmap)
 
     def progress(self):
