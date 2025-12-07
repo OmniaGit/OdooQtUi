@@ -3,7 +3,7 @@ Created on 17 Feb 2017
 
 @author: dsmerghetto
 '''
-FONT_SIZE = "font-size: 11px;"
+FONT_SIZE = 'font-size: 14px;'
 # Form color
 VIOLET_BACKGROUND = 'background-color:#875a7b;'
 LOGIN_MAIN = VIOLET_BACKGROUND
@@ -13,7 +13,7 @@ BACKGROUND_GREY = 'background-color:#dfd9d9;'
 BACKGROUND_LIGHT_BLUE = 'background-color: #cdd6fc;'
 READONLY_STYLE = 'background-color:#ebebeb;'
 COMMON_FIELDS_REQUIRED_BACKGROUND = 'background-color: rgb(210,210,255)'
-LAY_OUT_SPACING = 4
+LAY_OUT_SPACING = 6
 
 COLOR_WHITE = 'color:white;'
 BOLD_FONT = 'font-weight: bold;'
@@ -23,12 +23,13 @@ NO_LEFT_BORDER = 'border-left-style: none;'
 NO_TOP_BORDER = 'border-top-style: none;'
 COMMON_FIELDS_BOTTOM_BORDER = COMMON_FIELDS_BORDER + NO_RIGHT_BORDER + NO_LEFT_BORDER + NO_TOP_BORDER
 MAIN_STYLE = 'background-color:#ffffff;'
+FONT_COLOR_WHITE = 'font-color:black;'
 
 BUTTON_ODOO_DEFAULT_COLOR = 'background-color: #00A09D;'
 BUTTON_COMMON = 'border-radius: 0px;border: none;color: white;padding: 5px 10px;' + FONT_SIZE
-BUTTON_STYLE = 'background-color: #21b799;border-color: #21b799;' + BOLD_FONT + BUTTON_COMMON   # Color green
-BUTTON_STYLE_HOVER = 'background-color: #21b780;border-color: #21b799;' + BOLD_FONT + BUTTON_COMMON   # Color green
-BUTTON_STYLE_REVERSED = 'background-color:white; color: #21b799; border: 2px solid #21b799;padding: 3px; margin:1px;' + BOLD_FONT   # Color green
+BUTTON_STYLE = 'background-color: white;border-color: #21b799;' + BOLD_FONT + FONT_COLOR_WHITE  # Color green
+BUTTON_STYLE_HOVER = 'background-color: #21b780;border-color: #21b799;' + BOLD_FONT + BUTTON_COMMON  # Color green
+BUTTON_STYLE_REVERSED = 'background-color:white; color: #21b799; border: 2px solid #21b799;padding: 3px; margin:1px;' + BOLD_FONT  # Color green
 BUTTON_STYLE_OK = 'background-color: #59be50;border-color: #21b799;' + BUTTON_COMMON
 BUTTON_STYLE_CANCEL = 'background-color: #f05050;border-color: #21b799;' + BUTTON_COMMON
 BUTTON_STYLE_MANY_2_ONE = 'background-color: #3eb2df;border-color: #21b799;max-width:30px;max-height:10px;' + BOLD_FONT + BUTTON_COMMON
@@ -53,20 +54,22 @@ QTableWidget {border-left: 3px solid #875a7b;
                 border-right: 3px solid #875a7b;
                 border-bottom: 3px solid #875a7b;
                 alternate-background-color: #DDEDF0;
-                background-color: white;} 
+                background-color: white;
+                font-size:16px;} 
 }
 """
 TABLE_VIEW_LIST_LIST = """QTreeView {border-left: 3px solid #875a7b;
                 border-right: 3px solid #875a7b;
                 border-bottom: 3px solid #875a7b;
                 alternate-background-color: #DDEDF0;
-                background-color: white;} 
+                background-color: white;
+                font-size:16px;} 
 """
 # #167F92
-#hover
-#QTableWidget::item::hover {
-#color:white;background-color:#167F92;
-FONT_SIZE_LIST_WIDGET = 8
+# hover
+# QTableWidget::item::hover {
+# color:white;background-color:#167F92;
+FONT_SIZE_LIST_WIDGET = "16px"
 
 TAG_TEXT_STYLE = 'background-color: #c5c5c5;color: black;padding: 0px 5px 0px 5px;max-width: 500px;border: 1px solid black;' + FONT_SIZE
 TAG_BUTTON_STYLE = 'color: black;margin-left:20px;display: flex;padding: 0px 5px 0px 0px;background-color:#3eb2df' + BOLD_FONT + FONT_SIZE
@@ -87,15 +90,42 @@ TREE_LIST_BACKGROUND_COLOR = 'background-color:#ffffff;'
 
 DEBUG = False
 
-ODOO_STYLE ="""
-QDialog {{background-color:#875a7b;}}
-QPushButton {{{push_button}}}
-QPushButton:hover {{{push_button_hover}}}
-QTreeView {{border-left: 3px solid #875a7b;
-                border-right: 3px solid #875a7b;
-                border-bottom: 3px solid #875a7b;
-                alternate-background-color: #DDEDF0;
-                background-color: white;}} 
+# ODOO_STYLE ="""
+# QDialog {{background-color:#875a7b;}}
+# QPushButton {{{push_button}}}
+# QPushButton:hover {{{push_button_hover}}}
+# QTreeView {{border-left: 3px solid #875a7b;
+#                 border-right: 3px solid #875a7b;
+#                 border-bottom: 3px solid #875a7b;
+#                 alternate-background-color: #DDEDF0;
+#                 background-color: white;
+#                 font-size:16px;}} 
+# 
+# """.format(push_button=BUTTON_STYLE,
+#            push_button_hover=BUTTON_STYLE_REVERSED)
 
-""".format(push_button=BUTTON_STYLE,
-           push_button_hover=BUTTON_STYLE_REVERSED)
+ODOO_STYLE = """QDialog {border-radius: 5px;
+                         color: #875a7b;
+                        background-color:  #A583A5;
+                        }
+                            QProgressBar{text-align: center;
+                                         border-radius: 5px;  
+                                         border: 1px solid grey; 
+                                         }
+                            QProgressBar::chunk {background-color:  #9d5e96;
+                                                color:white;
+                                                border: 1px solid grey;
+                                                }
+                            QScrollBar::handle:horizontal {
+                                color:  #9d5e96;
+                            }
+                            QScrollBar::handle:vertical {
+                                color: #9d5e96;
+                            }  
+                            QTreeView {
+                                alternate-background-color: #DDEDF0;
+                                background-color: solid grey;
+                                font-size:16px;
+                                icon-size: 16px;
+                            }     
+                        """

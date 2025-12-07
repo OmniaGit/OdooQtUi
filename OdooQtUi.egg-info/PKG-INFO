@@ -1,0 +1,16 @@
+Metadata-Version: 2.1
+Name: OdooQtUi
+Version: 0.0.6
+Summary: Odoo Plm Client application
+Home-page: www.omniasolutions.website
+Author: Matteo Boscolo
+Author-email: matteo.boscolo@omniasolutions.eu
+License: GPL
+Project-URL: Documentation, https://odooplm.omniasolutions.website/
+Project-URL: Issue tracker, https://github.com/OmniaGit/odooplm/issues
+Description: UNKNOWN
+Platform: UNKNOWN
+Classifier: Development Status :: 3 - Alpha
+Classifier: Topic :: Utilities
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown

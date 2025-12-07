@@ -10,8 +10,11 @@ import requests
 #
 from OdooQtUi.RPC.XmlRpc.xmlRpc import XmlRpcConnection
 from OdooQtUi.utils_odoo_conn.utils import timeit
+
+
 #
 class RpcConnection(object):
+
     def __init__(self):
         self.userId = False
         self.availableConnTypes = ['xmlrpc', 'secure-xmlrpc']
@@ -35,6 +38,7 @@ class RpcConnection(object):
         return "UID: %s DB: %s URL %s" % (self.userName,
                                           self.databaseName,
                                           self.xmlrpcServerIP)
+
     def clearCache(self):
         self._cache_search = {}
         self._cache_search_condition = {}
@@ -85,6 +89,7 @@ class RpcConnection(object):
                 self.scheme,
                 self.xmlrpcServerIP,
                 self.connectionType]
+
     @property
     def url(self):
         return self.sockInstance.urlYesLogin
@@ -134,7 +139,7 @@ class RpcConnection(object):
         self.contextUser.update(res.copy())
     
     @timeit
-    def callCustomMethod(self, odooObj, functionName, parameters=[], kwargParameters={}, context={},forceHideInterface=False, forceRaise_error=False):
+    def callCustomMethod(self, odooObj, functionName, parameters=[], kwargParameters={}, context={}, forceHideInterface=False, forceRaise_error=False):
         localContext = self.contextUser
         localContext.update(context.copy())
         if localContext:
@@ -171,8 +176,6 @@ class RpcConnection(object):
                 for item in self.read(obj, fields, ids, context, limit, load):
                     self._cache_read[obj][look_id] = item
         return [self._cache_read[obj][x] for x in ids]
-                
-                
             
     def readSearch(self, obj, fields, filterList=[], order=False, context={}):
         localContext = self.contextUser
@@ -245,13 +248,13 @@ class RpcConnection(object):
         """
         enable at low level xml-rpc call exceprion
         """
-        self.sockInstance.raise_error=True
+        self.sockInstance.raise_error = True
     
     def DisableException(self):
         """
         diseble at low level xml-rpc call exceprion
         """
-        self.sockInstance.raise_error=True
+        self.sockInstance.raise_error = True
 
     def cacheSearch(self,
                     objName,
@@ -263,8 +266,8 @@ class RpcConnection(object):
         if key not in self._cache_search_condition:
             self._cache_search_condition[key] = self.search(objName,
                                                                 condition,
-                                                                limit, 
-                                                                offset, 
+                                                                limit,
+                                                                offset,
                                                                 context)
         return self._cache_search_condition[key]
         
@@ -319,7 +322,7 @@ class RpcConnection(object):
                             objName,
                             attributes,
                             cleanAttributes=[],
-                            mapAttributes = {},
+                            mapAttributes={},
                             context={}):
         att = attributes.copy()
         map = mapAttributes.copy()
@@ -337,11 +340,11 @@ class RpcConnection(object):
         if new_id:
             self.write(objName, att, new_id, context=context)
         else:
-            att[self.db_from_field]=obj_id
+            att[self.db_from_field] = obj_id
             new_id = self.create(objName,
                                  att,
                                  context=context)
-        if isinstance(new_id, (list,tuple)):
+        if isinstance(new_id, (list, tuple)):
             for _id in new_id:
                 return _id
         return new_id    
@@ -387,10 +390,10 @@ class RpcConnection(object):
         """
         make an http/https call to odoo server with the xml-rep credential
         """ 
-        out  = False
+        out = False
         if not self._session_id:
             self.loadSessionId()
-        headers['Cookie']='session_id='+self._session_id
+        headers['Cookie'] = 'session_id=' + self._session_id
         with requests.post(url=self.getCleanServer() + url,
                            headers=headers,
                            files=files,
@@ -408,10 +411,10 @@ class RpcConnection(object):
         """
         make an http/https call to odoo server with the xml-rep credential
         """ 
-        out  = False
+        out = False
         if not self._session_id:
             self.loadSessionId()
-        headers['Cookie']='session_id='+self._session_id
+        headers['Cookie'] = 'session_id=' + self._session_id
         with requests.post(url=self.getCleanServer() + url,
                            headers=headers,
                            params=param,
@@ -426,5 +429,6 @@ class RpcConnection(object):
     def isActive(self, obj, obj_id):
         for res in self.read(obj, ['active'], [obj_id]):
             return res.get('active')
+
 
 connectionObj = RpcConnection()

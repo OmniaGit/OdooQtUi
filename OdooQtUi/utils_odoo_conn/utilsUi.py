@@ -22,7 +22,7 @@ from OdooQtUi.utils_odoo_conn.utils import logMessage
 
 DEFAULT_ICON_PATH = ''
 
-QPROGRESS_STYLESHEET="""QDialog {border: 1.5px solid;
+QPROGRESS_STYLESHEET = """QDialog {border: 1.5px solid;
                                        border-radius: 5px;
                                        border-color: #9d5e96;
                                        color: white;
@@ -35,14 +35,16 @@ QPROGRESS_STYLESHEET="""QDialog {border: 1.5px solid;
                                                    width: 10px;
                                                   }
                                        """
+
                                        
 class OpenProgressBar(QtWidgets.QProgressDialog):
-    def __init__(self,
-                 parentHWnd=None):
-        super(OpenProgressBar,self).__init__()
-        self.setStyleSheet(QPROGRESS_STYLESHEET)
+
+    def __init__(self, parentHWnd=None):
+        super(OpenProgressBar, self).__init__()
+        # self.setStyleSheet(QPROGRESS_STYLESHEET)
         self.setCancelButton(None)
-        self._parentHWnd=parentHWnd
+        self._parentHWnd = parentHWnd
+        self.hide()
                      
     def _init(self,
               maxIndex=100,
@@ -52,14 +54,14 @@ class OpenProgressBar(QtWidgets.QProgressDialog):
             self.setWindowTitle(message)
             self.setLabelText(message)
             self.setRange(0, maxIndex)
-            self._step=step
-            self._actualIndex=0
-            self.message=message
+            self._step = step
+            self._actualIndex = 0
+            self.message = message
             self.repaint()
         except Exception as e:
             self.showError(e)  
             
-    def reInit(self,maxIndex=100,message="Progress",step=7):
+    def reInit(self, maxIndex=100, message="Progress", step=7):
         try:
             self.show()
             self._init(maxIndex, message, step)
@@ -68,8 +70,8 @@ class OpenProgressBar(QtWidgets.QProgressDialog):
             
     def goOn(self,
              message=None):
-        if (message == None) or (len(message)<1):
-            message=self.message
+        if (message == None) or (len(message) < 1):
+            message = self.message
         self.setLabelText(message)
         self._actualIndex = self._actualIndex + self._step
         self.setValue(self._actualIndex)
@@ -83,6 +85,7 @@ class OpenProgressBar(QtWidgets.QProgressDialog):
             super(OpenProgressBar, self).close()
         except Exception as ex:
             logging.error('Error closing the progressbar window. Error: %r' % (ex))
+
             
 def getQtImageFromContent(content, imageWidth=100, imageHeight=100, b64decode=True):
     label = QtWidgets.QLabel()
@@ -107,7 +110,7 @@ def setDefaultIconPath(iconPath):
 def commonPopulateTable(headers,
                         values,
                         tableWidget,
-                        flags={}, 
+                        flags={},
                         add=False,
                         fontSize=False):
     '''
@@ -171,6 +174,7 @@ def getFileFromSystem(desc='Open', startPath='/home/'):
         return str(file_path)
     return ''
 
+
 def getDirectoryFileToSaveSystem(parent, statingPath='', fileType=''):
     file_path, _filter = QtWidgets.QFileDialog.getSaveFileName(None, "Save file", statingPath, fileType)
     logging.info('[getDirectoryFileToSaveSystem] filename: %s' % str(file_path))
@@ -199,7 +203,14 @@ def exceptionManagement(ex, message=''):
 
 
 def setRequiredBackground(widgetQtObj, baseBackground):
-    widgetQtObj.setStyleSheet(baseBackground + constants.COMMON_FIELDS_REQUIRED_BACKGROUND)
+    widgetQtObj.setStyleSheet("""
+            QDialog {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #E3F2FD, stop:1 #BBDEFB);
+                background-color: #d6d6d6;
+                padding: 10px;
+                border: none;
+                }
+            """)
 
 
 def setLayoutMarginAndSpacing(lay, forceVal=False):
@@ -221,10 +232,11 @@ def getIconPath(iconName):
 
 
 class AdvancedErrorPopUP(QtWidgets.QDialog):
+
     def __init__(self,
                  parent,
-                 messageBody="", 
-                 mess_type='warning', 
+                 messageBody="",
+                 mess_type='warning',
                  short_text_header=''):
         QtWidgets.QDialog.__init__(self, parent)
         self.mainLayout = QtWidgets.QVBoxLayout(self)
@@ -277,7 +289,7 @@ class AdvancedErrorPopUP(QtWidgets.QDialog):
             self.lineEdit.setMinimumSize(600, 400)
             self.lineEdit.setMaximumHeight(12000)
             self.lineEdit.setMaximumWidth(12000)
-            self.setMaximumSize(12000,12000)
+            self.setMaximumSize(12000, 12000)
         else:
             self.lineEdit.setMinimumSize(0, 0)
             self.setMaximumSize(1200, 100)
@@ -287,6 +299,7 @@ class AdvancedErrorPopUP(QtWidgets.QDialog):
 
     def resizeMe(self):
         self.resize(self.minimumSizeHint())
+
 
 def popError(parent, ex):
     """
@@ -302,7 +315,11 @@ def popError(parent, ex):
         err = str(ex)
     else:
         err = str(ex.faultCode)
-    popMessage(parent, messageBody, 'ERROR', err)
+    popMessage(parent, 
+               messageBody, 
+               'ERROR', 
+               err)
+
 
 def popWarning(parent, ex):
     """
@@ -311,6 +328,7 @@ def popWarning(parent, ex):
         :ex python Exception object
     """
     popMessage(parent, ex, 'WARNING')
+
 
 def popInfo(parent,
             ex):
@@ -321,9 +339,10 @@ def popInfo(parent,
     """
     popMessage(parent, ex, 'INFO')
 
+
 def popMessage(parent,
-               ex, 
-               msg_type='info', 
+               ex,
+               msg_type='info',
                short_text_header=''):
     """
         pop an warning message

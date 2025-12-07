@@ -85,6 +85,8 @@ class MainConnector(object):
         self.loadedViews = []
         self._parentWindow = parentWindow
         self._raise_error = raise_error
+        self.odoo_version = 12.0 
+
     
     @property
     def deltaTime(self):
@@ -139,6 +141,7 @@ class MainConnector(object):
                                                xmlrpcPort=xmlrpcPort, 
                                                scheme=scheme, 
                                                xmlrpcServerIP=xmlrpcServerIP)
+        self.odoo_version = self.rpc_connector.serverVersion
         self.rpc_connector.contextUser.update(context.copy())
         self.activeLanguage = self.rpc_connector.contextUser.get('lang', 'en_US')
         self.rpc_connector.setXmlRpcError(self._raise_error)
@@ -161,6 +164,8 @@ class MainConnector(object):
         except Exception as ex:
             logging.error("Unable to autologin %s" % ex)
         return self.userLogged
+    
+    
 
     def loginToStorage(self):
         utils.writeToFile(self.rpc_connector.databaseName,

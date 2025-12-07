@@ -70,6 +70,13 @@ class XmlRpcConnection(object):
         else:
             t.set_timeout(self.timeout)
         return t
+    
+    
+    def checkVersion(self):
+        
+        odooVerInfo = xmlrpc.ServerProxy('{}2/common'.format(self.urlCommon), transport=self.timeoutTransport(self.login_timeout),allow_none=True)
+        odooVerDict = odooVerInfo.version()
+        return odooVerDict
 
     def _assignServerVersion(self):
         """
@@ -108,8 +115,9 @@ class XmlRpcConnection(object):
         
     def loginNoUser(self):
         if not self.secure:
-            try:
-                self.socketNoLogin = xmlrpc.ServerProxy(self.urlNoLogin, transport=self.timeoutTransport(self.login_timeout), allow_none=True)
+            try:                    # xmlrpc.client.ServerProxy('{}/xmlrpc/2/common'.format(from_url))
+                self.socketNoLogin = xmlrpc.ServerProxy(self.urlNoLogin, 
+                                                        transport=self.timeoutTransport(self.login_timeout))
             except Exception as ex:
                 utils.logMessage('error', 'Error during login without user: %r' % (ex), 'loginNoUser')
                 return False
@@ -126,7 +134,9 @@ class XmlRpcConnection(object):
         if not self.socketNoLogin:
             self.loginNoUser()
         try:
-            self.userId = self.socketNoLogin.login(self.databaseName, self.userName, self.userPassword)
+            self.userId = self.socketNoLogin.login(self.databaseName, 
+                                                   self.userName, 
+                                                   self.userPassword)
             if not self.userId:
                 return False
         except Exception as ex:
@@ -134,7 +144,10 @@ class XmlRpcConnection(object):
             return False
         if not self.secure:
             try:
-                self.socketYesLogin = xmlrpc.ServerProxy(self.urlYesLogin, transport=self.timeoutTransport(self.login_timeout), allow_none=True)
+                self.socketYesLogin = xmlrpc.ServerProxy(self.urlYesLogin, 
+                                                         transport=self.timeoutTransport(self.login_timeout),
+                                                         allow_none=True
+                                                         )
                 self.socketYesLogin._ServerProxy__transport.timeout = self.timeout
             except Exception as ex:
                 utils.logMessage('error', 'Error getting server proxy: %r' % (ex), 'loginWithUser')
