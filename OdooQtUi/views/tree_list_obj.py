@@ -110,7 +110,7 @@ class TemplateTreeListView(TemplateView):
                 utils.logMessage('warning', 'Field object %r not found in fields' % (fieldName), 'forceRecordVals')
                 return
             fieldObj.setValue(valuesDict.get(fieldName))
-        self.idValsRel[recordID] = self.idValsRel[recordID].update(valuesDict)
+        self.idValsRel[recordID] = self.idValsRel[recordID].update(valuesDict.copy())
 
     @utils.timeit
     def loadIds(self, objIds=[], forceFieldValues={}, readonlyFields={}, invisibleFields={}):
@@ -132,14 +132,28 @@ class TemplateTreeListView(TemplateView):
         return self._loadIds(objIds, forceFieldValues, readonlyFields, invisibleFields)
 
     @utils.timeit
-    def _loadIds(self, objIds=[], forceFieldValues={}, readonlyFields={}, invisibleFields={}):
+    def _loadIds(self,
+                 objIds=[],
+                 forceFieldValues={},
+                 readonlyFields={},
+                 invisibleFields={}):
+        """
+        Load the ids passed reading it's values from odoo
+        
+        :objIds list of ids to load [<id1>,<id2>,...]
+        :forceFieldValues
+        :readonlyFields
+        :invisibleFields
+        """
         self.labelsOrdered = self.treeObj.orderedFields
         if len(objIds) < self.passRange:
             self.buttToRight.setHidden(True)
         else:
             self.buttToRight.setHidden(False)
         objIds.sort()
-        records = self.odooConnector.rpc_connector.read(self.model, self.labelsOrdered, objIds) or []
+        records = self.odooConnector.rpc_connector.read(self.model,
+                                                        self.labelsOrdered,
+                                                        objIds) or []
         flagsDict = {}
         fieldDict = {}
         valuesList = []
@@ -161,20 +175,23 @@ class TemplateTreeListView(TemplateView):
                     client_context = self.odooConnector.rpc_connector.contextUser
                     client_context.update(utils.evaluateContext(xml_obj.attrib.get('context', '{}'), record))
                     readonly = fieldPyDefinition.get('readonly', xml_obj.attrib.get('readonly', False))
-                    readonly = utils.evaluateBoolean(readonly, context=client_context)
+                    readonly = utils.evaluateBoolean(readonly, context=client_context.copy())
                     required = fieldPyDefinition.get('required', xml_obj.attrib.get('required', False))
-                    required = utils.evaluateBoolean(required, context=client_context)
+                    required = utils.evaluateBoolean(required, context=client_context.copy())
                     invisible = fieldPyDefinition.get('invisible', xml_obj.attrib.get('invisible', False))
-                    invisible = utils.evaluateBoolean(invisible, context=client_context)
+                    invisible = utils.evaluateBoolean(invisible, context=client_context.copy())
                     headers.append(fieldPyDefinition.get('string', fieldName))
                     self.treeObj.tableWidget.setColumnHidden(col_index, invisible)
                 if xml_obj.tag == 'field':
-                    if self.fieldsNameTypeRel.get(fieldName, {}).get('type')=='many2one':
+                    field_type = self.fieldsNameTypeRel.get(fieldName, {}).get('type')
+                    if  field_type in ['many2one']:
                         tmp_val = record.get(fieldName, '')
                         if isinstance(tmp_val, (list,tuple)):
                             val=tmp_val[1]
                         else:
                             val=tmp_val
+                    elif field_type in ['many2many','one2many']:
+                        val=f"Record {len(val)}"
                     localList.append(val)
                 else:
                     if row_index == 0:
@@ -189,7 +206,11 @@ class TemplateTreeListView(TemplateView):
             self.idLineRel[records.index(record)] = recordId
         if self.remove_button:
             headers.append('')
-        utilsUi.commonPopulateTable(headers, valuesList, self.treeObj.tableWidget, flagsDict, fontSize=constants.FONT_SIZE_LIST_WIDGET)
+        utilsUi.commonPopulateTable(headers,
+                                    valuesList,
+                                    self.treeObj.tableWidget,
+                                    flagsDict,
+                                    fontSize=constants.FONT_SIZE_LIST_WIDGET)
         if self.treeObj.tableWidget:
             self.treeObj.tableWidget.setShowGrid(False)
             self.treeObj.tableWidget.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)

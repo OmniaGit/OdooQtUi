@@ -433,6 +433,14 @@ def evaluateModifiers(modifiers):
 
 def evaluateContext(contextStr,
                     fieldsDict):
+    """
+    Avaluate the context with aval function
+    This method use a saftry dictionary copi before to be called
+     
+    :contextStr string to evaluate es: product_id==10
+    :fieldsDict dict like key,value of the fields used for the eval funtion
+    :return: result of the aval function
+    """
     try:
         fieldsDict = copy.copy(fieldsDict)
         return eval(contextStr, fieldsDict)
