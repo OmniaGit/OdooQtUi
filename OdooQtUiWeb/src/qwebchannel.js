@@ -476,12 +476,14 @@ var hide_form_items = function(){
 } 
 
 const save_form = function(){
+    console.error("save_form")
     let form_button_save = document.getElementsByClassName('o_form_button_save');
     if(form_button_save){
         form_button_save[0].click();
     }
 }
 const cancel_form = function(){
+    console.error("cancel_form")
     let form_button_cancel = document.getElementsByClassName('o_form_button_cancel');
     if(form_button_cancel){
         form_button_cancel[0].click();
@@ -491,5 +493,5 @@ const cancel_form = function(){
 //monky patch code jsonrpc o possibilmente la parte relativa al form view click che preferirei
 //problema con la display the bradcrum che attualamente resta visibile causa dei refresh
 //big data on fields binary
-console.error("omnia Custom js loaded");
+console.error("Omnia Custom js loaded");
 

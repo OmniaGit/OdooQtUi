@@ -134,7 +134,7 @@ from PySide6.QtNetwork import QNetworkCookie
 #         self.load_custom_client_js()
 #         print("Javascript executed form python code")
 
-from ..OdooQtUiWeb.web_odoo import QtOdooUiDilog
+from OdooQtUiWeb.web_odoo import QtOdooUiDilog
 
 class MainWindow(QMainWindow):
 
@@ -173,12 +173,9 @@ class MainWindow(QMainWindow):
 
     def show_list(self):
         #http://localhost:8069/web#action=398&model=product.product&view_type=list&cids=1&menu_id=217
-        self.qtOdooBrowser.set_list('product.product',
-                                    menu_id=217,
-                                    action_id=398)
-        self.qtOdooBrowser.show()
-        self.qtOdooBrowser.adjustSize()
- 
+        selected_items = self.qtOdooBrowser.show_list('product.product',
+                                                      action_id=461)
+
 def main():
     os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = "--enable-logging --log-level=1 --remote-debugging-port=1234"
     app = QApplication(sys.argv)
