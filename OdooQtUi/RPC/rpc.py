@@ -12,12 +12,14 @@ from .XmlRpc.xmlRpc import XmlRpcConnection
 from ..utils_odoo_conn.utils import timeit
 #
 class RpcConnection(object):
-    def __init__(self):
+    def __init__(self,
+                 useInterface=True):
         self.userId = False
-        self.availableConnTypes = ['xmlrpc', 'secure-xmlrpc']
+        self.availableConnTypes = ['xmlrpc',
+                                   'secure-xmlrpc']
         self.sockInstance = False
         self.contextUser = {}
-        self.useInterface = True
+        self.useInterface = useInterface
         self.db_from_field = ''
         self.userName = ''      
         self.userPassword = ''  
@@ -68,15 +70,14 @@ class RpcConnection(object):
         self.scheme = scheme
         self.xmlrpcServerIP = xmlrpcServerIP
         self.connectionType = connectionType
-        if connectionType == 'xmlrpc':
-            self.sockInstance = XmlRpcConnection(userName, userPassword, databaseName, xmlrpcPort, scheme, xmlrpcServerIP)
-            self.sockInstance.useInterface = self.useInterface
-        elif connectionType == 'secure-xmlrpc':
-            self.sockInstance = XmlRpcConnection(userName, userPassword, databaseName, xmlrpcPort, scheme, xmlrpcServerIP, secure=True)
-            self.sockInstance.useInterface = self.useInterface
-        else:
-            raise Exception("Missing value connectionType for initConnection function")
-
+        self.sockInstance = XmlRpcConnection(userName, 
+                                             userPassword, 
+                                             databaseName, 
+                                             xmlrpcPort, 
+                                             scheme, 
+                                             xmlrpcServerIP, 
+                                             secure=connectionType == 'secure-xmlrpc',
+                                             useInterface= self.useInterface)
     def getLoginInfos(self):
         return [self.userName,
                 self.userPassword,

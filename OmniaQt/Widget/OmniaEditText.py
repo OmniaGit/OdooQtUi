@@ -59,14 +59,19 @@ class OmniaLightEditText(QtWidgets.QMenu):
 
 
 class OmniaWidgetFilterSql(QtWidgets.QWidget):
-    def __init__(self, parent=None, columName=""):
+    def __init__(self, 
+                 parent=None, 
+                 columName="",
+                 force_type="str"
+                 ):
         """
             init the filter object
         """
         super(OmniaWidgetFilterSql, self).__init__(parent)
         vLayout = QtWidgets.QVBoxLayout(self)
-
-        filterHLayout = QtWidgets.QHBoxLayout()
+        filterHLayout = QtWidgets.QHBoxLayout()#
+        self._force_type=force_type
+        #
         self._label = QtWidgets.QLabel(self)
         self._label.setText(columName)
         self._combo = QtWidgets.QComboBox(self)
@@ -74,12 +79,12 @@ class OmniaWidgetFilterSql(QtWidgets.QWidget):
         self._combo.addItem("Like")
         self._combo.setCurrentIndex(1)
         self._lineEdit = QtWidgets.QLineEdit(self)
-        
+        #
         filterHLayout.addWidget(self._label)
         filterHLayout.addWidget(self._combo)
         filterHLayout.addWidget(self._lineEdit)
         vLayout.addItem(filterHLayout)
-
+        #
         buttonHLayOut = QtWidgets.QHBoxLayout()
 
         self._addButton = QtWidgets.QPushButton(self)
@@ -92,6 +97,7 @@ class OmniaWidgetFilterSql(QtWidgets.QWidget):
         buttonHLayOut.addWidget(self._addButton)
         buttonHLayOut.addWidget(self._removeButton)
         buttonHLayOut.addWidget(self._applyButton)
+        #
         self._lineEdit.returnPressed.connect(self.applyButtonClick)
 
         vLayout.addItem(buttonHLayOut)
@@ -124,10 +130,13 @@ class OmniaWidgetFilterSql(QtWidgets.QWidget):
     def setColumnValue(self, value):
         self.columnValue = value
 
-    def setColumn(self, columName):
+    def setColumn(self, 
+                  columName,
+                  force_type='str'):
         """
             set column name
         """
+        self._force_type=force_type
         self._label.setText(columName)
 
     @property
@@ -135,14 +144,11 @@ class OmniaWidgetFilterSql(QtWidgets.QWidget):
         """
             get the filter of the object
         """
-        if str(self._combo.currentText()) == 'Like':
-            return "%s %s '%%%s%%'" % (str(self._label.text()),
-                                       str(self._combo.currentText()),
-                                       str(self._lineEdit.text()))
-
-        return "%s %s %s" % (str(self._label.text()),
-                             str(self._combo.currentText()),
-                             str(self._lineEdit.text()))
+        if self._combo.currentText() == 'Like':
+            return f"{self._label.text()} {self._combo.currentText()} '%{self._lineEdit.text()}%'"
+        # if self._force_type=="str":
+        #     return f"{self._label.text()} {self._combo.currentText()} '{self._lineEdit.text()}'"
+        return f"{self._label.text()} {self._combo.currentText()} {self._lineEdit.text()}"
 
     @property
     def filterTuple(self):
@@ -154,12 +160,17 @@ class OmniaWidgetFilterSql(QtWidgets.QWidget):
 
 
 class OmniaMenuFilterSql(QtWidgets.QMenu):
-    def __init__(self, parent=None, columName=""):
+    def __init__(self, 
+                 parent=None, 
+                 columName="",
+                 force_type='str'
+                 ):
         super(OmniaMenuFilterSql, self).__init__(parent)
         self._filter = []
         self._filterTuple = []
         aw = QtWidgets.QWidgetAction(self)
-        self.widgetFilterSql = OmniaWidgetFilterSql(columName="")
+        self.widgetFilterSql = OmniaWidgetFilterSql(columName=columName,
+                                                    force_type=force_type)
 
         self.widgetFilterSql.addEvent += self._addEvent
         self.widgetFilterSql.applyEvent += self._applyEvent
@@ -173,7 +184,8 @@ class OmniaMenuFilterSql(QtWidgets.QMenu):
         self.applyEvent = OmniaEvent()
         self.changed = False
 
-    def _addEvent(self, objFilter):
+    def _addEvent(self, 
+                  objFilter):
         self.changed = True
         self._filter.append(objFilter.filter)
         self._filterTuple.append(objFilter.filterTuple)
@@ -196,11 +208,15 @@ class OmniaMenuFilterSql(QtWidgets.QMenu):
         self.widgetFilterSql._lineEdit.setText("")
         self.changed = False
 
-    def setColumn(self, columName, flt):
+    def setColumn(self, 
+                  columName, 
+                  flt,
+                  force_type="str"):
         """
             set info from the column
         """
-        self.widgetFilterSql.setColumn(columName)
+        self.widgetFilterSql.setColumn(columName,
+                                       force_type)
         self.widgetFilterSql.setColumnValue(flt)
 
     def keyPressEvent(self, key):
