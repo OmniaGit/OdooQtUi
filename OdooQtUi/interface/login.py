@@ -165,6 +165,7 @@ class LoginDialComplete(LoginDial):
                  context={},
                  app_name='OdooQtUi',
                  odooConnector=None):
+        #
         self.app_name = app_name
         self.odooConnector = odooConnector
         self.availableConnTypes = self.odooConnector.rpc_connector.availableConnTypes
@@ -208,15 +209,22 @@ class LoginDialComplete(LoginDial):
         self.pushButton_next.setHidden(False)
         self.pushButton_ok.setHidden(True)
 
-    def connectFromFile(self, app_name='odoo_plm'):
-        self.dbName, self.username, self.userpass, self.serverIp, self.serverPort, self.scheme, self.connType, self.dbList = utils.loadFromFile(app_name)
+    def connectFromFile(self):
+        self.dbName, \
+            self.username, \
+            self.userpass, \
+            self.serverIp, \
+            self.serverPort, \
+            self.scheme, \
+            self.connType, \
+            self.dbList = utils.loadFromFile(self.app_name)
         utils.logMessage('info',
                          'Try login with stored settings:',
                          'connectFromFile')
         try:
             self.loginWithUserDial()
         except Exception as ex:
-            utils.logWarning("Unable to get login information from file", "connectFromFile")
+            utils.logWarning(f"Unable to get login information from file {ex}", "connectFromFile")
         
     def setEvents(self):
         self.pushButton_next.clicked.connect(self.nextPage)

@@ -63,6 +63,7 @@ class TemplateTreeListView(TemplateView):
                                     viewCheckBoxes=self.viewCheckBoxes,
                                     odooConnector=self.odooConnector)
         self.treeObj.computeArch()
+        self.treeObj.drop_in.connect(self.emit_drop_in)
         mainLay.addWidget(self.treeObj)
         self.mappingInterface = self.treeObj.globalMapping
         self.addToObject()
@@ -74,7 +75,10 @@ class TemplateTreeListView(TemplateView):
         self.setLayout(mainLay)
         self.treeObj.tableWidget.doubleClicked.connect(self.doubleClickEvent)
         self.setStyleSheet(constants.BACKGROUND_WHITE)
-
+    
+    def emit_drop_in(self, e):
+        self.drop_in.emit(e)
+    
     def _setupArrowButtons(self):
         self.currentRange = [0, 40]
         switchRecordsLay = QtWidgets.QHBoxLayout()
@@ -187,7 +191,7 @@ class TemplateTreeListView(TemplateView):
                     invisible_eval = fieldPyDefinition.get('invisible', xml_obj.attrib.get('invisible', False))
                     invisible = utils.evaluateBoolean(invisible_eval, context=record_to_eval)
                     headers.append(fieldPyDefinition.get('string', fieldName))
-                    self.treeObj.tableWidget.setColumnHidden(col_index, invisible)
+                    #self.treeObj.tableWidget.setColumnHidden(col_index, invisible)
                 if xml_obj.tag == 'field':
                     if self.fieldsNameTypeRel.get(fieldName, {}).get('type')=='many2one':
                         tmp_val = record.get(fieldName, '')
@@ -201,16 +205,24 @@ class TemplateTreeListView(TemplateView):
                         headers.append('')
                     widget = self.treeObj.computeWidget(xml_obj)
                     widget.record = record
+                    if hasattr(widget,'update_eval_attributes'):
+                        widget.update_eval_attributes()
                     self.row_widgets[row_index][col_index] = widget
                     localList.append(widget)
             valuesList.append(localList)
             recordId = record.get('id', False)
             self.idValsRel[recordId] = record
             self.idLineRel[records.index(record)] = recordId
+        tmp_header =self.labelsOrdered
         if self.remove_button:
-            headers.append('')
+            tmp_header.append('')
         #
-        utilsUi.commonPopulateTable(headers, valuesList, self.treeObj.tableWidget, flagsDict, fontSize=constants.FONT_SIZE_LIST_WIDGET)
+        
+        utilsUi.commonPopulateTable(tmp_header, 
+                                    valuesList, 
+                                    self.treeObj.tableWidget, 
+                                    flagsDict, 
+                                    fontSize=constants.FONT_SIZE_LIST_WIDGET)
         #
         if self.treeObj.tableWidget:
             self.treeObj.tableWidget.setShowGrid(False)
@@ -271,7 +283,7 @@ class TemplateTreeListView(TemplateView):
                     col_index = self.labelsOrdered.index(fieldName)
                     self.treeObj.tableWidget.setColumnHidden(col_index, inv)
                     ronly = utils.evaluateAttrs(row_vals, fieldObj.readonly, client_context)
-                    widget.setReadonly(ronly)
+                    fieldObj.setReadonly(ronly)
                 except Exception as ex:
                     logWarning('Cannot set readonly and invisible attributes for field %r err %r' % (fieldName, ex), '_setFieldsModifiers')
 
@@ -284,7 +296,7 @@ class TemplateTreeListView(TemplateView):
                 else:
                     butt.setStyleSheet(constants.BUTTON_STYLE_REVERSED)
                 butt.setDisabled(flag)
-
+ 
         for row_index, row_vals in self.row_widgets.items():
             for fieldObj in row_vals.values():
                 if fieldObj.modifiers:
@@ -292,16 +304,19 @@ class TemplateTreeListView(TemplateView):
                     invisibleModif = fieldObj.modifiers.get('invisible', {})
                     client_context = self.odooConnector.rpc_connector.contextUser
                     client_context.update(utils.evaluateContext(fieldObj.context, fieldDict))
-                    if readonlyModif:
-                        val = utils.evaluateAttrs(fieldDict.get(row_index, {}), readonlyModif, client_context)
-                        fieldObj.setReadonly(val)
-                    if invisibleModif:
-                        val = utils.evaluateAttrs(fieldDict.get(row_index, {}), invisibleModif, client_context)
-                        hideButtonWithStyle(fieldObj, val)
-                    if fieldObj.readonly:
-                        fieldObj.setReadonly(True)
-                    if fieldObj.invisible:
-                        hideButtonWithStyle(fieldObj, val)
+                    if self.odooConnector.rpc_connector.serverVersion>=17 and hasattr(fieldObj,'record'):
+                        hideButtonWithStyle(fieldObj, fieldObj.invisible)
+                    else:
+                        if readonlyModif:
+                            val = utils.evaluateAttrs(fieldDict.get(row_index, {}), readonlyModif, client_context)
+                            fieldObj.setReadonly(val)
+                        if invisibleModif:
+                            val = utils.evaluateAttrs(fieldDict.get(row_index, {}), invisibleModif, client_context)
+                            hideButtonWithStyle(fieldObj, val)
+                        if fieldObj.readonly:
+                            fieldObj.setReadonly(True)
+                        if fieldObj.invisible:
+                            hideButtonWithStyle(fieldObj, val)
 
     def setRemoveButtons(self):
         rowCount = self.treeObj.tableWidget.rowCount()
