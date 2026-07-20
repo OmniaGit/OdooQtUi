@@ -1,16 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/srv/workspace/tray_odoo_connector/interface/ui/login.ui'
-#
-# Created: Thu Apr 13 13:06:04 2017
-#      by: PyQt4 UI code generator 4.11.2
-#
-# WARNING! All changes made in this file will be lost!
-
-from PySide2 import QtCore
-from PySide2 import QtGui
-from PySide2 import QtWidgets
-
+from PySide6 import QtCore, QtGui, QtWidgets
 
 try:
     _fromUtf8 = QtCore.QObject.fromUtf8

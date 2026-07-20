@@ -5,9 +5,8 @@ Created on 3 Feb 2017
 '''
 import json
 import xml.etree.cElementTree as ElementTree
-from PySide2 import QtWidgets
-from OdooQtUi.utils_odoo_conn import constants
-from OdooQtUi.utils_odoo_conn import utilsUi
+from PySide6 import QtWidgets
+from OdooQtUi.utils_odoo_conn import constants, utilsUi, utils
 from OdooQtUi.objects.selection.selection import Selection
 from OdooQtUi.objects.boolean.boolean import Boolean
 from OdooQtUi.objects.char.char import Charachter
@@ -17,11 +16,8 @@ from OdooQtUi.objects.float.float import Float
 from OdooQtUi.objects.integer.integer import Integer
 from OdooQtUi.objects.many2many.many2many import Many2many
 from OdooQtUi.objects.many2one.many2one import Many2one
-from OdooQtUi.objects.text.text import Text
-from OdooQtUi.objects.text.text import TextHtml
+from OdooQtUi.objects.text.text import Text, TextHtml
 from OdooQtUi.objects.one2many.one2many import One2many
-from OdooQtUi.utils_odoo_conn import utils
-from OdooQtUi.utils_odoo_conn.utils import timeit
 
 
 class TreeViewList(QtWidgets.QWidget):
@@ -45,7 +41,7 @@ class TreeViewList(QtWidgets.QWidget):
     def computeRecursion(self, parent):
         headers = []
         mainVLay = QtWidgets.QVBoxLayout()
-        mainVLay.setMargin(0)
+        mainVLay.setContentsMargins(0, 0, 0, 0)
         mainVLay.setSpacing(0)
         for childElement in parent: #.getchildren():
             childTag = childElement.tag

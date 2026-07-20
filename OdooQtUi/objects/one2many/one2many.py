@@ -7,9 +7,9 @@ import json
 import os
 import logging
 
-from PySide2 import QtGui
-from PySide2 import QtCore
-from PySide2 import QtWidgets
+from PySide6 import QtGui
+from PySide6 import QtCore
+from PySide6 import QtWidgets
 
 from OdooQtUi.utils_odoo_conn import utils, utilsUi
 from OdooQtUi.utils_odoo_conn import constants
@@ -453,7 +453,7 @@ class One2many(OdooFieldTemplate):
             cancelButt.setStyleSheet(constants.BUTTON_STYLE_CANCEL)
             dialog.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
             utilsUi.setLayoutMarginAndSpacing(mainLay)
-            if dialog.exec_() == QtWidgets.QDialog.Accepted:
+            if dialog.exec() == QtWidgets.QDialog.Accepted:
                 fieldVals = viewObjForm.getAllFieldsValues()
                 objId = self.rpc.create(self.relation, fieldVals)
                 if objId:

@@ -5,8 +5,8 @@ Created on 24 Mar 2017
 '''
 import json
 #
-from PySide2 import QtWidgets
-from PySide2.QtCore import QAbstractItemModel, Qt, QModelIndex
+from PySide6 import QtWidgets
+from PySide6.QtCore import QAbstractItemModel, Qt, QModelIndex
 #
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.views.templateView import TemplateView

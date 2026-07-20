@@ -3,12 +3,11 @@ Created on 24 Mar 2017
 
 @author: dsmerghetto
 '''
-from PySide2 import QtWidgets
+from PySide6 import QtWidgets, QtCore
 from .parser.tree_list import TreeViewList
 from .templateView import TemplateView
 from OdooQtUi.utils_odoo_conn import utils, utilsUi
 from OdooQtUi.utils_odoo_conn import constants
-from PySide2 import QtCore
 from functools import partial
 from OdooQtUi.utils_odoo_conn.utils import logWarning, logError
 
@@ -41,7 +40,7 @@ class TemplateTreeListView(TemplateView):
     def _initViewObj(self):
         mainLay = QtWidgets.QVBoxLayout()
         mainLay.setSpacing(0)
-        mainLay.setMargin(0)
+        mainLay.setContentsMargins(0, 0, 0, 0)
         mainLay.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
         # Add arrow buttons
         recordSwitcher = self._setupArrowButtons()
@@ -252,7 +251,7 @@ class TemplateTreeListView(TemplateView):
             dialog.setStyleSheet(constants.BACKGROUND_WHITE)
             dialog.adjustSize()
             dialog.resize(1000, 750)
-            if dialog.exec_() == QtWidgets.QDialog.Accepted:
+            if dialog.exec() == QtWidgets.QDialog.Accepted:
                 valuesToUpdate = {}
                 for fieldName, fieldObj in list(viewObj.fieldsChanged.items()):
                     valuesToUpdate[fieldName] = fieldObj.value

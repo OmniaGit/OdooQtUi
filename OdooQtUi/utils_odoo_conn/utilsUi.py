@@ -10,9 +10,9 @@ import xmlrpc
 import logging
 import traceback
 
-from PySide2 import QtGui
-from PySide2 import QtCore
-from PySide2 import QtWidgets
+from PySide6 import QtGui
+from PySide6 import QtCore
+from PySide6 import QtWidgets
 #
 import OdooQtUi
 #
@@ -357,5 +357,5 @@ def popMessage(parent,
                                  mess_type=msg_type,
                                  short_text_header=short_text_header)
     logMessage(msg_type, ex, 'popMessage')
-    dialObj.exec_()
+    dialObj.exec()
 

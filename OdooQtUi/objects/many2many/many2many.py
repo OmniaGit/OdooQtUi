@@ -4,9 +4,9 @@ Created on 7 Feb 2017
 @author: dsmerghetto
 '''
 import json
-from PySide2 import QtGui
-from PySide2 import QtCore
-from PySide2 import QtWidgets
+from PySide6 import QtGui
+from PySide6 import QtCore
+from PySide6 import QtWidgets
 
 from functools import partial
 from OdooQtUi.utils_odoo_conn import utils
@@ -123,7 +123,7 @@ class Many2many(OdooFieldTemplate):
             cancelButt.clicked.connect(rejectFormDial)
             okButt.setStyleSheet(constants.BUTTON_STYLE_OK)
             cancelButt.setStyleSheet(constants.BUTTON_STYLE_CANCEL)
-            if formdialog.exec_() == QtWidgets.QDialog.Accepted:
+            if formdialog.exec() == QtWidgets.QDialog.Accepted:
                 fieldVals = tmpviewObjForm.getAllFieldsValues()
                 objId = self.odooConnector.rpc_connector.create(self.relation, fieldVals)
                 if objId:
@@ -237,7 +237,7 @@ class Many2many(OdooFieldTemplate):
         dial.setLayout(vlay)
         dial.setStyleSheet(constants.VIOLET_BACKGROUND)
         dial.resize(800, 500)
-        if dial.exec_() == QtWidgets.QDialog.Accepted:
+        if dial.exec() == QtWidgets.QDialog.Accepted:
             checkedRows = []
             localIndexId = {}
             table = viewObj.treeObj.tableWidget

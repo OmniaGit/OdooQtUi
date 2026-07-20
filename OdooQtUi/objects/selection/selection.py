@@ -5,8 +5,8 @@ Created on 06 feb 2017
 '''
 import json
 import logging
-from PySide2 import QtCore
-from PySide2 import QtWidgets
+from PySide6 import QtCore
+from PySide6 import QtWidgets
 from OdooQtUi.utils_odoo_conn import utils, utilsUi
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
@@ -51,7 +51,7 @@ class Selection(OdooFieldTemplate):
             self.layout().addWidget(labelQtObj)
             self.labels.append(labelQtObj)
         self.layout().setSpacing(0)
-        self.layout().setMargin(0)
+        self.layout().setContentsMargins(0, 0, 0, 0)
 
     def getQtObject(self):
         if self.widget == 'statusbar':

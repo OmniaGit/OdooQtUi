@@ -8,17 +8,17 @@ import sys
 import json
 import time
 from .ui.ui_login import Ui_dialog_login
-from PySide2 import QtWidgets
-from PySide2 import QtCore
+from PySide6 import QtWidgets, QtCore
 
 from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.utils_odoo_conn import constants
-from PySide2.QtWidgets import QProgressBar
-from PySide2.QtWidgets import QApplication
-from PySide2.QtWidgets import QSplashScreen
-from PySide2.QtGui import QPixmap
-from PySide2.QtCore import Qt, QSettings
-from PySide2.QtCore import Slot
+from PySide6.QtWidgets import QProgressBar
+from PySide6.QtWidgets import QApplication
+from PySide6.QtWidgets import QSplashScreen
+from PySide6.QtGui import QPixmap, QImage
+from PySide6.QtGui import QPainter, QColor, QPen, QIcon
+from PySide6.QtCore import Qt, QSettings
+from PySide6.QtCore import Slot
 
 
 class RainbowMan(QSplashScreen):

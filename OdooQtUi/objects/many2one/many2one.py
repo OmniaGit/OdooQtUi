@@ -4,8 +4,8 @@ Created on 7 Feb 2017
 @author: dsmerghetto
 '''
 import json
-from PySide2 import QtCore
-from PySide2 import QtWidgets
+from PySide6 import QtCore
+from PySide6 import QtWidgets
 
 from OdooQtUi.utils_odoo_conn import utils, utilsUi
 from OdooQtUi.utils_odoo_conn import constants
@@ -196,7 +196,7 @@ class Many2one(OdooFieldTemplate):
         dialog.setStyleSheet(constants.BACKGROUND_WHITE)
         dialog.adjustSize()
         dialog.resize(1000, 750)
-        if dialog.exec_() == QtWidgets.QDialog.Accepted:
+        if dialog.exec() == QtWidgets.QDialog.Accepted:
             valuesToUpdate = {}
             for fieldName, fieldObj in list(self.viewObj.fieldsChanged.items()):
                 valuesToUpdate[fieldName] = fieldObj.value
@@ -245,7 +245,7 @@ class Many2one(OdooFieldTemplate):
             dialog.setStyleSheet(constants.VIOLET_BACKGROUND)
             dialog.adjustSize()
             dialog.resize(800, dialog.height())
-            if dialog.exec_() == QtWidgets.QDialog.Accepted:
+            if dialog.exec() == QtWidgets.QDialog.Accepted:
                 valuesToCreate = {}
                 for fieldName, fieldObj in list(self.viewObj.interfaceFieldsDict.items()):
                     valuesToCreate[fieldName] = fieldObj.value

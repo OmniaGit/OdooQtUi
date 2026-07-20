@@ -9,9 +9,9 @@ import json
 import logging
 import xml.etree.cElementTree as ElementTree
 from functools import partial
-from PySide2 import QtCore
-from PySide2 import QtGui
-from PySide2 import QtWidgets
+from PySide6 import QtCore
+from PySide6 import QtGui
+from PySide6 import QtWidgets
 
 from OdooQtUi.views.templateView import TemplateView
 from OdooQtUi.utils_odoo_conn import utils
@@ -97,7 +97,7 @@ class TemplateFormView(TemplateView):
         if not qvboxLayout:
             qvboxLayout = QtWidgets.QVBoxLayout()
             qvboxLayout.setSpacing(0)
-            qvboxLayout.setMargin(0)
+            qvboxLayout.setContentsMargins(0, 0, 0, 0)
         if constants.DEBUG:
             line = QtWidgets.QLineEdit()
             line.setStyleSheet("border:2px solid blue;")
@@ -641,7 +641,7 @@ class TemplateFormView(TemplateView):
         translationDial.resize(800, 400)
         tableWidget.resizeColumnsToContents()
         tableWidget.horizontalHeader().setStretchLastSection(True)
-        if translationDial.exec_() == QtWidgets.QDialog.Accepted:
+        if translationDial.exec() == QtWidgets.QDialog.Accepted:
             rowsDict = utils.getRowsFromTableWidget(tableWidget, 'dict', fieldNames)
             for rowDict in list(rowsDict.values()):
                 elemId = False

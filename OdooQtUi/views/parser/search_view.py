@@ -13,9 +13,9 @@ import datetime
 from dateutil.relativedelta import relativedelta
 
 import xml.etree.cElementTree as ElementTree
-from PySide2 import QtGui
-from PySide2 import QtCore
-from PySide2 import QtWidgets
+from PySide6 import QtGui
+from PySide6 import QtCore
+from PySide6 import QtWidgets
 from functools import partial
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.utils_odoo_conn import utils
@@ -130,10 +130,10 @@ class SearchView(object):
     def computeRecursion(self, xmlElementParent):
         self.mainVLay = QtWidgets.QVBoxLayout()
         self.mainVLay.setSpacing(0)
-        self.mainVLay.setMargin(0 )
+        self.mainVLay.setContentsMargins(0, 0, 0, 0)
         mainHLay = QtWidgets.QHBoxLayout()
-        mainHLay.setSpacing(0)   
-        mainHLay.setMargin(0 )   
+        mainHLay.setSpacing(0)
+        mainHLay.setContentsMargins(0, 0, 0, 0)
         self.multipleConditionLay = QtWidgets.QVBoxLayout()
         lineEditLay = QtWidgets.QHBoxLayout()
         # Setup lineedit
@@ -383,7 +383,7 @@ class SearchView(object):
         self.widgetContents = QtWidgets.QWidget()
         self.mainLayOut = QtWidgets.QVBoxLayout()
         self.mainLayOut.setSpacing(1)
-        self.mainLayOut.setMargin(1)
+        self.mainLayOut.setContentsMargins(1, 1, 1, 1)
         self.filterListLay = QtWidgets.QHBoxLayout()
         self.mainHLayRec = self.computeRecursion(xmlElementParent)
         #self.widgetContents.setStyleSheet('background-color:#ffffff;')
@@ -392,7 +392,7 @@ class SearchView(object):
         self.widgetContents.setLayout(self.mainLayOut)
         self.outLay = QtWidgets.QVBoxLayout()
         self.outLay.setSpacing(1)
-        self.outLay.setMargin(1)
+        self.outLay.setContentsMargins(1, 1, 1, 1)
         self.outLay.addWidget(self.widgetContents)
         return self.outLay
 
@@ -470,7 +470,7 @@ class SearchView(object):
         buttonsLay = self.getButtonsLay()
         self.conditionsCustomLay.addLayout(singleFieldLay)
         self.conditionsCustomLay.setSpacing(20)
-        self.conditionsCustomLay.setMargin(20)
+        self.conditionsCustomLay.setContentsMargins(20, 20, 20, 20)
         self.scrollWidget.setLayout(self.conditionsCustomLay)
         self.scroll.setWidget(self.scrollWidget)
         mainLay.addWidget(self.scroll)
@@ -482,7 +482,7 @@ class SearchView(object):
         #self.dialCustomFilter.setStyleSheet(constants.VIOLET_BACKGROUND)
 
         self.dialCustomFilter.resize(500, 450)
-        if self.dialCustomFilter.exec_() == QtWidgets.QDialog.Accepted:
+        if self.dialCustomFilter.exec() == QtWidgets.QDialog.Accepted:
             conditions = []
             operators = []
             interfaceStringSum = ''
