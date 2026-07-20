@@ -227,7 +227,6 @@ class LoginDialComplete(LoginDial):
         else:
             self.setNotLogged()
         self.initFields()
-        self.setEvents()
         
     def setLogged(self):
         utils.logMessage('info', 'User logged reading from stored file', '__init__')
@@ -322,27 +321,61 @@ class LoginDialComplete(LoginDial):
     def cancelDial(self):
         self.close()
 
+    def showPleaseWaitDialog(self):
+        dialog = QtWidgets.QDialog(self)
+        dialog.setWindowTitle('Please wait')
+        dialog.setWindowFlags(Qt.FramelessWindowHint | Qt.Dialog)
+        dialog.setModal(True)
+        dialog.setAttribute(Qt.WA_StyledBackground, True)
+        dialog.setAutoFillBackground(True)
+        dialog.setFixedSize(320, 100)
+        dialog.setStyleSheet("""
+            QDialog { background-color: white; border: 1px solid #ccc; }
+            QLabel { color: black; }
+        """)
+        layout = QtWidgets.QVBoxLayout(dialog)
+        layout.setContentsMargins(20, 20, 20, 20)
+        label = QtWidgets.QLabel('Please wait... connecting with server')
+        label.setAlignment(Qt.AlignCenter)
+        label.setWordWrap(True)
+        layout.addWidget(label)
+        dialog.setLayout(layout)
+        global_center = self.mapToGlobal(self.rect().center())
+        dialog.move(global_center.x() - dialog.width() // 2,
+                   global_center.y() - dialog.height() // 2)
+        dialog.show()
+        QApplication.processEvents()
+        return dialog
+    
     def nextPage(self):
         xmlrpcServerIP = str(self.lineEdit_server.text())
         xmlrpcPort = str(self.lineEdit_port.text())
         scheme = str(self.lineEdit_scheme.text())
         loginType = str(self.comboBox_conn_type.currentText())
-        self.odooConnector.rpc_connector.initConnection(loginType,
-                                     '',
-                                     '',
-                                     '',
-                                     xmlrpcPort,
-                                     scheme,
-                                     xmlrpcServerIP)
 
-        self.dbList = self.odooConnector.rpc_connector.listDb()
-        if not self.dbList:
-            self.label_status.setText('User not logged! Unable to get database list.')
-        else:
-            self.label_status.setText('')
-        self.dbList = self.dbList or []
+        wait_dialog = self.showPleaseWaitDialog()
+        try:
+            self.odooConnector.rpc_connector.initConnection(loginType,
+                                         '',
+                                         '',
+                                         '',
+                                         xmlrpcPort,
+                                         scheme,
+                                         xmlrpcServerIP)
+
+            self.dbList = self.odooConnector.rpc_connector.listDb() or []
+        finally:
+            wait_dialog.close()
+
+        self.label_status.setText('')
         self.comboBox_database.clear()
         self.comboBox_database.addItems(self.dbList)
+        if not self.dbList:
+            self.comboBox_database.setEditable(True)
+            self.comboBox_database.setFocus()
+            self.comboBox_database.lineEdit().setPlaceholderText('Enter the database name')
+        else:
+            self.comboBox_database.setEditable(False)
         self.pushButton_ok.setHidden(False)
         self.pushButton_back.setHidden(False)
         self.pushButton_next.setHidden(True)

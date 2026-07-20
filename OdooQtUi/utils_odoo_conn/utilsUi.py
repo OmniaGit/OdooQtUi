@@ -243,18 +243,20 @@ class AdvancedErrorPopUP(QtWidgets.QDialog):
         top_widget = QtWidgets.QWidget()
         hlay = QtWidgets.QHBoxLayout(top_widget)
         messageShortError = QtWidgets.QLabel()
+        messageShortError.setWordWrap(True)
+        messageShortError.setMaximumWidth(420)
         hlay.addWidget(messageShortError)
         more_button = QtWidgets.QPushButton('More')
         more_button.clicked.connect(self.showMore)
         self.lineEdit = QtWidgets.QTextEdit(self)
         self.lineEdit.setMaximumHeight(0)
-        self.lineEdit.setMaximumWidth(0)        
-        if len(messageBody) > 80:
+        self.lineEdit.setMaximumWidth(0)
+        SHORT_TEXT_LIMIT = 300
+        if len(messageBody) > SHORT_TEXT_LIMIT:
             hlay.addStretch(1)
             hlay.addWidget(more_button)
-            top_widget.setFixedHeight(50)
             more_button.setStyleSheet('background-color:white;')
-            messageShortError.setText(messageBody[:80])
+            messageShortError.setText(messageBody[:SHORT_TEXT_LIMIT] + '...')
         else:
             messageShortError.setText(messageBody)
         if short_text_header:
@@ -278,8 +280,9 @@ class AdvancedErrorPopUP(QtWidgets.QDialog):
         self.setStyleSheet('background-color:%r;' % (color))
         self.lineEdit.setStyleSheet('background-color:white;')
         closeButton.setStyleSheet('background-color:white;')
-        messageShortError.setStyleSheet('font-weight: bold;')
-        self.setMaximumSize(1200, 100)
+        messageShortError.setStyleSheet('font-weight: bold; padding: 12px;')
+        self.setMinimumWidth(450)
+        self.setMaximumSize(1200, 250)
         QtCore.QTimer.singleShot(0, self.resizeMe)
         self._lineEditVisible = False
 
@@ -292,9 +295,9 @@ class AdvancedErrorPopUP(QtWidgets.QDialog):
             self.setMaximumSize(12000, 12000)
         else:
             self.lineEdit.setMinimumSize(0, 0)
-            self.setMaximumSize(1200, 100)
+            self.setMaximumSize(1200, 250)
             self.lineEdit.setMaximumHeight(0)
-            self.lineEdit.setMaximumWidth(0)           
+            self.lineEdit.setMaximumWidth(0)
         QtCore.QTimer.singleShot(0, self.resizeMe)
 
     def resizeMe(self):

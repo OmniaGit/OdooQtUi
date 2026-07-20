@@ -5,6 +5,7 @@ Created on 3 Feb 2017
 '''
 
 import socket
+import traceback
 try:
     import xmlrpc.client as xmlrpc
     import http.client as httplib
@@ -175,17 +176,23 @@ class XmlRpcConnection(object):
             try:
                 return xmlrpc.ServerProxy(self.urlListDB, transport=self.timeoutTransport(self.login_timeout), allow_none=True).list()
             except Exception as ex:
+                print(traceback.format_exc())
                 utils.logMessage('warning', 'Unable to list database. EX: %r' % (ex), 'listDb')
                 if self.useInterface:
-                    utilsUi.popWarning(None, 'Unable to get database list, please check your login settings.')
+                    utilsUi.popWarning(None, 'Unable to get the list of database available from the server. '
+                                             'Ask your Odoo administrator the database name and write it '
+                                             'to the following input box.')
         else:
             try:
                 proxy = xmlrpc.ServerProxy(self.urlListDB, allow_none=True)
                 return proxy.list()
             except Exception as ex:
+                print(traceback.format_exc())
                 utils.logMessage('warning', 'Secure try to read database list: %r' % (ex), 'listDb')
                 if self.useInterface:
-                    utilsUi.popWarning(None, 'Unable to get database list, please check your login settings.')
+                    utilsUi.popWarning(None, 'Unable to get the list of database available from the server. '
+                                             'Ask your Odoo administrator the database name and write it '
+                                             'to the following input box.')
         return []
 
     def search(self, obj, filterList, limit=False, offset=False, order='', context={}):

@@ -1,4 +1,3 @@
-<<<<<<< Updated upstream
 '''
 Created on 20/set/2015
 
@@ -703,7 +702,6 @@ def html_traceback(exc_value):
                                                   tbe.exc_type.__name__,
                                                   str(tbe).replace("\n", "<br>"))
     return result
-=======
 '''
 Created on 20/set/2015
 
@@ -1407,4 +1405,4 @@ def html_traceback(exc_value):
                                                   tbe.exc_type.__name__,
                                                   str(tbe).replace("\n", "<br>"))
     return result
->>>>>>> Stashed changes
+
