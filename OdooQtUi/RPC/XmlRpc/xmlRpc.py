@@ -31,7 +31,8 @@ class XmlRpcConnection(object):
                  xmlrpcPort=8069,
                  scheme='http',
                  xmlrpcServerIP='127.0.0.1',
-                 secure=False):
+                 secure=False,
+                 useInterface = True):
 
         self.userName = userName
         self.userPassword = userPassword
@@ -47,7 +48,10 @@ class XmlRpcConnection(object):
         self.socketNoLogin = False
         self.socketYesLogin = False
         self.userId = False
-        self.useInterface = USE_INTERFACE
+        if not useInterface:
+            self.useInterface = useInterface
+        else:
+            self.useInterface = USE_INTERFACE
         self.secure = secure
         self.timeout = 60
         self.login_timeout = 2
@@ -177,6 +181,8 @@ class XmlRpcConnection(object):
 
     def search(self, obj, filterList, limit=False, offset=False, order='', context={}):
         kargs = {'context': context}
+        if not limit:
+            limit = 999999
         if limit or limit == 0:
             kargs['limit'] = limit
         if offset or offset == 0:

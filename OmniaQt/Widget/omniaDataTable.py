@@ -40,7 +40,8 @@ from OmniaQt.util import OmniaEvent
 
 class OmniaHorizontalHeader(QtWidgets.QHeaderView):
     def __init__(self, parent=None):
-        super(OmniaHorizontalHeader, self).__init__(QtCore.Qt.Horizontal, parent=parent)
+        super(OmniaHorizontalHeader, self).__init__(QtCore.Qt.Horizontal, 
+                                                    parent=parent)
         self.setSectionsClickable(True)
         self._columnsFilter = {}
         self.filterUpdate = OmniaEvent()
@@ -49,8 +50,11 @@ class OmniaHorizontalHeader(QtWidgets.QHeaderView):
         qPoint = qContextMenuEvent.globalPos()
         contexMenu = OmniaMenuFilterSql(parent=self)
         col = self.logicalIndexAt(qContextMenuEvent.pos())
-        headerName = self.model().headerData(col, QtCore.Qt.Horizontal, 111)
-        contexMenu.setColumn(headerName, self._columnsFilter.get(col, []))
+        headerName = self.model().headerData(col, 
+                                             QtCore.Qt.Horizontal, 
+                                             111)
+        contexMenu.setColumn(headerName, 
+                             self._columnsFilter.get(col, []))
         contexMenu.exec_(qPoint)
         if contexMenu.changed:
             if(len(contexMenu.filter)) > 0:

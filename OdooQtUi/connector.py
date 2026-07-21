@@ -4,10 +4,12 @@ Created on 02 feb 2017
 @author: Daniel Smerghetto
 '''
 import logging
-from PySide6 import QtWidgets
 
 from .utils_odoo_conn import utils
 from .RPC.rpc import RpcConnection
+#
+# Interface object
+#
 from .views.search_obj import TemplateSearchView
 from .views.form_obj import TemplateFormView
 from .views.tree_tree_obj import TemplateTreeTreeView
@@ -181,7 +183,8 @@ class MainConnector(object):
         """
         return self.rpc_connector.userLogged
 
-    def loginWithDial(self, context={}):
+    def loginWithDial(self, 
+                      context={}):
         """
         Show the login dialog in order to perform the login operation
         :context dict like additional context for all the coll
