@@ -8,6 +8,7 @@ import sys
 import json
 import time
 from .ui.ui_login import Ui_dialog_login
+import PySide6
 from PySide6 import QtWidgets, QtCore
 
 from OdooQtUi.utils_odoo_conn import utils
@@ -21,15 +22,24 @@ from PySide6.QtCore import Qt, QSettings
 from PySide6.QtCore import Slot
 
 
+
 class RainbowMan(QSplashScreen):
     def __init__(self, parent=None):
-        super(RainbowMan, self).__init__(parent)
+        QSplashScreen.__init__(self)
         self.setWindowFlag(Qt.FramelessWindowHint)
+        self.setWindowFlag(Qt.WindowStaysOnTopHint)
         # rainbow_man_png = os.path.join(resource_path(), "rainbow_man.png")
-       
-        pixmap = QPixmap(utils.getImagePath("rainbow_man.png"))
-        if os.path.exists(os.path.dirname(sys.executable)):
-            pixmap = QPixmap(os.path.join(os.path.dirname(sys.executable), 'src', 'images', 'rainbow_man.png'))
+
+        image_path = utils.getImagePath("rainbow_man.png")
+        pixmap = QPixmap(image_path)
+        custom_path = os.path.join(os.path.dirname(sys.executable), 'src', 'images', 'rainbow_man.png')
+        if os.path.exists(custom_path):
+            image_path = custom_path
+            pixmap = QPixmap(custom_path)
+
+        if pixmap.isNull():
+            utils.logWarning("rainbow_man.png could not be loaded from %r; splash will show blank" % image_path,
+                             "RainbowMan.__init__")
 
         self.setPixmap(pixmap)
 
@@ -41,6 +51,7 @@ class RainbowMan(QSplashScreen):
         QApplication.processEvents()
         self.close()
         QApplication.processEvents()
+
             
 class LoginDial(QtWidgets.QDialog, 
                 Ui_dialog_login):
@@ -284,36 +295,44 @@ class LoginDialComplete(LoginDial):
     def acceptDial(self):
         self.progress.setRange(0,0)
         try:
-            QApplication.processEvents() 
+            QApplication.processEvents()
             self.transferDbInfoFromInterface()
             self.loginWithUserDial()
             if self.odooConnector.rpc_connector.userLogged:
-                utils.writeToFile(self.dbName, 
-                                  self.username, 
-                                  self.userpass, 
-                                  self.serverIp, 
+                utils.writeToFile(self.dbName,
+                                  self.username,
+                                  self.userpass,
+                                  self.serverIp,
                                   self.serverPort,
-                                  self.scheme, 
-                                  self.connType, 
-                                  self.dbList, 
+                                  self.scheme,
+                                  self.connType,
+                                  self.dbList,
                                   self.app_name)
                 self.label_status.setText('User Logged')
                 self.lineEdit_username.setStyleSheet(constants.LOGIN_LINEEDIT_STYLE)
                 self.lineEdit_password.setStyleSheet(constants.LOGIN_LINEEDIT_STYLE)
                 self.label_status.setStyleSheet('')
-                splash = RainbowMan(self)
-                splash.show()
-                splash.progress()
+                try:
+                    splash = RainbowMan(self)
+                    splash.show()
+                    splash.progress()
+                except Exception as splash_ex:
+                    utils.logWarning("Rainbow man splash failed to display: %r" % splash_ex, "acceptDial")
                 self.accept()
             else:
                 raise Exception('Bad Username or Password!')
         except Exception as ex:
+            import traceback
+            tb = traceback.format_exc()
+            print('exception ::', ex)
+            print(tb)
+            utils.logMessage('error', tb, 'acceptDial')
             self.lineEdit_username.setStyleSheet(constants.LOGIN_LINEEDIT_STYLE + constants.BACKGROUND_RED)
             self.lineEdit_password.setStyleSheet(constants.LOGIN_LINEEDIT_STYLE + constants.BACKGROUND_RED)
             self.label_status.setText(str(ex))
             self.label_status.setHidden(False)
             self.label_status.setStyleSheet('color: red;')
-            QApplication.processEvents()            
+            QApplication.processEvents()
         finally:
             self.progress.setRange(0,1)
 
