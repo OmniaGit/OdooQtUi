@@ -38,154 +38,115 @@ from PySide6.QtWebEngineCore import QWebEngineProfile
 from PySide6.QtWebEngineCore import QWebEnginePage
 from PySide6.QtNetwork import QNetworkCookie
 
-# class QtOdoo(QObject):
-#
-#     _storedRecord={}
-#
-#     @Slot(str, str)
-#     def onRecordSaved(self,
-#                       model_name,
-#                       datas):
-#         """
-#         Event fired by odoo framework on record saved
-#         :model_name odoo table name
-#         :datas json dict_like with the all the record values
-#         """
-#         print("onRecordSaved")
-#         record_datas = json.loads(datas)
-#         datas_id = record_datas.get('id')
-#
-#         if datas_id in self._storedRecord[model_name]:
-#             self._storedRecord[model_name][datas_id]= record_datas
-#         else:
-#             self._storedRecord[model_name] = {datas_id: record_datas}
-#
-#     @Slot(str, result=str)
-#     def getRef(self, o):
-#         print("inside getRef", o)
-#         #py_obj = json.loads(o)
-#         #py_obj["c"] = ("Hello", "from", "Ppython")
-#         #return "json.dumps(py_obj)"
-#         return "{'message':{'id':5}}"
-#
-#     @Slot(str)
-#     def printRef(self, o):
-#         print("printRef Called")
-#         py_obj = json.loads(o)
-#         #print("inside printRef", py_obj)
-#         pass
-    
-# class MainWindow(QMainWindow):
-#
-#     def __init__(self, *args, **kwargs):
-#         super(MainWindow,self).__init__(*args, **kwargs)
-#         self.qtodoo = QtOdoo()
-#         self.webchannel = QWebChannel(self)
-#         self.browser = QWebEngineView()#
-#         #self.profile = QWebEngineProfile('odooPLM', self.browser)
-#         #self.profile.setPersistentCookiesPolicy(QWebEngineProfile.ForcePersistentCookies)
-#         #cookie_store = self.profile.cookieStore()
-#         #cookie_store.loadAllCookies()
-#         #cookie_store.cookieAdded.connect(self.onCookieAdded)
-#         self.cookies = []
-#         self.page = self.browser.page()
-#         self.browser
-#         #self.page.profile().setPersistentCookiesPolicy(QWebEngineProfile.ForcePersistentCookies)
-#         self.page.setWebChannel(self.webchannel)
-#         self.webchannel.registerObject("qtodoo", self.qtodoo)
-#
-#         #self.browser.setUrl(QUrl("https://www.v15.odooplm.cloud/"))
-#         #self.browser.setUrl(QUrl("http://localhost:8069/"))
-#         self.browser.setUrl(QUrl("http://localhost:8069/web?debug=assets#id=647&cids=1&menu_id=217&action=398&model=product.product&view_type=form"))
-#         #self.browser.setUrl(QUrl("http://localhost:8069"))
-#         self.browser.loadFinished.connect(self.on_load_finished)
-#         #
-#         self.reload_button = QPushButton("Reload", self)
-#         self.reload_button.setToolTip("reload")
-#         self.reload_button.clicked.connect(lambda: self.browser.reload())
-#         #
-#         layout = QVBoxLayout()
-#         layout.addWidget(self.browser)
-#         layout.addWidget(self.reload_button)
-#
-#         container = QWidget()
-#         container.setLayout(layout)
-#
-#         self.setCentralWidget(container)
-#         #
-#
-#     def on_load_finished(self,*args,**karg):
-#         self.load_custom_client_js()
-#
-#     def onCookieAdded(self, cookie):
-#         for c in self.cookies:
-#             if c.hasSameIdentifier(cookie):
-#                 return
-#         self.cookies.append(QNetworkCookie(cookie))
-#         self.toJson()
-#
-#     def load_custom_client_js(self):
-#         #
-#         # Load custom qt javascript
-#         #
-#         with open('./src/qwebchannel.js') as f:
-#             content= f.read()
-#             self.page.runJavaScript(content)
-#         self.load_custom_client_js()
-#         print("Javascript executed form python code")
+class QtOdoo(QObject):
 
-from OdooQtUiWeb.web_odoo import QtOdooUiDilog
+    _storedRecord={}
+
+    @Slot(str, str)
+    def onRecordSaved(self,
+                      model_name,
+                      datas):
+        """
+        Event fired by odoo framework on record saved
+        :model_name odoo table name
+        :datas json dict_like with the all the record values
+        """
+        print("onRecordSaved")
+        record_datas = json.loads(datas)
+        datas_id = record_datas.get('id')
+
+        if datas_id in self._storedRecord[model_name]:
+            self._storedRecord[model_name][datas_id]= record_datas
+        else:
+            self._storedRecord[model_name] = {datas_id: record_datas}
+
+    @Slot(str, result=str)
+    def getRef(self, o):
+        print("inside getRef", o)
+        #py_obj = json.loads(o)
+        #py_obj["c"] = ("Hello", "from", "Ppython")
+        #return "json.dumps(py_obj)"
+        return "{'message':{'id':5}}"
+
+    @Slot(str)
+    def printRef(self, o):
+        print("printRef Called")
+        py_obj = json.loads(o)
+        #print("inside printRef", py_obj)
+        pass
 
 class MainWindow(QMainWindow):
 
     def __init__(self, *args, **kwargs):
         super(MainWindow,self).__init__(*args, **kwargs)
-        self.qtOdooBrowser = QtOdooUiDilog(None)
+        self.qtodoo = QtOdoo()
+        self.webchannel = QWebChannel(self)
+        self.browser = QWebEngineView()#
+        #self.profile = QWebEngineProfile('odooPLM', self.browser)
+        #self.profile.setPersistentCookiesPolicy(QWebEngineProfile.ForcePersistentCookies)
+        #cookie_store = self.profile.cookieStore()
+        #cookie_store.loadAllCookies()
+        #cookie_store.cookieAdded.connect(self.onCookieAdded)
+        self.cookies = []
+        self.page = self.browser.page()
+        self.browser
+        #self.page.profile().setPersistentCookiesPolicy(QWebEngineProfile.ForcePersistentCookies)
+        self.page.setWebChannel(self.webchannel)
+        self.webchannel.registerObject("qtodoo", self.qtodoo)
+
+        #self.browser.setUrl(QUrl("https://www.v15.odooplm.cloud/"))
+        #self.browser.setUrl(QUrl("http://localhost:8069/"))
+        self.browser.setUrl(QUrl("http://localhost:8069/web?debug=assets#id=647&cids=1&menu_id=217&action=398&model=product.product&view_type=form"))
+        #self.browser.setUrl(QUrl("http://localhost:8069"))
+        self.browser.loadFinished.connect(self.on_load_finished)
+        #
+        self.reload_button = QPushButton("Reload", self)
+        self.reload_button.setToolTip("reload")
+        self.reload_button.clicked.connect(lambda: self.browser.reload())
+        #
         layout = QVBoxLayout()
-        #
-        show_login = QPushButton("Login", self)
-        show_login.clicked.connect(lambda: self.show_login())
-        layout.addWidget(show_login)
-        #
-        show_form = QPushButton("Form", self)
-        show_form.clicked.connect(lambda: self.show_form())
-        layout.addWidget(show_form)
-        #
-        show_list= QPushButton("List", self)
-        show_list.clicked.connect(lambda: self.show_list())
-        layout.addWidget(show_list)
-        #
+        layout.addWidget(self.browser)
+        layout.addWidget(self.reload_button)
+
         container = QWidget()
         container.setLayout(layout)
 
         self.setCentralWidget(container)
-    
-    def show_login(self):
-        self.qtOdooBrowser.show_login()
-        
-    def show_form(self):
-        self.qtOdooBrowser.show_form(
-            odoo_id='',
-            odoo_object='product.product',
-            odoo_action_id=''
-            )
+        #
 
+    def on_load_finished(self,*args,**karg):
+        self.load_custom_client_js()
 
-    def show_list(self):
-        #http://localhost:8069/web#action=398&model=product.product&view_type=list&cids=1&menu_id=217
-        selected_items = self.qtOdooBrowser.show_list('product.product',
-                                                      action_id=461)
+    def onCookieAdded(self, cookie):
+        for c in self.cookies:
+            if c.hasSameIdentifier(cookie):
+                return
+        self.cookies.append(QNetworkCookie(cookie))
+        self.toJson()
+
+    def load_custom_client_js(self):
+        #
+        # Load custom qt javascript
+        #
+        with open('./src/qwebchannel.js') as f:
+            content= f.read()
+            self.page.runJavaScript(content)
+        self.load_custom_client_js()
+        print("Javascript executed form python code")
 
 def main():
-    os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = "--enable-logging --log-level=1 --remote-debugging-port=1234"
+    os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = "--enable-logging --log-level=3 --remote-debugging-port=1234"
     app = QApplication(sys.argv)
     window = MainWindow()
     window.show()
     ret = app.exec()
     sys.exit(ret)
 
-if __name__ == "__main__":
-    main()
+if __name__
+
+
+if __name__ == '__main__':
+    pass
 
     
     # def on_load_finished(self,*args,**karg):

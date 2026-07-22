@@ -4,18 +4,21 @@ Created on Jan 18, 2019
 
 @author: mboscolo
 '''
-import sys
 import os
-
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
+import sys
 import logging
-from PySide6 import QtWidgets
+import PySide2
+from PySide2 import QtWidgets
+from PySide2 import QtGui
 from OdooQtUi.connector import MainConnector
 from OdooQtUi.utils_odoo_conn import constants
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
+# dirname = os.path.dirname(PySide2.__file__)
+# plugin_path = os.path.join(dirname, 'Qt', 'plugins', 'platforms')
+# os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = plugin_path
+#os.environ['QT_DEBUG_PLUGINS']='1'
 
 app = QtWidgets.QApplication(sys.argv)
 
@@ -79,17 +82,28 @@ if __name__ == '__main__':
                 tmplViewObj.loadForceEmptyIds(forceFieldValues, readonlyFields, invisibleFields)
             return tmplViewObj
 
+        #tmplViewObj = tryForm('sale.order', useChatter=False)
         product_ids = connectorObj.rpc_connector.search(obj='product.template',
-                                                        filterList=[('id','>',0)],
+                                                        filterList=[],
                                                         limit=1)
-        tmplViewObj = tryForm(odooObjectName='product.product',
-                              viewName='plm.base.component',
+        tmplViewObj = tryForm(odooObjectName='product.template',
+                              #viewName='plm.base.component',
                               idToLoad=product_ids,
                               useHeader=True,
                               useChatter=True)
+        #tmplViewObj = tryListView('product.template', viewFilter=True)
+#         lay = QtWidgets.QVBoxLayout()
+#         lay.addWidget(tmplViewObj)
+#         lay.setMargin(0)
+#         lay.setContentsMargins(0,0,0,0)
+#         dialog = QtWidgets.QDialog()
+#         dialog.setLayout(lay)
+#         dialog.exec_()
         scroll = QtWidgets.QScrollArea()
         scroll.setWidget(tmplViewObj)
         scroll.setWidgetResizable(True)
+        # tmplViewObj = tryForm('product.product', idToLoad=1345, useChatter=False)
+        # viewCheckBoxes = {0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled}
         dialog = QtWidgets.QDialog()
         lay = QtWidgets.QVBoxLayout()
         lay.addWidget(scroll)
@@ -98,8 +112,7 @@ if __name__ == '__main__':
         dialog.setLayout(lay)
         dialog.resize(1200, 800)
         dialog.move(100, 100)
-        dialog.setStyleSheet("color: black;")
-        dialog.exec()
+        dialog.exec_()
 
     if connectorObj.userLogged:
         do_test()

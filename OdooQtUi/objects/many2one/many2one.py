@@ -7,8 +7,9 @@ import json
 from PySide6 import QtCore
 from PySide6 import QtWidgets
 
-from ...utils_odoo_conn import utils, utilsUi, constants
-from ...objects.fieldTemplate import OdooFieldTemplate
+from OdooQtUi.utils_odoo_conn import utils, utilsUi
+from OdooQtUi.utils_odoo_conn import constants
+from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
 
 
 class Many2one(OdooFieldTemplate):
@@ -160,7 +161,7 @@ class Many2one(OdooFieldTemplate):
         super(Many2one, self).setInvisible(val)
         self.labelQtObj.setHidden(val)
         if self.widgetQtObj2:
-            self.widgetQtObj2.setHidden(bool(val))
+            self.widgetQtObj2.setHidden(val)
         if self.currentValue and not val:
             if self.editButton:
                 self.editButton.show()

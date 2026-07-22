@@ -7,8 +7,11 @@ import json
 #
 from PySide6 import QtWidgets
 from PySide6.QtCore import QAbstractItemModel, Qt, QModelIndex
-from ..utils_odoo_conn import constants
-from ..views.templateView import TemplateView
+#
+from OdooQtUi.utils_odoo_conn import constants
+from OdooQtUi.views.templateView import TemplateView
+#
+#
 class TemplateTreeTreeView(TemplateView):
 
     def __init__(self,
@@ -17,7 +20,7 @@ class TemplateTreeTreeView(TemplateView):
         super(TemplateTreeTreeView, self).__init__(odooConnector=odooConnector,
                                                    viewObj=viewObject)
         self.field_parent = ''
-        self.viewType = 'list'#'tree'
+        self.viewType = 'tree'
         self.readonly = True
         self.activeIds = []
 
@@ -96,16 +99,20 @@ class TreeTreeData(QAbstractItemModel):
         self.objectName = objectName
         #
         # call the server in  order to retrive all data
+        #
         ret = self.connectorObj.callCustomMethod(self.objectName,
                                                  functionName,
                                                  parameters=[ids])
-
+        try:
+            ret = json.loads(ret)
+        except Exception:
+            pass
         if not ret:
             #todo: mettere un pop up di errore o qualcosa ???
             return
         self.treeView = None
         self.headers = list(ret[0].values())
-        self.headersKey = list(ret[0].keys())
+        self.headersKey= list(ret[0].keys())
         self.columnsLen = len(self.headers)
 
         def addChilds(parentNode, childNodesAttributes):

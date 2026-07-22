@@ -6,71 +6,21 @@ Created on 3 Feb 2017
 import json
 import xml.etree.cElementTree as ElementTree
 from PySide6 import QtWidgets
-from PySide6 import QtCore
-from ...utils_odoo_conn import constants, utilsUi, utils
-from ...objects.selection.selection import Selection
-from ...objects.boolean.boolean import Boolean
-from ...objects.char.char import Charachter
-from ...objects.date.date import Date
-from ...objects.datetimee.datetimee import Datetime
-from ...objects.float.float import Float
-from ...objects.integer.integer import Integer
-from ...objects.many2many.many2many import Many2many
-from ...objects.many2one.many2one import Many2one
-from ...objects.text.text import Text
-from ...objects.text.text import TextHtml
-from ...objects.one2many.one2many import One2many
+from OdooQtUi.utils_odoo_conn import constants, utilsUi, utils
+from OdooQtUi.objects.selection.selection import Selection
+from OdooQtUi.objects.boolean.boolean import Boolean
+from OdooQtUi.objects.char.char import Charachter
+from OdooQtUi.objects.date.date import Date
+from OdooQtUi.objects.datetimee.datetimee import Datetime
+from OdooQtUi.objects.float.float import Float
+from OdooQtUi.objects.integer.integer import Integer
+from OdooQtUi.objects.many2many.many2many import Many2many
+from OdooQtUi.objects.many2one.many2one import Many2one
+from OdooQtUi.objects.text.text import Text, TextHtml
+from OdooQtUi.objects.one2many.one2many import One2many
 
-class OdooQtUiPushButton(QtWidgets.QPushButton):
-    def __init__(self,
-                 parent,
-                 xmlObj):
-        super().__init__(parent)
-        #
-        self.attrs = xmlObj.attrib
-        odoo_func_name = self.attrs.get('name', '')
-        #icon = self.attrs.get('icon', '')
-        butt_type = self.attrs.get('type', '')
-        #attrs_extra = self.attrs.get('attrs', '')
-        label = self.attrs.get('string', '')
-        modifiers = json.loads(self.attrs.get('modifiers', '{}'))
-        context = self.attrs.get('context', {})
-        self.record = None
-        if butt_type == 'object': # Call Odoo function
-            self.setText(label)
-            self.context = context
-            self.butt_type = butt_type
-            self.odoo_func = odoo_func_name
-            self.label = label
-            self.modifiers = modifiers
-            self.update_eval_attributes()
-        self.setStyleSheet(constants.BUTTON_STYLE_REVERSED)
-
-    def update_eval_attributes(self):
-        self.modifiers={'readonly': self.attrs.get('readonly', False),
-                        'required': self.attrs.get('required', False),
-                        'invisible': self.attrs.get('invisible', False)
-                        }
-        if self.record:
-            self.readonly = utils.evaluateBoolean(self.attrs.get('readonly', False), self.record)
-            self.required = utils.evaluateBoolean(self.attrs.get('required', False), self.record)
-            self.invisible = utils.evaluateBoolean(self.attrs.get('invisible', False), self.record)
-        else:
-            self.readonly = utils.evaluateBoolean(self.attrs.get('readonly', False))
-            self.required = utils.evaluateBoolean(self.attrs.get('required', False))
-            self.invisible = utils.evaluateBoolean(self.attrs.get('invisible', False))
-        #
-        def hideButtonWithStyle(butt, flag):
-            if butt:
-                if flag:
-                    butt.setStyleSheet('color:#dddddd; border:none;background-color:#dddddd;')
-                else:
-                    butt.setStyleSheet(constants.BUTTON_STYLE_REVERSED)
-                butt.setDisabled(flag)
-        hideButtonWithStyle(self, self.invisible)
 
 class TreeViewList(QtWidgets.QWidget):
-    drop_in = QtCore.Signal(QtCore.QEvent)
     def __init__(self,
                  qtParent,
                  arch,
@@ -87,14 +37,6 @@ class TreeViewList(QtWidgets.QWidget):
         self.tableWidget = False
         self.viewCheckBoxes = viewCheckBoxes
         self.widgetContents = None
-        self.setAcceptDrops(True)
-
-    def dragEnterEvent(self, e):
-        e.accept()
-
-    def dropEvent(self, e):
-        self.drop_in.emit(e)
-        e.accept()        
 
     def computeRecursion(self, parent):
         headers = []
@@ -139,8 +81,30 @@ class TreeViewList(QtWidgets.QWidget):
                 return button_obj
 
     def computeButton(self, xmlObj):
-        return OdooQtUiPushButton(self.tableWidget,
-                                  xmlObj)
+        button = False
+        attrs = xmlObj.attrib
+        odoo_func_name = attrs.get('name', '')
+        icon = attrs.get('icon', '')
+        butt_type = attrs.get('type', '')
+        attrs_extra = attrs.get('attrs', '')
+        label = attrs.get('string', '')
+        modifiers = json.loads(attrs.get('modifiers', '{}'))
+        context = attrs.get('context', {})
+        if butt_type == 'object': # Call Odoo function
+            button = QtWidgets.QPushButton(parent=self.tableWidget)
+            button.setText(label)
+        if button:
+            button.record = None
+            button.context = context
+            button.butt_type = butt_type
+            button.odoo_func = odoo_func_name
+            button.label = label
+            button.modifiers = modifiers
+            button.readonly = utils.evaluateBoolean(attrs.get('readonly', False))
+            button.required = utils.evaluateBoolean(attrs.get('required', False))
+            button.invisible = utils.evaluateBoolean(attrs.get('invisible', False))
+        button.setStyleSheet(constants.BUTTON_STYLE_REVERSED)
+        return button
 
     def computeField(self, xmlObj):
         fieldAttributes = xmlObj.attrib

@@ -15,12 +15,14 @@ from PySide6 import QtCore
 from PySide6 import QtWidgets
 #
 import OdooQtUi
-from ..utils_odoo_conn import constants, utils
-from ..utils_odoo_conn.utils import logMessage
+#
+from OdooQtUi.utils_odoo_conn import constants
+from OdooQtUi.utils_odoo_conn import utils
+from OdooQtUi.utils_odoo_conn.utils import logMessage
 
 DEFAULT_ICON_PATH = ''
 
-QPROGRESS_STYLESHEET="""QDialog {border: 1.5px solid;
+QPROGRESS_STYLESHEET = """QDialog {border: 1.5px solid;
                                        border-radius: 5px;
                                        border-color: #9d5e96;
                                        color: white;
@@ -33,14 +35,16 @@ QPROGRESS_STYLESHEET="""QDialog {border: 1.5px solid;
                                                    width: 10px;
                                                   }
                                        """
-                                       
+
+
 class OpenProgressBar(QtWidgets.QProgressDialog):
-    def __init__(self,
-                 parentHWnd=None):
-        super(OpenProgressBar,self).__init__()
-        self.setStyleSheet(QPROGRESS_STYLESHEET)
+
+    def __init__(self, parentHWnd=None):
+        super(OpenProgressBar, self).__init__()
+        # self.setStyleSheet(QPROGRESS_STYLESHEET)
         self.setCancelButton(None)
-        self._parentHWnd=parentHWnd
+        self._parentHWnd = parentHWnd
+        self.hide()
                      
     def _init(self,
               maxIndex=100,
@@ -50,14 +54,14 @@ class OpenProgressBar(QtWidgets.QProgressDialog):
             self.setWindowTitle(message)
             self.setLabelText(message)
             self.setRange(0, maxIndex)
-            self._step=step
-            self._actualIndex=0
-            self.message=message
+            self._step = step
+            self._actualIndex = 0
+            self.message = message
             self.repaint()
         except Exception as e:
             self.showError(e)  
             
-    def reInit(self,maxIndex=100,message="Progress",step=7):
+    def reInit(self, maxIndex=100, message="Progress", step=7):
         try:
             self.show()
             self._init(maxIndex, message, step)
@@ -66,8 +70,8 @@ class OpenProgressBar(QtWidgets.QProgressDialog):
             
     def goOn(self,
              message=None):
-        if (message == None) or (len(message)<1):
-            message=self.message
+        if (message == None) or (len(message) < 1):
+            message = self.message
         self.setLabelText(message)
         self._actualIndex = self._actualIndex + self._step
         self.setValue(self._actualIndex)
@@ -81,7 +85,8 @@ class OpenProgressBar(QtWidgets.QProgressDialog):
             super(OpenProgressBar, self).close()
         except Exception as ex:
             logging.error('Error closing the progressbar window. Error: %r' % (ex))
-            
+
+
 def getQtImageFromContent(content, imageWidth=100, imageHeight=100, b64decode=True):
     label = QtWidgets.QLabel()
     pixmap = QtGui.QPixmap()
@@ -105,7 +110,7 @@ def setDefaultIconPath(iconPath):
 def commonPopulateTable(headers,
                         values,
                         tableWidget,
-                        flags={}, 
+                        flags={},
                         add=False,
                         fontSize=False):
     '''
@@ -129,7 +134,6 @@ def commonPopulateTable(headers,
         tableWidget.setRowCount(rowPosition + 1)
         rowDict = {}
         for colIndex in colIndexList:
-            colVal = ''
             colName = headers[colIndex]
             if isinstance(menuObj, (list, tuple)):
                 if colIndex >= len(menuObj):
@@ -142,7 +146,7 @@ def commonPopulateTable(headers,
             if isinstance(colVal, QtWidgets.QWidget):
                 tableWidget.setCellWidget(rowPosition, colIndex, colVal)
             else:
-                twItem = QtWidgets.QTableWidgetItem(f"{colVal}")
+                twItem = QtWidgets.QTableWidgetItem(colVal)
                 if fontSize:
                     font = QtGui.QFont()
                     font.setPointSize(fontSize)
@@ -169,6 +173,7 @@ def getFileFromSystem(desc='Open', startPath='/home/'):
     if os.path.exists(file_path):
         return str(file_path)
     return ''
+
 
 def getDirectoryFileToSaveSystem(parent, statingPath='', fileType=''):
     file_path, _filter = QtWidgets.QFileDialog.getSaveFileName(None, "Save file", statingPath, fileType)
@@ -198,7 +203,14 @@ def exceptionManagement(ex, message=''):
 
 
 def setRequiredBackground(widgetQtObj, baseBackground):
-    widgetQtObj.setStyleSheet(baseBackground + constants.COMMON_FIELDS_REQUIRED_BACKGROUND)
+    widgetQtObj.setStyleSheet("""
+            QDialog {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #E3F2FD, stop:1 #BBDEFB);
+                background-color: #d6d6d6;
+                padding: 10px;
+                border: none;
+                }
+            """)
 
 
 def setLayoutMarginAndSpacing(lay, forceVal=False):
@@ -220,28 +232,31 @@ def getIconPath(iconName):
 
 
 class AdvancedErrorPopUP(QtWidgets.QDialog):
+
     def __init__(self,
                  parent,
-                 messageBody="", 
-                 mess_type='warning', 
+                 messageBody="",
+                 mess_type='warning',
                  short_text_header=''):
         QtWidgets.QDialog.__init__(self, parent)
         self.mainLayout = QtWidgets.QVBoxLayout(self)
         top_widget = QtWidgets.QWidget()
         hlay = QtWidgets.QHBoxLayout(top_widget)
         messageShortError = QtWidgets.QLabel()
+        messageShortError.setWordWrap(True)
+        messageShortError.setMaximumWidth(420)
         hlay.addWidget(messageShortError)
         more_button = QtWidgets.QPushButton('More')
         more_button.clicked.connect(self.showMore)
         self.lineEdit = QtWidgets.QTextEdit(self)
         self.lineEdit.setMaximumHeight(0)
-        self.lineEdit.setMaximumWidth(0)        
-        if len(messageBody) > 80:
+        self.lineEdit.setMaximumWidth(0)
+        SHORT_TEXT_LIMIT = 300
+        if len(messageBody) > SHORT_TEXT_LIMIT:
             hlay.addStretch(1)
             hlay.addWidget(more_button)
-            top_widget.setFixedHeight(50)
             more_button.setStyleSheet('background-color:white;')
-            messageShortError.setText(messageBody[:80])
+            messageShortError.setText(messageBody[:SHORT_TEXT_LIMIT] + '...')
         else:
             messageShortError.setText(messageBody)
         if short_text_header:
@@ -265,8 +280,9 @@ class AdvancedErrorPopUP(QtWidgets.QDialog):
         self.setStyleSheet('background-color:%r;' % (color))
         self.lineEdit.setStyleSheet('background-color:white;')
         closeButton.setStyleSheet('background-color:white;')
-        messageShortError.setStyleSheet('font-weight: bold;')
-        self.setMaximumSize(1200, 100)
+        messageShortError.setStyleSheet('font-weight: bold; padding: 12px;')
+        self.setMinimumWidth(450)
+        self.setMaximumSize(1200, 250)
         QtCore.QTimer.singleShot(0, self.resizeMe)
         self._lineEditVisible = False
 
@@ -276,16 +292,17 @@ class AdvancedErrorPopUP(QtWidgets.QDialog):
             self.lineEdit.setMinimumSize(600, 400)
             self.lineEdit.setMaximumHeight(12000)
             self.lineEdit.setMaximumWidth(12000)
-            self.setMaximumSize(12000,12000)
+            self.setMaximumSize(12000, 12000)
         else:
             self.lineEdit.setMinimumSize(0, 0)
-            self.setMaximumSize(1200, 100)
+            self.setMaximumSize(1200, 250)
             self.lineEdit.setMaximumHeight(0)
-            self.lineEdit.setMaximumWidth(0)           
+            self.lineEdit.setMaximumWidth(0)
         QtCore.QTimer.singleShot(0, self.resizeMe)
 
     def resizeMe(self):
         self.resize(self.minimumSizeHint())
+
 
 def popError(parent, ex):
     """
@@ -301,7 +318,11 @@ def popError(parent, ex):
         err = str(ex)
     else:
         err = str(ex.faultCode)
-    popMessage(parent, messageBody, 'ERROR', err)
+    popMessage(parent,
+               messageBody,
+               'ERROR',
+               err)
+
 
 def popWarning(parent, ex):
     """
@@ -310,6 +331,7 @@ def popWarning(parent, ex):
         :ex python Exception object
     """
     popMessage(parent, ex, 'WARNING')
+
 
 def popInfo(parent,
             ex):
@@ -320,9 +342,10 @@ def popInfo(parent,
     """
     popMessage(parent, ex, 'INFO')
 
+
 def popMessage(parent,
-               ex, 
-               msg_type='info', 
+               ex,
+               msg_type='info',
                short_text_header=''):
     """
         pop an warning message

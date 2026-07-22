@@ -11,9 +11,10 @@ from PySide6 import QtGui
 from PySide6 import QtCore
 from PySide6 import QtWidgets
 
-from ...utils_odoo_conn import utils, utilsUi, constants
-from ...objects.fieldTemplate import OdooFieldTemplate
+from OdooQtUi.utils_odoo_conn import utils, utilsUi
+from OdooQtUi.utils_odoo_conn import constants
 from functools import partial
+from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
 import base64
 from pickle import TRUE
 
@@ -559,22 +560,22 @@ class One2many(OdooFieldTemplate):
             if self.isChatterWidget:
                 return
             if self.widgetQtObj:
-                self.widgetQtObj.setHidden(bool(val))
+                self.widgetQtObj.setHidden(val)
             if self.treeViewObj:
-                self.treeViewObj.buttToLeft.setHidden(bool(val))
-                self.treeViewObj.buttToRight.setHidden(bool(val))
-                self.treeViewObj.treeObj.tableWidget.setHidden(bool(val))
+                self.treeViewObj.buttToLeft.setHidden(val)
+                self.treeViewObj.buttToRight.setHidden(val)
+                self.treeViewObj.treeObj.tableWidget.setHidden(val)
                 if  self.treeViewObj.treeObj.widgetContents:
-                    self.treeViewObj.treeObj.widgetContents.setHidden(bool(val))
+                    self.treeViewObj.treeObj.widgetContents.setHidden(val)
             if self.label_name_values:
-                self.label_name_values.setHidden(bool(val))
-            self.labelQtObj.setHidden(bool(val))
-            self.createButt.setHidden(bool(val))
+                self.label_name_values.setHidden(val)
+            self.labelQtObj.setHidden(val)
+            self.createButt.setHidden(val)
             if self.labelQtObj:
-                self.labelQtObj.setHidden(bool(val))
+                self.labelQtObj.setHidden(val)
             if self.createButt:
-                self.createButt.setHidden(bool(val))
-            super(One2many, self).setInvisible(bool(val))
+                self.createButt.setHidden(val)
+            super(One2many, self).setInvisible(val)
         except Exception as ex:
             utils.logError(ex, 'setInvisible')
 

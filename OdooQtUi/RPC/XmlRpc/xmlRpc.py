@@ -5,24 +5,25 @@ Created on 3 Feb 2017
 '''
 
 import socket
+import traceback
 try:
     import xmlrpc.client as xmlrpc
     import http.client as httplib
 except Exception as ex:
     import xmlrpclib as xmlrpc
     import httplib
-
-from ...utils_odoo_conn import utils, utilsUi
-
+from OdooQtUi.utils_odoo_conn import utils
 USE_INTERFACE = True
 try:
-    from ...utils_odoo_conn import utilsUi
+
+    from OdooQtUi.utils_odoo_conn import utilsUi
 except Exception as ex:
     utils.logError(ex, '')
     USE_INTERFACE = False
 
 
 class XmlRpcConnection(object):
+
 
     def __init__(self,
                  userName,
@@ -31,8 +32,7 @@ class XmlRpcConnection(object):
                  xmlrpcPort=8069,
                  scheme='http',
                  xmlrpcServerIP='127.0.0.1',
-                 secure=False,
-                 useInterface = True):
+                 secure=False):
 
         self.userName = userName
         self.userPassword = userPassword
@@ -48,10 +48,7 @@ class XmlRpcConnection(object):
         self.socketNoLogin = False
         self.socketYesLogin = False
         self.userId = False
-        if not useInterface:
-            self.useInterface = useInterface
-        else:
-            self.useInterface = USE_INTERFACE
+        self.useInterface = USE_INTERFACE
         self.secure = secure
         self.timeout = 60
         self.login_timeout = 2
@@ -75,6 +72,13 @@ class XmlRpcConnection(object):
         else:
             t.set_timeout(self.timeout)
         return t
+
+
+    def checkVersion(self):
+
+        odooVerInfo = xmlrpc.ServerProxy('{}2/common'.format(self.urlCommon), transport=self.timeoutTransport(self.login_timeout),allow_none=True)
+        odooVerDict = odooVerInfo.version()
+        return odooVerDict
 
     def _assignServerVersion(self):
         """
@@ -113,8 +117,9 @@ class XmlRpcConnection(object):
         
     def loginNoUser(self):
         if not self.secure:
-            try:
-                self.socketNoLogin = xmlrpc.ServerProxy(self.urlNoLogin, transport=self.timeoutTransport(self.login_timeout), allow_none=True)
+            try:                    # xmlrpc.client.ServerProxy('{}/xmlrpc/2/common'.format(from_url))
+                self.socketNoLogin = xmlrpc.ServerProxy(self.urlNoLogin,
+                                                        transport=self.timeoutTransport(self.login_timeout))
             except Exception as ex:
                 utils.logMessage('error', 'Error during login without user: %r' % (ex), 'loginNoUser')
                 return False
@@ -131,7 +136,9 @@ class XmlRpcConnection(object):
         if not self.socketNoLogin:
             self.loginNoUser()
         try:
-            self.userId = self.socketNoLogin.login(self.databaseName, self.userName, self.userPassword)
+            self.userId = self.socketNoLogin.login(self.databaseName,
+                                                   self.userName,
+                                                   self.userPassword)
             if not self.userId:
                 return False
         except Exception as ex:
@@ -139,7 +146,10 @@ class XmlRpcConnection(object):
             return False
         if not self.secure:
             try:
-                self.socketYesLogin = xmlrpc.ServerProxy(self.urlYesLogin, transport=self.timeoutTransport(self.login_timeout), allow_none=True)
+                self.socketYesLogin = xmlrpc.ServerProxy(self.urlYesLogin,
+                                                         transport=self.timeoutTransport(self.login_timeout),
+                                                         allow_none=True
+                                                         )
                 self.socketYesLogin._ServerProxy__transport.timeout = self.timeout
             except Exception as ex:
                 utils.logMessage('error', 'Error getting server proxy: %r' % (ex), 'loginWithUser')
@@ -166,30 +176,34 @@ class XmlRpcConnection(object):
             try:
                 return xmlrpc.ServerProxy(self.urlListDB, transport=self.timeoutTransport(self.login_timeout), allow_none=True).list()
             except Exception as ex:
+                print(traceback.format_exc())
                 utils.logMessage('warning', 'Unable to list database. EX: %r' % (ex), 'listDb')
                 if self.useInterface:
-                    utilsUi.popWarning(None, 'Unable to get database list, please check your login settings.')
+                    utilsUi.popWarning(None, 'Unable to get the list of database available from the server. '
+                                             'Ask your Odoo administrator the database name and write it '
+                                             'to the following input box.')
         else:
             try:
                 proxy = xmlrpc.ServerProxy(self.urlListDB, allow_none=True)
                 return proxy.list()
             except Exception as ex:
+                print(traceback.format_exc())
                 utils.logMessage('warning', 'Secure try to read database list: %r' % (ex), 'listDb')
                 if self.useInterface:
-                    utilsUi.popWarning(None, 'Unable to get database list, please check your login settings.')
+                    utilsUi.popWarning(None, 'Unable to get the list of database available from the server. '
+                                             'Ask your Odoo administrator the database name and write it '
+                                             'to the following input box.')
         return []
 
     def search(self, obj, filterList, limit=False, offset=False, order='', context={}):
         kargs = {'context': context}
-        if not limit:
-            limit = 999999
         if limit or limit == 0:
             kargs['limit'] = limit
         if offset or offset == 0:
             kargs['offset'] = offset
         if order:
             kargs['order'] = order
-        return self.callOdooFunction(obj, 'search', [filterList], kargs) or []
+        return self.callOdooFunction(obj, 'search', [filterList], kargs)
 
     def read(self, obj, fields=[], ids=[], limit=False, context={}, load='_classic_read'):
         kargs = {'context': context, 'load': load}
@@ -232,43 +246,11 @@ class XmlRpcConnection(object):
         kargs = {'context': context}
         return self.callOdooFunction(obj, 'search_count', [filterList], kargs)
 
-    def fieldsViewGet(self, 
-                      odooObj, 
-                      view_id=False, 
-                      view_type='form', 
-                      context={}):
+    def fieldsViewGet(self, odooObj, view_id=False, view_type='form', context={}):
         if not view_id:
             view_id = False
         kwargParameters = {'context': context}
-        if self.serverVersion > 16:
-            if not view_id:
-                for view_id in self.search('ir.ui.view', 
-                                           [('type','=', view_type),
-                                            ('model','=', odooObj)],
-                                            limit=1):
-                    break
-            if not view_id:
-                # go for generic one
-                for view_id in self.search('ir.ui.view', 
-                                           [('name','=', 'ir.ui.view search')],
-                                            limit=1):
-                    break
-            if not view_id:
-                raise Exception(f"View of type {view_type} on mode {odooObj} not found")    
-            getViewData = self.callOdooFunction(odooObj, 
-                                                'get_view', 
-                                                [view_id, view_type], 
-                                                kwargParameters)
-            fieldData = self.callOdooFunction(odooObj, 
-                                              'fields_get', 
-                                              [getViewData['models'][odooObj]])
-            return getViewData, fieldData
-                
-        else:
-            return self.callOdooFunction(odooObj, 
-                                         'fields_view_get', 
-                                         [view_id, view_type], 
-                                         kwargParameters)
+        return self.callOdooFunction(odooObj, 'fields_view_get', [view_id, view_type], kwargParameters)
 
     def on_change(self, odooObj, activeIds, allVals, fieldName, allOnchanges, context):
         try:

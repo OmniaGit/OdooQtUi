@@ -18,7 +18,6 @@
 #    along with this prograIf not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-from pandas.io.common import file_path_to_url
 '''
 Created on 14 Nov 2023
 
@@ -28,10 +27,8 @@ import os
 import sys
 import json
 import logging
-import inspect
-#
 from urllib.parse import urlencode
-#
+
 from PySide6.QtCore import *
 from PySide6.QtWidgets import *
 from PySide6.QtGui import *
@@ -51,41 +48,6 @@ def make_url(base_url, *uris, **params):
     if params:
         url = '{}?{}'.format(url, urlencode(params))
     return url
-
-def get_module_path(module):
-    return os.path.dirname(inspect.getfile(module))
-#
-#
-#
-class OpenEvent(object):
-    """
-        this class fire the event
-    """
-    def __init__(self):
-        self.handlers = set()
-
-    def handle(self, handler):
-        self.handlers.add(handler)
-        return self
-
-    def unhandle(self, handler):
-        try:
-            self.handlers.remove(handler)
-        except:
-            raise ValueError("Handler is not handling this event.")
-        return self
-
-    def fire(self, *args, **kargs):
-        for handler in self.handlers:
-            handler(*args, **kargs)
-
-    def getHandlerCount(self):
-        return len(self.handlers)
-
-    __iadd__ = handle
-    __isub__ = unhandle
-    __call__ = fire
-    __len__ = getHandlerCount
 #
 #
 #
@@ -137,15 +99,11 @@ class QtOdooUiWeb(QWebEngineView):
         self._web_base_url = web_base_url 
         self.urlChanged.connect(self._url_changed)
         self._application_starting_url = ''
-        self.url_changd = OpenEvent()
-        self.close_form = OpenEvent()
         
     def _url_changed(self, url):
         if self._application_starting_url:
             if url.toString()!=self._application_starting_url:
                 self.hide()
-                self.url_changd(url.toString(),
-                                self._application_starting_url)
     
     def set_form(self,
                  model,
@@ -175,11 +133,9 @@ class QtOdooUiWeb(QWebEngineView):
     
     def save_button(self):
         self.page().runJavaScript("""save_form();""")
-        self.close_form("save")
     
     def cancel_button(self):
         self.page().runJavaScript("""cancel_form();""")
-        self.close_form("cancel")
     
     def on_load_finished_hide_form(self):
         print("on_load_finished_hide_form ")
@@ -200,15 +156,12 @@ class QtOdooUiWeb(QWebEngineView):
     
     def set_list(self,
                  model,
-                 menu_id=None,
-                 action_id=None):
+                 menu_id,
+                 action_id):
         #
-        list_url = self._web_base_url
         params={}
-        if menu_id:
-            params['menu_id']=menu_id
-        if action_id:
-            list_url = f"{list_url}/odoo/action-{action_id}"
+        params['menu_id']=menu_id
+        params['action']=action_id
         params['model']=model
         params['view_type']='list'
         #
@@ -218,22 +171,20 @@ class QtOdooUiWeb(QWebEngineView):
         qtOdoochannel = QWebChannel(self)
         page.setWebChannel(qtOdoochannel)
         qtOdoochannel.registerObject("qtodoo", QtOdoo())
-        #
-        self.setUrl(list_url)
-        #
+        url = make_url(self._web_base_url ,'web#',**params)
+        self.setUrl(url)
         self.loadFinished.connect(self.on_load_finished)
+        self.show()
 
     def on_load_finished(self, *args, **karg):
         print("on_load_finished ")
         self.load_custom_client_js()
-        self.show()
 
     def load_custom_client_js(self):
         #
         # Load custom qt javascript
         #
-        
-        with open(os.path.join(os.path.dirname(__file__),'src','qwebchannel.js')) as f:
+        with open('./src/qwebchannel.js') as f:
             content= f.read()
             self.page().runJavaScript(content)
         logging.info("Javascript executed form python code")
@@ -252,21 +203,6 @@ class QtOdooUiDilog(QDialog):
         container = QWidget()
         container.setLayout(self.v_layout)
         self.setLayout(self.v_layout)
-        self._browser.url_changd+=self.url_changed
-        self._browser.close_form+=self.close_browser
-        self.active_command=False
-        self.resize(500, 500)
-    
-    def close_browser(self, mame):
-        """
-        """
-        self.close()
-
-    def url_changed(self, 
-                    from_url, 
-                    to_url):
-        if self.active_command=="login":
-            self.hide()
 
     def delete_commands(self):
         child = self.command_layout.takeAt(0)
@@ -274,11 +210,7 @@ class QtOdooUiDilog(QDialog):
             child.widget().deleteLater()
             child = self.command_layout.takeAt(0)
         
-    def show_form(self,
-                  odoo_id,
-                  odoo_object,
-                  odoo_action_id):
-        #
+    def show_form(self):
         self.delete_commands()
         save_button = QPushButton("Save", self)
         save_button.clicked.connect(lambda: self._browser.save_button() )
@@ -286,28 +218,61 @@ class QtOdooUiDilog(QDialog):
         cancel_button.clicked.connect(lambda: self._browser.cancel_button())
         self.command_layout.addWidget(save_button)
         self.command_layout.addWidget(cancel_button)
-        #
         self._browser.set_form('product.product',
                                menu_id=217,
                                record_id=0,
                                action_id=398)
         self.exec()
-    
-    def show_list(self, model, action_id=None):
-        self.active_command='list'
-        self._browser.set_list(model,
-                               action_id=action_id)
-        self._browser.show()
-        self._browser.adjustSize()
-        self.exec()
+
+class MainWindow(QMainWindow):
+
+    def __init__(self, *args, **kwargs):
+        super(MainWindow,self).__init__(*args, **kwargs)
+        self.qtOdooBrowser = QtOdooUiDilog(None)
+        layout = QVBoxLayout()
+        #
+        show_login = QPushButton("Login", self)
+        show_login.clicked.connect(lambda: self.show_login())
+        layout.addWidget(show_login)
+        #
+        show_form = QPushButton("Form", self)
+        show_form.clicked.connect(lambda: self.show_form())
+        layout.addWidget(show_form)
+        #
+        show_list= QPushButton("List", self)
+        show_list.clicked.connect(lambda: self.show_list())
+        layout.addWidget(show_list)
+        #
+        container = QWidget()
+        container.setLayout(layout)
+
+        self.setCentralWidget(container)
 
     def show_login(self):
-        self.active_command="login"
-        self._browser.set_login()
-        self._browser.adjustSize()
-        self.exec()
+        self.qtOdooBrowser.show_login()
 
-    # def show_tree(self):
+    def show_form(self):
+        self.qtOdooBrowser.show_form()
 
-    
+
+    def show_list(self):
+        #http://localhost:8069/web#action=398&model=product.product&view_type=list&cids=1&menu_id=217
+        self.qtOdooBrowser.set_list('product.product',
+                                    menu_id=217,
+                                    action_id=398)
+        self.qtOdooBrowser.show()
+        self.qtOdooBrowser.adjustSize()
+
+def main():
+    os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = "--enable-logging --log-level=1 --remote-debugging-port=1234"
+    app = QApplication(sys.argv)
+    window = MainWindow()
+    window.show()
+    ret = app.exec()
+    sys.exit(ret)
+
+if __name__ == "__main__":
+    main()
+
+
     

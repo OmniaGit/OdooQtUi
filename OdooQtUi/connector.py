@@ -5,16 +5,13 @@ Created on 02 feb 2017
 '''
 import logging
 
-from .utils_odoo_conn import utils
-from .RPC.rpc import RpcConnection
-#
-# Interface object
-#
-from .views.search_obj import TemplateSearchView
-from .views.form_obj import TemplateFormView
-from .views.tree_tree_obj import TemplateTreeTreeView
-from .views.tree_list_obj import TemplateTreeListView
-from .interface.login import LoginDialComplete
+from OdooQtUi.utils_odoo_conn import utils
+from OdooQtUi.RPC.rpc import RpcConnection
+from OdooQtUi.views.search_obj import TemplateSearchView
+from OdooQtUi.views.form_obj import TemplateFormView
+from OdooQtUi.views.tree_tree_obj import TemplateTreeTreeView
+from OdooQtUi.views.tree_list_obj import TemplateTreeListView
+from OdooQtUi.interface.login import LoginDialComplete
 
 logger = logging.getLogger()
 logger.setLevel(utils.getDebugSeverity())
@@ -76,7 +73,7 @@ class MainConnector(object):
                  raise_error=False):
         """
         create the main odoo connector
-        :parentWindow PySide6 main window
+        :parentWindow pySide2 main window
         :contextUser dict like context to be used for all the xml-rpc call
         :app_name str object that specifie the application name
         :raise_error in case of rpc call has an error rise an expception
@@ -88,7 +85,9 @@ class MainConnector(object):
         self.loadedViews = []
         self._parentWindow = parentWindow
         self._raise_error = raise_error
-    
+        self.odoo_version = 12.0
+
+
     @property
     def deltaTime(self):
         """
@@ -142,6 +141,7 @@ class MainConnector(object):
                                                xmlrpcPort=xmlrpcPort, 
                                                scheme=scheme, 
                                                xmlrpcServerIP=xmlrpcServerIP)
+        self.odoo_version = self.rpc_connector.serverVersion
         self.rpc_connector.contextUser.update(context.copy())
         self.activeLanguage = self.rpc_connector.contextUser.get('lang', 'en_US')
         self.rpc_connector.setXmlRpcError(self._raise_error)
@@ -165,6 +165,8 @@ class MainConnector(object):
             logging.error("Unable to autologin %s" % ex)
         return self.userLogged
 
+
+
     def loginToStorage(self):
         utils.writeToFile(self.rpc_connector.databaseName,
                           self.rpc_connector.userName,
@@ -183,8 +185,7 @@ class MainConnector(object):
         """
         return self.rpc_connector.userLogged
 
-    def loginWithDial(self, 
-                      context={}):
+    def loginWithDial(self, context={}):
         """
         Show the login dialog in order to perform the login operation
         :context dict like additional context for all the coll
@@ -192,8 +193,7 @@ class MainConnector(object):
         """
         loginDialInst = LoginDialComplete(app_name=self.app_name,
                                           odooConnector=self)
-        loginDialInst.setStyleSheet("color: black;")
-        loginDialInst.exec()
+        loginDialInst.exec_()
         if self.userLogged:
             self.loadedViews = [] # reset the cashed view because you can change db
             self.rpc_connector.contextUser.update(context.copy()) 
@@ -374,7 +374,6 @@ class MainConnector(object):
                 return viewObj
         return False
 
-
     def _searchForView(self, model, viewName, viewType):
         viewIds = self.rpc_connector.search('ir.ui.view', [('name', '=', viewName),
                                                            ('model', '=', model),
@@ -385,28 +384,19 @@ class MainConnector(object):
         return False
 
     def _getViewDefinition(self, odooObjectName, viewType='', viewName='', view_id=False):
-        #
         if viewType == 'tree_list':
-            if self.rpc_connector.serverVersion > 17:
-                viewType = 'list'
-            else:
-                viewType = 'tree'
+            viewType = 'tree'
         if not view_id and viewName:
             view_id = self._searchForView(odooObjectName, viewName, viewType)
-        #
-        fieldsViewDefinition, fieldsDetails = self.rpc_connector.fieldsViewGet(odooObjectName, 
-                                                                               view_id, 
-                                                                               viewType)
-        #
+        fieldsViewDefinition = self.rpc_connector.fieldsViewGet(odooObjectName, view_id, viewType)
         if fieldsViewDefinition:
             arch = fieldsViewDefinition.get('arch', '')
             model = fieldsViewDefinition.get('model', '')
             viewName = fieldsViewDefinition.get('name', '')
-            viewId = fieldsViewDefinition.get('id', False)
-            fieldsNameTypeRel = fieldsDetails
+            viewId = fieldsViewDefinition.get('view_id', False)
+            fieldsNameTypeRel = fieldsViewDefinition.get('fields', '')
             return arch, model, viewName, viewId, fieldsNameTypeRel
-        utils.logMessage('warning', f'Unable to read view definition for odooObjectName {odooObjectName}, viewName {viewName}, view_id {view_id}', '_getViewDefinition')
-        #
+        utils.logMessage('warning', 'Unable to read view definition for odooObjectName %r, viewName %r, view_id %r' % (odooObjectName, viewName, view_id), '_getViewDefinition')
         return '', '', '', False, ''
 
     def setXmlRpcError(self, value=False):
@@ -428,3 +418,5 @@ class MainConnector(object):
             else:
                 pass
         return ret
+
+

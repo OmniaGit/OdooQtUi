@@ -5,13 +5,11 @@ Created on 3 Feb 2017
 '''
 import copy
 from PySide6 import QtWidgets
-from ..utils_odoo_conn import utils
-from PySide6.QtCore import QEvent,Signal
+from OdooQtUi.utils_odoo_conn import utils
 
 
 class TemplateView(QtWidgets.QWidget):
-    drop_in = Signal(QEvent)
-    
+
     def __init__(self,
                  odooConnector,
                  viewObj):

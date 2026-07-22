@@ -7,10 +7,12 @@ import json
 from PySide6 import QtGui
 from PySide6 import QtCore
 from PySide6 import QtWidgets
-from functools import partial
 
-from ...utils_odoo_conn import utils, utilsUi, constants
-from ...objects.fieldTemplate import OdooFieldTemplate
+from functools import partial
+from OdooQtUi.utils_odoo_conn import utils
+from OdooQtUi.utils_odoo_conn import utilsUi
+from OdooQtUi.utils_odoo_conn import constants
+from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
 
 
 class Many2many(OdooFieldTemplate):
@@ -275,7 +277,7 @@ class Many2many(OdooFieldTemplate):
             else:
                 self.btnAddAnItem.show()
         if self.widgetQtObj:
-            self.widgetQtObj.setHidden(bool(val))
+            self.widgetQtObj.setHidden(val)
         if self.treeViewObj:
             if val:
                 self.treeViewObj.buttToLeft.hide()
@@ -283,11 +285,11 @@ class Many2many(OdooFieldTemplate):
             else:
                 self.treeViewObj.buttToLeft.show()
                 self.treeViewObj.buttToRight.show()
-            self.treeViewObj.treeObj.tableWidget.setHidden(bool(val))
+            self.treeViewObj.treeObj.tableWidget.setHidden(val)
             #self.treeViewObj.treeObj.widgetContents.setHidden(val)
         if self.label_name_values:
-            self.label_name_values.setHidden(bool(val))
-        self.labelQtObj.setHidden(bool(val))
+            self.label_name_values.setHidden(val)
+        self.labelQtObj.setHidden(val)
         if val:
             self.createButt.hide()
         else:

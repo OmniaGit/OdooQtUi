@@ -27,8 +27,8 @@ Created on 8 Nov 2021
 
 
 import sys
-from PySide6.QtWidgets import *
-from PySide6.QtCore import *
+from PySide2.QtWidgets import *
+from PySide2.QtCore import *
 
 class RichTextPushButton(QPushButton):
     def __init__(self, parent=None, text=None):
@@ -107,7 +107,7 @@ if __name__ == '__main__':
     form = Form()
     form.show()
     # Run the main Qt loop
-    sys.exit(app.exec())
+    sys.exit(app.exec_())
 
 
 

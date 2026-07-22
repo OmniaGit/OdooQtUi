@@ -1,22 +1,17 @@
 '''
 Created on 24 Mar 2017
+
 @author: dsmerghetto
 '''
-import copy
-from functools import partial
-#
-from PySide6 import QtWidgets
-from PySide6 import QtCore
-#
+from PySide6 import QtWidgets, QtCore
 from .parser.tree_list import TreeViewList
 from .templateView import TemplateView
-from ..utils_odoo_conn import utils
-from ..utils_odoo_conn import utilsUi
-from ..utils_odoo_conn import constants
-from ..utils_odoo_conn.utils import logWarning
-from ..utils_odoo_conn.utils import logError
-#
-#
+from OdooQtUi.utils_odoo_conn import utils, utilsUi
+from OdooQtUi.utils_odoo_conn import constants
+from functools import partial
+from OdooQtUi.utils_odoo_conn.utils import logWarning, logError
+
+
 class TemplateTreeListView(TemplateView):
     """
     this class is a widget for managing the tree list view
@@ -45,7 +40,7 @@ class TemplateTreeListView(TemplateView):
     def _initViewObj(self):
         mainLay = QtWidgets.QVBoxLayout()
         mainLay.setSpacing(0)
-        #mainLay.setMargin(0)
+        mainLay.setContentsMargins(0, 0, 0, 0)
         mainLay.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
         # Add arrow buttons
         recordSwitcher = self._setupArrowButtons()
@@ -63,7 +58,6 @@ class TemplateTreeListView(TemplateView):
                                     viewCheckBoxes=self.viewCheckBoxes,
                                     odooConnector=self.odooConnector)
         self.treeObj.computeArch()
-        self.treeObj.drop_in.connect(self.emit_drop_in)
         mainLay.addWidget(self.treeObj)
         self.mappingInterface = self.treeObj.globalMapping
         self.addToObject()
@@ -75,10 +69,7 @@ class TemplateTreeListView(TemplateView):
         self.setLayout(mainLay)
         self.treeObj.tableWidget.doubleClicked.connect(self.doubleClickEvent)
         self.setStyleSheet(constants.BACKGROUND_WHITE)
-    
-    def emit_drop_in(self, e):
-        self.drop_in.emit(e)
-    
+
     def _setupArrowButtons(self):
         self.currentRange = [0, 40]
         switchRecordsLay = QtWidgets.QHBoxLayout()
@@ -139,24 +130,29 @@ class TemplateTreeListView(TemplateView):
         objIds = self.odooConnector.rpc_connector.search(self.model, searchFilter, self.passRange)  # to check with many records if 40 stop will work, 40)
         return self._loadIds(objIds, forceFieldValues, readonlyFields, invisibleFields)
 
-    def get_standard_value(self, from_value):
-        new_value = copy.copy(from_value)
-        new_value['uid']= self.odooConnector.rpc_connector.userId
-        return new_value
-        
     @utils.timeit
     def _loadIds(self,
-                 objIds=[], 
-                 forceFieldValues={}, 
-                 readonlyFields={}, 
+                 objIds=[],
+                 forceFieldValues={},
+                 readonlyFields={},
                  invisibleFields={}):
+        """
+        Load the ids passed reading it's values from odoo
+
+        :objIds list of ids to load [<id1>,<id2>,...]
+        :forceFieldValues
+        :readonlyFields
+        :invisibleFields
+        """
         self.labelsOrdered = self.treeObj.orderedFields
         if len(objIds) < self.passRange:
             self.buttToRight.setHidden(True)
         else:
             self.buttToRight.setHidden(False)
         objIds.sort()
-        records = self.odooConnector.rpc_connector.read(self.model, self.labelsOrdered, objIds) or []
+        records = self.odooConnector.rpc_connector.read(self.model,
+                                                        self.labelsOrdered,
+                                                        objIds) or []
         flagsDict = {}
         fieldDict = {}
         valuesList = []
@@ -165,7 +161,6 @@ class TemplateTreeListView(TemplateView):
         if self.viewCheckBoxes:
             flagsDict = self.viewCheckBoxes
         for row_index, record in enumerate(records):
-            record_to_eval = self.get_standard_value(record)
             if row_index not in self.row_widgets:
                 self.row_widgets[row_index] = {}
             if row_index not in fieldDict:
@@ -177,53 +172,44 @@ class TemplateTreeListView(TemplateView):
                 xml_obj = self.treeObj.widgets_to_add_in_line[col_index]
                 if row_index == 0:
                     client_context = self.odooConnector.rpc_connector.contextUser
-                    client_context.update(utils.evaluateContext(xml_obj.attrib.get('context', '{}'), record_to_eval))
-                    #
-                    # Not yet implemented
-                    #
-                    #readonly_eval = fieldPyDefinition.get('readonly', xml_obj.attrib.get('readonly', False))
-                    #readonly = utils.evaluateBoolean(readonly_eval, context=client_context.copy())
-                    #required_eval = fieldPyDefinition.get('required', xml_obj.attrib.get('required', False))
-                    #required = utils.evaluateBoolean(required_eval, context=client_context.copy())
-                    #
-                    #
-                    #
-                    invisible_eval = fieldPyDefinition.get('invisible', xml_obj.attrib.get('invisible', False))
-                    invisible = utils.evaluateBoolean(invisible_eval, context=record_to_eval)
+                    client_context.update(utils.evaluateContext(xml_obj.attrib.get('context', '{}'), record))
+                    readonly = fieldPyDefinition.get('readonly', xml_obj.attrib.get('readonly', False))
+                    readonly = utils.evaluateBoolean(readonly, context=client_context.copy())
+                    required = fieldPyDefinition.get('required', xml_obj.attrib.get('required', False))
+                    required = utils.evaluateBoolean(required, context=client_context.copy())
+                    invisible = fieldPyDefinition.get('invisible', xml_obj.attrib.get('invisible', False))
+                    invisible = utils.evaluateBoolean(invisible, context=client_context.copy())
                     headers.append(fieldPyDefinition.get('string', fieldName))
-                    #self.treeObj.tableWidget.setColumnHidden(col_index, invisible)
+                    self.treeObj.tableWidget.setColumnHidden(col_index, invisible)
                 if xml_obj.tag == 'field':
-                    if self.fieldsNameTypeRel.get(fieldName, {}).get('type')=='many2one':
+                    field_type = self.fieldsNameTypeRel.get(fieldName, {}).get('type')
+                    if  field_type in ['many2one']:
                         tmp_val = record.get(fieldName, '')
                         if isinstance(tmp_val, (list,tuple)):
                             val=tmp_val[1]
                         else:
                             val=tmp_val
+                    elif field_type in ['many2many','one2many']:
+                        val=f"Record {len(val)}"
                     localList.append(val)
                 else:
                     if row_index == 0:
                         headers.append('')
                     widget = self.treeObj.computeWidget(xml_obj)
                     widget.record = record
-                    if hasattr(widget,'update_eval_attributes'):
-                        widget.update_eval_attributes()
                     self.row_widgets[row_index][col_index] = widget
                     localList.append(widget)
             valuesList.append(localList)
             recordId = record.get('id', False)
             self.idValsRel[recordId] = record
             self.idLineRel[records.index(record)] = recordId
-        tmp_header =self.labelsOrdered
         if self.remove_button:
-            tmp_header.append('')
-        #
-        
-        utilsUi.commonPopulateTable(tmp_header, 
-                                    valuesList, 
-                                    self.treeObj.tableWidget, 
-                                    flagsDict, 
+            headers.append('')
+        utilsUi.commonPopulateTable(headers,
+                                    valuesList,
+                                    self.treeObj.tableWidget,
+                                    flagsDict,
                                     fontSize=constants.FONT_SIZE_LIST_WIDGET)
-        #
         if self.treeObj.tableWidget:
             self.treeObj.tableWidget.setShowGrid(False)
             self.treeObj.tableWidget.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
@@ -283,7 +269,7 @@ class TemplateTreeListView(TemplateView):
                     col_index = self.labelsOrdered.index(fieldName)
                     self.treeObj.tableWidget.setColumnHidden(col_index, inv)
                     ronly = utils.evaluateAttrs(row_vals, fieldObj.readonly, client_context)
-                    fieldObj.setReadonly(ronly)
+                    widget.setReadonly(ronly)
                 except Exception as ex:
                     logWarning('Cannot set readonly and invisible attributes for field %r err %r' % (fieldName, ex), '_setFieldsModifiers')
 
@@ -296,7 +282,7 @@ class TemplateTreeListView(TemplateView):
                 else:
                     butt.setStyleSheet(constants.BUTTON_STYLE_REVERSED)
                 butt.setDisabled(flag)
- 
+
         for row_index, row_vals in self.row_widgets.items():
             for fieldObj in row_vals.values():
                 if fieldObj.modifiers:
@@ -304,19 +290,16 @@ class TemplateTreeListView(TemplateView):
                     invisibleModif = fieldObj.modifiers.get('invisible', {})
                     client_context = self.odooConnector.rpc_connector.contextUser
                     client_context.update(utils.evaluateContext(fieldObj.context, fieldDict))
-                    if self.odooConnector.rpc_connector.serverVersion>=17 and hasattr(fieldObj,'record'):
-                        hideButtonWithStyle(fieldObj, fieldObj.invisible)
-                    else:
-                        if readonlyModif:
-                            val = utils.evaluateAttrs(fieldDict.get(row_index, {}), readonlyModif, client_context)
-                            fieldObj.setReadonly(val)
-                        if invisibleModif:
-                            val = utils.evaluateAttrs(fieldDict.get(row_index, {}), invisibleModif, client_context)
-                            hideButtonWithStyle(fieldObj, val)
-                        if fieldObj.readonly:
-                            fieldObj.setReadonly(True)
-                        if fieldObj.invisible:
-                            hideButtonWithStyle(fieldObj, val)
+                    if readonlyModif:
+                        val = utils.evaluateAttrs(fieldDict.get(row_index, {}), readonlyModif, client_context)
+                        fieldObj.setReadonly(val)
+                    if invisibleModif:
+                        val = utils.evaluateAttrs(fieldDict.get(row_index, {}), invisibleModif, client_context)
+                        hideButtonWithStyle(fieldObj, val)
+                    if fieldObj.readonly:
+                        fieldObj.setReadonly(True)
+                    if fieldObj.invisible:
+                        hideButtonWithStyle(fieldObj, val)
 
     def setRemoveButtons(self):
         rowCount = self.treeObj.tableWidget.rowCount()

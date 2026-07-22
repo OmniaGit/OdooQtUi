@@ -6,12 +6,11 @@ Created on 02 feb 2017
 import json
 
 from PySide6 import QtGui
-from PySide6 import QtCore, QtWidgets
-from ..utils_odoo_conn import utils, utilsUi, constants
-
-# from OdooQtUi.utils_odoo_conn import utils
-# from OdooQtUi.utils_odoo_conn import utilsUi
-# from OdooQtUi.utils_odoo_conn import constants
+from PySide6 import QtCore
+from PySide6 import QtWidgets
+from OdooQtUi.utils_odoo_conn import utils
+from OdooQtUi.utils_odoo_conn import utilsUi
+from OdooQtUi.utils_odoo_conn import constants
 
 
 class OdooFieldTemplate(QtWidgets.QWidget):
@@ -90,7 +89,7 @@ class OdooFieldTemplate(QtWidgets.QWidget):
 
     def hideTranslateButton(self, val):
         if self.translateButton:
-            self.translateButton.setHidden(bool(val))
+            self.translateButton.setHidden(val)
 
     def valueChanged(self):
         utils.logMessage('warning', 'valueChanged not implemented for field: %r' % (self.fieldName), 'valueChanged')

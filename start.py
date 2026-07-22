@@ -6,7 +6,8 @@ Created on 02 feb 2017
 import sys
 import logging
 
-from OdooQtUi.utils_odoo_conn import constants, utils
+from OdooQtUi.utils_odoo_conn import utils
+from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.RPC.rpc import connectionObj
 from OdooQtUi.views.search_obj import TemplateSearchView
 from OdooQtUi.views.form_obj import TemplateFormView
@@ -14,7 +15,8 @@ from OdooQtUi.views.tree_tree_obj import TemplateTreeTreeView
 from OdooQtUi.views.tree_list_obj import TemplateTreeListView
 from OdooQtUi.interface.login import LoginDialComplete
 
-from PySide6 import QtWidgets
+from PySide2 import QtGui
+from PySide2 import QtWidgets
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
@@ -65,7 +67,7 @@ class MainConnector(object):
 
     def loginWithDial(self):
         loginDialInst = LoginDialComplete()
-        loginDialInst.interfaceDial.exec()
+        loginDialInst.interfaceDial.exec_()
         if connectionObj.userLogged:
             self.activeLanguage = connectionObj.contextUser.get('lang', 'en_US')
             return True
@@ -78,7 +80,6 @@ class MainConnector(object):
     def _initView(self, viewType, rpcObj, activeLanguage, odooObjectName, viewName, view_id, viewFilter=False, viewCheckBoxes={}, searchMode='ilike', useHeader=False, useChatter=False):
         localLang, rpcObj = self._getCommonLangAndRpc(activeLanguage, rpcObj)
         viewObj = self.checkAlreadyLoadedView(viewType, rpcObj, odooObjectName, viewName, view_id, viewFilter, viewCheckBoxes)
-
         if not viewObj:
             viewObj = self.appendLoadedView(viewType, rpcObj, odooObjectName, viewName, view_id, viewFilter, viewCheckBoxes, searchMode, useHeader, useChatter)
         utils.logMessage('info', 'Loading view %s' % (viewObj), '_initView')
@@ -164,18 +165,13 @@ class MainConnector(object):
             viewType = 'tree'
         if not view_id and viewName:
             view_id = self._searchForView(odooObjectName, viewName, viewType)
-        fieldsViewDefinition, fieldsDetails = rpcObj.fieldsViewGet(odooObjectName, view_id, viewType)
+        fieldsViewDefinition = rpcObj.fieldsViewGet(odooObjectName, view_id, viewType)
         if fieldsViewDefinition:
             arch = fieldsViewDefinition.get('arch', '')
             model = fieldsViewDefinition.get('model', '')
             viewName = fieldsViewDefinition.get('name', '')
-            if self.serverVersion > 16:
-                viewId = fieldsViewDefinition.get('id', False)
-                fieldsNameTypeRel = fieldsDetails
-            else:
-                viewId = fieldsViewDefinition.get('view_id', False)
-                fieldsNameTypeRel = fieldsViewDefinition.get('fields', '')
-
+            viewId = fieldsViewDefinition.get('view_id', False)
+            fieldsNameTypeRel = fieldsViewDefinition.get('fields', '')
             return arch, model, viewName, viewId, fieldsNameTypeRel
         utils.logMessage('warning', 'Unable to read view definition for odooObjectName %r, viewName %r, view_id %r' % (odooObjectName, viewName, view_id), '_getViewDefinition')
         return '', '', '', False, ''
@@ -186,7 +182,7 @@ if __name__ == '__main__':
     import time
     ts = time.time()
 
-    app = QtWidgets.QApplication(sys.argv)
+    app = QtGui.QApplication(sys.argv)
 
     @utils.timeit
     def do_test():
@@ -216,18 +212,18 @@ if __name__ == '__main__':
         # tmplViewObj = tryForm('product.product', idToLoad=284, useChatter=True)
         tmplViewObj = tryForm('product.product', idToLoad=1, useChatter=True)
         # viewCheckBoxes = {0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled}
-        dialog = QtWidgets.QDialog()
-        lay = QtWidgets.QVBoxLayout()
+        dialog = QtGui.QDialog()
+        lay = QtGui.QVBoxLayout()
         lay.addWidget(tmplViewObj)
         dialog.setLayout(lay)
         dialog.setStyleSheet(constants.VIOLET_BACKGROUND)
         dialog.resize(1200, 600)
         dialog.move(100, 100)
         dialog.show()
-        dialog.exec()
+        dialog.exec_()
         time.sleep(2)
-        dialog.exec()
+        dialog.exec_()
     while 1:
         do_test()
 
-    app.exec()
+    app.exec_()

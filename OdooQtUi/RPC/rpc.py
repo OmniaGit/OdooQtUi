@@ -8,19 +8,19 @@ import socket
 import logging
 import requests
 #
-from .XmlRpc.xmlRpc import XmlRpcConnection
-from ..utils_odoo_conn.utils import (timeit,
-                                     loadFromFile)
+from OdooQtUi.RPC.XmlRpc.xmlRpc import XmlRpcConnection
+from OdooQtUi.utils_odoo_conn.utils import timeit
+
+
 #
 class RpcConnection(object):
-    def __init__(self,
-                 useInterface=True):
+
+    def __init__(self):
         self.userId = False
-        self.availableConnTypes = ['xmlrpc',
-                                   'secure-xmlrpc']
+        self.availableConnTypes = ['xmlrpc', 'secure-xmlrpc']
         self.sockInstance = False
         self.contextUser = {}
-        self.useInterface = useInterface
+        self.useInterface = True
         self.db_from_field = ''
         self.userName = ''      
         self.userPassword = ''  
@@ -32,11 +32,13 @@ class RpcConnection(object):
         self.hostname = socket.gethostname()
         self._session_id = False
         self.clearCache()
-    
+        return super(RpcConnection, self).__init__()
+
     def __str__(self, *args, **kwargs):
         return "UID: %s DB: %s URL %s" % (self.userName,
                                           self.databaseName,
                                           self.xmlrpcServerIP)
+
     def clearCache(self):
         self._cache_search = {}
         self._cache_search_condition = {}
@@ -70,14 +72,15 @@ class RpcConnection(object):
         self.scheme = scheme
         self.xmlrpcServerIP = xmlrpcServerIP
         self.connectionType = connectionType
-        self.sockInstance = XmlRpcConnection(userName, 
-                                             userPassword, 
-                                             databaseName, 
-                                             xmlrpcPort, 
-                                             scheme, 
-                                             xmlrpcServerIP, 
-                                             secure=connectionType == 'secure-xmlrpc',
-                                             useInterface= self.useInterface)
+        if connectionType == 'xmlrpc':
+            self.sockInstance = XmlRpcConnection(userName, userPassword, databaseName, xmlrpcPort, scheme, xmlrpcServerIP)
+            self.sockInstance.useInterface = self.useInterface
+        elif connectionType == 'secure-xmlrpc':
+            self.sockInstance = XmlRpcConnection(userName, userPassword, databaseName, xmlrpcPort, scheme, xmlrpcServerIP, secure=True)
+            self.sockInstance.useInterface = self.useInterface
+        else:
+            raise Exception("Missing value connectionType for initConnection function")
+
     def getLoginInfos(self):
         return [self.userName,
                 self.userPassword,
@@ -86,6 +89,7 @@ class RpcConnection(object):
                 self.scheme,
                 self.xmlrpcServerIP,
                 self.connectionType]
+
     @property
     def url(self):
         return self.sockInstance.urlYesLogin
@@ -115,26 +119,7 @@ class RpcConnection(object):
         if not res:
             self.userId = False
         return res
-    
-    def loginFromStorage(self, app_name):
-        """
-        perform the login operation from the storage file
-        :return: True is logged, False is not logged         
-        """
-        try:
-            dbName, username, userpass, serverIp, serverPort, scheme, connType, _dbList = loadFromFile(app_name)
 
-            self.loginWithUser(userName=username,
-                               userPassword=userpass,
-                               databaseName=dbName,
-                               xmlrpcServerIP=serverIp,
-                               xmlrpcPort=serverPort,
-                               scheme=scheme,
-                               connectionType=connType)
-        except Exception as ex:
-            logging.error("Unable to autologin %s" % ex)
-        return self.userLogged
-            
     @property
     def userLogged(self):
         if self.userId:
@@ -154,7 +139,7 @@ class RpcConnection(object):
         self.contextUser.update(res.copy())
     
     @timeit
-    def callCustomMethod(self, odooObj, functionName, parameters=[], kwargParameters={}, context={},forceHideInterface=False, forceRaise_error=False):
+    def callCustomMethod(self, odooObj, functionName, parameters=[], kwargParameters={}, context={}, forceHideInterface=False, forceRaise_error=False):
         localContext = self.contextUser
         localContext.update(context.copy())
         if localContext:
@@ -169,13 +154,7 @@ class RpcConnection(object):
             return []
         return res
 
-    def read(self, 
-             obj, 
-             fields, 
-             ids, 
-             context={}, 
-             limit=False, 
-             load='_classic_read'):
+    def read(self, obj, fields, ids, context={}, limit=False, load='_classic_read'):
         if not ids:
             return []
         localContext = self.contextUser
@@ -189,20 +168,6 @@ class RpcConnection(object):
                                       context=localContext,
                                       load=load)
 
-    
-    def GetDetailsSearch(self, 
-                         objQuery, 
-                         queryFilter, 
-                         fields, 
-                         kArgs={}, 
-                         limit=False):
-        """
-            Make a search returning the details requested by fields\
-        """
-        ids = self.Search(objQuery, queryFilter, limit=limit)
-        return self.read(objQuery, fields, ids, kArgs=kArgs)
-
-
     def readCached(self, obj, fields, ids, context={}, limit=False, load='_classic_read'):
         if obj not in self._cache_read:
             self._cache_read[obj] = {}
@@ -211,9 +176,7 @@ class RpcConnection(object):
                 for item in self.read(obj, fields, ids, context, limit, load):
                     self._cache_read[obj][look_id] = item
         return [self._cache_read[obj][x] for x in ids]
-                
-                
-            
+
     def readSearch(self, obj, fields, filterList=[], order=False, context={}):
         localContext = self.contextUser
         localContext.update(context.copy())
@@ -285,13 +248,13 @@ class RpcConnection(object):
         """
         enable at low level xml-rpc call exceprion
         """
-        self.sockInstance.raise_error=True
+        self.sockInstance.raise_error = True
     
     def DisableException(self):
         """
         diseble at low level xml-rpc call exceprion
         """
-        self.sockInstance.raise_error=True
+        self.sockInstance.raise_error = True
 
     def cacheSearch(self,
                     objName,
@@ -303,8 +266,8 @@ class RpcConnection(object):
         if key not in self._cache_search_condition:
             self._cache_search_condition[key] = self.search(objName,
                                                                 condition,
-                                                                limit, 
-                                                                offset, 
+                                                                limit,
+                                                                offset,
                                                                 context)
         return self._cache_search_condition[key]
         
@@ -359,7 +322,7 @@ class RpcConnection(object):
                             objName,
                             attributes,
                             cleanAttributes=[],
-                            mapAttributes = {},
+                            mapAttributes={},
                             context={}):
         att = attributes.copy()
         map = mapAttributes.copy()
@@ -377,11 +340,11 @@ class RpcConnection(object):
         if new_id:
             self.write(objName, att, new_id, context=context)
         else:
-            att[self.db_from_field]=obj_id
+            att[self.db_from_field] = obj_id
             new_id = self.create(objName,
                                  att,
                                  context=context)
-        if isinstance(new_id, (list,tuple)):
+        if isinstance(new_id, (list, tuple)):
             for _id in new_id:
                 return _id
         return new_id    
@@ -427,10 +390,10 @@ class RpcConnection(object):
         """
         make an http/https call to odoo server with the xml-rep credential
         """ 
-        out  = False
+        out = False
         if not self._session_id:
             self.loadSessionId()
-        headers['Cookie']='session_id='+self._session_id
+        headers['Cookie'] = 'session_id=' + self._session_id
         with requests.post(url=self.getCleanServer() + url,
                            headers=headers,
                            files=files,
@@ -448,10 +411,10 @@ class RpcConnection(object):
         """
         make an http/https call to odoo server with the xml-rep credential
         """ 
-        out  = False
+        out = False
         if not self._session_id:
             self.loadSessionId()
-        headers['Cookie']='session_id='+self._session_id
+        headers['Cookie'] = 'session_id=' + self._session_id
         with requests.post(url=self.getCleanServer() + url,
                            headers=headers,
                            params=param,
