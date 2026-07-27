@@ -149,7 +149,15 @@ def commonPopulateTable(headers,
                 twItem = QtWidgets.QTableWidgetItem(colVal)
                 if fontSize:
                     font = QtGui.QFont()
-                    font.setPointSize(fontSize)
+                    try:
+                        if isinstance(fontSize, str):
+                            digits = ''.join(filter(str.isdigit, fontSize))
+                            font_val = int(digits) if digits else 12
+                        else:
+                            font_val = int(fontSize)
+                        font.setPointSize(font_val)
+                    except Exception:
+                        font.setPointSize(12)
                     twItem.setFont(font)
                 if colIndex in flags:
                     flagsToAdd = flags[colIndex]

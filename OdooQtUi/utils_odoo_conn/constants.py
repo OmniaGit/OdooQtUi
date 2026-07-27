@@ -55,7 +55,7 @@ QTableWidget {border-left: 3px solid #875a7b;
                 border-bottom: 3px solid #875a7b;
                 alternate-background-color: #DDEDF0;
                 background-color: white;
-                font-size:16px;} 
+                font-size:12px;} 
 }
 """
 TABLE_VIEW_LIST_LIST = """QTreeView {border-left: 3px solid #875a7b;
@@ -63,13 +63,13 @@ TABLE_VIEW_LIST_LIST = """QTreeView {border-left: 3px solid #875a7b;
                 border-bottom: 3px solid #875a7b;
                 alternate-background-color: #DDEDF0;
                 background-color: white;
-                font-size:16px;} 
+                font-size:12px;} 
 """
 # #167F92
 # hover
 # QTableWidget::item::hover {
 # color:white;background-color:#167F92;
-FONT_SIZE_LIST_WIDGET = "16px"
+FONT_SIZE_LIST_WIDGET = "12px"
 
 TAG_TEXT_STYLE = 'background-color: #c5c5c5;color: black;padding: 0px 5px 0px 5px;max-width: 500px;border: 1px solid black;' + FONT_SIZE
 TAG_BUTTON_STYLE = 'color: black;margin-left:20px;display: flex;padding: 0px 5px 0px 0px;background-color:#3eb2df' + BOLD_FONT + FONT_SIZE
@@ -125,7 +125,7 @@ ODOO_STYLE = """QDialog {border-radius: 5px;
                             QTreeView {
                                 alternate-background-color: #DDEDF0;
                                 background-color: solid grey;
-                                font-size:16px;
+                                font-size:12px;
                                 icon-size: 16px;
                             }     
                         """

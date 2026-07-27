@@ -180,7 +180,7 @@ class TemplateTreeListView(TemplateView):
                     invisible = fieldPyDefinition.get('invisible', xml_obj.attrib.get('invisible', False))
                     invisible = utils.evaluateBoolean(invisible, context=client_context.copy())
                     headers.append(fieldPyDefinition.get('string', fieldName))
-                    self.treeObj.tableWidget.setColumnHidden(col_index, invisible)
+                    self.treeObj.tableWidget.setColumnHidden(col_index, bool(invisible))
                 if xml_obj.tag == 'field':
                     field_type = self.fieldsNameTypeRel.get(fieldName, {}).get('type')
                     if  field_type in ['many2one']:
@@ -230,6 +230,12 @@ class TemplateTreeListView(TemplateView):
             viewObj = self.odooConnector.initFormViewObj(self.model)
             viewObj.loadIds([obj_id])
             dialog = QtWidgets.QDialog()
+            title = "Detail"
+            if self.model == "ir.attachment":
+                title = "Document Detail"
+            elif self.model == "plm.box":
+                title = "Box Detail"
+            dialog.setWindowTitle(title)
             mainLay = QtWidgets.QVBoxLayout()
             utilsUi.setLayoutMarginAndSpacing(mainLay)
             scrollArea = QtWidgets.QScrollArea()
@@ -267,7 +273,7 @@ class TemplateTreeListView(TemplateView):
                     client_context.update(utils.evaluateContext(fieldObj.context, fieldDict))
                     inv = utils.evaluateAttrs(row_vals, fieldObj.invisible, client_context)
                     col_index = self.labelsOrdered.index(fieldName)
-                    self.treeObj.tableWidget.setColumnHidden(col_index, inv)
+                    self.treeObj.tableWidget.setColumnHidden(col_index, bool(inv))
                     ronly = utils.evaluateAttrs(row_vals, fieldObj.readonly, client_context)
                     widget.setReadonly(ronly)
                 except Exception as ex:
@@ -375,15 +381,16 @@ class TemplateTreeListView(TemplateView):
 
     def getSelectedIds(self):
         outIds = []
-        selectedIndexes = self.treeObj.tableWidget.selectedItems()
-        for index in selectedIndexes:
-            outIds.append(self.idLineRel[index.row()])
-        if not selectedIndexes:
+        if self.viewCheckBoxes:
             for rowIndex in range(self.treeObj.tableWidget.rowCount()):
                 item = self.treeObj.tableWidget.item(rowIndex, 0)
-                if item.checkState() == QtCore.Qt.Checked:
+                if item and item.checkState() == QtCore.Qt.Checked:
                     idd = self.idLineRel.get(rowIndex, False)
                     if idd:
                         outIds.append(idd)
+        if not outIds:
+            selectedIndexes = self.treeObj.tableWidget.selectedItems()
+            for index in selectedIndexes:
+                outIds.append(self.idLineRel[index.row()])
         return list(set(outIds))
         
