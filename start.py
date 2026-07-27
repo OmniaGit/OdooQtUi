@@ -15,8 +15,8 @@ from OdooQtUi.views.tree_tree_obj import TemplateTreeTreeView
 from OdooQtUi.views.tree_list_obj import TemplateTreeListView
 from OdooQtUi.interface.login import LoginDialComplete
 
-from PySide2 import QtGui
-from PySide2 import QtWidgets
+from PySide6 import QtGui
+from PySide6 import QtWidgets
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
@@ -67,7 +67,7 @@ class MainConnector(object):
 
     def loginWithDial(self):
         loginDialInst = LoginDialComplete()
-        loginDialInst.interfaceDial.exec_()
+        loginDialInst.interfaceDial.exec()
         if connectionObj.userLogged:
             self.activeLanguage = connectionObj.contextUser.get('lang', 'en_US')
             return True
@@ -220,10 +220,10 @@ if __name__ == '__main__':
         dialog.resize(1200, 600)
         dialog.move(100, 100)
         dialog.show()
-        dialog.exec_()
+        dialog.exec()
         time.sleep(2)
-        dialog.exec_()
+        dialog.exec()
     while 1:
         do_test()
 
-    app.exec_()
+    app.exec()

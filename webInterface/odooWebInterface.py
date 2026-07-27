@@ -27,10 +27,10 @@ import logging
 import datetime
 import sys
 import site
-from PySide2.QtCore import *
-from PySide2.QtWidgets import *
-from PySide2.QtGui import *
-from PySide2.QtWebEngineWidgets import QWebEngineView
+from PySide6.QtCore import *
+from PySide6.QtWidgets import *
+from PySide6.QtGui import *
+from PySide6.QtWebEngineWidgets import QWebEngineView
 from urllib.parse import urljoin
 
 
@@ -39,11 +39,14 @@ class BaseWebForm(QWebEngineView):
         super(BaseWebForm, self).__init__()
         self._baseUrl = 'http://localhost:8069/'  # in future load it from local setting
 
+
 class FormYesNow(BaseWebForm):
     pass
 
+
 class TreeYesNow(BaseWebForm):
     pass
+
 
 class Login(BaseWebForm):
     def __init__(self):
@@ -51,17 +54,9 @@ class Login(BaseWebForm):
         self.load(QUrl(urljoin(self._baseUrl, r'web/database/login')))
 
 
-        
-
-
 if __name__ == '__main__':
-    app = QApplication(sys.argv) 
+    app = QApplication(sys.argv)
     l = Login()
-    l.show()   
-    sys.exit(app.exec_())
-
-    
-    
-    
-    
+    l.show()
+    sys.exit(app.exec())
 

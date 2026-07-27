@@ -386,6 +386,10 @@ class MainConnector(object):
     def _getViewDefinition(self, odooObjectName, viewType='', viewName='', view_id=False):
         if viewType == 'tree_list':
             viewType = 'tree'
+        if viewType == 'tree' and self.rpc_connector.serverVersion >= 18:
+            # Odoo renamed the 'tree' view type/tag to 'list' starting with version 18;
+            # ir.ui.view records created on 18+ servers are stored with type='list'.
+            viewType = 'list'
         if not view_id and viewName:
             view_id = self._searchForView(odooObjectName, viewName, viewType)
         fieldsViewDefinition = self.rpc_connector.fieldsViewGet(odooObjectName, view_id, viewType)
@@ -418,5 +422,3 @@ class MainConnector(object):
             else:
                 pass
         return ret
-
-

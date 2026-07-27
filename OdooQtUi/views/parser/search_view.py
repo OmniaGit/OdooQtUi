@@ -208,7 +208,10 @@ class SearchView(object):
         filterObj = FilterObj()
         evalDomain = []
         try:
-            evalDomain = eval(fieldAttributes.get('domain', ''))
+            evalGlobals = dict(globals())
+            evalGlobals['uid'] = getattr(getattr(getattr(self.parent, 'odooConnector', False), 'rpc_connector', False),
+                                         'userId', False)
+            evalDomain = eval(fieldAttributes.get('domain', ''), evalGlobals)
             evalDomain = self.evaluateCondition(evalDomain)
         except Exception as ex:
             logging.error('Unable to compute domain %r. EX: %r' % (fieldAttributes.get('domain', ''), ex))
