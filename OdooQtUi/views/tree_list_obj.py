@@ -160,6 +160,7 @@ class TemplateTreeListView(TemplateView):
         self.row_widgets = {}
         if self.viewCheckBoxes:
             flagsDict = self.viewCheckBoxes
+        hidden_columns = {}
         for row_index, record in enumerate(records):
             if row_index not in self.row_widgets:
                 self.row_widgets[row_index] = {}
@@ -179,8 +180,13 @@ class TemplateTreeListView(TemplateView):
                     required = utils.evaluateBoolean(required, context=client_context.copy())
                     invisible = fieldPyDefinition.get('invisible', xml_obj.attrib.get('invisible', False))
                     invisible = utils.evaluateBoolean(invisible, context=client_context.copy())
-                    headers.append(fieldPyDefinition.get('string', fieldName))
-                    self.treeObj.tableWidget.setColumnHidden(col_index, bool(invisible))
+                    if fieldName == 'is_checkout':
+                        invisible = False
+                    if xml_obj.tag == 'field':
+                        headers.append(fieldPyDefinition.get('string', fieldName))
+                    else:
+                        headers.append(xml_obj.attrib.get('string', ''))
+                    hidden_columns[col_index] = bool(invisible)
                 if xml_obj.tag == 'field':
                     field_type = self.fieldsNameTypeRel.get(fieldName, {}).get('type')
                     if  field_type in ['many2one']:
@@ -193,8 +199,6 @@ class TemplateTreeListView(TemplateView):
                         val=f"Record {len(val)}"
                     localList.append(val)
                 else:
-                    if row_index == 0:
-                        headers.append('')
                     widget = self.treeObj.computeWidget(xml_obj)
                     widget.record = record
                     self.row_widgets[row_index][col_index] = widget
@@ -210,6 +214,8 @@ class TemplateTreeListView(TemplateView):
                                     self.treeObj.tableWidget,
                                     flagsDict,
                                     fontSize=constants.FONT_SIZE_LIST_WIDGET)
+        for col_index, is_hidden in hidden_columns.items():
+            self.treeObj.tableWidget.setColumnHidden(col_index, is_hidden)
         if self.treeObj.tableWidget:
             self.treeObj.tableWidget.setShowGrid(False)
             self.treeObj.tableWidget.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
