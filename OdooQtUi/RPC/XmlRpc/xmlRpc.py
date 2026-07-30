@@ -209,9 +209,9 @@ class XmlRpcConnection(object):
         kargs = {'context': context, 'load': load}
         return self.callOdooFunction(obj, 'read', [ids, fields], kargs)
 
-    def fieldsGet(self, obj, attributesToRead=[], context={}):
+    def fieldsGet(self, obj, attributesToRead=None, context={}):
         '''
-        @attributesToRead: {'attributes': ['string', 'help', 'type']}
+        @attributesToRead: {'attributes': ['string', 'help', 'type']}, None means all attributes
         '''
         kargs = {'attributes': attributesToRead, 'context': context}
         return self.callOdooFunction(obj, 'fields_get', [], kargs)

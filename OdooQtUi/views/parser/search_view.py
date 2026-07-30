@@ -86,6 +86,10 @@ class SearchView(object):
     def removeCondition(self, conditionObj):
         if conditionObj in self.globalCondition:
             self.globalCondition.remove(conditionObj)
+        if isinstance(conditionObj, FilterObj) and getattr(conditionObj, 'action', None):
+            conditionObj.action.blockSignals(True)
+            conditionObj.action.setChecked(False)
+            conditionObj.action.blockSignals(False)
 
     def orCondition(self):
         self.orPressed = True
@@ -110,22 +114,137 @@ class SearchView(object):
         self.tmpLayouts.remove(lineEditLay)
         self.tmpLineEdits.remove(lineEdit)
 
+    def createSearchIcon(self):
+        pixmap = QtGui.QPixmap(16, 16)
+        pixmap.fill(QtCore.Qt.transparent)
+        painter = QtGui.QPainter(pixmap)
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+        pen = QtGui.QPen(QtGui.QColor('#64748b'), 1.8)
+        pen.setCapStyle(QtCore.Qt.RoundCap)
+        painter.setPen(pen)
+        painter.drawEllipse(3, 3, 7, 7)
+        painter.drawLine(9, 9, 13, 13)
+        painter.end()
+        return pixmap
+
+    def createFilterPillIcon(self, is_filter=True):
+        pixmap = QtGui.QPixmap(14, 14)
+        pixmap.fill(QtCore.Qt.transparent)
+        painter = QtGui.QPainter(pixmap)
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+        if is_filter:
+            # Funnel icon (Purple tone like Odoo)
+            painter.setBrush(QtGui.QBrush(QtGui.QColor('#7c3aed')))
+            painter.setPen(QtCore.Qt.NoPen)
+            path = QtGui.QPainterPath()
+            path.moveTo(2, 3)
+            path.lineTo(12, 3)
+            path.lineTo(8, 7.5)
+            path.lineTo(8, 11.5)
+            path.lineTo(6, 10)
+            path.lineTo(6, 7.5)
+            path.closeSubpath()
+            painter.drawPath(path)
+        else:
+            # Layers / Tag icon (Teal tone like Odoo)
+            painter.setBrush(QtGui.QBrush(QtGui.QColor('#0d9488')))
+            painter.setPen(QtCore.Qt.NoPen)
+            path = QtGui.QPainterPath()
+            path.moveTo(2, 4)
+            path.lineTo(7, 1.5)
+            path.lineTo(12, 4)
+            path.lineTo(7, 6.5)
+            path.closeSubpath()
+            painter.drawPath(path)
+
+            path2 = QtGui.QPainterPath()
+            path2.moveTo(2, 7.5)
+            path2.lineTo(7, 10)
+            path2.lineTo(12, 7.5)
+            path2.lineTo(7, 9)
+            path2.closeSubpath()
+            painter.drawPath(path2)
+        painter.end()
+        return pixmap
+
     def createCommonLineEdit(self):
         linedit = CustomLineEdit(self)
         linedit.textChanged.connect(self.textChangedEvent)
         linedit.returnPressed.connect(self.returnPressedLocal)
+        linedit.setPlaceholderText('Search...')
         return linedit
 
     def createCommonOrButton(self):
         orButton = QtWidgets.QPushButton('Or')
-        orButton.setStyleSheet(constants.BUTTON_STYLE + 'min-height:25px;')
+        orButton.setStyleSheet(constants.SEARCH_OR_BUTTON)
+        orShadow = QtWidgets.QGraphicsDropShadowEffect(orButton)
+        orShadow.setBlurRadius(18)
+        orShadow.setXOffset(0)
+        orShadow.setYOffset(4)
+        orShadow.setColor(QtGui.QColor(120, 140, 170, 90))
+        orButton.setGraphicsEffect(orShadow)
         orButton.clicked.connect(self.orCondition)
+
         applyButton = QtWidgets.QPushButton('Apply')
-        applyButton.setStyleSheet(constants.BUTTON_STYLE + 'min-height:25px;')
+        applyButton.setStyleSheet(constants.SEARCH_APPLY_BUTTON)
+        applyShadow = QtWidgets.QGraphicsDropShadowEffect(applyButton)
+        applyShadow.setBlurRadius(18)
+        applyShadow.setXOffset(0)
+        applyShadow.setYOffset(4)
+        applyShadow.setColor(QtGui.QColor(120, 140, 170, 90))
+        applyButton.setGraphicsEffect(applyShadow)
         applyButton.clicked.connect(self.applyCondition)
+
         removeButton = QtWidgets.QPushButton('X')
-        removeButton.setStyleSheet(constants.BUTTON_STYLE + 'min-height:25px;')
+        removeButton.setStyleSheet(constants.SEARCH_REMOVE_BUTTON)
+        removeShadow = QtWidgets.QGraphicsDropShadowEffect(removeButton)
+        removeShadow.setBlurRadius(18)
+        removeShadow.setXOffset(0)
+        removeShadow.setYOffset(4)
+        removeShadow.setColor(QtGui.QColor(120, 140, 170, 90))
+        removeButton.setGraphicsEffect(removeShadow)
+
         return orButton, applyButton, removeButton
+
+    def orCondition(self):
+        self.orPressed = True
+        lineEditLay = QtWidgets.QHBoxLayout()
+
+        searchBoxContainer = QtWidgets.QWidget()
+        searchBoxContainer.setObjectName("searchBoxContainer")
+        searchBoxContainer.setStyleSheet("""
+            QWidget#searchBoxContainer {
+                background-color: #ffffff;
+                border: 1px solid #cbd5e1;
+                border-radius: 4px;
+                min-height: 28px;
+            }
+        """)
+        searchBoxLay = QtWidgets.QHBoxLayout(searchBoxContainer)
+        searchBoxLay.setContentsMargins(6, 2, 6, 2)
+        searchBoxLay.setSpacing(4)
+
+        searchIconLabel = QtWidgets.QLabel()
+        searchIconLabel.setPixmap(self.createSearchIcon())
+        searchIconLabel.setStyleSheet("border: none; background: transparent;")
+        searchBoxLay.addWidget(searchIconLabel)
+
+        lineEdit = self.createCommonLineEdit()
+        lineEdit.setStyleSheet("background: transparent; border: none; min-height: 22px; padding: 0px;")
+        lineEdit.setCompleter(self.completer)
+        searchBoxLay.addWidget(lineEdit, 1)
+
+        orButton, applyButton, removeButton = self.createCommonOrButton()
+        lineEditLay.addWidget(searchBoxContainer)
+        lineEditLay.addWidget(orButton)
+        lineEditLay.addWidget(applyButton)
+        lineEditLay.addWidget(removeButton)
+        removeButton.clicked.connect(partial(self.removeMultyCondition, lineEditLay, lineEdit))
+        self.multipleConditionLay.addLayout(lineEditLay)
+        self.tmpLayouts.append(lineEditLay)
+        self.tmpLineEdits.append(lineEdit)
+        lineEdit.selectAll()
+        lineEdit.setFocus()
 
     def computeRecursion(self, xmlElementParent):
         self.mainVLay = QtWidgets.QVBoxLayout()
@@ -136,9 +255,39 @@ class SearchView(object):
         mainHLay.setContentsMargins(0, 0, 0, 0)
         self.multipleConditionLay = QtWidgets.QVBoxLayout()
         lineEditLay = QtWidgets.QHBoxLayout()
-        # Setup lineedit
+
+        # Build inline search box container
+        self.searchBoxContainer = QtWidgets.QWidget()
+        self.searchBoxContainer.setObjectName("searchBoxContainer")
+        self.searchBoxContainer.setStyleSheet("""
+            QWidget#searchBoxContainer {
+                background-color: #ffffff;
+                border: 1px solid #cbd5e1;
+                border-radius: 4px;
+                min-height: 28px;
+            }
+        """)
+        searchBoxLay = QtWidgets.QHBoxLayout(self.searchBoxContainer)
+        searchBoxLay.setContentsMargins(6, 2, 6, 2)
+        searchBoxLay.setSpacing(4)
+
+        # Search Icon Label
+        self.searchIconLabel = QtWidgets.QLabel()
+        self.searchIconLabel.setPixmap(self.createSearchIcon())
+        self.searchIconLabel.setStyleSheet("border: none; background: transparent;")
+        searchBoxLay.addWidget(self.searchIconLabel)
+
+        # Inline Tags Layout
+        self.tagsLay = QtWidgets.QHBoxLayout()
+        self.tagsLay.setContentsMargins(0, 0, 0, 0)
+        self.tagsLay.setSpacing(4)
+        searchBoxLay.addLayout(self.tagsLay)
+
+        # Setup lineedit inside container
         self.linedit = self.createCommonLineEdit()
         self.tmpLineEdits.append(self.linedit)
+        self.linedit.setStyleSheet("background: transparent; border: none; min-height: 22px; padding: 0px;")
+        searchBoxLay.addWidget(self.linedit, 1)
 
         # Setup completer
         self.completer = CustomQCompleter()
@@ -149,8 +298,8 @@ class SearchView(object):
         self.populateCombo()
         self.completer.setModel(self.filterListModel)
         self.linedit.setCompleter(self.completer)
-        lineEditLay.addWidget(self.linedit)
-        self.linedit.setStyleSheet(constants.BACKGROUND_WHITE)
+
+        lineEditLay.addWidget(self.searchBoxContainer)
 
         # Setup or button
         orButton, _applyButton, _removeButton = self.createCommonOrButton()
@@ -178,28 +327,39 @@ class SearchView(object):
         # Setup plus button
         self.buttonPlus = QtWidgets.QPushButton('+')
         self.buttonPlus.setStyleSheet(constants.SEARCH_ADVANCED_BUTTON)
+        plusShadow = QtWidgets.QGraphicsDropShadowEffect(self.buttonPlus)
+        plusShadow.setBlurRadius(18)
+        plusShadow.setXOffset(0)
+        plusShadow.setYOffset(4)
+        plusShadow.setColor(QtGui.QColor(120, 140, 170, 90))
+        self.buttonPlus.setGraphicsEffect(plusShadow)
         self.buttonPlus.clicked.connect(self.advancedFilter)
         mainHLay.addWidget(self.buttonPlus)
 
         mainHLay.setSpacing(3)
         self.mainVLay.addLayout(mainHLay)
-        self.tagsLay = QtWidgets.QVBoxLayout()
-        self.mainVLay.addLayout(self.tagsLay)
         return self.mainVLay
 
     def computeFieldAndFilters(self, xmlElementParent):
         self.toolmenu = QtWidgets.QMenu()
+        self._parseFilterElements(xmlElementParent)
+
+    def _parseFilterElements(self, xmlElementParent):
         for childElement in xmlElementParent: #.getchildren():
             childTag = childElement.tag
             if childTag == 'filter':
                 filterObj = self.computeFilter(childElement)
-                action = self.toolmenu.addAction(filterObj.string)
-                action.setCheckable(True)
-                action.toggled.connect(partial(self.actionSelectionChanged, action))
+                if filterObj and filterObj.string:
+                    action = self.toolmenu.addAction(filterObj.string)
+                    action.setCheckable(True)
+                    filterObj.action = action
+                    action.toggled.connect(partial(self.actionSelectionChanged, filterObj))
             elif childTag == 'separator':
                 self.toolmenu.addSeparator()
             elif childTag == 'field':   # Values in the line edit
                 self.computeField(childElement)
+            elif childTag == 'group':   # Recurse into group elements
+                self._parseFilterElements(childElement)
             else:
                 logging.warning('Tag %r not supported and not evaluated' % (childElement))
 
@@ -211,6 +371,7 @@ class SearchView(object):
             evalGlobals = dict(globals())
             evalGlobals['uid'] = getattr(getattr(getattr(self.parent, 'odooConnector', False), 'rpc_connector', False),
                                          'userId', False)
+            evalGlobals['parent'] = self.parent
             evalDomain = eval(fieldAttributes.get('domain', ''), evalGlobals)
             evalDomain = self.evaluateCondition(evalDomain)
         except Exception as ex:
@@ -231,26 +392,21 @@ class SearchView(object):
         return filterObj
 
     def removeFilter(self, filterObj):
-        if filterObj in self.globalCondition:
-            self.globalCondition.remove(filterObj)
+        self.removeCondition(filterObj)
 
     def addFilter(self, filterObj):
-        self.globalCondition.append(filterObj)
+        if filterObj not in self.globalCondition:
+            self.globalCondition.append(filterObj)
 
-    def actionSelectionChanged(self, actionChange=False, newVal=False):
-        if not actionChange:
-            logging.warning('Action not found')
+    def actionSelectionChanged(self, filterObj, checked=False):
+        if not filterObj:
+            logging.warning('Filter object not found')
             return
-        stringOption = str(actionChange.iconText())
-        filterObj = self.checkFilter(stringOption)
-        if filterObj:
-            if not newVal:  # Uncheck the filter
-                self.removeFilter(filterObj)
-            else:   # Check the filter
-                self.addFilter(filterObj)
-            self.launchFilterChanged()
+        if checked:
+            self.addFilter(filterObj)
         else:
-            logging.warning('Unable to find filter for string %r' % (stringOption))
+            self.removeFilter(filterObj)
+        self.reloadFilters()
 
     def computeField(self, elemXml):
         fieldAttributes = elemXml.attrib
@@ -304,19 +460,14 @@ class SearchView(object):
         timer.start(500)
 
     def clearQLayoutChildren(self, layout):
-        for i in reversed(list(range(layout.count()))):
-            childLay = layout.itemAt(i)
-            widget = childLay.widget()
-            if widget:
-                widget.setHidden(True)
-                widget.setParent(None)
-            if isinstance(childLay, (QtWidgets.QHBoxLayout, QtWidgets.QVBoxLayout)):
-                self.clearQLayoutChildren(childLay)
-        for elem in layout.children():
-            if isinstance(childLay, (QtWidgets.QHBoxLayout, QtWidgets.QVBoxLayout)):
-                layout.removeItem(elem)
-            else:
-                layout.removeWidget(elem)
+        if not layout:
+            return
+        while layout.count() > 0:
+            item = layout.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+            elif item.layout():
+                self.clearQLayoutChildren(item.layout())
 
     def delayedAddFieldFilter(self):
         filterText = str(self.linedit.text())
@@ -337,40 +488,80 @@ class SearchView(object):
             return self.tmpFields[0]
         return False
 
-    def addFieldTag(self, condObj):
-        maxFiltersInLine = 2
-        hlay = QtWidgets.QHBoxLayout()
-        if isinstance(condObj, FilterObj):
-            label = QtWidgets.QLabel(condObj.interfaceString)
+    def addFieldTag(self, condObj, emit_signal=True):
+        is_filter = isinstance(condObj, FilterObj)
+        if is_filter:
+            display_text = condObj.string or condObj.interfaceString
         else:
-            label = QtWidgets.QLabel(condObj.intString)
-        label.setStyleSheet(constants.TAG_TEXT_STYLE)
-        removeButton = QtWidgets.QPushButton('X')
-        removeButton.setStyleSheet(constants.BUTTON_STYLE)
-        removeButton.setMaximumWidth(30)
+            display_text = getattr(condObj, 'intString', str(condObj))
 
-        hlay.setSpacing(0)
-        hlay.addWidget(label)
-        hlay.addWidget(removeButton)
+        # Format display text nicely (e.g. Search "Attachment" for: "Req" -> Attachment: Req)
+        if display_text.startswith('Search "') and '" for: "' in display_text:
+            try:
+                parts = display_text.split('" for: "')
+                field_part = parts[0].replace('Search "', '')
+                val_part = parts[1].rstrip('"')
+                display_text = f"{field_part}: {val_part}"
+            except Exception:
+                pass
 
-        childrenWidgetsCount = self.tagsLay.count()
-        if childrenWidgetsCount == 0:
-            hlayRow = QtWidgets.QHBoxLayout()
-            hlayRow.addLayout(hlay)
-            self.tagsLay.addLayout(hlayRow)
-            removeButton.clicked.connect(partial(self.removeFieldFilter, condObj))
+        tagWidget = QtWidgets.QWidget()
+        if is_filter:
+            # Purple theme for Filters
+            tagWidget.setStyleSheet("""
+                QWidget {
+                    background-color: #f3e8ff;
+                    border: 1px solid #c084fc;
+                    border-radius: 4px;
+                }
+            """)
         else:
-            rowLay = self.tagsLay.children()[-1]
-            rowTagsCount = rowLay.count()
-            if rowTagsCount <= maxFiltersInLine:
-                rowLay.addLayout(hlay)
-                removeButton.clicked.connect(partial(self.removeFieldFilter, condObj))
-            else:
-                hlayRow = QtWidgets.QHBoxLayout()
-                hlayRow.addLayout(hlay)
-                self.tagsLay.addLayout(hlayRow)
-                removeButton.clicked.connect(partial(self.removeFieldFilter, condObj))
-        self.launchFilterChanged()
+            # Teal theme for Custom Search Tags
+            tagWidget.setStyleSheet("""
+                QWidget {
+                    background-color: #ccfbf1;
+                    border: 1px solid #5eead4;
+                    border-radius: 4px;
+                }
+            """)
+
+        tagLay = QtWidgets.QHBoxLayout(tagWidget)
+        tagLay.setContentsMargins(4, 1, 4, 1)
+        tagLay.setSpacing(4)
+
+        iconLabel = QtWidgets.QLabel()
+        iconLabel.setPixmap(self.createFilterPillIcon(is_filter=is_filter))
+        iconLabel.setStyleSheet("border: none; background: transparent;")
+        tagLay.addWidget(iconLabel)
+
+        textLabel = QtWidgets.QLabel(display_text)
+        text_color = "#581c87" if is_filter else "#115e59"
+        textLabel.setStyleSheet(f"border: none; background: transparent; color: {text_color}; font-size: 11px; font-weight: bold;")
+        tagLay.addWidget(textLabel)
+
+        removeButton = QtWidgets.QPushButton("×")
+        removeButton.setCursor(QtCore.Qt.PointingHandCursor)
+        removeButton.setStyleSheet("""
+            QPushButton {
+                border: none;
+                background: transparent;
+                color: #64748b;
+                font-weight: bold;
+                font-size: 13px;
+                padding: 0px 2px;
+                max-width: 14px;
+                max-height: 14px;
+            }
+            QPushButton:hover {
+                color: #ef4444;
+            }
+        """)
+        removeButton.clicked.connect(partial(self.removeFieldFilter, condObj))
+        tagLay.addWidget(removeButton)
+
+        self.tagsLay.addWidget(tagWidget)
+        if emit_signal:
+            self.launchFilterChanged()
 
     def removeFieldFilter(self, conditionObj):
         self.removeCondition(conditionObj)
@@ -379,7 +570,7 @@ class SearchView(object):
     def reloadFilters(self):
         self.clearQLayoutChildren(self.tagsLay)
         for condObj in self.globalCondition:
-            self.addFieldTag(condObj)
+            self.addFieldTag(condObj, emit_signal=False)
         self.launchFilterChanged()
 
     def computeArchRecursion(self, xmlElementParent):
@@ -426,16 +617,16 @@ class SearchView(object):
         # Ok / Cancel buttons and layout
         self.andButton = QtWidgets.QPushButton('Filter as And')
         self.andButton.clicked.connect(self.acceptDialAnd)
-        self.andButton.setStyleSheet(constants.LOGIN_ACCEPT_BUTTON)
+        self.andButton.setStyleSheet(constants.ADV_FILTER_ACTION_BUTTON)
         self.orButton = QtWidgets.QPushButton('Filter as Or')
-        self.orButton.setStyleSheet(constants.LOGIN_ACCEPT_BUTTON)
+        self.orButton.setStyleSheet(constants.ADV_FILTER_ACTION_BUTTON)
         self.orButton.clicked.connect(self.acceptDialOr)
         applyButton = QtWidgets.QPushButton('Apply')
-        applyButton.setStyleSheet(constants.LOGIN_ACCEPT_BUTTON)
+        applyButton.setStyleSheet(constants.ADV_FILTER_ACTION_BUTTON)
         applyButton.clicked.connect(self.applyCustomFilter)
         cancelButt = QtWidgets.QPushButton('Cancel')
         cancelButt.clicked.connect(self.rejectDial)
-        cancelButt.setStyleSheet(constants.LOGIN_CANCEL_BUTTON)
+        cancelButt.setStyleSheet(constants.ADV_FILTER_CANCEL_BUTTON)
 
         okCancelLay = QtWidgets.QHBoxLayout()
         okCancelLay.addWidget(cancelButt)
@@ -460,6 +651,7 @@ class SearchView(object):
         self.customFiltersAdded = []
         self.filterMode = '&'
         self.dialCustomFilter = QtWidgets.QDialog()
+        self.dialCustomFilter.setWindowTitle("Advanced Filter")
         lay = QtWidgets.QVBoxLayout()
         mainWidget = QtWidgets.QWidget()
         mainLay = QtWidgets.QVBoxLayout()
@@ -643,7 +835,7 @@ class QVBoxLayCustom(QtWidgets.QVBoxLayout):
         # Remove button
         self.removeButton = QtWidgets.QPushButton('X')
         self.removeButton.setHidden(True)
-        self.removeButton.setStyleSheet(constants.LOGIN_CANCEL_BUTTON + 'max-height:15px; max-width:7px;height:15px; width:7px;font-weight:bold;')
+        self.removeButton.setStyleSheet(constants.ADV_FILTER_CANCEL_BUTTON + 'max-height:15px; max-width:7px;height:15px; width:7px;font-weight:bold;')
         self.spacer = QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.MinimumExpanding)
         # Fields
         self.widgetsLay = QtWidgets.QVBoxLayout()
@@ -659,14 +851,14 @@ class QVBoxLayCustom(QtWidgets.QVBoxLayout):
         self.dateWidget = QtWidgets.QDateEdit()
         self.datetimeWidget = QtWidgets.QDateTimeEdit()
         self.integerSpinboxWidget = QtWidgets.QSpinBox()
-        self.comboCharOperator.setStyleSheet(constants.LOGIN_COMBO_STYLE)
-        self.comboBoolOperator.setStyleSheet(constants.LOGIN_COMBO_STYLE)
-        self.comboFloatOperator.setStyleSheet(constants.LOGIN_COMBO_STYLE)
-        self.comboDatetimeOperator.setStyleSheet(constants.LOGIN_COMBO_STYLE)
-        self.mainLineEditWidget.setStyleSheet(constants.LOGIN_LINEEDIT_STYLE)
-        self.dateWidget.setStyleSheet(constants.LOGIN_LINEEDIT_STYLE)
-        self.datetimeWidget.setStyleSheet(constants.LOGIN_LINEEDIT_STYLE)
-        self.integerSpinboxWidget.setStyleSheet(constants.LOGIN_LINEEDIT_STYLE)
+        self.comboCharOperator.setStyleSheet(constants.ADV_FILTER_COMBO_STYLE)
+        self.comboBoolOperator.setStyleSheet(constants.ADV_FILTER_COMBO_STYLE)
+        self.comboFloatOperator.setStyleSheet(constants.ADV_FILTER_COMBO_STYLE)
+        self.comboDatetimeOperator.setStyleSheet(constants.ADV_FILTER_COMBO_STYLE)
+        self.mainLineEditWidget.setStyleSheet(constants.ADV_FILTER_LINEEDIT_STYLE)
+        self.dateWidget.setStyleSheet(constants.ADV_FILTER_LINEEDIT_STYLE)
+        self.datetimeWidget.setStyleSheet(constants.ADV_FILTER_LINEEDIT_STYLE)
+        self.integerSpinboxWidget.setStyleSheet(constants.ADV_FILTER_LINEEDIT_STYLE)
         self.widgetsLay.addWidget(self.comboCharOperator)
         self.widgetsLay.addWidget(self.comboBoolOperator)
         self.widgetsLay.addWidget(self.comboFloatOperator)
@@ -690,7 +882,7 @@ class QVBoxLayCustom(QtWidgets.QVBoxLayout):
                                  'Less then or equal to',
                                  'Is set',
                                  'Is not set']
-        self.comboDatetimeValues = self.comboFloatValues
+        self.comboDatetimeValues = list(self.comboFloatValues)
         self.comboDatetimeValues.append('Is between')
         self.comboDatetimeOperator.addItems(self.comboDatetimeValues)
         self.comboBoolOperator.addItems(self.comboBoolValues)
@@ -702,7 +894,9 @@ class QVBoxLayCustom(QtWidgets.QVBoxLayout):
         self.removeLay.addWidget(self.removeButton)
         self.mainWidget.setLayout(self.removeLay)
         self.addWidget(self.mainWidget)
-        self.mainWidget.setStyleSheet(constants.BACKGROUND_LIGHT_BLUE)
+        self.mainWidget.setStyleSheet(constants.ADV_FILTER_ROW_BACKGROUND)
+        if self.combo.count() > 0:
+            self.fieldsCustomComboChanged(self.combo.currentIndex())
 
     def getSelectedFieldName(self):
         comboIndex = self.combo.currentIndex()
@@ -720,12 +914,12 @@ class QVBoxLayCustom(QtWidgets.QVBoxLayout):
         fieldDefinition = self.advancedFilterFields[fieldName]
         fieldType = fieldDefinition.get('type', '')
         self.hideAll()
-        if fieldType in ['char', 'many2one', 'text', 'one2many', 'many2many']:
+        if fieldType in ['char', 'many2one', 'text', 'one2many', 'many2many', 'selection']:
             self.comboCharOperator.setHidden(False)
             self.mainLineEditWidget.setHidden(False)
         elif fieldType == 'boolean':
             self.comboBoolOperator.setHidden(False)
-        elif fieldType == 'float':
+        elif fieldType in ['float', 'monetary']:
             self.comboFloatOperator.setHidden(False)
             self.mainLineEditWidget.setHidden(False)
         elif fieldType == 'date':
@@ -739,7 +933,7 @@ class QVBoxLayCustom(QtWidgets.QVBoxLayout):
             self.integerSpinboxWidget.setHidden(False)
 
     def getValue(self, fieldType):
-        if fieldType in ['char', 'many2one', 'text', 'one2many', 'many2many']:
+        if fieldType in ['char', 'many2one', 'text', 'one2many', 'many2many', 'selection']:
             return str(self.mainLineEditWidget.text())
         elif fieldType == 'boolean':
             return ''
@@ -749,7 +943,7 @@ class QVBoxLayCustom(QtWidgets.QVBoxLayout):
             return str(self.datetimeWidget.dateTime().toPyDateTime())
         elif fieldType == 'integer':
             return self.integerSpinboxWidget.value()
-        elif fieldType == 'float':
+        elif fieldType in ['float', 'monetary']:
             try:
                 return float(str(self.mainLineEditWidget.text()))
             except Exception as ex:
@@ -773,7 +967,7 @@ class QVBoxLayCustom(QtWidgets.QVBoxLayout):
         sortedFields = []
         self.stringFieldRel = {}
         comboAllFields = QtWidgets.QComboBox()
-        comboAllFields.setStyleSheet(constants.LOGIN_COMBO_STYLE)
+        comboAllFields.setStyleSheet(constants.ADV_FILTER_COMBO_STYLE)
 
         for fieldName in list(self.advancedFilterFields.keys()):
             fieldDefinition = self.advancedFilterFields.get(fieldName)
@@ -795,7 +989,7 @@ class QVBoxLayCustom(QtWidgets.QVBoxLayout):
         fieldDefinition = self.advancedFilterFields[fieldName]
         fieldType = fieldDefinition.get('type', '')
         value = self.getValue(fieldType)
-        if fieldType in ['char', 'many2one', 'text', 'one2many', 'many2many']:
+        if fieldType in ['char', 'many2one', 'text', 'one2many', 'many2many', 'selection']:
             operatorIndex = self.comboCharOperator.currentIndex()
             interfaceVal = self.comboValues[operatorIndex]
             if interfaceVal == 'Contains':
@@ -817,7 +1011,7 @@ class QVBoxLayCustom(QtWidgets.QVBoxLayout):
                 return [(fieldName, '=', True)], '%r %r %r' % (fieldString, interfaceVal)
             elif interfaceVal == 'Is false':
                 return [(fieldName, '=', False)], '%r %r %r' % (fieldString, interfaceVal)
-        elif fieldType == 'float':
+        elif fieldType in ['float', 'monetary']:
             operatorIndex = self.comboFloatOperator.currentIndex()
             interfaceVal = self.comboFloatValues[operatorIndex]
             if interfaceVal == 'Is equal to':
@@ -903,8 +1097,7 @@ class CustomLineEdit(QtWidgets.QLineEdit):
 
     def keyPressEvent(self, event):
         key = event.key()
-        modifiers = int(event.modifiers())
         if key == QtCore.Qt.Key_Return:
-            if modifiers == QtCore.Qt.CTRL:
+            if event.modifiers() & QtCore.Qt.ControlModifier:
                 self.parentClass.orCondition()
         return super(CustomLineEdit, self).keyPressEvent(event)

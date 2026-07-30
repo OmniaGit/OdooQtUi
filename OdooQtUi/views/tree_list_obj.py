@@ -3,13 +3,66 @@ Created on 24 Mar 2017
 
 @author: dsmerghetto
 '''
-from PySide6 import QtWidgets, QtCore
+from PySide6 import QtWidgets, QtCore, QtGui
 from .parser.tree_list import TreeViewList
 from .templateView import TemplateView
 from OdooQtUi.utils_odoo_conn import utils, utilsUi
 from OdooQtUi.utils_odoo_conn import constants
 from functools import partial
 from OdooQtUi.utils_odoo_conn.utils import logWarning, logError
+
+
+class RowSelectionDelegate(QtWidgets.QStyledItemDelegate):
+    def __init__(self, parent=None):
+        super(RowSelectionDelegate, self).__init__(parent)
+        self.hoveredRow = -1
+        if parent is not None:
+            parent.setMouseTracking(True)
+            parent.viewport().installEventFilter(self)
+
+    def eventFilter(self, watched, event):
+        view = self.parent()
+        if view is not None:
+            if event.type() == QtCore.QEvent.MouseMove:
+                newRow = view.indexAt(event.pos()).row()
+                if newRow != self.hoveredRow:
+                    self.hoveredRow = newRow
+                    view.viewport().update()
+            elif event.type() == QtCore.QEvent.Leave:
+                if self.hoveredRow != -1:
+                    self.hoveredRow = -1
+                    view.viewport().update()
+        return super(RowSelectionDelegate, self).eventFilter(watched, event)
+
+    def paint(self, painter, option, index):
+        try:
+            # Remove focus rectangle
+            option.state &= ~QtWidgets.QStyle.State_HasFocus
+            if option.state & QtWidgets.QStyle.State_Selected:
+                # Subtle gray selection highlight, matching the toolbar's gray theme
+                painter.save()
+                bg_color = QtGui.QColor("#e4e4e6")
+                painter.fillRect(option.rect, bg_color)
+                painter.restore()
+
+                # Draw contents without default selection styling
+                option.state &= ~QtWidgets.QStyle.State_Selected
+                QtWidgets.QStyledItemDelegate.paint(self, painter, option, index)
+                option.state |= QtWidgets.QStyle.State_Selected
+            elif index.row() == self.hoveredRow:
+                # Light hover highlight across the whole row, cleared the instant
+                # the mouse leaves it (tracked via eventFilter above)
+                painter.save()
+                painter.fillRect(option.rect, QtGui.QColor("#f3f4f6"))
+                painter.restore()
+                option.state &= ~QtWidgets.QStyle.State_MouseOver
+                QtWidgets.QStyledItemDelegate.paint(self, painter, option, index)
+            else:
+                QtWidgets.QStyledItemDelegate.paint(self, painter, option, index)
+        except Exception as ex:
+            QtWidgets.QStyledItemDelegate.paint(self, painter, option, index)
+
+
 
 
 class TemplateTreeListView(TemplateView):
@@ -50,8 +103,8 @@ class TemplateTreeListView(TemplateView):
             else:
                 self.searchObj.out_filter_change_signal.connect(self.filterChanged)
                 recordSwitcher.insertWidget(0, self.searchObj)
-                
-        mainLay.addLayout(recordSwitcher)  
+
+        mainLay.addLayout(recordSwitcher)
         self.treeObj = TreeViewList(qtParent=self,
                                     arch=self.arch,
                                     fieldsNameTypeRel=self.fieldsNameTypeRel,
@@ -66,6 +119,8 @@ class TemplateTreeListView(TemplateView):
             self.treeObj.tableWidget.setStyleSheet(constants.TABLE_LIST_LIST)
             self.treeObj.tableWidget.horizontalHeader().setStyleSheet(constants.MANY_2_MANY_H_HEADER)
             self.treeObj.tableWidget.setMinimumHeight(200)
+            self.treeObj.tableWidget.setMouseTracking(True)
+            self.treeObj.tableWidget.setItemDelegate(RowSelectionDelegate(self.treeObj.tableWidget))
         self.setLayout(mainLay)
         self.treeObj.tableWidget.doubleClicked.connect(self.doubleClickEvent)
         self.setStyleSheet(constants.BACKGROUND_WHITE)
@@ -89,7 +144,7 @@ class TemplateTreeListView(TemplateView):
         return switchRecordsLay
 
     def filterChanged(self, newFilter):
-        
+
         if self.deafult_filter:
             newFilter.extend(self.deafult_filter)
         objIds = self.odooConnector.rpc_connector.search(self.model, newFilter, limit=self.passRange, offset=0)
@@ -164,8 +219,7 @@ class TemplateTreeListView(TemplateView):
         for row_index, record in enumerate(records):
             if row_index not in self.row_widgets:
                 self.row_widgets[row_index] = {}
-            if row_index not in fieldDict:
-                fieldDict[row_index] = {}
+            fieldDict[row_index] = record
             localList = []
             for col_index, fieldName in enumerate(self.labelsOrdered):
                 fieldPyDefinition = self.fieldsNameTypeRel.get(fieldName, {})
@@ -286,17 +340,35 @@ class TemplateTreeListView(TemplateView):
                     logWarning('Cannot set readonly and invisible attributes for field %r err %r' % (fieldName, ex), '_setFieldsModifiers')
 
     def _setButtonsModifiers(self, fieldDict):
-        
+
         def hideButtonWithStyle(butt, flag):
             if butt:
-                if flag:
-                    butt.setStyleSheet('color:#dddddd; border:none;background-color:#dddddd;')
+                btn_text = str(butt.text()).strip()
+                record = getattr(butt, 'record', {}) or {}
+                is_checkout = record.get('is_checkout', False)
+                if "out" in btn_text.lower():
+                    # Left half of the capsule:
+                    if is_checkout:
+                        butt.setStyleSheet('background-color: #c0392b; color: #ffffff; border-top-left-radius: 10px; border-bottom-left-radius: 10px; border-top-right-radius: 0px; border-bottom-right-radius: 0px; padding: 4px 10px; font-weight: bold; border: none; margin: 1px 0px 1px 4px; min-width: 75px;')
+                    else:
+                        butt.setStyleSheet('background-color: #333333; color: #ffffff; border-top-left-radius: 10px; border-bottom-left-radius: 10px; border-top-right-radius: 0px; border-bottom-right-radius: 0px; padding: 4px 10px; font-weight: bold; border: none; margin: 1px 0px 1px 4px; min-width: 75px;')
+                    butt.setDisabled(False)
+                elif "in" in btn_text.lower():
+                    # Right half of the capsule (light gray background):
+                    butt.setStyleSheet('QPushButton { background-color: #d1d5db; color: #333333; border-top-left-radius: 0px; border-bottom-left-radius: 0px; border-top-right-radius: 10px; border-bottom-right-radius: 10px; padding: 4px 10px; font-weight: bold; border: none; margin: 1px 1px 1px 0px; min-width: 75px; } QPushButton:disabled { background-color: #d1d5db; color: #666666; }')
+                    butt.setDisabled(False)
                 else:
-                    butt.setStyleSheet(constants.BUTTON_STYLE_REVERSED)
-                butt.setDisabled(flag)
+                    if flag:
+                        butt.setStyleSheet('background-color: #e5e7eb; color: #9ca3af; border: none; border-radius: 10px; padding: 4px 10px; font-weight: bold;')
+                    else:
+                        butt.setStyleSheet(constants.BUTTON_STYLE_REVERSED)
+                    butt.setDisabled(flag)
 
         for row_index, row_vals in self.row_widgets.items():
             for fieldObj in row_vals.values():
+                # Apply capsule style unconditionally first if it is a button
+                if isinstance(fieldObj, QtWidgets.QPushButton) or getattr(fieldObj, 'butt_type', None):
+                    hideButtonWithStyle(fieldObj, False)
                 if fieldObj.modifiers:
                     readonlyModif = fieldObj.modifiers.get('readonly', {})
                     invisibleModif = fieldObj.modifiers.get('invisible', {})
@@ -339,6 +411,8 @@ class TemplateTreeListView(TemplateView):
     def refreshColumns(self):
         if self.treeObj.tableWidget:
             self.treeObj.tableWidget.resizeColumnsToContents()
+            self.treeObj.tableWidget.setColumnWidth(0, 92)
+            self.treeObj.tableWidget.setColumnWidth(1, 82)
             self.treeObj.tableWidget.horizontalHeader().setStretchLastSection(True)
 
     def setRowSelected(self, rowIndex):

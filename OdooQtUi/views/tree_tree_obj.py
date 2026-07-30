@@ -5,8 +5,33 @@ Created on 24 Mar 2017
 '''
 import json
 #
-from PySide6 import QtWidgets
+from PySide6 import QtWidgets, QtGui
 from PySide6.QtCore import QAbstractItemModel, Qt, QModelIndex
+
+
+def createRedFolderIcon():
+    pixmap = QtGui.QPixmap(32, 32)
+    pixmap.fill(Qt.transparent)
+    painter = QtGui.QPainter(pixmap)
+    painter.setRenderHint(QtGui.QPainter.Antialiasing)
+
+    pen = QtGui.QPen(QtGui.QColor("#b91c1c"), 2.0)
+    painter.setPen(pen)
+    painter.setBrush(Qt.NoBrush)
+
+    path = QtGui.QPainterPath()
+    path.moveTo(6, 25)
+    path.lineTo(26, 25)
+    path.lineTo(26, 11)
+    path.lineTo(16, 11)
+    path.lineTo(13, 8)
+    path.lineTo(6, 8)
+    path.closeSubpath()
+
+    painter.drawPath(path)
+    painter.end()
+    return QtGui.QIcon(pixmap)
+
 #
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.views.templateView import TemplateView
@@ -65,16 +90,16 @@ class NodeComputed(object):
             if item == child:
                 return i
         return -1
-   
+
     def removeChild(self, row):
         value = self.children[row]
         self.children.remove(value)
         return True
-       
+
     def __len__(self):
         return len(self.children)
-    
-    
+
+
 class TreeTreeData(QAbstractItemModel):
     def __init__(self,
                  connectorObj,
@@ -82,16 +107,16 @@ class TreeTreeData(QAbstractItemModel):
                  functionName,
                  ids=[]):
         """
-        :connectorObj instance of RpcConnection 
+        :connectorObj instance of RpcConnection
         :objectName odoo object name
         :functionName function to call to get the data back *
         :ids    list of id of the specific odoo object model all this ids will be rendered at first level in the tree
-        
+
         * the function name must return:
             headers, structure
             :heders dictionary like with value as header label {'engineering_code','Code', }
             :structure in form of parent child relation es [(id, attributes, children),..]
-            
+
         """
         super(TreeTreeData, self).__init__(None)
         #
@@ -161,13 +186,17 @@ class TreeTreeData(QAbstractItemModel):
     def index(self, row, column, parent):
         node = self.nodeFromIndex(parent)
         return self.createIndex(row, column, node.childAtRow(row))
-        
-    def data(self, index, role): 
+
+    def data(self, index, role):
         """
         main function to retrieve the data from the abstract model
-        """     
+        """
         if role == Qt.TextAlignmentRole:
             return int(Qt.AlignTop | Qt.AlignLeft)
+        if role == Qt.DecorationRole and index.column() == 0:
+            if not hasattr(self, '_red_folder_icon'):
+                self._red_folder_icon = createRedFolderIcon()
+            return self._red_folder_icon
         if not index.isValid():
             return 
                         

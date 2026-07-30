@@ -218,9 +218,9 @@ class RpcConnection(object):
         localContext.update(context.copy())
         return self.sockInstance.create(obj, values, context=localContext)
 
-    def fieldsGet(self, obj, attributesToRead=[], context={}):
+    def fieldsGet(self, obj, attributesToRead=None, context={}):
         '''
-        @attributesToRead: ['string', 'help', 'type']
+        @attributesToRead: ['string', 'help', 'type'], None means all attributes
         '''
         localContext = self.contextUser
         localContext.update(context.copy())

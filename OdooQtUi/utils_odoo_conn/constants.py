@@ -29,9 +29,7 @@ BUTTON_ODOO_DEFAULT_COLOR = 'background-color: #00A09D;'
 BUTTON_COMMON = 'border-radius: 0px;border: none;color: white;padding: 5px 10px;' + FONT_SIZE
 BUTTON_STYLE = 'background-color: white;border-color: #21b799;' + BOLD_FONT + FONT_COLOR_WHITE  # Color green
 BUTTON_STYLE_HOVER = 'background-color: #21b780;border-color: #21b799;' + BOLD_FONT + BUTTON_COMMON  # Color green
-BUTTON_STYLE_REVERSED = 'background-color:white; color: #21b799; border: 2px solid #21b799;padding: 3px; margin:1px;' + BOLD_FONT  # Color green
-BUTTON_STYLE_OK = 'background-color: #59be50;border-color: #21b799;' + BUTTON_COMMON
-BUTTON_STYLE_CANCEL = 'background-color: #f05050;border-color: #21b799;' + BUTTON_COMMON
+BUTTON_STYLE_REVERSED = 'background-color: #000000; color: #ffffff; border-radius: 10px; padding: 4px 10px; font-weight: bold; border: none; margin: 1px;'
 BUTTON_STYLE_MANY_2_ONE = 'background-color: #3eb2df;border-color: #21b799;max-width:30px;max-height:10px;' + BOLD_FONT + BUTTON_COMMON
 BUTTON_STYLE_MANY_2_ONE__2 = 'background-color: #3eb2df;border-color: #21b799;' + BOLD_FONT + BUTTON_COMMON
 BUTTON_STYLE_LINK = 'color: #008784;' + BOLD_FONT
@@ -48,22 +46,74 @@ DATE_STYLE = COMMON_FIELDS_BOTTOM_BORDER
 TEXT_STYLE = BACKGROUND_WHITE
 NOOTEBOOK_STYLE = 'border-left-style: none;border-right-style: none;border-bottom-style: none;border-top-style: none;'
 NOOTEBOOK_TABBAR_STYLE = 'QTabBar::tab:!selected {border: 3px solid grey;border-left-style: none;border-right-style: none;border-top-style: none;min-width:180px;} QTabBar::tab:selected {border: 3px solid #875a7b;border-left-style: none;border-right-style: none;border-top-style: none;color: #875a7b;' + FONT_SIZE + 'min-width:150px} QTabBar::tab:hover {border: 3px solid #875a7b;border-left-style: none;border-right-style: none;border-top-style: none;color: #875a7b;' + FONT_SIZE + 'font-weight: bold;min-width:150px}'
-MANY_2_MANY_H_HEADER = '::section {color:white;padding:3px;background-color:#7C7BAD;text-align:left;border:none;%s}' % BOLD_FONT
-TABLE_LIST_LIST = """QScrollBar {background-color:#875a7b}
-QTableWidget {border-left: 3px solid #875a7b;
-                border-right: 3px solid #875a7b;
-                border-bottom: 3px solid #875a7b;
-                alternate-background-color: #DDEDF0;
+MANY_2_MANY_H_HEADER = '::section {color:#000000;padding:6px 8px;background-color:#eef0f1;text-align:left;border:none;border-bottom:2px solid #a8aab0;%s}' % BOLD_FONT
+TABLE_LIST_LIST = """QScrollBar:horizontal {
+    background-color: #e4e4e6;
+    border-top: 1px solid #c7ccd1;
+    height: 12px;
+}
+QScrollBar::handle:horizontal {
+    background-color: #FF0505;
+    border: 1px solid #8B0000;
+    border-radius: 0px;
+    min-width: 20px;
+}
+QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal, QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {
+    background: none;
+    width: 0px;
+    height: 0px;
+}
+QScrollBar:vertical {
+    background-color: #e4e4e6;
+    border-left: 1px solid #c7ccd1;
+    width: 12px;
+}
+QScrollBar::handle:vertical {
+    background-color: #FF0505;
+    border: 1px solid #8B0000;
+    border-radius: 0px;
+    min-height: 20px;
+}
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical, QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+    background: none;
+    width: 0px;
+    height: 0px;
+}
+QTableWidget {border: 2px solid #2c2c2c;
+                border-radius: 6px;
+                alternate-background-color: #f2f2f3;
                 background-color: white;
-                font-size:12px;} 
+                font-size:12px;}
+QTableWidget::item {
+    padding: 4px 8px;
+}
+QTableWidget::item:hover {
+    background-color: #f3f4f6;
+    color: #000000;
+}
+QTableWidget::item:selected, QTableWidget::item:focus, QTableWidget::item:active {
+    background-color: transparent;
+    color: #000000;
+    outline: none;
 }
 """
-TABLE_VIEW_LIST_LIST = """QTreeView {border-left: 3px solid #875a7b;
-                border-right: 3px solid #875a7b;
-                border-bottom: 3px solid #875a7b;
-                alternate-background-color: #DDEDF0;
+TABLE_VIEW_LIST_LIST = """QTreeView {border: 2px solid #2c2c2c;
+                border-radius: 6px;
+                alternate-background-color: #f2f2f3;
                 background-color: white;
-                font-size:12px;} 
+                font-size:14px;}
+QTreeView::item {
+    padding: 4px 8px 4px 0px;
+}
+QTreeView::item:hover {
+    background-color: #f3f4f6;
+    color: #000000;
+}
+QTreeView::item:selected, QTreeView::item:focus, QTreeView::item:active {
+    background-color: transparent;
+    color: #000000;
+    outline: none;
+}
 """
 # #167F92
 # hover
@@ -74,12 +124,116 @@ FONT_SIZE_LIST_WIDGET = "12px"
 TAG_TEXT_STYLE = 'background-color: #c5c5c5;color: black;padding: 0px 5px 0px 5px;max-width: 500px;border: 1px solid black;' + FONT_SIZE
 TAG_BUTTON_STYLE = 'color: black;margin-left:20px;display: flex;padding: 0px 5px 0px 0px;background-color:#3eb2df' + BOLD_FONT + FONT_SIZE
 # Search view
-SEARCH_FILTER_TOOLBUTTON = 'background-color: #7c7bad;min-width: 130px;min-height:25px;color: white;' + BOLD_FONT + FONT_SIZE
-SEARCH_ADVANCED_BUTTON = 'background-color: #7c7bad;color:white;width: 25px;min-height:25px;%s%s' % (BOLD_FONT, FONT_SIZE)
-OPERATOR_LABEL = 'background-color: #7c7bad;border: 1px solid black;width:30px;color:white;'
+# Shared by "Filters" (QToolButton) and "Advanced Filter" (QPushButton), hence the
+# universal "*" selector so :hover/:pressed apply to both widget types.
+SEARCH_FILTER_TOOLBUTTON = ('* {'
+    'background-color: #a8aab0;'
+    'color: #000000;'
+    'min-width: 130px;'
+    'min-height: 25px;'
+    'border: 2px solid #7d7f85;'
+    'border-radius: 12px;'
+    '%s%s'
+    '}'
+    '*:hover {'
+    'background-color: #b5b7bc;'
+    'border: 2px solid #65676c;'
+    '}'
+    '*:pressed {'
+    'background-color: #7d7f85;'
+    'border: 2px solid #5a5c61;'
+    '}') % (BOLD_FONT, FONT_SIZE)
+SEARCH_ADVANCED_BUTTON = ('QPushButton {'
+    'background-color: #a8aab0;'
+    'color: #000000;'
+    'width: 25px;'
+    'min-height: 25px;'
+    'border: 2px solid #7d7f85;'
+    'border-radius: 12px;'
+    '%s%s'
+    '}'
+    'QPushButton:hover {'
+    'background-color: #b5b7bc;'
+    'border: 2px solid #65676c;'
+    '}'
+    'QPushButton:pressed {'
+    'background-color: #7d7f85;'
+    'border: 2px solid #5a5c61;'
+    '}') % (BOLD_FONT, FONT_SIZE)
+# Flat mid-gray pill style shared by the "Or" / "Apply" / "X" condition buttons
+SEARCH_OR_BUTTON = ('QPushButton {'
+    'background-color: #a8aab0;'
+    'color: #000000;'
+    'min-height: 25px;'
+    'border: 2px solid #7d7f85;'
+    'border-radius: 12px;'
+    'padding: 2px 14px;'
+    '%s%s'
+    '}'
+    'QPushButton:hover {'
+    'background-color: #b5b7bc;'
+    'border: 2px solid #65676c;'
+    '}'
+    'QPushButton:pressed {'
+    'background-color: #7d7f85;'
+    'border: 2px solid #5a5c61;'
+    '}') % (BOLD_FONT, FONT_SIZE)
+
+SEARCH_APPLY_BUTTON = ('QPushButton {'
+    'background-color: #22c55e;'
+    'color: #ffffff;'
+    'min-height: 25px;'
+    'border: 2px solid #16a34a;'
+    'border-radius: 12px;'
+    'padding: 2px 14px;'
+    '%s%s'
+    '}'
+    'QPushButton:hover {'
+    'background-color: #16a34a;'
+    'border: 2px solid #15803d;'
+    '}'
+    'QPushButton:pressed {'
+    'background-color: #15803d;'
+    '}') % (BOLD_FONT, FONT_SIZE)
+
+SEARCH_REMOVE_BUTTON = ('QPushButton {'
+    'background-color: #ef4444;'
+    'color: #ffffff;'
+    'min-height: 25px;'
+    'border: 2px solid #dc2626;'
+    'border-radius: 12px;'
+    'padding: 2px 10px;'
+    '%s%s'
+    '}'
+    'QPushButton:hover {'
+    'background-color: #dc2626;'
+    'border: 2px solid #b91c1c;'
+    '}'
+    'QPushButton:pressed {'
+    'background-color: #b91c1c;'
+    '}') % (BOLD_FONT, FONT_SIZE)
+
+BUTTON_STYLE_OK = SEARCH_APPLY_BUTTON
+BUTTON_STYLE_CANCEL = SEARCH_REMOVE_BUTTON
+
+OPERATOR_LABEL = 'background-color: #000000;border: 1px solid black;width:30px;color:white;'
+# Advanced Filter dialog (kept separate from LOGIN_* so the login screen is untouched)
+ADV_FILTER_COMBO_STYLE = ('QComboBox {background-color: #ffffff;color: #000000;padding: 4px 8px;'
+    'min-height: 20px;border-radius: 4px;border: 2px solid #7d7f85;} '
+    'QComboBox QAbstractItemView {background-color: #ffffff;color: #000000;'
+    'selection-background-color: #a8aab0;selection-color: #000000;} '
+    'QScrollBar:vertical {background-color:#e4e4e6; width: 8px;} '
+    'QScrollBar::handle:vertical {background-color:#FF0505; border: 1px solid #8B0000;}')
+ADV_FILTER_LINEEDIT_STYLE = ('min-width:200px;height: 16px;padding: 6px 12px;border: 2px solid #7d7f85;'
+    'border-radius: 4px;background-color: #ffffff;color: #000000;' + FONT_SIZE)
+ADV_FILTER_ACTION_BUTTON = ('border-radius: 12px;color: #000000;background-color: #a8aab0;'
+    'border: 2px solid #7d7f85;padding: 5px 14px;font-weight: bold;' + FONT_SIZE)
+ADV_FILTER_CANCEL_BUTTON = ('border-radius: 12px;color: #ffffff;background-color: #8B0000;'
+    'border: 2px solid #5a5c61;padding: 5px 14px;font-weight: bold;' + FONT_SIZE)
+ADV_FILTER_ROW_BACKGROUND = 'background-color: #eef0f1;'
 # Login dialog
 LOGIN_LINEEDIT_STYLE = 'min-width:200px;height: 16px;padding: 6px 12px;border: 1px solid #ccc;border-radius: 4px;background-color: rgb(250, 255, 189);color: rgb(0, 0, 0);' + FONT_SIZE
-LOGIN_COMBO_STYLE = 'QComboBox {background-color: #eee;color: rgb(0, 0, 0);height: 16px;padding: 6px 12px;' + FONT_SIZE + 'border-radius: 4px;border: 1px solid #ccc;} QScrollBar {background-color:#875a7b} '
+LOGIN_COMBO_STYLE = 'QComboBox {background-color: #ffffff;color: rgb(0, 0, 0);padding: 4px 8px;min-height: 20px;border-radius: 4px;border: 1px solid #ccc;} QComboBox QAbstractItemView {background-color: #ffffff;color: #000000;selection-background-color: #ef4444;selection-color: #ffffff;} QScrollBar:vertical {background-color:#fee2e2; width: 8px;} QScrollBar::handle:vertical {background-color:#ef4444; border-radius: 3px;}'
 LOGIN_ACCEPT_BUTTON = 'border-radius: 4px;color: white;background-color: #337ab7;border: 2px solid black;padding: 5px 10px;' + FONT_SIZE
 LOGIN_NEXT_BACK_BUTTONS = LOGIN_ACCEPT_BUTTON + 'background-color: #59be50;'
 LOGIN_CANCEL_BUTTON = LOGIN_ACCEPT_BUTTON + 'background-color: #a30e0e;'
