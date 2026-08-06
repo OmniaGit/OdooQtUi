@@ -135,6 +135,8 @@ class XmlRpcConnection(object):
     def loginWithUser(self):
         if not self.socketNoLogin:
             self.loginNoUser()
+        if not self.secure:
+            self.socketNoLogin._ServerProxy__transport.timeout = self.timeout
         try:
             self.userId = self.socketNoLogin.login(self.databaseName,
                                                    self.userName,
