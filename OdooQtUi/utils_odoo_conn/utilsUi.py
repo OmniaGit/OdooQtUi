@@ -320,7 +320,7 @@ def popError(parent, ex):
     err = ''
     if isinstance(ex, TypeError):
         err = ex.args[0]
-    elif isinstance(ex, xmlrpc.client.Fault):
+    elif isinstance(ex, xmlrpc.client.Fault) or hasattr(ex, 'faultCode'):
         err = str(ex.faultCode)
     elif isinstance(ex, Exception):
         err = str(ex)

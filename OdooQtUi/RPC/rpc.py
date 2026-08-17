@@ -9,6 +9,7 @@ import logging
 import requests
 #
 from OdooQtUi.RPC.XmlRpc.xmlRpc import XmlRpcConnection
+from OdooQtUi.RPC.JsonRpc.jsonRpc import JsonRpcConnection
 from OdooQtUi.utils_odoo_conn.utils import timeit
 
 
@@ -17,13 +18,13 @@ class RpcConnection(object):
 
     def __init__(self):
         self.userId = False
-        self.availableConnTypes = ['xmlrpc', 'secure-xmlrpc']
+        self.availableConnTypes = ['jsonrpc', 'secure-jsonrpc', 'xmlrpc', 'secure-xmlrpc']
         self.sockInstance = False
         self.contextUser = {}
         self.useInterface = True
         self.db_from_field = ''
-        self.userName = ''      
-        self.userPassword = ''  
+        self.userName = ''
+        self.userPassword = ''
         self.databaseName = ''
         self.xmlrpcPort = ''
         self.scheme = ''
@@ -46,17 +47,17 @@ class RpcConnection(object):
         self._cache_read = {}
 
     def logout(self):
-        self.userName = ''      
+        self.userName = ''
         self.userPassword = ''
         self.sockInstance = False
 
     @property
     def serverVersion(self):
         return self.sockInstance.serverVersion
- 
+
     def getCleanServer(self):
-        return self.url.split("/xmlrpc")[0]
-        
+        return '%s://%s:%s' % (self.scheme, self.xmlrpcServerIP, self.xmlrpcPort)
+
     def initConnection(self,
                        connectionType,
                        userName,
@@ -77,6 +78,12 @@ class RpcConnection(object):
             self.sockInstance.useInterface = self.useInterface
         elif connectionType == 'secure-xmlrpc':
             self.sockInstance = XmlRpcConnection(userName, userPassword, databaseName, xmlrpcPort, scheme, xmlrpcServerIP, secure=True)
+            self.sockInstance.useInterface = self.useInterface
+        elif connectionType == 'jsonrpc':
+            self.sockInstance = JsonRpcConnection(userName, userPassword, databaseName, xmlrpcPort, scheme, xmlrpcServerIP)
+            self.sockInstance.useInterface = self.useInterface
+        elif connectionType == 'secure-jsonrpc':
+            self.sockInstance = JsonRpcConnection(userName, userPassword, databaseName, xmlrpcPort, scheme, xmlrpcServerIP, secure=True)
             self.sockInstance.useInterface = self.useInterface
         else:
             raise Exception("Missing value connectionType for initConnection function")

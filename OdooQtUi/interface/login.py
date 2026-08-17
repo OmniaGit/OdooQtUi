@@ -103,22 +103,24 @@ class LoginDial(QtWidgets.QDialog,
         strText = str(newText)
         lowerTxt = strText.lower()
         self.lineEdit_scheme.setText(lowerTxt)
+        currentType = str(self.comboBox_conn_type.currentText()).lower()
+        family = 'jsonrpc' if 'jsonrpc' in currentType else 'xmlrpc'
         index = None
         searchItem = ''
         if lowerTxt == 'http':
-            searchItem = 'xmlrpc'
+            searchItem = family
         elif lowerTxt == 'https':
-            searchItem = 'secure-xmlrpc'
+            searchItem = 'secure-' + family
         if searchItem in self.availableConnTypes:
             index = self.availableConnTypes.index(searchItem)
         if index:
             self.comboBox_conn_type.setCurrentIndex(index)
-        
+
     def connTypeChanged(self, index):
-        currentText = str(self.comboBox_conn_type.currentText())
-        if currentText.lower() == 'xmlrpc':
+        currentText = str(self.comboBox_conn_type.currentText()).lower()
+        if currentText in ('xmlrpc', 'jsonrpc'):
             self.lineEdit_scheme.setText('http')
-        elif currentText.lower() == 'secure-xmlrpc':
+        elif currentText in ('secure-xmlrpc', 'secure-jsonrpc'):
             self.lineEdit_scheme.setText('https')
 
     def setStyleWidgets(self):
