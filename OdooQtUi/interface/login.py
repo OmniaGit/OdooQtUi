@@ -172,13 +172,16 @@ class LoginDial(QtWidgets.QDialog,
         if self.connType in items:
             typeIndex = items.index(self.connType)
             self.comboBox_conn_type.setCurrentIndex(typeIndex)
-        dbItems = ['']
-        dbItems.extend(dbList)
+        dbItems = [''] + list(dbList) if dbList else []
         self.comboBox_database.clear()
         self.comboBox_database.addItems(dbItems)
         if dbName in dbItems:
             typeIndex2 = dbItems.index(dbName)
             self.comboBox_database.setCurrentIndex(typeIndex2)
+        elif dbName:
+            # dbName not in dbItems typically means listDb() couldn't return a
+            # list (e.g. odoo.sh) and the user typed it manually; keep showing it.
+            self.comboBox_database.setEditText(dbName)
         if userLogged:
             self.stackedWidget.setCurrentIndex(1)
             self.pushButton_back.setHidden(False)
@@ -207,7 +210,7 @@ class LoginDial(QtWidgets.QDialog,
         self.serverPort = str(self.lineEdit_port.text())
         self.scheme = str(self.lineEdit_scheme.text())
         self.connType = str(self.comboBox_conn_type.currentText())
-        
+
     def acceptDialForce(self):
         self.accept()
 
@@ -234,7 +237,7 @@ class LoginDialComplete(LoginDial):
             self.scheme = self.odooConnector.rpc_connector.scheme
             self.connType = self.odooConnector.rpc_connector.connectionType
             self.dbList = self.odooConnector.rpc_connector.listDb()
-            
+
         if self.odooConnector.rpc_connector.userLogged:
             self.setLogged()
         else:
@@ -249,7 +252,7 @@ class LoginDialComplete(LoginDial):
         self.pushButton_ok.setHidden(False)
         self.pushButton_next.setHidden(True)
         self.label_status.setHidden(False)
-        
+
     def setNotLogged(self):
         utils.logMessage('warning', 'User not logged reading from stored file', '__init__')
         self.label_status.setHidden(True)
@@ -405,6 +408,8 @@ class LoginDialComplete(LoginDial):
             if self.dbName in self.dbList:
                 index = self.dbList.index(self.dbName)
                 self.comboBox_database.setCurrentIndex(index)
+            elif not self.dbList:
+                self.comboBox_database.setEditText(self.dbName)
         if self.userpass:
             self.lineEdit_password.setText(self.userpass)
         if self.username:
