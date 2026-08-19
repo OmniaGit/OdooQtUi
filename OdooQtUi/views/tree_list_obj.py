@@ -18,6 +18,7 @@ class RowSelectionDelegate(QtWidgets.QStyledItemDelegate):
         self.hoveredRow = -1
         if parent is not None:
             parent.setMouseTracking(True)
+            parent.viewport().setMouseTracking(True)
             parent.viewport().installEventFilter(self)
 
     def eventFilter(self, watched, event):
@@ -53,7 +54,7 @@ class RowSelectionDelegate(QtWidgets.QStyledItemDelegate):
                 # Light hover highlight across the whole row, cleared the instant
                 # the mouse leaves it (tracked via eventFilter above)
                 painter.save()
-                painter.fillRect(option.rect, QtGui.QColor("#f3f4f6"))
+                painter.fillRect(option.rect, QtGui.QColor("#909090"))
                 painter.restore()
                 option.state &= ~QtWidgets.QStyle.State_MouseOver
                 QtWidgets.QStyledItemDelegate.paint(self, painter, option, index)

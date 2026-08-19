@@ -10,6 +10,7 @@ LOGIN_MAIN = VIOLET_BACKGROUND
 BACKGROUND_RED = 'background-color:#94313d;'
 BACKGROUND_WHITE = 'background-color:white;'
 BACKGROUND_GREY = 'background-color:#dfd9d9;'
+TOOLBAR_BACKGROUND = 'background-color:#D3D3D3;'
 BACKGROUND_LIGHT_BLUE = 'background-color: #cdd6fc;'
 READONLY_STYLE = 'background-color:#ebebeb;'
 COMMON_FIELDS_REQUIRED_BACKGROUND = 'background-color: rgb(210,210,255)'
@@ -88,7 +89,7 @@ QTableWidget::item {
     padding: 4px 8px;
 }
 QTableWidget::item:hover {
-    background-color: #f3f4f6;
+    background-color: #909090;
     color: #000000;
 }
 QTableWidget::item:selected, QTableWidget::item:focus, QTableWidget::item:active {
@@ -106,7 +107,7 @@ QTreeView::item {
     padding: 4px 8px 4px 0px;
 }
 QTreeView::item:hover {
-    background-color: #f3f4f6;
+    background-color: #909090;
     color: #000000;
 }
 QTreeView::item:selected, QTreeView::item:focus, QTreeView::item:active {

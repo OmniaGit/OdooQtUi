@@ -62,7 +62,7 @@ class TreeViewList(QtWidgets.QWidget):
             flagsDict = self.viewCheckBoxes
         utilsUi.commonPopulateTable(headers, [], self.tableWidget, flagsDict)
         mainVLay.addWidget(self.tableWidget)
-        self.tableWidget.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
+        self.tableWidget.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Interactive)
         return mainVLay
 
     def appendToglobalMapping(self, key, value):

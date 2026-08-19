@@ -115,15 +115,15 @@ class SearchView(object):
         self.tmpLineEdits.remove(lineEdit)
 
     def createSearchIcon(self):
-        pixmap = QtGui.QPixmap(16, 16)
+        pixmap = QtGui.QPixmap(18, 18)
         pixmap.fill(QtCore.Qt.transparent)
         painter = QtGui.QPainter(pixmap)
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
-        pen = QtGui.QPen(QtGui.QColor('#64748b'), 1.8)
+        pen = QtGui.QPen(QtGui.QColor('#2c2c2c'), 2.2)
         pen.setCapStyle(QtCore.Qt.RoundCap)
         painter.setPen(pen)
-        painter.drawEllipse(3, 3, 7, 7)
-        painter.drawLine(9, 9, 13, 13)
+        painter.drawEllipse(3, 3, 8, 8)
+        painter.drawLine(10, 10, 15, 15)
         painter.end()
         return pixmap
 
@@ -215,13 +215,13 @@ class SearchView(object):
         searchBoxContainer.setStyleSheet("""
             QWidget#searchBoxContainer {
                 background-color: #ffffff;
-                border: 1px solid #cbd5e1;
-                border-radius: 4px;
-                min-height: 28px;
+                border: 2px solid #2c2c2c;
+                border-radius: 16px;
+                min-height: 32px;
             }
         """)
         searchBoxLay = QtWidgets.QHBoxLayout(searchBoxContainer)
-        searchBoxLay.setContentsMargins(6, 2, 6, 2)
+        searchBoxLay.setContentsMargins(12, 2, 12, 2)
         searchBoxLay.setSpacing(4)
 
         searchIconLabel = QtWidgets.QLabel()
@@ -262,13 +262,13 @@ class SearchView(object):
         self.searchBoxContainer.setStyleSheet("""
             QWidget#searchBoxContainer {
                 background-color: #ffffff;
-                border: 1px solid #cbd5e1;
-                border-radius: 4px;
-                min-height: 28px;
+                border: 2px solid #2c2c2c;
+                border-radius: 16px;
+                min-height: 32px;
             }
         """)
         searchBoxLay = QtWidgets.QHBoxLayout(self.searchBoxContainer)
-        searchBoxLay.setContentsMargins(6, 2, 6, 2)
+        searchBoxLay.setContentsMargins(12, 2, 12, 2)
         searchBoxLay.setSpacing(4)
 
         # Search Icon Label
