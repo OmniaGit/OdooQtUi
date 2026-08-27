@@ -153,7 +153,15 @@ class MainConnector(object):
         """
         try:
             dbName, username, userpass, serverIp, serverPort, scheme, connType, _dbList = utils.loadFromFile(self.app_name)
-       
+            rpc = self.rpc_connector
+            already = (rpc.databaseName, rpc.userName, rpc.userPassword,
+                       rpc.xmlrpcServerIP, str(rpc.xmlrpcPort), rpc.scheme, rpc.connectionType)
+            if self.userLogged and already == (dbName, username, userpass,
+                                               serverIp, str(serverPort), scheme, connType):
+                # Already connected to this server as this user: logging in
+                # again would throw away the open connection and cost three
+                # more round trips (login, version, context_get).
+                return True
             self.loginWithUser(user=username,
                                password=userpass,
                                dbName=dbName,

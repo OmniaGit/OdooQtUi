@@ -66,6 +66,12 @@ class RpcConnection(object):
                        xmlrpcPort=8069,
                        scheme='http',
                        xmlrpcServerIP='127.0.0.1'):
+        old_socket = self.sockInstance
+        if old_socket and hasattr(old_socket, 'close'):
+            try:
+                old_socket.close()
+            except Exception as ex:
+                logging.warning('Unable to close the previous connection: %r' % ex)
         self.userName = userName
         self.userPassword = userPassword
         self.databaseName = databaseName

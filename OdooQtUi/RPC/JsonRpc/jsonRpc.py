@@ -8,6 +8,7 @@ and odoo/addons/base/controllers/rpc.py on the server).
 '''
 
 import socket
+import threading
 import traceback
 import requests
 
@@ -62,6 +63,26 @@ class JsonRpcConnection(object):
         self.raise_error = False
         self.last_error = ''
         self._request_id = 0
+        # One Session per thread: without it every RPC opens a new TCP
+        # connection (and a new TLS handshake on https), and a single save
+        # makes ~55 of them. Per thread rather than shared, because
+        # SaveStructure calls in from worker threads and a Session's cookie
+        # jar is not meant to be written concurrently.
+        self._local = threading.local()
+
+    @property
+    def session(self):
+        session = getattr(self._local, 'session', None)
+        if session is None:
+            session = requests.Session()
+            self._local.session = session
+        return session
+
+    def close(self):
+        session = getattr(self._local, 'session', None)
+        if session is not None:
+            session.close()
+            self._local.session = None
 
     def _logError(self, ex, message='', function_name=''):
         message = message + ' Error: %r' % ex
@@ -98,9 +119,9 @@ class JsonRpcConnection(object):
             "id": self._request_id,
         }
         try:
-            response = requests.post(self.urlCommon,
-                                     json=payload,
-                                     timeout=timeout or self.timeout)
+            response = self.session.post(self.urlCommon,
+                                         json=payload,
+                                         timeout=timeout or self.timeout)
             response.raise_for_status()
             data = response.json()
         except requests.exceptions.RequestException as ex:

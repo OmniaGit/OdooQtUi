@@ -376,5 +376,12 @@ class TimeoutTransport(xmlrpc.Transport):
         self.timeout = timeout
 
     def make_connection(self, host):
-        h = httplib.HTTPConnection(host, timeout=self.timeout)
-        return h
+        # Same as xmlrpc.client.Transport.make_connection, which caches the
+        # connection and so keeps it alive between calls; the only reason to
+        # override it is the timeout. Returning a new HTTPConnection every
+        # time, as this did before, meant one TCP handshake per RPC.
+        if self._connection and host == self._connection[0]:
+            return self._connection[1]
+        chost, self._extra_headers, _x509 = self.get_host_info(host)
+        self._connection = host, httplib.HTTPConnection(chost, timeout=self.timeout)
+        return self._connection[1]

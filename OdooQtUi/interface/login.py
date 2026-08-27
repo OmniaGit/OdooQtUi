@@ -236,7 +236,11 @@ class LoginDialComplete(LoginDial):
             self.serverPort = self.odooConnector.rpc_connector.xmlrpcPort
             self.scheme = self.odooConnector.rpc_connector.scheme
             self.connType = self.odooConnector.rpc_connector.connectionType
-            self.dbList = self.odooConnector.rpc_connector.listDb()
+            # The database list is only there to pick from: on an open
+            # session the database is the one we are connected to. Take the
+            # stored one; whoever wants it refreshed has the button that
+            # reads it back from the server.
+            self.dbList = utils.loadFromFile(self.app_name)[7] or [self.dbName]
 
         if self.odooConnector.rpc_connector.userLogged:
             self.setLogged()
