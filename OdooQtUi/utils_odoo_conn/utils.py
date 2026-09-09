@@ -405,6 +405,21 @@ def getSelectedRowsFromListWidget(listWidget):
 
 
 def evaluateBoolean(val, context={}):
+    """Always answers a boolean, which the name promises and the callers assume.
+
+    It used to answer None twice over: when the expression failed to evaluate,
+    and for any type it did not expect. That None travelled a long way -- into
+    field.setInvisible and on to QWidget.setHidden, which raises a TypeError
+    naming neither this function nor the field the value came from.
+    char.setInvisible carries a try/except that exists only to swallow it;
+    float, integer and boolean do not, and those are the ones that broke.
+
+    A value that cannot be read means "not hidden", which is what an absent
+    modifier means too.
+
+    NOTE: this function is defined twice in this file, identically. The second
+    definition is the one that takes effect.
+    """
     if isinstance(val, bool):
         return val
     elif isinstance(val, str):
@@ -416,11 +431,13 @@ def evaluateBoolean(val, context={}):
             return False
         except Exception as ex:
             logging.error(ex)
+            return False
     elif isinstance(val, (int)):
         if val == 0:
             return False
         else:
             return True
+    return False
 
 
 def evaluateModifiers(modifiers):
@@ -1108,6 +1125,21 @@ def getSelectedRowsFromListWidget(listWidget):
 
 
 def evaluateBoolean(val, context={}):
+    """Always answers a boolean, which the name promises and the callers assume.
+
+    It used to answer None twice over: when the expression failed to evaluate,
+    and for any type it did not expect. That None travelled a long way -- into
+    field.setInvisible and on to QWidget.setHidden, which raises a TypeError
+    naming neither this function nor the field the value came from.
+    char.setInvisible carries a try/except that exists only to swallow it;
+    float, integer and boolean do not, and those are the ones that broke.
+
+    A value that cannot be read means "not hidden", which is what an absent
+    modifier means too.
+
+    NOTE: this function is defined twice in this file, identically. The second
+    definition is the one that takes effect.
+    """
     if isinstance(val, bool):
         return val
     elif isinstance(val, str):
@@ -1119,11 +1151,13 @@ def evaluateBoolean(val, context={}):
             return False
         except Exception as ex:
             logging.error(ex)
+            return False
     elif isinstance(val, (int)):
         if val == 0:
             return False
         else:
             return True
+    return False
 
 
 def evaluateModifiers(modifiers):
