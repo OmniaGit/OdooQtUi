@@ -18,6 +18,7 @@ from PySide6 import QtWidgets
 from OdooQtUi.utils_odoo_conn import utils, utilsUi
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
+from OdooQtUi.widgets.status_bar import StatusBar
 
 
 class Selection(OdooFieldTemplate):
@@ -30,13 +31,29 @@ class Selection(OdooFieldTemplate):
         self.widgetQtObj = False
         self.currentValue = ''
         self.widget = self.fieldXmlAttributes.get('widget', '')
+        self.statusbar_colors = {}
+        self.statusbar_visible = []
         if self.widget == 'statusbar':
-            self.statusbar_colors = json.loads(self.fieldXmlAttributes.get('statusbar_colors', ''))
-            self.statusbar_visible = self.fieldXmlAttributes.get('statusbar_visible', '').split(',')
+            # Both are optional, and both used to be read as if they were not:
+            # json.loads('') raises, and ''.split(',') answers [''], which drew
+            # a statusbar of one empty state. Odoo 17 does not send
+            # statusbar_colors at all.
+            try:
+                self.statusbar_colors = json.loads(
+                    self.fieldXmlAttributes.get('statusbar_colors') or '{}')
+            except ValueError as ex:
+                logging.warning("statusbar_colors of %s is not readable: %s"
+                                % (self.fieldName, ex))
+            self.statusbar_visible = [name.strip() for name
+                                      in self.fieldXmlAttributes.get('statusbar_visible', '').split(',')
+                                      if name.strip()]
         self.getQtObject()
 
         if self.widgetQtObj:
-            self.widgetQtObj.setDisabled(self.readonly)
+            # The bar is never disabled: it shows a state rather than taking
+            # one, and a disabled widget answers no tooltip either.
+            if self.widget != 'statusbar':
+                self.widgetQtObj.setDisabled(self.readonly)
             if self.invisible:
                 self.widgetQtObj.hide()
 
@@ -50,16 +67,40 @@ class Selection(OdooFieldTemplate):
             self.selectionMapping[odooName] = interfaceName
             self.selectionMappingReverse[interfaceName] = odooName
 
+    def statusBarStates(self):
+        """The states to show, with the labels the server translated.
+
+        From the field's own selection and not from `statusbar_visible`, which
+        carries the technical values and was what the row of labels used to
+        show -- `Draft`, not the label of the customer's own state. Where the
+        view does name them, they are the ones always shown; Odoo adds the
+        current one to that list whatever it says, so a record in a state
+        nobody listed is not a bar with no state in it.
+        """
+        selection = [(str(value), str(label)) for value, label
+                     in (self.fieldPyDefinition.get('selection') or [])]
+        if not selection:
+            return [(name, name.replace('_', ' ').title())
+                    for name in self.statusbar_visible]
+        if not self.statusbar_visible:
+            return selection
+        wanted = list(self.statusbar_visible)
+        if self.currentValue and self.currentValue not in wanted:
+            wanted.append(str(self.currentValue))
+        return [(value, label) for value, label in selection if value in wanted]
+
     def statusBar(self):
+        """The chevrons Odoo draws, filling the width they are given."""
         self.labels = []
-        for visibleText in self.statusbar_visible:
-            labelQtObj = QtWidgets.QLabel(visibleText.title())
-            labelQtObj.setStyleSheet(constants.LABEL_STYLE_STATUSBAR)
-            labelQtObj.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
-            self.layout().addWidget(labelQtObj)
-            self.labels.append(labelQtObj)
+        self.widgetQtObj = StatusBar(self, states=self.statusBarStates(),
+                                     current=self.currentValue)
+        self.widgetQtObj.setColours(self.statusbar_colors)
+        self.widgetQtObj.setToolTip(self.tooltip)
+        self.layout().addWidget(self.widgetQtObj)
         self.layout().setSpacing(0)
         self.layout().setContentsMargins(0, 0, 0, 0)
+        self.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                           QtWidgets.QSizePolicy.Fixed)
 
     def getQtObject(self):
         if self.widget == 'statusbar':
@@ -98,12 +139,12 @@ class Selection(OdooFieldTemplate):
                 utils.logMessage('warning', 'Boolean value %r is passed to char field %r, check better' % (newVal, self.fieldName), 'setValue')
 
         if self.widget == 'statusbar':
-            for label in self.labels:
-                if str(label.text()).upper() == str(newVal).upper():
-                    label.setStyleSheet(constants.LABEL_STYLE_STATUSBAR_ACTIVE)
-                    self.currentValue = newVal
-                else:
-                    label.setStyleSheet(constants.LABEL_STYLE_STATUSBAR)
+            self.currentValue = newVal
+            if self.widgetQtObj:
+                # The states as well: a view that lists only some of them shows
+                # the current one too, and which one that is has just changed.
+                self.widgetQtObj.setStates(self.statusBarStates())
+                self.widgetQtObj.setCurrent(newVal)
             return
         allItems = tuple(self.selectionMapping.keys())
         if newVal not in allItems:
@@ -116,6 +157,11 @@ class Selection(OdooFieldTemplate):
 
     def setReadonly(self, val=False):
         super(Selection, self).setReadonly(val)
+        if self.widget == 'statusbar':
+            # Nothing to disable: the bar shows a state, it does not set one.
+            # The buttons of the header are what move a record, and they carry
+            # their own modifiers.
+            return
         if self.widgetQtObj:
             self.widgetQtObj.setEnabled(not val)
             self.widgetQtObj.setEditable(not val)

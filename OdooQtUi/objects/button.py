@@ -42,17 +42,26 @@ class Button(OdooFieldTemplate):
         self.modifiers = json.loads(self.buttonAttribs.get('modifiers', '{}'))
         self.buttonObj = self.getQtObject()
         self.layout().addWidget(self.buttonObj)
-        self.invisible = utils.evaluateBoolean(self.buttonAttribs.get('invisible', False))
-        self.readonly = utils.evaluateBoolean(self.buttonAttribs.get('readonly', False))
+        # Odoo 17 and later put an expression here -- `invisible="state !=
+        # 'draft'"` -- and stop sending `modifiers` altogether. Kept as it came
+        # and evaluated when there is a record to evaluate it against: read now,
+        # against nothing, it raises and answers "not hidden", which is why a
+        # workflow showed every button in every state.
+        self.invisibleExpression = self.buttonAttribs.get('invisible', False)
+        self.readonlyExpression = self.buttonAttribs.get('readonly', False)
+        self.invisible = utils.evaluateExpression(self.invisibleExpression) \
+            if utils.isConstantModifier(self.invisibleExpression) else True
+        self.readonly = utils.evaluateExpression(self.readonlyExpression) \
+            if utils.isConstantModifier(self.readonlyExpression) else False
         self.buttonObj.setDisabled(self.readonly)
         self.buttonObj.clicked.connect(self.buttonClicked)
-        if forceHidden:
+        # One whose visibility depends on the record starts hidden and is shown
+        # when the record has been read. Showing it first and taking it away is
+        # how a user comes to click something that was never theirs to click.
+        if forceHidden or self.invisible:
             self.hide()
         else:
-            if self.invisible:
-                self.hide()
-            else:
-                self.show()
+            self.show()
         self.invisibleConditions, self.readonlyConditions = utils.evaluateModifiers(self.modifiers)
         self.buttonObj.setStyleSheet(constants.BUTTON_STYLE)
 

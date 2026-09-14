@@ -13,6 +13,7 @@ Created on 02 feb 2017
 '''
 import logging
 
+from OdooQtUi import theme
 from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.RPC.rpc import RpcConnection
 from OdooQtUi.views.search_obj import TemplateSearchView
@@ -86,6 +87,11 @@ class MainConnector(object):
         :app_name str object that specifie the application name
         :raise_error in case of rpc call has an error rise an expception
         """
+        # The colours, once, for whatever application this library is used in.
+        # It reads the palette in force, so a caller that wants its own calls
+        # theme.load() before building a connector; one that wants none of it
+        # never has a stylesheet applied to a widget it did not style itself.
+        theme.apply()
         self.rpc_connector = RpcConnection()
         self.rpc_connector.contextUser.update(contextUser.copy())
         self.activeLanguage = 'en_US'

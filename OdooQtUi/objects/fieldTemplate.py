@@ -43,12 +43,30 @@ class OdooFieldTemplate(QtWidgets.QWidget):
         self.modifiers = json.loads(self.fieldXmlAttributes.get('modifiers', '{}'))
         self.on_change = self.fieldXmlAttributes.get('on_change', '')
         self.fieldPyDefinition = fieldsDefinition.get(self.fieldName, {})
-        readonly = self.fieldPyDefinition.get('readonly', self.fieldXmlAttributes.get('readonly', False))
-        self.readonly = utils.evaluateBoolean(readonly)
-        required = self.fieldPyDefinition.get('required', self.fieldXmlAttributes.get('required', False))
-        self.required = utils.evaluateBoolean(required)
-        invisible = self.fieldPyDefinition.get('invisible', self.fieldXmlAttributes.get('invisible', False))
-        self.invisible = utils.evaluateBoolean(invisible)
+        # Kept as they came as well as evaluated. From Odoo 17 these are python
+        # expressions over the record -- `invisible="state != 'draft'"` -- and
+        # there is no record here yet: read now, against nothing, they raise and
+        # answer "not hidden", which is how every conditional field came to be
+        # shown in every state. What depends on the record is decided by the
+        # modifier pass, once the record has been read -- see
+        # utils.widgetModifier, and KOO's Record.isFieldInvisible before it.
+        self.readonlyExpression = self.fieldPyDefinition.get('readonly', self.fieldXmlAttributes.get('readonly', False))
+        self.readonly = utils.evaluateExpression(self.readonlyExpression) \
+            if utils.isConstantModifier(self.readonlyExpression) else False
+        self.requiredExpression = self.fieldPyDefinition.get('required', self.fieldXmlAttributes.get('required', False))
+        self.required = utils.evaluateExpression(self.requiredExpression) \
+            if utils.isConstantModifier(self.requiredExpression) else False
+        self.invisibleExpression = self.fieldPyDefinition.get('invisible', self.fieldXmlAttributes.get('invisible', False))
+        # False while it depends on the record, and the modifier pass decides
+        # once there is one. Not hidden-until-told, which is what the buttons
+        # do: the list view reads this attribute straight as a column rule
+        # (`setColumnHidden` in tree_list_obj._setFieldsModifiers), where there
+        # is no record to evaluate anything against, and a column that vanishes
+        # from Search is a worse answer than one shown a moment early. In a form
+        # nothing shows before the modifier pass anyway -- every field is built
+        # hidden, two lines below.
+        self.invisible = utils.evaluateExpression(self.invisibleExpression) \
+            if utils.isConstantModifier(self.invisibleExpression) else False
         self.tooltip = self.fieldPyDefinition.get('help', '')
         self.fieldType = self.fieldPyDefinition.get('type', '')
         self.labelString = self.fieldPyDefinition.get('string', '')

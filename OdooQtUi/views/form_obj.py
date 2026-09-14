@@ -257,15 +257,32 @@ class TemplateFormView(TemplateView):
             else:
                 utils.logMessage('warning', 'multiple widgets with the same key: %r' % (key), 'computeHeader')
 
-        headerLayout = QtWidgets.QHBoxLayout()
-        utilsUi.setLayoutMarginAndSpacing(headerLayout)
+        # Two rows and not one: the buttons where Odoo puts them, and the
+        # statusbar under them across the whole form. In Odoo it sits at the
+        # right end of the same row; here it is the one thing in the header
+        # worth the full width -- asked for on 2026-09-13 -- and a row of
+        # chevrons squeezed next to three buttons reads as nothing at all.
+        headerLayout = QtWidgets.QVBoxLayout()
+        # No margin of its own, and set by hand: setLayoutMarginAndSpacing reads
+        # a 0 as "no value given" and puts the default 6 back. Six above and six
+        # below, twice over for the two layouts, is a band of empty space
+        # between a title and the statusbar it belongs to -- and the band is
+        # there even when the row holds nothing, which is every state whose
+        # buttons the modifiers have hidden.
+        headerLayout.setContentsMargins(0, 0, 0, 0)
+        headerLayout.setSpacing(2)
+        buttonsRow = QtWidgets.QHBoxLayout()
+        buttonsRow.setContentsMargins(0, 0, 0, 0)
+        buttonsRow.setSpacing(4)
+        headerLayout.addLayout(buttonsRow)
+        statusBars = []
         for xmlObj in archHeader:
             if xmlObj.tag == 'button':
                 buttonObj = button.Button(qtParent=self,
                                           xmlObject=xmlObj,
                                           model=self.model,
                                           odooConnector=self.odooConnector)
-                headerLayout.addWidget(buttonObj)
+                buttonsRow.addWidget(buttonObj)
                 commonAppend('button_' + str(buttonObj.buttonString).replace(' ', '_'), buttonObj)
             elif xmlObj.tag == 'field':
                 fieldObj = self.computeField(xmlObj)
@@ -274,16 +291,23 @@ class TemplateFormView(TemplateView):
                 if not fieldQt:
                     utils.logMessage('warning', 'Qt field %r could not be loaded' % (fieldName), 'computeHeader')
                     continue
-                if isinstance(fieldQt, QtWidgets.QLayout):
-                    headerLayout.addLayout(fieldQt)
+                if getattr(fieldObj, 'widget', '') == 'statusbar':
+                    statusBars.append(fieldQt)
+                elif isinstance(fieldQt, QtWidgets.QLayout):
+                    buttonsRow.addLayout(fieldQt)
                 elif isinstance(fieldQt, QtWidgets.QWidget):
-                    headerLayout.addWidget(fieldQt)
+                    buttonsRow.addWidget(fieldQt)
                 else:
                     utils.logMessage('warning', 'Field %r could not be added to layout' % (fieldName), 'computeHeader')
                     continue
                 commonAppend('field_' + str(fieldName), fieldObj)
             else:
                 pass
+        # The buttons stay where they were put, on the left, whatever room the
+        # row is given.
+        buttonsRow.addStretch(1)
+        for statusBar in statusBars:
+            headerLayout.addWidget(statusBar)
         return mapping, headerLayout
 
     def computeField(self, xmlObj, isChatterWidget=False):
@@ -471,28 +495,36 @@ class TemplateFormView(TemplateView):
 
     def _setFieldModifiers(self):
         fieldDict = self.interfaceFieldsDict
+        # What the record holds, for the expressions Odoo 17 and later send in
+        # place of the modifiers -- see utils.widgetModifier.
+        values = utils.recordValues(fieldDict, getattr(self, 'formVals', {}))
         for fieldObj in list(fieldDict.values()):
-            try:
-                readonlyModif = fieldObj.modifiers.get('readonly', {})
-            except:
-                pass
-            invisibleModif = fieldObj.modifiers.get('invisible', {})
             client_context = self.odooConnector.rpc_connector.contextUser
             client_context.update(utils.evaluateContext(fieldObj.context, fieldDict))
-            if readonlyModif:
-                val = utils.evaluateAttrs(fieldDict, readonlyModif, client_context)
+            val = utils.widgetModifier(fieldObj, 'readonly', fieldDict,
+                                       values, client_context)
+            if val is None:
+                fieldObj.setReadonly(fieldObj.readonly)
+            else:
                 fieldObj.setReadonly(val)
                 self.commonEval(val, self.readonlyFields, fieldObj)
+            val = utils.widgetModifier(fieldObj, 'invisible', fieldDict,
+                                       values, client_context)
+            if val is None:
+                fieldObj.setInvisible(fieldObj.invisible)
             else:
-                fieldObj.setReadonly(fieldObj.readonly)
-            if invisibleModif:
-                val = utils.evaluateAttrs(fieldDict, invisibleModif, client_context)
                 fieldObj.setInvisible(val)
                 self.commonEval(val, self.invisibleFields, fieldObj)
-            else:
-                fieldObj.setInvisible(fieldObj.invisible)
+            # Required is a modifier like the other two from 17 onwards, and
+            # this is the list the save dialog reads before letting a save go.
+            val = utils.widgetModifier(fieldObj, 'required', fieldDict,
+                                       values, client_context)
+            if val is not None:
+                fieldObj.required = val
             if fieldObj.required:
                 self.requiredFields[fieldObj.fieldName] = fieldObj
+            elif fieldObj.fieldName in self.requiredFields:
+                del self.requiredFields[fieldObj.fieldName]
 
     def checkRequiredFieldsEvaluated(self, showMessage=False):
         fieldsToEvaluate = []

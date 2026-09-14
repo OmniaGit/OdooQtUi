@@ -130,27 +130,33 @@ class TemplateView(QtWidgets.QWidget):
 
     def _setFieldModifiers(self):
         fieldDict = self.interfaceFieldsDict
+        values = utils.recordValues(fieldDict, getattr(self, 'formVals', {}))
         for fieldObj in list(fieldDict.values()):
             client_context = self.odooConnector.rpc_connector.contextUser
             client_context.update(utils.evaluateContext(fieldObj.context, fieldDict))
-            readonlyModif = fieldObj.modifiers.get('readonly', {})
-            invisibleModif = fieldObj.modifiers.get('invisible', {})
-            if readonlyModif:
-                fieldObj.setReadonly(utils.evaluateAttrs(fieldDict, readonlyModif, client_context))
-            if invisibleModif:
-                fieldObj.setInvisible(utils.evaluateAttrs(fieldDict, invisibleModif, client_context))
+            readonly = utils.widgetModifier(fieldObj, 'readonly', fieldDict,
+                                            values, client_context)
+            if readonly is not None:
+                fieldObj.setReadonly(readonly)
+            invisible = utils.widgetModifier(fieldObj, 'invisible', fieldDict,
+                                             values, client_context)
+            if invisible is not None:
+                fieldObj.setInvisible(invisible)
 
     def _setButtonsModifiers(self):
         fieldDict = self.interfaceFieldsDict
+        values = utils.recordValues(fieldDict, getattr(self, 'formVals', {}))
         for buttonObj in list(self.buttons.__dict__.values()):
-            readonlyModif = buttonObj.modifiers.get('readonly', {})
-            invisibleModif = buttonObj.modifiers.get('invisible', {})
             client_context = self.odooConnector.rpc_connector.contextUser
             client_context.update(utils.evaluateContext(buttonObj.context, fieldDict))
-            if readonlyModif:
-                buttonObj.setReadonly(utils.evaluateAttrs(fieldDict, readonlyModif, client_context))
-            if invisibleModif:
-                buttonObj.setInvisible(utils.evaluateAttrs(fieldDict, invisibleModif, client_context))
+            readonly = utils.widgetModifier(buttonObj, 'readonly', fieldDict,
+                                            values, client_context)
+            if readonly is not None:
+                buttonObj.setReadonly(readonly)
+            invisible = utils.widgetModifier(buttonObj, 'invisible', fieldDict,
+                                             values, client_context)
+            if invisible is not None:
+                buttonObj.setInvisible(invisible)
 
     @utils.timeit
     def loadIds(self, objIds=[], forceFieldValues={}, readonlyFields={}, invisibleFields={}, fieldsToRead=[], skipRemoveNootebook=False):

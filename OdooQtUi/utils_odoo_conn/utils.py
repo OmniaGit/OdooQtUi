@@ -1448,3 +1448,120 @@ def html_traceback(exc_value):
                                                   str(tbe).replace("\n", "<br>"))
     return result
 
+
+
+# -- modifiers, as Odoo 17 and later write them ------------------------------
+#
+# Up to Odoo 16 the arch carried the conditions ready made:
+#
+#     modifiers="{'invisible': [['state', '=', 'draft']]}"  invisible="1"
+#
+# and evaluateAttrs above reads exactly that. From 17 the server sends neither:
+# the node carries `invisible="state != 'draft'"`, a python expression to
+# evaluate against the record. Read with an empty namespace -- which is what
+# evaluateBoolean does, and what this client did until 2026-09-13 -- every one
+# of those raises NameError (`name 'engineering_revision' is not defined`, in
+# the log) and an unreadable modifier means "not hidden". So on a v19 server a
+# workflow showed every button in every state, where the same view in Odoo shows
+# two.
+#
+# The rules below are KOO's, function for function (Koo/Model/Record.py:
+# isFieldInvisible, evaluateRecordExpression, rpcValues), because it is a client
+# that reads these views correctly today and this is not a second opinion about
+# how Odoo works.
+
+#: What both generations write for "never" and "always".
+_MODIFIER_FALSE = ('', '0', 'false', 'none')
+_MODIFIER_TRUE = ('1', 'true')
+
+#: What a view may reasonably call inside a modifier. The expression comes from
+#: the server, and is still evaluated here.
+_MODIFIER_BUILTINS = {'len': len, 'bool': bool, 'str': str, 'int': int,
+                      'float': float, 'abs': abs, 'min': min, 'max': max,
+                      'set': set, 'list': list, 'tuple': tuple, 'sorted': sorted,
+                      'True': True, 'False': False, 'None': None}
+
+
+def isConstantModifier(expression):
+    """True when the modifier says the same thing whatever the record holds."""
+    if isinstance(expression, bool) or expression is None:
+        return True
+    return str(expression).strip().lower() in _MODIFIER_FALSE + _MODIFIER_TRUE
+
+
+def recordValues(fieldsDict, formVals={}):
+    """The record as an expression sees it -- KOO's `rpcValues`, same rules.
+
+    None is False, and a many2one is its id rather than the [id, name] pair a
+    read answers with, so `partner_id == 3` means what it means in Odoo.
+
+    The header's fields answer under their plain name as well: the header keeps
+    them as `header_<name>`, which evaluateAttrs already knows about. What the
+    form is holding wins over what was read -- it is what the user is looking
+    at, and a modifier is about the record in front of them.
+    """
+    def cleaned(value):
+        if value is None:
+            return False
+        if isinstance(value, (list, tuple)) and len(value) == 2 \
+                and isinstance(value[0], int) and isinstance(value[1], str):
+            return value[0]
+        return value
+
+    values = {}
+    for name, value in (formVals or {}).items():
+        values[name] = cleaned(value)
+    for name, fieldObj in (fieldsDict or {}).items():
+        try:
+            plain = name[7:] if name.startswith('header_') else name
+            values[plain] = cleaned(fieldObj.value)
+        except Exception:
+            continue
+    return values
+
+
+def evaluateExpression(expression, values={}, context={}):
+    """An Odoo 17 modifier: a python expression over the record's own values.
+
+    Never raises. What it answers when it cannot read the expression is KOO's
+    answer and not a safer looking one: `bool(expression)`, so a condition that
+    cannot be evaluated hides the widget. A button shown by mistake is one the
+    user clicks and the server refuses; a button hidden by mistake is one they
+    go and press in Odoo. The first is the worse of the two, and it is the one
+    this whole change is about.
+    """
+    if isinstance(expression, bool):
+        return expression
+    if expression is None:
+        return False
+    text = str(expression).strip()
+    if text.lower() in _MODIFIER_FALSE:
+        return False
+    if text.lower() in _MODIFIER_TRUE:
+        return True
+    namespace = dict(values or {})
+    namespace.setdefault('context', dict(context or {}))
+    namespace.setdefault('uid', (context or {}).get('uid'))
+    try:
+        return bool(eval(text, {'__builtins__': _MODIFIER_BUILTINS}, namespace))
+    except Exception as ex:
+        logMessage('warning', 'Unable to evaluate the modifier %r: %s'
+                   % (text, ex), 'evaluateExpression')
+        return bool(text)
+
+
+def widgetModifier(widgetObj, name, fieldsDict, values={}, context={}):
+    """What `name` says for this record, over both generations of arch.
+
+    `modifiers` first: a server that sends it is one where the attribute itself
+    is only ever a constant. Then the Odoo 17 expression. None when the widget
+    has nothing to say, and the caller then leaves the widget as the view drew
+    it.
+    """
+    condition = (getattr(widgetObj, 'modifiers', {}) or {}).get(name, {})
+    if condition:
+        return evaluateAttrs(fieldsDict, condition, context)
+    expression = getattr(widgetObj, name + 'Expression', None)
+    if not isConstantModifier(expression):
+        return evaluateExpression(expression, values, context)
+    return None
