@@ -707,11 +707,37 @@ class TemplateFormView(TemplateView):
                 if fieldObj1 is None:
                     continue
                 fieldObj1.setValue(fieldValueFromServer)
+                if self._isSavable(fieldObj1):
+                    self.fieldsChanged[fieldObj1.fieldName] = fieldObj1
         finally:
             self.skipOnChange = skipOnChange
-        self.fieldsChanged[fieldName] = fieldObj
+        # skipOnChange is up while the form writes values itself -- a record
+        # being loaded, the defaults, an onchange answer. Those are not changes
+        # to save: marked, a record just opened wrote back twenty fields, the
+        # server's readonly ones among them.
+        if not skipOnChange and self._isSavable(fieldObj):
+            self.fieldsChanged[fieldName] = fieldObj
         self._setFieldModifiers()
         self._valueChangedExt(fieldName)
+
+    def _isSavable(self, fieldObj):
+        """Whether a change to the field is one to write, as the web client sees it.
+
+        Not a field the server defines readonly, nor one a modifier makes
+        readonly on this record -- unless the view says force_save.
+        """
+        if str(getattr(fieldObj, 'fieldXmlAttributes', {}).get('force_save', '')).lower() in ('1', 'true'):
+            return True
+        attributes = getattr(fieldObj, 'fieldXmlAttributes', {})
+        viewDecides = (getattr(fieldObj, 'modifiers', {}) or {}).get('readonly') \
+            or 'readonly' in attributes
+        definition = self.fieldsNameTypeRel.get(fieldObj.fieldName, {})
+        if definition.get('readonly') is True and not viewDecides:
+            # A view that says readonly for the field -- `states` up to 16, an
+            # expression from 17 -- has the last word, and readonlyFields holds
+            # what it said for this record.
+            return False
+        return fieldObj.fieldName not in self.readonlyFields
 
     def translationDial(self, fieldName):
         if not self.activeIds:
