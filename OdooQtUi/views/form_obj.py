@@ -50,6 +50,9 @@ class TemplateFormView(TemplateView):
         self.globalMapping = {}
         self.aloneLabels = {}
         self.notebookTabsNotComputed = {}
+        # [(invisible expression, callable taking hidden)] for the div, group
+        # and page nodes whose visibility depends on the record.
+        self.containerModifiers = []
         self.nootebookFieldsToCompute = {}  # {nootebookIndex: {'fieldName': fieldObj}}
         self.requiredFields = {}
         self.readonlyFields = {}
@@ -139,17 +142,18 @@ class TemplateFormView(TemplateView):
                 elif divClass == 'oe_button_box':
                     pass
                 elif divClass == 'oe_title':
-                    self.computeRecursion(qvboxLayout=qvboxLayout,
+                    self.computeRecursion(qvboxLayout=self._conditionalLayout(childXlmElement, qvboxLayout),
                                           xmlParent=childXlmElement)
                 elif childXlmElement.text and len(childXlmElement.text.strip()) > 0:
+                    divLayout = self._conditionalLayout(childXlmElement, qvboxLayout)
                     label = QtWidgets.QLabel(childXlmElement.text)
                     label.setStyleSheet(constants.LABEL_SEPARATOR)
-                    qvboxLayout.addWidget(label)
-                    self.computeRecursion(qvboxLayout=qvboxLayout,
+                    divLayout.addWidget(label)
+                    self.computeRecursion(qvboxLayout=divLayout,
                                           xmlParent=childXlmElement)
                 else:
                     qvboxLayout.addLayout(row_container)
-                    self.computeRecursion(qvboxLayout=qvboxLayout,
+                    self.computeRecursion(qvboxLayout=self._conditionalLayout(childXlmElement, qvboxLayout),
                                           xmlParent=childXlmElement)
             elif childXmlTag == 'notebook':
                 qvboxLayout.addLayout(row_container)
@@ -162,7 +166,13 @@ class TemplateFormView(TemplateView):
                     pageString = page.attrib.get('string', '')
                     invisible = page.attrib.get('invisible', False)
                     modifInvisible, modifReadonly = utils.evaluateModifiers(page.attrib.get('modifiers', {}))
-                    if invisible or modifInvisible:
+                    # An expression is not a yes: "not is_company" is a
+                    # non-empty string, and read as a boolean it dropped the
+                    # page for every record. Only a page that is always hidden
+                    # is left out; one that depends on the record is built and
+                    # its tab shown or hidden by _setFieldModifiers.
+                    constantInvisible = utils.isConstantModifier(invisible) and utils.evaluateExpression(invisible)
+                    if constantInvisible or modifInvisible:
                         continue
                     pageWidget = QtWidgets.QWidget(tabWidget)
                     pageVboxLayout = QtWidgets.QVBoxLayout()
@@ -176,7 +186,10 @@ class TemplateFormView(TemplateView):
                                           nootebookIndex=nootebookIndex)
                     pageVboxLayout.addSpacerItem(QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding))
                     pageWidget.setLayout(pageVboxLayout)
-                    tabWidget.addTab(pageWidget, pageString)
+                    tabIndex = tabWidget.addTab(pageWidget, pageString)
+                    if not utils.isConstantModifier(invisible):
+                        self.containerModifiers.append(
+                            (invisible, partial(self._setTabHidden, tabWidget, tabIndex)))
                     nootebookIndex = nootebookIndex + 1
                 qvboxLayout.addWidget(tabWidget)
                 # tabWidget.currentChanged.connect(partial(self.computeNooteBookPage, tabWidget))
@@ -187,7 +200,7 @@ class TemplateFormView(TemplateView):
                 else:
                     colspan = row_widget_limit
                 qvboxLayout.addLayout(row_container)
-                self.computeRecursion(qvboxLayout=qvboxLayout,
+                self.computeRecursion(qvboxLayout=self._conditionalLayout(childXlmElement, qvboxLayout),
                                       xmlParent=childXlmElement,
                                       row_widget_limit=colspan)
             elif childXmlTag == 'button':
@@ -247,6 +260,41 @@ class TemplateFormView(TemplateView):
         if not row_container.parent():
             qvboxLayout.addLayout(row_container)
         return qvboxLayout
+
+    def _conditionalLayout(self, xmlElement, parentLayout):
+        """The layout the children of a div or a group go into.
+
+        Odoo 17 and later hide a whole block with `invisible` on its container
+        -- "Potential duplicates", the company name of a person -- far more
+        often than on the fields inside it. A layout cannot be hidden, so a
+        container with an `invisible` gets a widget of its own, and the
+        expression is kept to be evaluated against the record by
+        _setFieldModifiers. One without it goes straight into the parent layout
+        as it always did.
+        """
+        invisible = xmlElement.attrib.get('invisible')
+        if invisible is None or (utils.isConstantModifier(invisible)
+                                 and not utils.evaluateExpression(invisible)):
+            return parentLayout
+        container = QtWidgets.QWidget(self)
+        layout = QtWidgets.QVBoxLayout(container)
+        layout.setSpacing(0)
+        layout.setContentsMargins(0, 0, 0, 0)
+        parentLayout.addWidget(container)
+        if utils.isConstantModifier(invisible):
+            # Always hidden: built all the same, since the fields inside still
+            # hold values the other expressions read.
+            container.setHidden(True)
+        else:
+            self.containerModifiers.append((invisible, container.setHidden))
+        return layout
+
+    def _setTabHidden(self, tabWidget, tabIndex, hidden):
+        tabWidget.setTabVisible(tabIndex, not hidden)
+
+    def _setContainerModifiers(self, values, context):
+        for expression, setHidden in self.containerModifiers:
+            setHidden(utils.evaluateExpression(expression, values, context))
 
     def computeHeader(self, archHeader, useHeader=False):
         mapping = {}
@@ -475,7 +523,11 @@ class TemplateFormView(TemplateView):
         
         for fieldName, fieldVal in list(forceFieldValues.items()):
             self.setValueField(fieldName, fieldVal, )
-        
+
+        # The modifiers of the record just loaded, before what the caller
+        # forces below, so that what the caller forces wins.
+        self._setFieldModifiers()
+
         for readonlyField, fieldAttr in list(readonlyFields.items()):
             self.setReadonlyField(readonlyField, fieldAttr)
         
@@ -525,6 +577,7 @@ class TemplateFormView(TemplateView):
                 self.requiredFields[fieldObj.fieldName] = fieldObj
             elif fieldObj.fieldName in self.requiredFields:
                 del self.requiredFields[fieldObj.fieldName]
+        self._setContainerModifiers(values, dict(self.odooConnector.rpc_connector.contextUser))
 
     def checkRequiredFieldsEvaluated(self, showMessage=False):
         fieldsToEvaluate = []
