@@ -15,6 +15,7 @@ from PySide6 import QtCore
 from PySide6.QtCore import QObject
 
 
+from OdooQtUi.utils_odoo_conn import utilsUi
 from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.views.parser.search_view import SearchView
 from OdooQtUi.views.templateView import TemplateView
@@ -44,6 +45,7 @@ class TemplateSearchView(TemplateView, QtCore.QObject):
         self.addToObject()
         self.setLayout(layout)
 
+    @utilsUi.rpcErrorBoundary
     def _filterChanged(self, filterList):
         utils.logDebug('New filter %r' % (filterList), '_filterChanged')
         self.out_filter_change_signal.emit(filterList)

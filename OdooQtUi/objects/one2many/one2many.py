@@ -19,6 +19,7 @@ from PySide6 import QtGui
 from PySide6 import QtCore
 from PySide6 import QtWidgets
 
+from OdooQtUi.RPC.errors import OdooRpcError
 from OdooQtUi.utils_odoo_conn import utils, utilsUi
 from OdooQtUi.utils_odoo_conn import constants
 from functools import partial
@@ -224,6 +225,7 @@ class One2many(OdooFieldTemplate):
         self.sendButtonMess.clicked.connect(self.sendMessNote)
         self.showNoteLay(False)
 
+    @utilsUi.rpcErrorBoundary
     def sendMessNote(self):
         body = str(self.textEditMess.toPlainText())
         res = False
@@ -243,6 +245,7 @@ class One2many(OdooFieldTemplate):
         self.textEditMess.setHidden(not visible)
         self.sendButtonMess.setHidden(not visible)
 
+    @utilsUi.rpcErrorBoundary
     def sendMessage(self):
         self.showNoteLay(True)
         self.currentMessType = 'MESSAGE'
@@ -261,6 +264,7 @@ class One2many(OdooFieldTemplate):
         context['thread_model'] = 'product.product'
         return self.odooConnector.rpc_connector.callCustomMethod('mail.thread', 'message_post', parameters, kwargParameters, context=context)
 
+    @utilsUi.rpcErrorBoundary
     def logNote(self):
         self.showNoteLay(True)
         self.currentMessType = 'NOTE'
@@ -325,12 +329,15 @@ class One2many(OdooFieldTemplate):
             act.toggled.connect(partial(self.removeFollowerChannel, elem.get('id')))
         return res
 
+    @utilsUi.rpcErrorBoundary
     def addFollower(self):
         utils.logMessage('warning', 'Not implemented add follower', 'addFollower')
 
+    @utilsUi.rpcErrorBoundary
     def addChannel(self):
         utils.logMessage('warning', 'Not implemented add channel', 'addChannel')
 
+    @utilsUi.rpcErrorBoundary
     def removeFollowerChannel(self, resId):
         if resId:
             self.odooConnector.rpc_connector.write(self.parentModel, {self.fieldName: [(2, resId, False)]}, self.parentId)
@@ -374,6 +381,7 @@ class One2many(OdooFieldTemplate):
             partnerId, partnerName = elem.get('partner_id', [False, ''])
         return partnerId, partnerName
 
+    @utilsUi.rpcErrorBoundary
     def followClicked(self):
         currText = str(self.followButton.text())
         partnerId, _partnerName = self.getPartnerIdFromUserId()
@@ -428,6 +436,7 @@ class One2many(OdooFieldTemplate):
             mainWidget.setStyleSheet('background-color: #efefef;')
             self.messageVLay.addWidget(mainWidget)
 
+    @utilsUi.rpcErrorBoundary
     def downloadImage(self, content, fileName):
         fileCleanContent = base64.b64decode(content)
         cleanFname, extension = os.path.splitext(fileName)
@@ -438,6 +447,7 @@ class One2many(OdooFieldTemplate):
                 writeFile.write(fileCleanContent)
             utils.openByDefaultEditor(filePath)
 
+    @utilsUi.rpcErrorBoundary
     def createAndAdd(self):
         try:
             def acceptDial():
@@ -468,6 +478,8 @@ class One2many(OdooFieldTemplate):
                 if objId:
                     self.currentValue.append(objId)
                     self.setValue(self.currentValue)
+        except OdooRpcError:
+            raise           # told by rpcErrorBoundary
         except Exception as ex:
             utils.logMessage('error', '%r' % (ex), 'createAndAdd')
 
@@ -529,6 +541,7 @@ class One2many(OdooFieldTemplate):
             tableWidget.setCellWidget(rowCount, colCount - 1, btn)
             btn.clicked.connect(partial(self.removeItem, rowCount))
 
+    @utilsUi.rpcErrorBoundary
     def removeItem(self, rowIndex):
         found = False
         rowIndexes = list(self.treeViewObj.idLineRel.keys())

@@ -85,7 +85,8 @@ class MainConnector(object):
         :parentWindow pySide2 main window
         :contextUser dict like context to be used for all the xml-rpc call
         :app_name str object that specifie the application name
-        :raise_error in case of rpc call has an error rise an expception
+        :raise_error kept for the callers of old: a failed call always raises
+                     OdooQtUi.RPC.errors.OdooRpcError, and never opens a window
         """
         # The colours, once, for whatever application this library is used in.
         # It reads the palette in force, so a caller that wants its own calls
@@ -426,9 +427,7 @@ class MainConnector(object):
         return '', '', '', False, ''
 
     def setXmlRpcError(self, value=False):
-        """
-        force the underline rpc soket to rise any error that occure
-        """   
+        """Kept for the callers of old: every failed call raises OdooRpcError, whatever the value."""
         self.rpc_connector.setXmlRpcError(value)
     
     def callButtonFunction(self,

@@ -14,6 +14,7 @@ Created on 24 Mar 2017
 from PySide6 import QtWidgets, QtCore, QtGui
 from .parser.tree_list import TreeViewList
 from .templateView import TemplateView
+from OdooQtUi.RPC.errors import OdooRpcError
 from OdooQtUi.utils_odoo_conn import utils, utilsUi
 from OdooQtUi.utils_odoo_conn import constants
 from functools import partial
@@ -155,6 +156,7 @@ class TemplateTreeListView(TemplateView):
         self.buttToRight.setHidden(True)
         return switchRecordsLay
 
+    @utilsUi.rpcErrorBoundary
     def filterChanged(self, newFilter):
 
         if self.deafult_filter:
@@ -360,6 +362,7 @@ class TemplateTreeListView(TemplateView):
             return utils.recordValues({}, formVals)
         return utils.recordValues(parent.interfaceFieldsDict, formVals)
 
+    @utilsUi.rpcErrorBoundary
     def doubleClickEvent(self, *args):
         try:
             model_index = args[0]
@@ -400,6 +403,8 @@ class TemplateTreeListView(TemplateView):
                 for fieldName, fieldObj in list(viewObj.fieldsChanged.items()):
                     valuesToUpdate[fieldName] = fieldObj.value
                 self.odooConnector.rpc_connector.write(self.model, valuesToUpdate, obj_id)
+        except OdooRpcError:
+            raise           # told by rpcErrorBoundary
         except Exception as ex:
             logError(ex)
 
@@ -472,6 +477,7 @@ class TemplateTreeListView(TemplateView):
             self.treeObj.tableWidget.setCellWidget(rowCount, colCount - 1, btn)
             btn.clicked.connect(partial(self.removeItem, rowCount))
 
+    @utilsUi.rpcErrorBoundary
     def removeItem(self, rowIndex):
         found = False
         rowIndexes = list(self.idLineRel.keys())
@@ -515,6 +521,7 @@ class TemplateTreeListView(TemplateView):
         fieldObj = self.interfaceFieldsDict.get(fieldName)
         self.fieldsChanged[fieldName] = fieldObj
 
+    @utilsUi.rpcErrorBoundary
     def switchToRight(self):
         _start, to = self.currentRange
         self.currentRange = [to, to + self.passRange]
@@ -525,6 +532,7 @@ class TemplateTreeListView(TemplateView):
         else:
             self.buttToRight.setHidden(True)
 
+    @utilsUi.rpcErrorBoundary
     def switchToLeft(self):
         start, _to = self.currentRange
         self.currentRange = [start - self.passRange, start]

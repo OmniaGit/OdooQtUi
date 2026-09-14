@@ -21,12 +21,14 @@ import traceback
 import requests
 
 from OdooQtUi.utils_odoo_conn import utils
-USE_INTERFACE = True
-try:
-    from OdooQtUi.utils_odoo_conn import utilsUi
-except Exception as ex:
-    utils.logError(ex, '')
-    USE_INTERFACE = False
+import reprlib
+from OdooQtUi.RPC.errors import OdooRpcError, OdooServerError, OdooConnectionError
+
+_SHORT = reprlib.Repr()
+_SHORT.maxstring = 200
+_SHORT.maxother = 200
+#: Kept for the code that still reads it: the RPC layer shows no window any more.
+USE_INTERFACE = False
 
 
 class JsonRpcFault(Exception):
@@ -189,10 +191,6 @@ class JsonRpcConnection(object):
         except Exception as ex:
             print(traceback.format_exc())
             utils.logMessage('warning', 'Unable to list database. EX: %r' % (ex), 'listDb')
-            if self.useInterface:
-                utilsUi.popWarning(None, 'Unable to get the list of database available from the server. '
-                                         'Ask your Odoo administrator the database name and write it '
-                                         'to the following input box.')
         return []
 
     def search(self, obj, filterList, limit=False, offset=False, order='', context={}):
@@ -253,34 +251,18 @@ class JsonRpcConnection(object):
         return self.callOdooFunction(odooObj, 'fields_view_get', [view_id, view_type], kwargParameters)
 
     def on_change(self, odooObj, activeIds, allVals, fieldName, allOnchanges, context):
-        try:
-            utils.logMessage('debug', 'Onchange field %r' % (fieldName), 'on_change')
-            res = self.callOdooFunction(odooObj, 'onchange', [activeIds, allVals, fieldName, allOnchanges], {'context': context})
-            if not res:
-                return {}
-            return res
-        except Exception as ex:
-            msg =  'Wrong on_change call with odooObj: %r, fieldName: %r, activeIds: %r, context: %r.' % (odooObj, fieldName, activeIds, context)
-            self._logError(ex, msg, utils.getFunctionName())
-        return {}
+        utils.logMessage('debug', 'Onchange field %r' % (fieldName), 'on_change')
+        return self.callOdooFunction(odooObj, 'onchange', [activeIds, allVals, fieldName, allOnchanges], {'context': context}) or {}
 
     def execute_kw(self, obj, method, *args, **kargs):
         return self.callOdooFunction(obj, method, args, kargs)
 
     def execute(self, obj, method, *args):
+        """The positional `execute` of old, made through execute_kw: same answer, same errors."""
         if method == 'execute_kw':
             odooObj, functionName, parameters, kwargParameters = args
             return self.callOdooFunction(odooObj, functionName, parameters, kwargParameters)
-        try:
-            return self._call('object', 'execute', [self.databaseName,
-                                                     self.userId,
-                                                     self.userPassword,
-                                                     obj,
-                                                     method] + list(args))
-        except Exception as ex:
-            msg =  'Error during call Odoo Function execute with arguments: %r, %r, %r' % (obj, method, args)
-            self._logError(ex, msg, utils.getFunctionName())
-            return False
+        return self.callOdooFunction(obj, method, list(args), {})
 
     def sanitizeVersionFunction(self, functionName):
         if self.serverVersion==14:
@@ -291,17 +273,20 @@ class JsonRpcConnection(object):
         return functionName
 
     def callOdooFunction(self, odooObj, functionName, parameters=[], kwargParameters={}, forceHideInterface=False, forceRaise_error=False):
-        '''
-            @odooObj: product.product, product.template ...
-            @functionName: 'search', 'read', ...
-            @parameters: [val1, val2, ...]
-            @kwargParameters: {'context': {}, limit: val, 'order': val,...}
-        '''
+        """Call `functionName` on the model `odooObj` and answer what Odoo answers.
+
+        :raise OdooServerError      Odoo refused the call (UserError, AccessError...)
+        :raise OdooConnectionError  the call did not reach Odoo or did not come back
+        :raise OdooRpcError         anything else, e.g. a value that cannot be sent
+
+        Never shows a window. forceHideInterface and forceRaise_error are
+        accepted for the callers of old and change nothing: every error raises.
+        """
         if self.socketYesLogin in [None, False]:
-            raise Exception("Socket not inizialized properly")
+            raise OdooConnectionError('Not logged in', odooObj, functionName)
         self.last_error = ''
+        functionName = self.sanitizeVersionFunction(functionName)
         try:
-            functionName = self.sanitizeVersionFunction(functionName)
             return self._call('object', 'execute_kw', [self.databaseName,
                                                         self.userId,
                                                         self.userPassword,
@@ -309,40 +294,19 @@ class JsonRpcConnection(object):
                                                         functionName,
                                                         parameters,
                                                         kwargParameters])
-        except socket.error as err:
-            if self.raise_error or forceRaise_error:
-                raise err
-            message = 'Unable to communicate with the server: %r calling %r on %r' % (err, functionName, odooObj)
-            utils.logMessage('error', message, 'callOdooFunction')
-            if self.useInterface and not forceHideInterface:
-                utilsUi.popError(self, message)
-            else:
-                self._logError(err, message, utils.getFunctionName())
         except JsonRpcFault as err:
-            if self.raise_error or forceRaise_error:
-                raise err
+            cause = err
+            self.last_error = str(err.faultString or err.faultCode)
+            error = OdooServerError(self.last_error.strip().splitlines()[-1] if self.last_error.strip() else str(err),
+                                    odooObj, functionName, err.faultCode, err.faultString)
+        except OSError as err:
+            cause = err
             self.last_error = str(err)
-            if self.useInterface and not forceHideInterface:
-                utilsUi.popError(None, err)
-                return None
-            else:
-                err_str = err.faultString or err.faultCode
-                if err_str:
-                    utils.logError(err_str, 'callOdooFunction')
-                return None
-        except Exception as ex:
-            if self.raise_error or forceRaise_error:
-                raise ex
-            self.last_error = str(ex)
-            utils.logMessage('error', ex, 'callOdooFunction')
-            utils.logMessage('error',
-                             'Error during call Odoo Function with arguments: %r, %r, %r, %r' % (odooObj,
-                                                                                                 functionName,
-                                                                                                 parameters,
-                                                                                                 kwargParameters),
-                             'callOdooFunction')
-            if self.useInterface and not forceHideInterface:
-                utilsUi.popError(None, ex)
-            else:
-                self._logError(ex, '', utils.getFunctionName())
-        return None
+            error = OdooConnectionError('Unable to communicate with the server: %s' % err, odooObj, functionName)
+        except Exception as err:
+            cause = err
+            self.last_error = str(err)
+            error = OdooRpcError('%s: %s' % (type(err).__name__, err), odooObj, functionName)
+        # Shortened: the arguments of a save carry whole files in base64.
+        utils.logMessage('error', '%s -- arguments %s' % (error, _SHORT.repr((parameters, kwargParameters))), 'callOdooFunction')
+        raise error from cause

@@ -15,7 +15,10 @@ import os
 import sys
 import base64
 import xmlrpc
+import html
+import inspect
 import logging
+import functools
 import traceback
 
 from PySide6 import QtGui
@@ -27,6 +30,7 @@ import OdooQtUi
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.utils_odoo_conn.utils import logMessage
+from OdooQtUi.RPC.errors import OdooRpcError
 
 DEFAULT_ICON_PATH = ''
 
@@ -375,3 +379,54 @@ def popMessage(parent,
     logMessage(msg_type, ex, 'popMessage')
     dialObj.exec()
 
+
+def showRpcError(parent, error):
+    """Tell the user a call to Odoo failed: what Odoo said, and the detail under More.
+
+    :parent a QWidget or None
+    :error  an OdooRpcError
+    :return whether a window was shown
+
+    Only in the GUI thread of a running application; anywhere else -- a script,
+    a test, a worker thread, where a dialog would block or crash -- the error is
+    logged and nothing more.
+    """
+    logMessage('error', str(error), 'showRpcError')
+    application = QtWidgets.QApplication.instance()
+    if application is None or QtCore.QThread.currentThread() is not application.thread():
+        return False
+    where = '%s.%s' % (error.model, error.method) if getattr(error, 'model', '') else getattr(error, 'method', '')
+    body = '<b>%s</b><pre>%s</pre>' % (html.escape(where), html.escape(str(getattr(error, 'faultString', error))))
+    if not isinstance(parent, QtWidgets.QWidget):
+        parent = None
+    popMessage(parent, body, 'ERROR', getattr(error, 'summary', str(error)))
+    return True
+
+
+def rpcErrorBoundary(method):
+    """For a Qt slot: an OdooRpcError it raises is shown to the user, not lost.
+
+    The RPC layer raises and shows nothing; a slot is where the user's action
+    ends, and so where the error is told -- once, with the widget as parent.
+
+    Qt hands a slot as many signal arguments as the slot accepts, and would
+    read that off this wrapper; the wrapper hands on only as many as the
+    method takes, so `clicked(bool)` still reaches a `def buttonClicked(self)`.
+    """
+    parameters = list(inspect.signature(method).parameters.values())[1:]
+    if any(parameter.kind == parameter.VAR_POSITIONAL for parameter in parameters):
+        accepted = None
+    else:
+        accepted = sum(1 for parameter in parameters
+                       if parameter.kind in (parameter.POSITIONAL_ONLY, parameter.POSITIONAL_OR_KEYWORD))
+
+    @functools.wraps(method)
+    def boundary(self, *args, **kwargs):
+        if accepted is not None:
+            args = args[:accepted]
+        try:
+            return method(self, *args, **kwargs)
+        except OdooRpcError as error:
+            showRpcError(self, error)
+            return None
+    return boundary

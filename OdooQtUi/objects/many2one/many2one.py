@@ -172,6 +172,7 @@ class Many2one(OdooFieldTemplate):
             return
         self._searchTimer.start()
 
+    @utilsUi.rpcErrorBoundary
     def _search(self):
         lineEdit = self.widgetQtObj2.lineEdit()
         if lineEdit is None or not self.relation:
@@ -300,6 +301,7 @@ class Many2one(OdooFieldTemplate):
             if self.editButton:
                 self.editButton.hide()
 
+    @utilsUi.rpcErrorBoundary
     def editItem(self, res=False):
         if not self.currentValue:
             return
@@ -340,6 +342,7 @@ class Many2one(OdooFieldTemplate):
     def setViewObject(self):
         self.viewObj = self.odooConnector.initFormViewObj(self.relation)
 
+    @utilsUi.rpcErrorBoundary
     def indexChanged(self, res=False):
         if self._updating:
             return

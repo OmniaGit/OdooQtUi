@@ -18,6 +18,7 @@ import requests
 #
 from OdooQtUi.RPC.XmlRpc.xmlRpc import XmlRpcConnection
 from OdooQtUi.RPC.JsonRpc.jsonRpc import JsonRpcConnection
+from OdooQtUi.RPC.errors import OdooRpcError, OdooServerError, OdooConnectionError
 from OdooQtUi.utils_odoo_conn.utils import timeit
 
 
@@ -153,7 +154,12 @@ class RpcConnection(object):
     def computeUserLanguage(self):
         if not self.userId:
             return False
-        res = self.callCustomMethod('res.users', 'context_get')
+        try:
+            res = self.callCustomMethod('res.users', 'context_get')
+        except OdooRpcError as ex:
+            # A login is not refused for the language: the context stays empty.
+            logging.warning('Unable to get user context: %s' % ex)
+            res = {}
         if not res:
             logging.warning('Unable to get user context.')
             res = {}
@@ -287,15 +293,11 @@ class RpcConnection(object):
                                      context=context) or {}
 
     def EnableException(self):
-        """
-        enable at low level xml-rpc call exceprion
-        """
+        """Kept for the callers of old: every failed call raises OdooRpcError now."""
         self.sockInstance.raise_error = True
-    
+
     def DisableException(self):
-        """
-        diseble at low level xml-rpc call exceprion
-        """
+        """Kept for the callers of old: errors cannot be turned into None any more."""
         self.sockInstance.raise_error = True
 
     def cacheSearch(self,
@@ -392,10 +394,9 @@ class RpcConnection(object):
         return new_id    
     
     def setXmlRpcError(self, value=False):
-        """
-        force the underline rpc soket to rise any error that occure
-        """   
-        self.sockInstance.raise_error = value
+        """Kept for the callers of old: every failed call raises OdooRpcError, whatever the value."""
+        if self.sockInstance:
+            self.sockInstance.raise_error = value
     
     def loadSessionId(self):
         """

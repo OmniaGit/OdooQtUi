@@ -90,11 +90,13 @@ class Binary(OdooFieldTemplate):
                 self.connectTranslationButton()
                 self.qtHorizontalWidget.addWidget(self.translateButton)
 
+    @utilsUi.rpcErrorBoundary
     def openFile(self):
         filePath = self.downloadFile()
         if not utils.openByDefaultEditor(filePath):
             utilsUi.popWarning(self.qtParent, 'Unable to open file!')
 
+    @utilsUi.rpcErrorBoundary
     def downloadFile(self):
         statingPath = self.widgetQtObj.text() or self.fieldStringInterface
         newFilePath = utilsUi.getDirectoryFileToSaveSystem(None, statingPath=statingPath)
@@ -104,6 +106,7 @@ class Binary(OdooFieldTemplate):
         utils.unpackFile(self.currentValue, filePath)
         return filePath
 
+    @utilsUi.rpcErrorBoundary
     def editField(self):
         filePath = utilsUi.getFileFromSystem('Open', '')
         if not os.path.exists(filePath):
@@ -113,6 +116,7 @@ class Binary(OdooFieldTemplate):
         self.fieldStringInterface = os.path.split(filePath)[1]
         self.widgetQtObj.setText(self.fieldStringInterface)
 
+    @utilsUi.rpcErrorBoundary
     def clearField(self):
         self.currentValue = ''
         self.fieldStringInterface = ''

@@ -120,6 +120,7 @@ class OdooFieldTemplate(QtWidgets.QWidget):
     def valueChanged(self):
         utils.logMessage('warning', 'valueChanged not implemented for field: %r' % (self.fieldName), 'valueChanged')
 
+    @utilsUi.rpcErrorBoundary
     def translateDialog(self):
         self.translation_clicked.emit(self.fieldName)
 

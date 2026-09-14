@@ -17,6 +17,7 @@ from PySide6 import QtCore
 from PySide6 import QtWidgets
 
 from functools import partial
+from OdooQtUi.RPC.errors import OdooRpcError
 from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.utils_odoo_conn import utilsUi
 from OdooQtUi.utils_odoo_conn import constants
@@ -103,6 +104,7 @@ class Many2many(OdooFieldTemplate):
         qhw.addSpacerItem(QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding))
         return qhw
 
+    @utilsUi.rpcErrorBoundary
     def createAndAdd(self):
         def acceptFormDial():
             fieldVals = tmpviewObjForm.getAllFieldsValues()
@@ -138,6 +140,8 @@ class Many2many(OdooFieldTemplate):
                 if objId:
                     self.currentValue.append(objId)
                     self.setValue(self.currentValue)
+        except OdooRpcError:
+            raise           # told by rpcErrorBoundary
         except Exception as ex:
             utils.logMessage('error', '%r' % (ex), 'createAndAdd')
 
@@ -202,6 +206,7 @@ class Many2many(OdooFieldTemplate):
             flags[0] = QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
         return values, flags
 
+    @utilsUi.rpcErrorBoundary
     def addAnItem(self):
         def acceptDial():
             dial.accept()

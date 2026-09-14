@@ -16,6 +16,8 @@ import json
 from PySide6 import QtGui
 from PySide6 import QtWidgets
 #
+from OdooQtUi.RPC.errors import OdooRpcError
+from OdooQtUi.utils_odoo_conn import utilsUi
 from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.utils_odoo_conn.utilsUi import popError
@@ -83,10 +85,13 @@ class Button(OdooFieldTemplate):
         else:
             self.show()
 
+    @utilsUi.rpcErrorBoundary
     def buttonClicked(self):
         try:
             self.odooConnector.callButtonFunction(self.model, self.odooId, self.buttonType, self.buttonName)
             self.parent().loadIds(self.odooId)
+        except OdooRpcError:
+            raise           # told by rpcErrorBoundary, with what Odoo said
         except Exception as ex:
             popError(self, ex)
 

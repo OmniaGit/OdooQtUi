@@ -441,11 +441,13 @@ class TemplateFormView(TemplateView):
         self.chatterLay.setSpacing(constants.LAY_OUT_SPACING)
         divVlay.addLayout(self.chatterLay)
 
+    @utilsUi.rpcErrorBoundary
     def showChatter(self):
         for chatterWidget in self.chatterWidgets:
             chatterWidget.showChatterWidget()
         self.chatterButton.hide()
 
+    @utilsUi.rpcErrorBoundary
     def updateDataStructure(self, pageIndex=0):
         utils.logDebug('compute Notebook fields: %r' % (pageIndex), 'updateDataStructure')
         if pageIndex > 0 and pageIndex in self.nootebookFieldsToCompute:
@@ -690,6 +692,7 @@ class TemplateFormView(TemplateView):
         '''
         pass
 
+    @utilsUi.rpcErrorBoundary
     def _valueChanged(self, fieldName):
         fieldName = str(fieldName)
         fieldObj = self.interfaceFieldsDict.get(fieldName)
@@ -739,6 +742,7 @@ class TemplateFormView(TemplateView):
             return False
         return fieldObj.fieldName not in self.readonlyFields
 
+    @utilsUi.rpcErrorBoundary
     def translationDial(self, fieldName):
         if not self.activeIds:
             utilsUi.popWarning(None, 'Translations are available only on already created records.')
