@@ -213,6 +213,13 @@ pip install -e .
 python -m unittest discover -s test -p "test_*.py"   # no Odoo server needed
 ```
 
+Changed how something looks? Take the README screenshots again from a running
+Odoo with demo data (it needs a display, and writes nothing to the server):
+
+```bash
+python tools/make_screenshots.py --db my_database    # --only list theme, --help
+```
+
 Found a bug or have an idea? [Open an issue](https://github.com/OmniaGit/OdooQtUi/issues).
 Code, comments and commit messages are written in English.
 
