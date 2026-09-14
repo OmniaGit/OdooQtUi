@@ -4,7 +4,7 @@
 
 [![PyPI](https://img.shields.io/pypi/v/OdooQtUi.svg)](https://pypi.org/project/OdooQtUi/)
 [![Python](https://img.shields.io/pypi/pyversions/OdooQtUi.svg)](https://pypi.org/project/OdooQtUi/)
-[![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/OmniaGit/OdooQtUi/blob/main/LICENSE)
+[![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/OmniaGit/OdooQtUi/blob/2026/LICENSE)
 
 OdooQtUi reads the **form, list and search views straight from your Odoo
 server** and renders them as real PySide6 widgets. Fields, notebooks, header
@@ -20,7 +20,7 @@ form.loadIds([7])          # a live, editable Odoo form in your Qt window
 ```
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/OmniaGit/OdooQtUi/main/OdooQtUi/images/res_partner.png" alt="The res.partner form of Odoo 19 rendered by OdooQtUi" width="720">
+  <img src="https://raw.githubusercontent.com/OmniaGit/OdooQtUi/2026/OdooQtUi/images/res_partner.png" alt="The res.partner form of Odoo 19 rendered by OdooQtUi" width="720">
   <br>
   <em>The code above, run against Odoo 19: the partner form as the server defines it, notebook and one2many lists included.</em>
 </p>
@@ -85,7 +85,7 @@ if not connector.loginWithDial():      # shows the Odoo login dialog
 ```
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/OmniaGit/OdooQtUi/main/OdooQtUi/images/login.png" alt="The OdooQtUi login dialog" width="360">
+  <img src="https://raw.githubusercontent.com/OmniaGit/OdooQtUi/2026/OdooQtUi/images/login.png" alt="The OdooQtUi login dialog" width="360">
 </p>
 
 Prefer no dialog? Log in from code, over XML‑RPC or JSON‑RPC:
@@ -128,7 +128,7 @@ print(products.getSelectedIds())
 ```
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/OmniaGit/OdooQtUi/main/OdooQtUi/images/product_list.png" alt="product.product list with the search bar, Odoo 19" width="720">
+  <img src="https://raw.githubusercontent.com/OmniaGit/OdooQtUi/2026/OdooQtUi/images/product_list.png" alt="product.product list with the search bar, Odoo 19" width="720">
 </p>
 
 Double-click a row to open its form. Pass `deafult_filter=[('sale_ok', '=', True)]`
@@ -163,7 +163,7 @@ connector = MainConnector()
 ```
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/OmniaGit/OdooQtUi/main/OdooQtUi/images/res_partner_theme.png" alt="The res.partner form with the palette above" width="720">
+  <img src="https://raw.githubusercontent.com/OmniaGit/OdooQtUi/2026/OdooQtUi/images/res_partner_theme.png" alt="The res.partner form with the palette above" width="720">
   <br>
   <em>The same partner form with the palette above: the accent on the buttons, the primary colour on the tabs.</em>
 </p>

@@ -40,7 +40,7 @@ dependencies = [
 Homepage = "https://github.com/OmniaGit/OdooQtUi"
 Source = "https://github.com/OmniaGit/OdooQtUi"
 Issues = "https://github.com/OmniaGit/OdooQtUi/issues"
-Changelog = "https://github.com/OmniaGit/OdooQtUi/blob/main/CHANGELOG.md"
+Changelog = "https://github.com/OmniaGit/OdooQtUi/blob/2026/CHANGELOG.md"
 
 [tool.setuptools.dynamic]
 version = { attr = "OdooQtUi.__version__" }
