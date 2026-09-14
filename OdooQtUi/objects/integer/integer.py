@@ -18,6 +18,10 @@ from OdooQtUi.utils_odoo_conn import utilsUi
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
 
+#: An Odoo integer is a PostgreSQL int4, and Qt's spin box an int as well.
+INTEGER_MIN = -2147483648
+INTEGER_MAX = 2147483647
+
 
 class Integer(OdooFieldTemplate):
     def __init__(self, qtParent, xmlField, fieldsDefinition, rpc, isChatterWidget=False):
@@ -36,6 +40,8 @@ class Integer(OdooFieldTemplate):
         self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
         self.qtHorizontalWidget.addWidget(self.labelQtObj)
         self.widgetQtObj = QtWidgets.QSpinBox()
+        # Qt's own range is 0 to 99: a sequence of 100 showed, and saved, as 99.
+        self.widgetQtObj.setRange(INTEGER_MIN, INTEGER_MAX)
         self.widgetQtObj.setStyleSheet(constants.INTEGER_STYLE)
         self.widgetQtObj.setToolTip(self.tooltip)
         self.widgetQtObj.valueChanged.connect(self.valueChanged)
@@ -52,7 +58,7 @@ class Integer(OdooFieldTemplate):
         self.valueTemplateChanged()
 
     def setValue(self, newVal, viewType='form'):
-        newVal = int(str(newVal))
+        newVal = int(newVal or 0)
         self.widgetQtObj.setValue(newVal)
         self.currentValue = newVal
 

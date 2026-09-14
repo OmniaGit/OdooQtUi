@@ -18,6 +18,12 @@ from OdooQtUi.utils_odoo_conn import utilsUi
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
 
+#: As far as a double keeps every unit exact, negatives included.
+FLOAT_LIMIT = 1e15
+
+#: What Odoo shows for a float field that declares no digits.
+DEFAULT_DECIMALS = 2
+
 
 class Float(OdooFieldTemplate):
 
@@ -33,6 +39,10 @@ class Float(OdooFieldTemplate):
         self.labelQtObj = QtWidgets.QLabel(self.fieldStringInterface)
         self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
         self.widgetQtObj = QtWidgets.QDoubleSpinBox(self)
+        # Qt's own range is 0 to 99.99: a 333.0 read from the server showed as
+        # 99.99, and was saved as 99.99 the moment the user touched it.
+        self.widgetQtObj.setDecimals(self.decimals())
+        self.widgetQtObj.setRange(-FLOAT_LIMIT, FLOAT_LIMIT)
         self.widgetQtObj.setStyleSheet(constants.FLOAT_STYLE)
         self.widgetQtObj.setToolTip(self.tooltip)
         self.widgetQtObj.valueChanged.connect(self.valueChanged)
@@ -45,13 +55,22 @@ class Float(OdooFieldTemplate):
             self.connectTranslationButton()
             self.qtHorizontalWidget.addWidget(self.translateButton)
 
+    def decimals(self):
+        """The scale of the field's `digits`, Odoo's default of 2 without one."""
+        digits = self.fieldPyDefinition.get('digits')
+        if isinstance(digits, (list, tuple)) and len(digits) == 2 and digits[1]:
+            return int(digits[1])
+        return DEFAULT_DECIMALS
+
     def valueChanged(self, newVal):
         self.currentValue = float(str(newVal))
         self.valueTemplateChanged()
 
     def setValue(self, newVal, viewType='form'):
-        newVal = float(str(newVal))
+        newVal = float(newVal or 0.0)
         self.widgetQtObj.setValue(newVal)
+        # Set here as well: Qt emits nothing when the value does not change.
+        self.currentValue = newVal
 
     def setReadonly(self, val=False):
         super(Float, self).setReadonly(val)
