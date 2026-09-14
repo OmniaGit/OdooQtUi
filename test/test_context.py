@@ -82,5 +82,28 @@ class SessionContext(unittest.TestCase):
         self.assertEqual(rpc.contextUser, {'lang': 'en_US'})
 
 
+class OnchangeValues(unittest.TestCase):
+    """What the onchange of Odoo 17 and later is sent, and what it answers."""
+
+    def test_widget_values_are_sent_as_odoo_writes_them(self):
+        import datetime
+        self.assertEqual(utils.widgetValueToOnchange([3, 'Italy'], 'many2one'), 3)
+        self.assertIs(utils.widgetValueToOnchange(None, 'char'), False)
+        self.assertIs(utils.widgetValueToOnchange('', 'selection'), False)
+        self.assertEqual(utils.widgetValueToOnchange('', 'char'), '')
+        self.assertEqual(utils.widgetValueToOnchange(datetime.date(2026, 9, 14), 'date'), '2026-09-14')
+        self.assertEqual(utils.widgetValueToOnchange(datetime.datetime(2026, 9, 14, 8, 5), 'datetime'),
+                         '2026-09-14 08:05:00')
+
+    def test_what_rpc_cannot_carry_is_refused(self):
+        with self.assertRaises(ValueError):
+            utils.widgetValueToOnchange(object(), 'char')
+
+    def test_a_many2one_answer_becomes_the_pair_a_read_gives(self):
+        self.assertEqual(utils.onchangeValueToWidget({'id': 109, 'display_name': 'Italy'}), [109, 'Italy'])
+        self.assertIs(utils.onchangeValueToWidget({'id': False, 'display_name': ''}), False)
+        self.assertIs(utils.onchangeValueToWidget(True), True)
+
+
 if __name__ == '__main__':
     unittest.main()

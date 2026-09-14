@@ -631,9 +631,44 @@ class TemplateFormView(TemplateView):
         '''
         if self.skipOnChange:
             return {}
+        rpc = self.odooConnector.rpc_connector
+        if rpc.serverVersion >= 17:
+            values, fieldsSpec = self._onchangeValuesAndSpec()
+            result = rpc.onchange(self.model, self.activeIds, values, [fieldName], fieldsSpec)
+            result = dict(result) if isinstance(result, dict) else {}
+            result['value'] = {name: utils.onchangeValueToWidget(value)
+                               for name, value in (result.get('value') or {}).items()}
+            return result
         allVals = self.getAllFieldsValues()
         allOnchanges = self.getAllOnChange()
-        return self.odooConnector.rpc_connector.on_change(self.model, self.activeIds, allVals, fieldName, allOnchanges, {})
+        return rpc.on_change(self.model, self.activeIds, allVals, fieldName, allOnchanges, {})
+
+    def _onchangeValuesAndSpec(self):
+        """What the onchange of Odoo 17 and later is sent: values and spec.
+
+        One2many, many2many and binary fields are left out of both. What is not
+        sent the server takes from the record as it is stored, which is what
+        these widgets hold until the form is saved; and they are not asked back,
+        since an x2many answers in commands these widgets do not read.
+        """
+        values = {}
+        fieldsSpec = {}
+        for name, fieldObj in list(self.interfaceFieldsDict.items()):
+            fieldName = name[7:] if name.startswith('header_') else name
+            fieldType = self.fieldsNameTypeRel.get(fieldName, {}).get('type') \
+                or getattr(fieldObj, 'fieldType', '')
+            if fieldType in ('one2many', 'many2many', 'binary'):
+                continue
+            try:
+                value = utils.widgetValueToOnchange(fieldObj.value, fieldType)
+            except ValueError:
+                continue
+            values[fieldName] = value
+            if fieldType == 'many2one':
+                fieldsSpec[fieldName] = {'fields': {'display_name': {}}}
+            else:
+                fieldsSpec[fieldName] = {}
+        return values, fieldsSpec
 
     def addToObject(self):
         fieldIdentifier = 'field_'
@@ -663,9 +698,17 @@ class TemplateFormView(TemplateView):
             return
         changeResult = self._on_change(fieldObj.fieldName)
         changedValues = changeResult.get('value', {})
-        for fieldNameFromServer, fieldValueFromServer in list(changedValues.items()):
-            fieldObj1 = self.interfaceFieldsDict.get(str(fieldNameFromServer))
-            fieldObj1.setValue(fieldValueFromServer)
+        # The server answers with everything the change leads to, cascade
+        # included: setting those values must not send one onchange per field.
+        skipOnChange, self.skipOnChange = self.skipOnChange, True
+        try:
+            for fieldNameFromServer, fieldValueFromServer in list(changedValues.items()):
+                fieldObj1 = self.interfaceFieldsDict.get(str(fieldNameFromServer))
+                if fieldObj1 is None:
+                    continue
+                fieldObj1.setValue(fieldValueFromServer)
+        finally:
+            self.skipOnChange = skipOnChange
         self.fieldsChanged[fieldName] = fieldObj
         self._setFieldModifiers()
         self._valueChangedExt(fieldName)

@@ -872,3 +872,37 @@ def widgetModifier(widgetObj, name, fieldsDict, values={}, context={}):
     if not isConstantModifier(expression):
         return evaluateExpression(expression, values, context)
     return None
+
+
+def widgetValueToOnchange(value, fieldType=''):
+    """A widget's value as the onchange of Odoo 17 and later wants it.
+
+    None is False, a many2one its id, a date and a datetime Odoo's own strings.
+    Raises ValueError for what XML-RPC and JSON-RPC cannot carry, so the caller
+    can leave that field out instead of failing the whole call.
+    """
+    if hasattr(value, 'toPython'):          # QDate, QDateTime, QTime
+        value = value.toPython()
+    if value is None or (value == '' and fieldType in ('many2one', 'date', 'datetime', 'selection')):
+        return False
+    if fieldType == 'many2one' and isinstance(value, (list, tuple)):
+        return value[0] if value else False
+    if isinstance(value, datetime.datetime):
+        return value.strftime('%Y-%m-%d %H:%M:%S')
+    if isinstance(value, datetime.date):
+        return value.strftime('%Y-%m-%d')
+    if isinstance(value, (bool, int, float, str)):
+        return value
+    raise ValueError('%r cannot be sent to an onchange' % (value,))
+
+
+def onchangeValueToWidget(value):
+    """A value the onchange of Odoo 17 and later answers, as a widget reads it.
+
+    A many2one comes back as {'id': 3, 'display_name': 'Name'}, asked for with
+    `display_name` in the spec; the widgets read the [id, name] pair a `read`
+    answers with.
+    """
+    if isinstance(value, dict) and 'id' in value:
+        return [value['id'], value.get('display_name', '')] if value['id'] else False
+    return value

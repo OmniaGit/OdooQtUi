@@ -265,9 +265,26 @@ class RpcConnection(object):
         return self.sockInstance.fieldsViewGet(obj, view_id, view_type, context=localContext)
 
     def on_change(self, obj, activeIds, allVals, fieldName, allOnchanges, context={}):
+        """The onchange of Odoo 16 and earlier: one field name and its map."""
         localContext = dict(self.contextUser)
         localContext.update(context)
         return self.sockInstance.on_change(obj, activeIds, allVals, fieldName, allOnchanges, context=localContext)
+
+    def onchange(self, obj, activeIds, values, fieldNames, fieldsSpec, context={}):
+        """The onchange of Odoo 17 and later.
+
+        :values     the record as the form holds it, {field: value}
+        :fieldNames the fields that changed
+        :fieldsSpec {field: {}} for the fields the answer may carry, and
+                    {field: {'fields': {...}}} for a relational one
+        :return     {'value': {...}, 'warning': {...}}, {} on failure
+
+        Called with the arguments of 16 a server of 17 does not refuse: it
+        answers {} and the form never learns what changed.
+        """
+        return self.callCustomMethod(obj, 'onchange',
+                                     [list(activeIds or []), values, list(fieldNames), fieldsSpec],
+                                     context=context) or {}
 
     def EnableException(self):
         """
