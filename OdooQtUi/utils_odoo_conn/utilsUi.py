@@ -271,19 +271,45 @@ class AdvancedErrorPopUP(QtWidgets.QDialog):
         self.lineEdit = QtWidgets.QTextEdit(self)
         self.lineEdit.setMaximumHeight(0)
         self.lineEdit.setMaximumWidth(0)
+        # Focus only when clicked. As the first child it took the focus at open
+        # while hidden, and ate Ctrl+C before the dialog's shortcut saw it --
+        # measured on 2026-09-14: the clipboard did not change.
+        self.lineEdit.setFocusPolicy(QtCore.Qt.FocusPolicy.ClickFocus)
+        self._messageShortError = messageShortError
+        self._short_text_header = short_text_header
         SHORT_TEXT_LIMIT = 300
-        if len(messageBody) > SHORT_TEXT_LIMIT:
+        self._has_more = len(messageBody) > SHORT_TEXT_LIMIT
+        if self._has_more:
             hlay.addStretch(1)
             hlay.addWidget(more_button)
             more_button.setStyleSheet('background-color:white;')
             messageShortError.setText(messageBody[:SHORT_TEXT_LIMIT] + '...')
+            # Only beside More: a message short enough to be read whole is
+            # copied with Ctrl+C, and a button for it would be noise.
+            copy_button = QtWidgets.QToolButton()
+            copy_icon = getattr(getattr(QtGui.QIcon, 'ThemeIcon', None), 'EditCopy', None)
+            if copy_icon is not None and not QtGui.QIcon.fromTheme(copy_icon).isNull():
+                copy_button.setIcon(QtGui.QIcon.fromTheme(copy_icon))
+            else:
+                # Theme icons arrived with Qt 6.7; before that, and on a system
+                # with no icon theme, the button says what it does instead.
+                copy_button.setText('Copy')
+            copy_button.setToolTip('Copy the whole message (Ctrl+C)')
+            copy_button.setStyleSheet('background-color:white;')
+            copy_button.clicked.connect(self.copyMessage)
+            hlay.addWidget(copy_button)
         else:
             messageShortError.setText(messageBody)
         if short_text_header:
             messageShortError.setText(short_text_header)
+        # Ctrl+C always copies, whatever has the focus in the dialog -- except
+        # a selection in the detail, which the text box copies by itself.
+        copy_shortcut = QtGui.QShortcut(QtGui.QKeySequence(QtGui.QKeySequence.StandardKey.Copy), self)
+        copy_shortcut.activated.connect(self.copyMessage)
         self.lineEdit.setHtml(messageBody)
         closeButton = QtWidgets.QPushButton("Close")
         closeButton.clicked.connect(self.close)
+        closeButton.setFocus()
         self.mainLayout.addWidget(top_widget)
         self.mainLayout.addWidget(self.lineEdit)
         self.mainLayout.addWidget(closeButton)
@@ -322,6 +348,26 @@ class AdvancedErrorPopUP(QtWidgets.QDialog):
 
     def resizeMe(self):
         self.resize(self.minimumSizeHint())
+
+    def copyMessage(self):
+        """The message on the clipboard as plain text.
+
+        With More, all of it, header first: the detail under More is where the
+        file, the line and the arguments are, which is the part somebody asked to
+        look at the problem needs. Without More, what the label says, since that
+        is the whole message.
+        """
+        if self._has_more:
+            text = self.lineEdit.toPlainText()
+            if self._short_text_header and self._short_text_header not in text:
+                text = '%s\n\n%s' % (self._short_text_header, text)
+        else:
+            text = self._messageShortError.text()
+            if QtGui.Qt.mightBeRichText(text):
+                document = QtGui.QTextDocument()
+                document.setHtml(text)
+                text = document.toPlainText()
+        QtWidgets.QApplication.clipboard().setText(text)
 
 
 def popError(parent, ex):
