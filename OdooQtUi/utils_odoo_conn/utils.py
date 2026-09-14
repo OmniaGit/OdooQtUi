@@ -454,20 +454,51 @@ def evaluateModifiers(modifiers):
 
 def evaluateContext(contextStr,
                     fieldsDict):
+    """The `context` attribute of a view node, as a dictionary to send to Odoo.
+
+    :contextStr the attribute, e.g. "{'default_country_id': country_id}"
+    :fieldsDict the names the expression can use: field widgets, or plain
+                values as a read answers them
+    :return: the evaluated dictionary, {} when it cannot be evaluated
+
+    Evaluated over the values and not over the widgets: evaluated over the
+    widgets, `country_id` is a Many2one widget, the context carries it, and the
+    next call that sends that context fails with "cannot marshal" -- which is
+    how a plain `form.loadIds([7])` on a res.partner form of Odoo 19 broke.
+    What still cannot travel over RPC (a name the record does not have and
+    Python does, like `id`) is left out rather than sent.
     """
-    Avaluate the context with aval function
-    This method use a saftry dictionary copi before to be called
-     
-    :contextStr string to evaluate es: product_id==10
-    :fieldsDict dict like key,value of the fields used for the eval funtion
-    :return: result of the aval function
-    """
+    values = {}
+    for name, value in (fieldsDict or {}).items():
+        try:
+            if hasattr(value, 'value'):
+                value = value.value
+        except Exception:
+            continue
+        if isinstance(value, (list, tuple)) and len(value) == 2 \
+                and isinstance(value[0], int) and isinstance(value[1], str):
+            value = value[0]
+        values[name] = value
     try:
-        fieldsDict = copy.copy(fieldsDict)
-        return eval(contextStr, fieldsDict)
-    except Exception as ex:
-        logging.warn("Unable to evaluate %s" % contextStr)
+        result = eval(contextStr, {}, values)
+    except Exception:
+        logging.warning("Unable to evaluate %s" % contextStr)
         return {}
+    if not isinstance(result, dict):
+        return {}
+    return {key: val for key, val in result.items() if _isRpcValue(val)}
+
+
+def _isRpcValue(value):
+    """Whether XML-RPC and JSON-RPC can both carry the value."""
+    if value is None or isinstance(value, (bool, int, float, str)):
+        return True
+    if isinstance(value, (list, tuple)):
+        return all(_isRpcValue(item) for item in value)
+    if isinstance(value, dict):
+        return all(isinstance(key, str) and _isRpcValue(item)
+                   for key, item in value.items())
+    return False
 
 
 def evaluateAttrs(fieldsDict, toCompute, context={}):

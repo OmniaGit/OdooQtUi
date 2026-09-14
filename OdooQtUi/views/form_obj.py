@@ -499,7 +499,7 @@ class TemplateFormView(TemplateView):
         # place of the modifiers -- see utils.widgetModifier.
         values = utils.recordValues(fieldDict, getattr(self, 'formVals', {}))
         for fieldObj in list(fieldDict.values()):
-            client_context = self.odooConnector.rpc_connector.contextUser
+            client_context = dict(self.odooConnector.rpc_connector.contextUser)
             client_context.update(utils.evaluateContext(fieldObj.context, fieldDict))
             val = utils.widgetModifier(fieldObj, 'readonly', fieldDict,
                                        values, client_context)

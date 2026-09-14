@@ -132,7 +132,7 @@ class TemplateView(QtWidgets.QWidget):
         fieldDict = self.interfaceFieldsDict
         values = utils.recordValues(fieldDict, getattr(self, 'formVals', {}))
         for fieldObj in list(fieldDict.values()):
-            client_context = self.odooConnector.rpc_connector.contextUser
+            client_context = dict(self.odooConnector.rpc_connector.contextUser)
             client_context.update(utils.evaluateContext(fieldObj.context, fieldDict))
             readonly = utils.widgetModifier(fieldObj, 'readonly', fieldDict,
                                             values, client_context)
@@ -147,7 +147,7 @@ class TemplateView(QtWidgets.QWidget):
         fieldDict = self.interfaceFieldsDict
         values = utils.recordValues(fieldDict, getattr(self, 'formVals', {}))
         for buttonObj in list(self.buttons.__dict__.values()):
-            client_context = self.odooConnector.rpc_connector.contextUser
+            client_context = dict(self.odooConnector.rpc_connector.contextUser)
             client_context.update(utils.evaluateContext(buttonObj.context, fieldDict))
             readonly = utils.widgetModifier(buttonObj, 'readonly', fieldDict,
                                             values, client_context)

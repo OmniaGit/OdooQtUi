@@ -235,7 +235,7 @@ class TemplateTreeListView(TemplateView):
                 val = record.get(fieldName, '')
                 xml_obj = self.treeObj.widgets_to_add_in_line[col_index]
                 if row_index == 0:
-                    client_context = self.odooConnector.rpc_connector.contextUser
+                    client_context = dict(self.odooConnector.rpc_connector.contextUser)
                     client_context.update(utils.evaluateContext(xml_obj.attrib.get('context', '{}'), record))
                     readonly = fieldPyDefinition.get('readonly', xml_obj.attrib.get('readonly', False))
                     readonly = utils.evaluateBoolean(readonly, context=client_context.copy())
@@ -263,6 +263,12 @@ class TemplateTreeListView(TemplateView):
                     localList.append(val)
                 else:
                     widget = self.treeObj.computeWidget(xml_obj)
+                    if widget is None:
+                        # A column this client does not draw: a <widget>, or a
+                        # button that is not an object method. An empty cell,
+                        # not the whole list refused.
+                        localList.append('')
+                        continue
                     widget.record = record
                     self.row_widgets[row_index][col_index] = widget
                     localList.append(widget)
@@ -338,7 +344,7 @@ class TemplateTreeListView(TemplateView):
         for _row_index, row_vals in fieldDict.items():
             for fieldName, fieldObj in row_vals.items():
                 try:
-                    client_context = self.odooConnector.rpc_connector.contextUser
+                    client_context = dict(self.odooConnector.rpc_connector.contextUser)
                     client_context.update(utils.evaluateContext(fieldObj.context, fieldDict))
                     inv = utils.evaluateAttrs(row_vals, fieldObj.invisible, client_context)
                     col_index = self.labelsOrdered.index(fieldName)
@@ -381,7 +387,7 @@ class TemplateTreeListView(TemplateView):
                 if fieldObj.modifiers:
                     readonlyModif = fieldObj.modifiers.get('readonly', {})
                     invisibleModif = fieldObj.modifiers.get('invisible', {})
-                    client_context = self.odooConnector.rpc_connector.contextUser
+                    client_context = dict(self.odooConnector.rpc_connector.contextUser)
                     client_context.update(utils.evaluateContext(fieldObj.context, fieldDict))
                     if readonlyModif:
                         val = utils.evaluateAttrs(fieldDict.get(row_index, {}), readonlyModif, client_context)

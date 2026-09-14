@@ -111,8 +111,8 @@ class TreeViewList(QtWidgets.QWidget):
             button.readonly = utils.evaluateBoolean(attrs.get('readonly', False))
             button.required = utils.evaluateBoolean(attrs.get('required', False))
             button.invisible = utils.evaluateBoolean(attrs.get('invisible', False))
-        button.setStyleSheet(constants.BUTTON_STYLE_REVERSED)
-        return button
+            button.setStyleSheet(constants.BUTTON_STYLE_REVERSED)
+        return button or None
 
     def computeField(self, xmlObj):
         fieldAttributes = xmlObj.attrib

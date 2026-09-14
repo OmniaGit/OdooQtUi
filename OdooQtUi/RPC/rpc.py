@@ -161,15 +161,19 @@ class RpcConnection(object):
     
     @timeit
     def callCustomMethod(self, odooObj, functionName, parameters=[], kwargParameters={}, context={}, forceHideInterface=False, forceRaise_error=False):
-        localContext = self.contextUser
-        localContext.update(context.copy())
+        # Copies, not the session's own dicts: a context given for one call
+        # must not stay behind in every call that follows, and the default
+        # kwargParameters is shared by every call that does not pass one.
+        localContext = dict(self.contextUser)
+        localContext.update(context)
+        kwargParameters = dict(kwargParameters)
         if localContext:
             kwargParameters['context'] = localContext
         return self.sockInstance.callOdooFunction(odooObj, functionName, parameters, kwargParameters, forceHideInterface, forceRaise_error)
 
     def search(self, obj, filterList, limit=False, offset=False, context={}):
-        localContext = self.contextUser
-        localContext.update(context.copy())
+        localContext = dict(self.contextUser)
+        localContext.update(context)
         res = self.sockInstance.search(obj, filterList, limit, offset, context=localContext)
         if not res:
             return []
@@ -178,8 +182,8 @@ class RpcConnection(object):
     def read(self, obj, fields, ids, context={}, limit=False, load='_classic_read'):
         if not ids:
             return []
-        localContext = self.contextUser
-        localContext.update(context.copy())
+        localContext = dict(self.contextUser)
+        localContext.update(context)
         if isinstance(ids, int):
             ids = [ids]
         return self.sockInstance.read(obj,
@@ -199,8 +203,8 @@ class RpcConnection(object):
         return [self._cache_read[obj][x] for x in ids]
 
     def readSearch(self, obj, fields, filterList=[], order=False, context={}):
-        localContext = self.contextUser
-        localContext.update(context.copy())
+        localContext = dict(self.contextUser)
+        localContext.update(context)
         return self.sockInstance.readSearch(obj,
                                             fields,
                                             filterList,
@@ -208,61 +212,61 @@ class RpcConnection(object):
                                             context=localContext)
 
     def write(self, obj, values, idsToWrite, context={}):
-        localContext = self.contextUser
-        localContext.update(context.copy())
+        localContext = dict(self.contextUser)
+        localContext.update(context)
         return self.sockInstance.write(obj, values, idsToWrite, context=localContext)
 
     def writeSearch(self, obj, values, filterList, context={}):
-        localContext = self.contextUser
-        localContext.update(context.copy())
+        localContext = dict(self.contextUser)
+        localContext.update(context)
         idsToWrite = self.search(obj, filterList)
         return self.write(obj, values, idsToWrite, context=localContext)
 
     def delete(self, obj, idsToUnlink, context={}):
-        localContext = self.contextUser
-        localContext.update(context.copy())
+        localContext = dict(self.contextUser)
+        localContext.update(context)
         return self.sockInstance.delete(obj, idsToUnlink, context=localContext)
 
     def deleteSearch(self, obj, filterList, context={}):
-        localContext = self.contextUser
-        localContext.update(context.copy())
+        localContext = dict(self.contextUser)
+        localContext.update(context)
         idsToUnlink = self.search(obj, filterList)
         return self.delete(obj, idsToUnlink, context=localContext)
 
     def searchCount(self, obj, filterList, context={}):
-        localContext = self.contextUser
-        localContext.update(context.copy())
+        localContext = dict(self.contextUser)
+        localContext.update(context)
         return self.sockInstance.searchCount(obj, filterList, context=localContext)
 
     def create(self, obj, values, context={}):
-        localContext = self.contextUser
-        localContext.update(context.copy())
+        localContext = dict(self.contextUser)
+        localContext.update(context)
         return self.sockInstance.create(obj, values, context=localContext)
 
     def fieldsGet(self, obj, attributesToRead=None, context={}):
         '''
         @attributesToRead: ['string', 'help', 'type'], None means all attributes
         '''
-        localContext = self.contextUser
-        localContext.update(context.copy())
+        localContext = dict(self.contextUser)
+        localContext.update(context)
         return self.sockInstance.fieldsGet(obj, attributesToRead, context=localContext)
 
     def defaultGet(self, obj, fieldsToRead=[], context={}):
         '''
         @attributesToRead: ['string', 'help', 'type']
         '''
-        localContext = self.contextUser
-        localContext.update(context.copy())
+        localContext = dict(self.contextUser)
+        localContext.update(context)
         return self.sockInstance.defaultGet(obj, fieldsToRead, context=localContext)
 
     def fieldsViewGet(self, obj, view_id, view_type, context={}):
-        localContext = self.contextUser
-        localContext.update(context.copy())
+        localContext = dict(self.contextUser)
+        localContext.update(context)
         return self.sockInstance.fieldsViewGet(obj, view_id, view_type, context=localContext)
 
     def on_change(self, obj, activeIds, allVals, fieldName, allOnchanges, context={}):
-        localContext = self.contextUser
-        localContext.update(context.copy())
+        localContext = dict(self.contextUser)
+        localContext.update(context)
         return self.sockInstance.on_change(obj, activeIds, allVals, fieldName, allOnchanges, context=localContext)
 
     def EnableException(self):
