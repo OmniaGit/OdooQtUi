@@ -12,10 +12,13 @@ Every example of the README's quick start is opened on the real display, in a
 process of its own (a theme is applied once per process), and its window is
 captured with the frame the window manager draws around it:
 
-    login          OdooQtUi/images/login.png
-    form           OdooQtUi/images/res_partner.png
-    list           OdooQtUi/images/product_list.png
-    theme          OdooQtUi/images/res_partner_theme.png
+    login          docs/images/login.png
+    form           docs/images/res_partner.png
+    list           docs/images/product_list.png
+    theme          docs/images/res_partner_theme.png
+
+In docs/ and not in OdooQtUi/images/: everything in the package folder is
+shipped in the wheel, and the README pictures are not the library's.
 
     python tools/make_screenshots.py --db V19E_demo
     python tools/make_screenshots.py --db V19E_demo --only list theme
@@ -34,7 +37,7 @@ import subprocess
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-IMAGES = os.path.join(ROOT, 'OdooQtUi', 'images')
+IMAGES = os.path.join(ROOT, 'docs', 'images')
 
 #: example name -> image file name
 EXAMPLES = {
