@@ -1,0 +1,29 @@
+OdooQtUi
+Copyright 2011-2026 OmniaSolutions and the OdooQtUi contributors
+
+This product includes software developed by OmniaSolutions
+(https://omniasolutions.website).
+
+Authors:
+  Daniel Smerghetto
+  Matteo Boscolo
+  Jayraj Thakkar
+
+Project home: https://github.com/OmniaGit/OdooQtUi
+
+Licensed under the Apache License, Version 2.0 (see the LICENSE file).
+Any redistribution or derivative work, in source or binary form, must
+retain this NOTICE file, or reproduce its attribution notices in the
+documentation or in the "About" information shipped with it, as required
+by section 4(d) of the License.
+
+------------------------------------------------------------------------
+
+Third-party code:
+
+OdooQtUiWeb/src/qwebchannel.js
+  Copyright (C) 2016 The Qt Company Ltd.
+  Copyright (C) 2016 Klaralvdalens Datakonsult AB, a KDAB Group company
+  Part of the QtWebChannel module of the Qt Toolkit, distributed under its
+  own license (LGPL-3.0 / GPL-2.0 / GPL-3.0 / commercial), as stated in
+  the file header. It is not covered by the Apache License of this project.

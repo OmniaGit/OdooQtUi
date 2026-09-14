@@ -1,1 +1,8 @@
-include images/*.png
+include README.md
+include CHANGELOG.md
+include LICENSE
+include NOTICE
+recursive-include OdooQtUi/images *.png
+recursive-include OdooQtUi/interface/ui *.ui
+recursive-include test *.py
+global-exclude *.py[cod] __pycache__
