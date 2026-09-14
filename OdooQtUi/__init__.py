@@ -12,4 +12,4 @@ Created on Apr 24, 2019
 @author: mboscolo
 '''
 name = "OdooQtUi"
-__version__ = "0.1.0"
+__version__ = "0.1.0rc1"
