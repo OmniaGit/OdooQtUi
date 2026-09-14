@@ -20,7 +20,9 @@ form.loadIds([7])          # a live, editable Odoo form in your Qt window
 ```
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/OmniaGit/OdooQtUi/main/OdooQtUi/images/Edit_Form.png" alt="An Odoo form rendered by OdooQtUi" width="720">
+  <img src="https://raw.githubusercontent.com/OmniaGit/OdooQtUi/main/OdooQtUi/images/res_partner.png" alt="The res.partner form of Odoo 19 rendered by OdooQtUi" width="720">
+  <br>
+  <em>The code above, run against Odoo 19: the partner form as the server defines it, notebook and one2many lists included.</em>
 </p>
 
 ---
@@ -83,7 +85,7 @@ if not connector.loginWithDial():      # shows the Odoo login dialog
 ```
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/OmniaGit/OdooQtUi/main/OdooQtUi/images/Login.png" alt="Login dialog" width="360">
+  <img src="https://raw.githubusercontent.com/OmniaGit/OdooQtUi/main/OdooQtUi/images/login.png" alt="The OdooQtUi login dialog" width="360">
 </p>
 
 Prefer no dialog? Log in from code, over XML‑RPC or JSON‑RPC:
@@ -126,7 +128,7 @@ print(products.getSelectedIds())
 ```
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/OmniaGit/OdooQtUi/main/OdooQtUi/images/Tree_with_search.png" alt="List view with search" width="720">
+  <img src="https://raw.githubusercontent.com/OmniaGit/OdooQtUi/main/OdooQtUi/images/product_list.png" alt="product.product list with the search bar, Odoo 19" width="720">
 </p>
 
 Double-click a row to open its form. Pass `deafult_filter=[('sale_ok', '=', True)]`
@@ -155,10 +157,16 @@ Load a palette **before** creating the connector:
 ```python
 from OdooQtUi import theme
 
-theme.load({'primary': '#005f73', 'accent': '#0a9396'})
+theme.load({'primary': '#1f4e79', 'accent': '#e67e22'})
 # or theme.load('my_theme.json'), or set ODOOQTUI_THEME=/path/to/my_theme.json
 connector = MainConnector()
 ```
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/OmniaGit/OdooQtUi/main/OdooQtUi/images/res_partner_theme.png" alt="The res.partner form with the palette above" width="720">
+  <br>
+  <em>The same partner form with the palette above: the accent on the buttons, the primary colour on the tabs.</em>
+</p>
 
 The available colour names are listed in
 [`OdooQtUi/theme.py`](OdooQtUi/theme.py).
