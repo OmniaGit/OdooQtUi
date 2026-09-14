@@ -67,6 +67,7 @@ class Many2many(OdooFieldTemplate):
                                                                          viewCheckBoxes={0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled},
                                                                          viewFilter=False,
                                                                          remove_button=remove_button)
+            self.treeViewObj.parentView = qtParent
             self.qtVBoxLayout.addWidget(self.treeViewObj)
             self.qtVBoxLayout.addLayout(qHl)
         elif parent_view_type == 'tree':

@@ -97,6 +97,9 @@ class TemplateTreeListView(TemplateView):
         self.currentRange = [0, 40]
         self.passRange = 40
         self.remove_button = remove_button
+        # The form around the list, when the list is a one2many or a many2many
+        # of it: what `parent.<field>` reads in a column expression.
+        self.parentView = None
         self._initViewObj()
 
     def _initViewObj(self):
@@ -183,6 +186,13 @@ class TemplateTreeListView(TemplateView):
         self.idValsRel = {}
         self.idLineRel = {}
         if not objIds:
+            if self.odooConnector.rpc_connector.serverVersion >= 17:
+                # No rows, and the columns still the ones Odoo would show.
+                headers, hidden = self._columnRules()
+                self.treeObj.tableWidget.setColumnCount(len(headers))
+                self.treeObj.tableWidget.setHorizontalHeaderLabels(headers)
+                for col_index, is_hidden in hidden.items():
+                    self.treeObj.tableWidget.setColumnHidden(col_index, is_hidden)
             return
         return self._loadIds(objIds, forceFieldValues, readonlyFields, invisibleFields)
 
@@ -225,16 +235,30 @@ class TemplateTreeListView(TemplateView):
         if self.viewCheckBoxes:
             flagsDict = self.viewCheckBoxes
         hidden_columns = {}
+        # From Odoo 17 a list tells a column from a cell: `column_invisible`
+        # hides the column, `invisible` hides the value in one row and is an
+        # expression over that row. Up to 16 the rules below, as they were.
+        modern = self.odooConnector.rpc_connector.serverVersion >= 17
+        if modern:
+            headers, hidden_columns = self._columnRules()
+            rowContext = dict(self.odooConnector.rpc_connector.contextUser)
         for row_index, record in enumerate(records):
             if row_index not in self.row_widgets:
                 self.row_widgets[row_index] = {}
             fieldDict[row_index] = record
             localList = []
+            rowValues = utils.recordValues({}, record) if modern else {}
             for col_index, fieldName in enumerate(self.labelsOrdered):
                 fieldPyDefinition = self.fieldsNameTypeRel.get(fieldName, {})
                 val = record.get(fieldName, '')
                 xml_obj = self.treeObj.widgets_to_add_in_line[col_index]
-                if row_index == 0:
+                if modern:
+                    cellInvisible = xml_obj.attrib.get('invisible')
+                    if not utils.isConstantModifier(cellInvisible) \
+                            and utils.evaluateExpression(cellInvisible, rowValues, rowContext):
+                        localList.append('')
+                        continue
+                elif row_index == 0:
                     client_context = dict(self.odooConnector.rpc_connector.contextUser)
                     client_context.update(utils.evaluateContext(xml_obj.attrib.get('context', '{}'), record))
                     readonly = fieldPyDefinition.get('readonly', xml_obj.attrib.get('readonly', False))
@@ -296,6 +320,45 @@ class TemplateTreeListView(TemplateView):
             self.setRemoveButtons()
         self.refreshColumns()
         self.treeObj.tableWidget.horizontalHeader().setStretchLastSection(True)
+
+    def _columnRules(self):
+        """Headers, and which columns are hidden, for Odoo 17 and later.
+
+        A column is hidden by `column_invisible`, over the context and the
+        parent record, or by `optional="hide"`, which Odoo shows only when the
+        user asks for it. A constant `invisible` ("1") still hides the column:
+        there is no row it could depend on.
+        """
+        context = dict(self.odooConnector.rpc_connector.contextUser)
+        parentValues = self._parentValues()
+        headers = []
+        hidden = {}
+        for col_index, fieldName in enumerate(self.treeObj.orderedFields):
+            xml_obj = self.treeObj.widgets_to_add_in_line[col_index]
+            attributes = xml_obj.attrib
+            if xml_obj.tag == 'field':
+                definition = self.fieldsNameTypeRel.get(fieldName, {})
+                headers.append(attributes.get('string') or definition.get('string', fieldName))
+            else:
+                headers.append(attributes.get('string', ''))
+            invisible = attributes.get('invisible')
+            hidden[col_index] = attributes.get('optional') == 'hide' \
+                or utils.evaluateColumnInvisible(attributes.get('column_invisible'), context, parentValues) \
+                or (utils.isConstantModifier(invisible) and utils.evaluateExpression(invisible))
+            if fieldName == 'is_checkout':
+                hidden[col_index] = False
+        return headers, hidden
+
+    def _parentValues(self):
+        parent = self.parentView
+        if parent is None or not hasattr(parent, 'interfaceFieldsDict'):
+            return {}
+        formVals = getattr(parent, 'formVals', {})
+        if getattr(parent, 'skipOnChange', False):
+            # The form is still writing the record into its widgets, and the
+            # ones it has not reached hold the previous record.
+            return utils.recordValues({}, formVals)
+        return utils.recordValues(parent.interfaceFieldsDict, formVals)
 
     def doubleClickEvent(self, *args):
         try:

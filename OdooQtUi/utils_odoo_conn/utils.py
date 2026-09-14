@@ -906,3 +906,37 @@ def onchangeValueToWidget(value):
     if isinstance(value, dict) and 'id' in value:
         return [value['id'], value.get('display_name', '')] if value['id'] else False
     return value
+
+
+class ParentValues(dict):
+    """`parent` in a list expression: the record of the form around the list.
+
+    Read by attribute, as Odoo writes it (`parent.state`); a name the form does
+    not hold is False rather than an error.
+    """
+
+    def __getattr__(self, name):
+        return self.get(name, False)
+
+
+def evaluateColumnInvisible(expression, context={}, parentValues={}):
+    """`column_invisible` of a list column, Odoo 17 and later.
+
+    About the whole column, so there is no row to read: only the context and
+    the parent record. What cannot be evaluated leaves the column shown -- the
+    opposite of a row's `invisible`: a column that vanishes for every row is a
+    worse mistake than one shown when Odoo would not.
+    """
+    if expression is None:
+        return False
+    if isConstantModifier(expression):
+        return evaluateExpression(expression)
+    context = dict(context or {})
+    namespace = {'context': context, 'uid': context.get('uid'),
+                 'parent': ParentValues(parentValues or {})}
+    try:
+        return bool(eval(str(expression).strip(), {'__builtins__': _MODIFIER_BUILTINS}, namespace))
+    except Exception as ex:
+        logMessage('debug', 'Unable to evaluate the column modifier %r: %s'
+                   % (expression, ex), 'evaluateColumnInvisible')
+        return False

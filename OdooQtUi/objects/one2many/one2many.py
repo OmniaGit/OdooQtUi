@@ -68,6 +68,7 @@ class One2many(OdooFieldTemplate):
                                                                          view_id=False,
                                                                          viewCheckBoxes={},
                                                                          viewFilter=False)
+            self.treeViewObj.parentView = qtParent
         self.getQtObject(parent_view_type)
 
     def __str__(self)->str:
