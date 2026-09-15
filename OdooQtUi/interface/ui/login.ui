@@ -122,7 +122,21 @@
          </property>
         </widget>
        </item>
-       <item row="4" column="0" colspan="2">
+       <item row="4" column="0">
+        <widget class="QLabel" name="label_company">
+         <property name="text">
+          <string>Company</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="QComboBox" name="comboBox_company">
+         <property name="maxVisibleItems">
+          <number>10</number>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="0" colspan="2">
         <widget class="QProgressBar" name="loginProgressBar">
          <property name="value">
           <number>24</number>
@@ -195,6 +209,7 @@
   <tabstop>comboBox_database</tabstop>
   <tabstop>lineEdit_username</tabstop>
   <tabstop>lineEdit_password</tabstop>
+  <tabstop>comboBox_company</tabstop>
   <tabstop>pushButton_ok</tabstop>
   <tabstop>pushButton_cancel</tabstop>
   <tabstop>pushButton_back</tabstop>

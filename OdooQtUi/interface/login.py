@@ -75,8 +75,9 @@ class LoginDial(QtWidgets.QDialog,
         self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
         self.setEvents()
         self.progress = QProgressBar()
-        self.page_2.layout().addWidget(self.progress, 4, 0, 1,2)
+        self.page_2.layout().addWidget(self.progress, 5, 0, 1,2)
         self.progress.setRange(0,1)
+        self.setCompanyHidden(True)
         self._settings = QSettings("OmniaQtUI", "login")
 
     def save_login_settings(self):
@@ -139,6 +140,7 @@ class LoginDial(QtWidgets.QDialog,
         self.label_server.setStyleSheet(constants.LOGIN_LABEL)
         self.label_username.setStyleSheet(constants.LOGIN_LABEL)
         self.label_scheme.setStyleSheet(constants.LOGIN_LABEL)
+        self.label_company.setStyleSheet(constants.LOGIN_LABEL)
 
         self.lineEdit_password.setStyleSheet(constants.LOGIN_LINEEDIT_STYLE)
         self.lineEdit_port.setStyleSheet(constants.LOGIN_LINEEDIT_STYLE)
@@ -148,6 +150,7 @@ class LoginDial(QtWidgets.QDialog,
 
         self.comboBox_conn_type.setStyleSheet(constants.LOGIN_COMBO_STYLE)
         self.comboBox_database.setStyleSheet(constants.LOGIN_COMBO_STYLE)
+        self.comboBox_company.setStyleSheet(constants.LOGIN_COMBO_STYLE)
 
         self.stackedWidget.setStyleSheet(constants.LOGIN_STACKED_WIDGET)
 
@@ -201,6 +204,10 @@ class LoginDial(QtWidgets.QDialog,
             self.pushButton_next.setHidden(False)
             self.pushButton_ok.setHidden(True)
 
+    def setCompanyHidden(self, hidden):
+        self.label_company.setHidden(hidden)
+        self.comboBox_company.setHidden(hidden)
+
     def previousPage(self):
         self.pushButton_ok.setHidden(True)
         self.pushButton_back.setHidden(True)
@@ -234,6 +241,7 @@ class LoginDialComplete(LoginDial):
         self.availableConnTypes = self.odooConnector.rpc_connector.availableConnTypes
         super(LoginDialComplete, self).__init__(connType, availableConnTypes=self.availableConnTypes)
         self.connType = connType
+        self.companyId = False
         if not self.odooConnector.rpc_connector.userLogged:
             self.connectFromFile(self.app_name)
         else:
@@ -249,12 +257,39 @@ class LoginDialComplete(LoginDial):
             # stored one; whoever wants it refreshed has the button that
             # reads it back from the server.
             self.dbList = utils.loadFromFile(self.app_name)[7] or [self.dbName]
+            self.companyId = self.odooConnector.rpc_connector.companyId
 
         if self.odooConnector.rpc_connector.userLogged:
             self.setLogged()
         else:
             self.setNotLogged()
         self.initFields()
+        if self.odooConnector.rpc_connector.userLogged:
+            self.fillCompanies()
+        # The companies shown are those of the user who logged in: other
+        # credentials may have others, read at the next login.
+        self.comboBox_database.currentTextChanged.connect(self.hideCompanies)
+        self.lineEdit_username.textEdited.connect(self.hideCompanies)
+        self.lineEdit_password.textEdited.connect(self.hideCompanies)
+
+    def fillCompanies(self):
+        """
+        fill the company combo with the logged user's companies
+        :return: True when shown, only for a user with more than one company
+        """
+        rpc = self.odooConnector.rpc_connector
+        self.comboBox_company.clear()
+        for company in rpc.userCompanies:
+            self.comboBox_company.addItem(company['name'], company['id'])
+        index = self.comboBox_company.findData(self.companyId or rpc.companyId)
+        if index < 0:
+            index = self.comboBox_company.findData(rpc.companyId)
+        self.comboBox_company.setCurrentIndex(max(index, 0))
+        self.setCompanyHidden(not rpc.isMultiCompany)
+        return rpc.isMultiCompany
+
+    def hideCompanies(self, *_args):
+        self.setCompanyHidden(True)
 
     def setLogged(self):
         utils.logMessage('info', 'User logged reading from stored file', '__init__')
@@ -282,13 +317,25 @@ class LoginDialComplete(LoginDial):
         self.scheme, \
         self.connType, \
         self.dbList = utils.loadFromFile(app_name)
+        self.companyId = utils.loadCompanyFromFile(app_name)
         utils.logMessage('info',
                          'Try login with stored settings:',
                          'connectFromFile')
         try:
             self.loginWithUserDial()
+            self.applyStoredCompany()
         except Exception as ex:
             utils.logWarning("Unable to get login information from file", "connectFromFile")
+
+    def applyStoredCompany(self):
+        rpc = self.odooConnector.rpc_connector
+        if not (self.companyId and rpc.userLogged):
+            return
+        try:
+            rpc.updateCompany(self.companyId)
+        except ValueError as ex:
+            # The user lost that company since: stay in the default one.
+            utils.logWarning("Stored company not available: %s" % ex, "applyStoredCompany")
 
     def setEvents(self):
         self.pushButton_next.clicked.connect(self.nextPage)
@@ -314,8 +361,21 @@ class LoginDialComplete(LoginDial):
         try:
             QApplication.processEvents()
             self.transferDbInfoFromInterface()
+            # A shown combo belongs to these very credentials: editing them hides it.
+            chosenCompanyId = False if self.comboBox_company.isHidden() else self.comboBox_company.currentData()
             self.loginWithUserDial()
-            if self.odooConnector.rpc_connector.userLogged:
+            rpc = self.odooConnector.rpc_connector
+            if rpc.userLogged:
+                if chosenCompanyId:
+                    rpc.updateCompany(chosenCompanyId)
+                elif self.fillCompanies():
+                    # A user with more companies picks one before going on.
+                    self.label_status.setText('Select the company')
+                    self.label_status.setStyleSheet('')
+                    self.label_status.setHidden(False)
+                    self.comboBox_company.setFocus()
+                    return
+                self.companyId = rpc.companyId
                 utils.writeToFile(self.dbName,
                                   self.username,
                                   self.userpass,
@@ -324,7 +384,8 @@ class LoginDialComplete(LoginDial):
                                   self.scheme,
                                   self.connType,
                                   self.dbList,
-                                  self.app_name)
+                                  self.app_name,
+                                  companyId=self.companyId)
                 self.label_status.setText('User Logged')
                 self.lineEdit_username.setStyleSheet(constants.LOGIN_LINEEDIT_STYLE)
                 self.lineEdit_password.setStyleSheet(constants.LOGIN_LINEEDIT_STYLE)
