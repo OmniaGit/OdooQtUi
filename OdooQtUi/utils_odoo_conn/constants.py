@@ -61,6 +61,20 @@ _THEMED = {
     'BUTTON_STYLE_MANY_2_ONE': 'background-color: $accent;border-color: $accent;max-width:30px;max-height:10px;font-weight: bold;border-radius: 0px;border: none;color: white;padding: 5px 10px;font-size: 14px;',
     'BUTTON_STYLE_MANY_2_ONE__2': 'background-color: $accent;border-color: $accent;font-weight: bold;border-radius: 0px;border: none;color: white;padding: 5px 10px;font-size: 14px;',
     'BUTTON_STYLE_LINK': 'color: $accent;font-weight: bold;',
+    # An action on a row of a list: light, so a column of them does not outweigh
+    # the data -- BUTTON_STYLE_REVERSED, black, did. Greys stay literal, as the
+    # palette leaves them.
+    # Resting on $selection, the palette's lightest blue: on $surface, white on
+    # white, nothing said they were buttons.
+    'BUTTON_STYLE_ROW': ('QPushButton { background-color: $selection; color: $text;'
+                         ' border: 1px solid $border; border-radius: 4px;'
+                         ' padding: 3px 10px; font-size: 12px; }'
+                         'QPushButton:hover { color: $accent;'
+                         ' border-color: $accent; }'
+                         'QPushButton:pressed { background-color: $accent;'
+                         ' color: $on_primary; }'
+                         'QPushButton:disabled { color: #adb5bd;'
+                         ' background-color: $surface; border-color: #e5e7eb; }'),
     'TABLE_LIST_LIST': """QScrollBar:horizontal {
     background-color: #e4e4e6;
     border-top: 1px solid #c7ccd1;
