@@ -656,9 +656,11 @@ def writeToFile(dbName,
                 scheme,
                 connType,
                 dbList=[],
-                app_name='OdooQtUi'):
+                app_name='OdooQtUi',
+                companyId=False):
     """
     write odoo login information to file
+    :companyId the company the user last worked in, see loadCompanyFromFile
     """
     #
     if not any((dbName,
@@ -680,6 +682,7 @@ def writeToFile(dbName,
         'scheme': scheme,
         'conn_type': connType,
         'db_list': dbList,
+        'company_id': companyId,
     }
     toWrite = json.dumps(toWriteDict)
     filePath = getLoginFile(app_name)
@@ -717,6 +720,22 @@ def loadFromFile(app_name='OdooQtUi'):
             dbList = fileDict.get('db_list', [])
     #
     return dbName, username, userpass, serverIp, serverPort, scheme, connType, dbList
+
+
+def loadCompanyFromFile(app_name='OdooQtUi'):
+    """
+    load the company the user last worked in from the login file
+    kept out of loadFromFile, whose tuple the callers unpack
+    :return: the company id, False when none was stored
+    """
+    filePath = getLoginFile(app_name)
+    if not os.path.exists(filePath):
+        return False
+    with open(filePath, 'r') as readFile:
+        content = readFile.read()
+    if not content:
+        return False
+    return json.loads(content).get('company_id') or False
 
 
 def html_traceback(exc_value):

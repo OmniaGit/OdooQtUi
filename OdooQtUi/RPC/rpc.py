@@ -41,6 +41,10 @@ class RpcConnection(object):
         self.connectionType = ''
         self.hostname = socket.gethostname()
         self._session_id = False
+        # The companies the logged user may work in, [{'id': 1, 'name': '...'}],
+        # and the user's own default one: see loadUserCompanies.
+        self.userCompanies = []
+        self.userDefaultCompanyId = False
         self.clearCache()
         return super(RpcConnection, self).__init__()
 
@@ -59,6 +63,9 @@ class RpcConnection(object):
         self.userName = ''
         self.userPassword = ''
         self.sockInstance = False
+        self.contextUser.pop('allowed_company_ids', None)
+        self.userCompanies = []
+        self.userDefaultCompanyId = False
 
     @property
     def serverVersion(self):
@@ -134,10 +141,17 @@ class RpcConnection(object):
         self.initConnection(connectionType, userName, userPassword, databaseName, xmlrpcPort, scheme, xmlrpcServerIP)
         if not self.sockInstance:
             return False
+        # The companies of whoever was logged before are not this user's:
+        # sent along, Odoo refuses every call with "Access to unauthorized or
+        # invalid companies".
+        self.contextUser.pop('allowed_company_ids', None)
+        self.userCompanies = []
+        self.userDefaultCompanyId = False
         res = self.sockInstance.loginWithUser()
         self.userId = self.sockInstance.userId
         if self.userId:
             self.computeUserLanguage()
+            self.computeUserCompanies()
         if not res:
             self.userId = False
         return res
@@ -164,7 +178,94 @@ class RpcConnection(object):
             logging.warning('Unable to get user context.')
             res = {}
         self.contextUser.update(res.copy())
-    
+
+    def computeUserCompanies(self):
+        """
+        load the user's companies and start in the default one, as the web client does
+
+        Odoo keeps no active company per session: every call works in the
+        first company of its context key allowed_company_ids, or in the
+        user's default company when the key is missing. So the active company
+        lives here, in contextUser, and travels with every call.
+        """
+        try:
+            self.loadUserCompanies()
+        except OdooRpcError as ex:
+            # A login is not refused for the companies: Odoo falls back on the
+            # user's default company when the context names none.
+            logging.warning('Unable to get user companies: %s' % ex)
+            return
+        if self.userDefaultCompanyId:
+            self.contextUser['allowed_company_ids'] = [self.userDefaultCompanyId]
+
+    def loadUserCompanies(self):
+        """
+        read the companies the logged user may work in
+        :return: [{'id': 1, 'name': 'My Company'}, ...] in the order Odoo lists them
+        """
+        if not self.userId:
+            return []
+        users = self.read('res.users', ['company_id', 'company_ids'], [self.userId])
+        if not users:
+            return []
+        user = users[0]
+        defaultCompany = user.get('company_id')
+        self.userDefaultCompanyId = defaultCompany[0] if defaultCompany else False
+        companyIds = user.get('company_ids') or []
+        companies = self.readSearch('res.company', ['name'], [('id', 'in', companyIds)]) if companyIds else []
+        self.userCompanies = [{'id': company['id'], 'name': company['name']} for company in companies]
+        return self.userCompanies
+
+    @property
+    def companyId(self):
+        """The company the calls work in: the first allowed one, as env.company on the server."""
+        allowed = self.contextUser.get('allowed_company_ids')
+        if allowed:
+            return allowed[0]
+        return self.userDefaultCompanyId
+
+    @property
+    def companyName(self):
+        companyId = self.companyId
+        for company in self.userCompanies:
+            if company['id'] == companyId:
+                return company['name']
+        return ''
+
+    @property
+    def isMultiCompany(self):
+        """The user has more than one company to choose from."""
+        return len(self.userCompanies) > 1
+
+    def getCompanyId(self, company):
+        """
+        the id of one of the user's companies
+        :company the company name or its id
+        :raise ValueError: the user has no such company, or two with that name
+        """
+        if isinstance(company, int):
+            matches = [c for c in self.userCompanies if c['id'] == company]
+        else:
+            matches = [c for c in self.userCompanies if c['name'] == company]
+        if not matches:
+            raise ValueError('The user %r has no company %r' % (self.userName, company))
+        if len(matches) > 1:
+            raise ValueError('The user %r has more companies named %r: use the id' % (self.userName, company))
+        return matches[0]['id']
+
+    def updateCompany(self, company):
+        """
+        switch the company every following call works in
+        :company the company name or its id, one of userCompanies
+        :return: the id of the company now active
+        :raise ValueError: the user has no such company
+        """
+        companyId = self.getCompanyId(company)
+        self.contextUser['allowed_company_ids'] = [companyId]
+        # What was read belongs to the company of before.
+        self.clearCache()
+        return companyId
+
     @timeit
     def callCustomMethod(self, odooObj, functionName, parameters=[], kwargParameters={}, context={}, forceHideInterface=False, forceRaise_error=False):
         # Copies, not the session's own dicts: a context given for one call
