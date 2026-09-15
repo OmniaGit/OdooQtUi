@@ -195,9 +195,11 @@ class JsonRpcConnection(object):
 
     def search(self, obj, filterList, limit=False, offset=False, order='', context={}):
         kargs = {'context': context}
-        if limit or limit == 0:
+        # A number only: see XmlRpcConnection.search, where limit=False made
+        # every ir.attachment search come back empty.
+        if limit is not None and not isinstance(limit, bool):
             kargs['limit'] = limit
-        if offset or offset == 0:
+        if offset is not None and not isinstance(offset, bool):
             kargs['offset'] = offset
         if order:
             kargs['order'] = order
