@@ -127,19 +127,36 @@ class ImageColumns(unittest.TestCase):
             self.tag = tag
             self.attrib = attrib
 
-    def _view(self, ordered, types, elements):
-        view = TemplateTreeListView.__new__(TemplateTreeListView)
+    def _view(self, ordered, types, elements, modelFields=None):
+        """A list view with its arch, and the model behind it.
+
+        The two are not the same thing, and the difference is the point of
+        _imageFieldFor: a list that shows image_1920 does not mention image_128,
+        which the model has all the same.
+        """
+        # `model` and `fieldsNameTypeRel` are properties reading the view
+        # definition, so the stand-in overrides them in a subclass.
+        fields = types if modelFields is None else modelFields
+
+        class _View(TemplateTreeListView):
+            model = 'a.model'
+            fieldsNameTypeRel = types
+
+        view = _View.__new__(_View)
         view.labelsOrdered = ordered
-        view.__dict__['fieldsNameTypeRel'] = types
         view.treeObj = type('tree', (), {'widgets_to_add_in_line': elements})()
+        connection = type('rpc', (), {'fieldsGet': staticmethod(lambda model: fields)})()
+        view.odooConnector = type('connector', (), {'rpc_connector': connection})()
         return view
 
     def test_a_field_asked_for_as_an_image_is_a_picture_column(self):
         view = self._view(['image_1920', 'name'],
-                          {'image_1920': {'type': 'image'}, 'name': {'type': 'char'},
-                           'image_128': {'type': 'image'}},
+                          {'image_1920': {'type': 'image'}, 'name': {'type': 'char'}},
                           {0: self._Element('field', widget='image'),
-                           1: self._Element('field')})
+                           1: self._Element('field')},
+                          modelFields={'image_1920': {'type': 'image'},
+                                       'image_128': {'type': 'image'},
+                                       'name': {'type': 'char'}})
         # image_128 and not image_1920: the cell is 60 pixels, and the big one is
         # four times the bytes for no more pixels on screen.
         self.assertEqual(view._imageColumns(), {0: 'image_128'})

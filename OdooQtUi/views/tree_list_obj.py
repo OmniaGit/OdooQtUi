@@ -275,11 +275,21 @@ class TemplateTreeListView(TemplateView):
         return columns
 
     def _imageFieldFor(self, fieldName):
-        """The smallest sibling of an image field this model has, or the field."""
+        """The smallest sibling of an image field this model has, or the field.
+
+        The model is asked, not the view: `fieldsNameTypeRel` holds the fields of
+        the arch, and `image_128` is not in a list view that shows `image_1920`.
+        fields_get is cached per model, so this costs a dictionary lookup.
+        """
         if not fieldName.startswith('image_'):
             return fieldName
+        try:
+            modelFields = self.odooConnector.rpc_connector.fieldsGet(self.model)
+        except Exception as ex:
+            utils.logMessage('warning', 'fields of %r: %r' % (self.model, ex), 'imageField')
+            return fieldName
         for candidate in self.SMALL_IMAGE_FIELDS:
-            if candidate in self.fieldsNameTypeRel:
+            if candidate in modelFields:
                 return candidate
         return fieldName
 
@@ -399,7 +409,10 @@ class TemplateTreeListView(TemplateView):
             self.setRemoveButtons()
         self.refreshColumns()
         self.treeObj.tableWidget.horizontalHeader().setStretchLastSection(True)
-        self._loadVisibleImages()
+        # After the event loop has laid the table out, and not before: until then
+        # the viewport has no height and rowAt answers -1 for every row, which
+        # reads the pictures of the whole page instead of the ones on screen.
+        QtCore.QTimer.singleShot(0, self._loadVisibleImages)
 
     # -- the picture columns ---------------------------------------------------
 
@@ -442,7 +455,13 @@ class TemplateTreeListView(TemplateView):
                 self._drawImageCell(row_index, col_index, recordId, fieldName)
 
     def _visibleRows(self):
-        """The rows the user can see, plus one page of margin above and below."""
+        """The rows the user can see, plus half a screen of margin either way.
+
+        A table that has not been laid out yet answers -1 to everything; then
+        the first screenful is taken, which is what the user is about to see,
+        rather than the whole page -- the point of all this being not to read
+        what nobody looks at.
+        """
         table = self.treeObj.tableWidget
         rows = table.rowCount()
         if not rows:
@@ -452,8 +471,9 @@ class TemplateTreeListView(TemplateView):
         if first < 0:
             first = 0
         if last < 0:
-            last = rows - 1
-        margin = max(1, last - first)
+            height = table.rowHeight(0) or 30
+            last = min(rows - 1, max(0, table.viewport().height() // height))
+        margin = max(1, (last - first) // 2)
         return range(max(0, first - margin), min(rows, last + margin + 1))
 
     def _drawImageCell(self, row_index, col_index, recordId, fieldName):
