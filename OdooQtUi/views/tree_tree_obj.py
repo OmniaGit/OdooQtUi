@@ -14,7 +14,8 @@ Created on 24 Mar 2017
 import json
 #
 from PySide6 import QtWidgets, QtGui
-from PySide6.QtCore import QAbstractItemModel, Qt, QModelIndex
+from PySide6.QtCore import (QAbstractItemModel, Qt, QModelIndex,
+                            QSortFilterProxyModel)
 
 
 def createRedFolderIcon():
@@ -294,11 +295,41 @@ class TreeTreeView(QtWidgets.QWidget):
         self.showSearch = showSearch
         self.abstractModel = None
         self._mainLayout = QtWidgets.QVBoxLayout()
-        self.setLayout(self._mainLayout)    
+        self.setLayout(self._mainLayout)
+        #
+        # The filter. A structure is read once and kept, so filtering it is the
+        # proxy's work and never the server's: typing costs nothing and the tree
+        # keeps a parent whose child matches, which is what
+        # setRecursiveFilteringEnabled is for -- without it a search for a part
+        # hides the assembly it is in, and with it the row is still where the
+        # user expects it.
+        self._filterEdit = QtWidgets.QLineEdit()
+        self._filterEdit.setPlaceholderText("Filter the structure")
+        self._filterEdit.setClearButtonEnabled(True)
+        self._filterEdit.textChanged.connect(self._filterChanged)
+        self._filterEdit.setVisible(bool(showSearch))
+        self._mainLayout.addWidget(self._filterEdit)
+        #
+        self.proxyModel = QSortFilterProxyModel(self)
+        self.proxyModel.setRecursiveFilteringEnabled(True)
+        self.proxyModel.setFilterCaseSensitivity(Qt.CaseInsensitive)
+        self.proxyModel.setFilterKeyColumn(-1)          # every column
+        #
         self._qTreeView = QtWidgets.QTreeView()
         self._qTreeView.setSelectionMode(QtWidgets.QAbstractItemView.ContiguousSelection)
         self._mainLayout.addWidget(self._qTreeView)
-        
+
+    def _filterChanged(self, text):
+        """What the user typed, and the tree opened on what is left of it."""
+        self.proxyModel.setFilterFixedString(text or '')
+        if text:
+            self._qTreeView.expandAll()
+
+    def setFilterVisible(self, visible):
+        """Show the filter box, for a caller that did not ask for it at build."""
+        self.showSearch = bool(visible)
+        self._filterEdit.setVisible(self.showSearch)
+
     def loadIds(self, ids):
         """
         :ids: list of first level ids
@@ -307,13 +338,32 @@ class TreeTreeView(QtWidgets.QWidget):
                                           self._objectName,
                                           self._functionName,
                                           ids)
-        self._qTreeView.setModel(self.abstractModel)
+        self.proxyModel.setSourceModel(self.abstractModel)
+        self._qTreeView.setModel(self.proxyModel)
+        self._filterEdit.clear()
         self._qTreeView.header().setStyleSheet(constants.MANY_2_MANY_H_HEADER)
         #self._qTreeView.setStyleSheet(constants.TABLE_VIEW_LIST_LIST)
 
+    def sourceIndex(self, index):
+        """The index in the structure behind whatever the view handed over.
+
+        Everything the view answers with -- a selection, a click -- is an index
+        of the proxy, and the model knows nothing of those.
+        """
+        if index.model() is self.proxyModel:
+            return self.proxyModel.mapToSource(index)
+        return index
+
+    def selectedIndexes(self):
+        """What is selected, in the structure's own indexes."""
+        selectionModel = self._qTreeView.selectionModel()
+        if selectionModel is None:
+            return []
+        return [self.sourceIndex(index) for index in selectionModel.selectedIndexes()]
+
     def getSelectedNodes(self):
         nodes = []
-        for index in self._qTreeView.selectionModel().selectedIndexes():
+        for index in self.selectedIndexes():
             node = self.abstractModel.nodeFromIndex(index)
             if node not in nodes:
                 nodes.append(node)

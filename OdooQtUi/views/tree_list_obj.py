@@ -11,6 +11,8 @@ Created on 24 Mar 2017
 
 @author: dsmerghetto
 '''
+import base64
+
 from PySide6 import QtWidgets, QtCore, QtGui
 from .parser.tree_list import TreeViewList
 from .templateView import TemplateView
@@ -96,6 +98,14 @@ class TemplateTreeListView(TemplateView):
         self.labelsOrdered = []
         self.deafult_filter = deafult_filter
         self.currentRange = [0, 40]
+        #: The domain the user searched with, kept so the paging buttons search
+        #: the same thing. None means nothing was searched and the default
+        #: filter applies.
+        self.currentFilter = None
+        #: {(record id, field): base64} -- an image drawn once is not read again,
+        #: and scrolling back up costs nothing.
+        self._imageCache = {}
+        self._image_rows_connected = False
         self.passRange = 40
         self.remove_button = remove_button
         # The form around the list, when the list is a one2many or a many2many
@@ -158,13 +168,29 @@ class TemplateTreeListView(TemplateView):
 
     @utilsUi.rpcErrorBoundary
     def filterChanged(self, newFilter):
+        """The user searched: back to the first page, and remember what was asked.
 
+        Both were bugs until 2026-09-16. The range was left where paging had put
+        it, so a search made after paging showed its second or third page as if
+        it were the first; and the domain was forgotten as soon as it had been
+        used, so the paging buttons below searched the default filter instead --
+        the user typed a code, paged once, and got the whole table back.
+        """
         if self.deafult_filter:
             newFilter.extend(self.deafult_filter)
+        self.currentFilter = newFilter
+        self.currentRange = [0, self.passRange]
         objIds = self.odooConnector.rpc_connector.search(self.model, newFilter, limit=self.passRange, offset=0)
         self.buttToLeft.setHidden(True)
         self.buttToRight.setHidden(False)
         self._loadIds(objIds)
+
+    def pagingFilter(self):
+        """What the paging buttons search: the user's own domain when there is
+        one, the default filter otherwise."""
+        if self.currentFilter is None:
+            return self.deafult_filter
+        return self.currentFilter
 
     def forceRecordVals(self, recordID, valuesDict={}):
         if not valuesDict:
@@ -203,8 +229,69 @@ class TemplateTreeListView(TemplateView):
         searchFilter = []
         if self.deafult_filter:
             searchFilter = self.deafult_filter
+        self.currentFilter = None
+        self.currentRange = [0, self.passRange]
         objIds = self.odooConnector.rpc_connector.search(self.model, searchFilter, self.passRange)  # to check with many records if 40 stop will work, 40)
         return self._loadIds(objIds, forceFieldValues, readonlyFields, invisibleFields)
+
+    #: Field types that do not belong in the first read: the value is base64,
+    #: it is big, and until 2026-09-16 it went into the cell as text, where it
+    #: rendered as nothing at all -- a page of 40 products with `image_1920` was
+    #: 325 KB against 14 KB without it. A column the view marks `widget="image"`
+    #: is drawn now, but afterwards and only for the rows on screen.
+    BINARY_TYPES = ('binary', 'image')
+
+    #: The size an image column is drawn at, and the sibling field preferred for
+    #: it: reading `image_1920` to show 60 pixels is 39 KB a row against 10.
+    IMAGE_CELL_SIZE = 60
+    SMALL_IMAGE_FIELDS = ('image_128', 'image_256')
+
+    def _fieldsToRead(self):
+        """The columns of the view, minus the ones the first read does not carry."""
+        wanted = []
+        for fieldName in self.labelsOrdered:
+            definition = self.fieldsNameTypeRel.get(fieldName, {})
+            if definition.get('type') in self.BINARY_TYPES:
+                continue
+            wanted.append(fieldName)
+        return wanted
+
+    def _imageColumns(self):
+        """{column index: field to read} for the columns drawn as a picture.
+
+        A column counts when the view asked for `widget="image"`, which is what
+        Odoo's own list does. The field read is not always the one named: an
+        image field of Odoo comes in sizes, and a 60 pixel cell is served by
+        `image_128` -- 10 KB a row instead of 39.
+        """
+        columns = {}
+        for col_index, fieldName in enumerate(self.labelsOrdered):
+            element = self.treeObj.widgets_to_add_in_line.get(col_index)
+            if element is None or element.tag != 'field':
+                continue
+            if element.attrib.get('widget') != 'image':
+                continue
+            columns[col_index] = self._imageFieldFor(fieldName)
+        return columns
+
+    def _imageFieldFor(self, fieldName):
+        """The smallest sibling of an image field this model has, or the field.
+
+        The model is asked, not the view: `fieldsNameTypeRel` holds the fields of
+        the arch, and `image_128` is not in a list view that shows `image_1920`.
+        fields_get is cached per model, so this costs a dictionary lookup.
+        """
+        if not fieldName.startswith('image_'):
+            return fieldName
+        try:
+            modelFields = self.odooConnector.rpc_connector.fieldsGet(self.model)
+        except Exception as ex:
+            utils.logMessage('warning', 'fields of %r: %r' % (self.model, ex), 'imageField')
+            return fieldName
+        for candidate in self.SMALL_IMAGE_FIELDS:
+            if candidate in modelFields:
+                return candidate
+        return fieldName
 
     @utils.timeit
     def _loadIds(self,
@@ -227,7 +314,7 @@ class TemplateTreeListView(TemplateView):
             self.buttToRight.setHidden(False)
         objIds.sort()
         records = self.odooConnector.rpc_connector.read(self.model,
-                                                        self.labelsOrdered,
+                                                        self._fieldsToRead(),
                                                         objIds) or []
         flagsDict = {}
         fieldDict = {}
@@ -322,6 +409,95 @@ class TemplateTreeListView(TemplateView):
             self.setRemoveButtons()
         self.refreshColumns()
         self.treeObj.tableWidget.horizontalHeader().setStretchLastSection(True)
+        # After the event loop has laid the table out, and not before: until then
+        # the viewport has no height and rowAt answers -1 for every row, which
+        # reads the pictures of the whole page instead of the ones on screen.
+        QtCore.QTimer.singleShot(0, self._loadVisibleImages)
+
+    # -- the picture columns ---------------------------------------------------
+
+    def _loadVisibleImages(self):
+        """Draw the image columns of the rows on screen, and only those.
+
+        The first read of a page carries no binaries: they are the bulk of it
+        and the table is wanted now. The pictures follow, for what the user can
+        actually see -- scrolling asks for the next ones -- and each one is kept,
+        so a row drawn once is never read again.
+        """
+        columns = self._imageColumns()
+        if not columns:
+            return
+        table = self.treeObj.tableWidget
+        if not table:
+            return
+        table.setIconSize(QtCore.QSize(self.IMAGE_CELL_SIZE, self.IMAGE_CELL_SIZE))
+        if not self._image_rows_connected:
+            # Scrolling brings other rows into view; the ones already drawn cost
+            # nothing, since _imageCache answers for them.
+            table.verticalScrollBar().valueChanged.connect(self._loadVisibleImages)
+            self._image_rows_connected = True
+        wanted = {}
+        for row_index in self._visibleRows():
+            recordId = self.idLineRel.get(row_index)
+            if not recordId:
+                continue
+            for col_index, fieldName in columns.items():
+                if (recordId, fieldName) in self._imageCache:
+                    self._drawImageCell(row_index, col_index, recordId, fieldName)
+                else:
+                    wanted.setdefault(fieldName, []).append((row_index, col_index, recordId))
+        for fieldName, rows in wanted.items():
+            ids = [recordId for _row, _col, recordId in rows]
+            records = self.odooConnector.rpc_connector.read(self.model, [fieldName], ids) or []
+            for record in records:
+                self._imageCache[(record.get('id'), fieldName)] = record.get(fieldName) or ''
+            for row_index, col_index, recordId in rows:
+                self._drawImageCell(row_index, col_index, recordId, fieldName)
+
+    def _visibleRows(self):
+        """The rows the user can see, plus half a screen of margin either way.
+
+        A table that has not been laid out yet answers -1 to everything; then
+        the first screenful is taken, which is what the user is about to see,
+        rather than the whole page -- the point of all this being not to read
+        what nobody looks at.
+        """
+        table = self.treeObj.tableWidget
+        rows = table.rowCount()
+        if not rows:
+            return []
+        first = table.rowAt(0)
+        last = table.rowAt(table.viewport().height() - 1)
+        if first < 0:
+            first = 0
+        if last < 0:
+            height = table.rowHeight(0) or 30
+            last = min(rows - 1, max(0, table.viewport().height() // height))
+        margin = max(1, (last - first) // 2)
+        return range(max(0, first - margin), min(rows, last + margin + 1))
+
+    def _drawImageCell(self, row_index, col_index, recordId, fieldName):
+        """The picture in its cell, scaled to the row, from the cache."""
+        data = self._imageCache.get((recordId, fieldName))
+        if not data:
+            return
+        item = self.treeObj.tableWidget.item(row_index, col_index)
+        if item is None or not item.icon().isNull():
+            return
+        pixmap = QtGui.QPixmap()
+        try:
+            pixmap.loadFromData(base64.b64decode(data))
+        except Exception as ex:
+            utils.logMessage('warning', 'Image of %r: %r' % (recordId, ex), 'imageCell')
+            return
+        if pixmap.isNull():
+            return
+        item.setText('')
+        item.setIcon(QtGui.QIcon(pixmap.scaled(self.IMAGE_CELL_SIZE, self.IMAGE_CELL_SIZE,
+                                               QtCore.Qt.KeepAspectRatio,
+                                               QtCore.Qt.SmoothTransformation)))
+        if self.treeObj.tableWidget.rowHeight(row_index) < self.IMAGE_CELL_SIZE:
+            self.treeObj.tableWidget.setRowHeight(row_index, self.IMAGE_CELL_SIZE + 4)
 
     def _columnRules(self):
         """Headers, and which columns are hidden, for Odoo 17 and later.
@@ -526,7 +702,7 @@ class TemplateTreeListView(TemplateView):
         _start, to = self.currentRange
         self.currentRange = [to, to + self.passRange]
         self.buttToLeft.setHidden(False)
-        objIds = self.odooConnector.rpc_connector.search(self.model, self.deafult_filter, limit=self.passRange, offset=self.currentRange[0])
+        objIds = self.odooConnector.rpc_connector.search(self.model, self.pagingFilter(), limit=self.passRange, offset=self.currentRange[0])
         if objIds:
             self.loadIds(objIds)
         else:
@@ -539,7 +715,7 @@ class TemplateTreeListView(TemplateView):
         if self.currentRange[0] <= 0:
             self.buttToLeft.setHidden(True)
         self.buttToRight.setHidden(False)
-        objIds = self.odooConnector.rpc_connector.search(self.model, self.deafult_filter, limit=self.passRange, offset=self.currentRange[0])
+        objIds = self.odooConnector.rpc_connector.search(self.model, self.pagingFilter(), limit=self.passRange, offset=self.currentRange[0])
         self.loadIds(objIds)
 
     def sortResults(self, fieldName='', filterMode='DESC'):

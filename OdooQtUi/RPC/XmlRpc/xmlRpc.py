@@ -200,9 +200,14 @@ class XmlRpcConnection(object):
 
     def search(self, obj, filterList, limit=False, offset=False, order='', context={}):
         kargs = {'context': context}
-        if limit or limit == 0:
+        # A number only. False == 0 in Python, so `limit or limit == 0` sent
+        # limit=False, and ir.attachment._search reads any limit that is not None
+        # as a batch size: limit += offset made it 0 and no document was ever
+        # found (2026-09-15) -- while products, which read False as no limit,
+        # were found as usual.
+        if limit is not None and not isinstance(limit, bool):
             kargs['limit'] = limit
-        if offset or offset == 0:
+        if offset is not None and not isinstance(offset, bool):
             kargs['offset'] = offset
         if order:
             kargs['order'] = order

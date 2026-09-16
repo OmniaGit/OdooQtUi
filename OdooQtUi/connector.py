@@ -135,7 +135,8 @@ class MainConnector(object):
                       xmlrpcPort=8069, 
                       scheme='http', 
                       loginType='xmlrpc',
-                      context={}):
+                      context={},
+                      company=None):
         """
         perform the login operation with given user
         remarks also perform the view cache to be cleened
@@ -147,6 +148,7 @@ class MainConnector(object):
         :scheme 'http' schema ['http', 'https']
         :loginType 'xmlrpc' login type 
         :context dict like object to be use to update the context for the given session
+        :company name or id of the company to work in, None for the user's default one
         """
         self.loadedViews = [] # reset the cashed view because you can change db 
         res = self.rpc_connector.loginWithUser(connectionType=loginType,
@@ -160,6 +162,8 @@ class MainConnector(object):
         self.rpc_connector.contextUser.update(context.copy())
         self.activeLanguage = self.rpc_connector.contextUser.get('lang', 'en_US')
         self.rpc_connector.setXmlRpcError(self._raise_error)
+        if company and self.userLogged:
+            self.updateCompany(company)
     
     def loginFromStorage(self):
         """
@@ -168,6 +172,7 @@ class MainConnector(object):
         """
         try:
             dbName, username, userpass, serverIp, serverPort, scheme, connType, _dbList = utils.loadFromFile(self.app_name)
+            companyId = utils.loadCompanyFromFile(self.app_name)
             rpc = self.rpc_connector
             already = (rpc.databaseName, rpc.userName, rpc.userPassword,
                        rpc.xmlrpcServerIP, str(rpc.xmlrpcPort), rpc.scheme, rpc.connectionType)
@@ -184,6 +189,12 @@ class MainConnector(object):
                                xmlrpcPort=serverPort,
                                scheme=scheme,
                                loginType=connType)
+            if companyId and self.userLogged:
+                try:
+                    self.updateCompany(companyId)
+                except ValueError as ex:
+                    # The user lost that company since: stay in the default one.
+                    logging.warning("Stored company not available, using the default one: %s" % ex)
         except Exception as ex:
             logging.error("Unable to autologin %s" % ex)
         return self.userLogged
@@ -199,7 +210,8 @@ class MainConnector(object):
                           self.rpc_connector.scheme,
                           self.rpc_connector.connectionType,
                           self.rpc_connector.listDb() or [],
-                          self.app_name)
+                          self.app_name,
+                          companyId=self.rpc_connector.companyId)
 
     @property
     def userLogged(self):
@@ -207,6 +219,47 @@ class MainConnector(object):
         user is logged to rpc connectior
         """
         return self.rpc_connector.userLogged
+
+    @property
+    def companies(self):
+        """
+        the companies the logged user may work in, [{'id': 1, 'name': 'My Company'}, ...]
+        """
+        return self.rpc_connector.userCompanies
+
+    @property
+    def companyId(self):
+        """
+        id of the company the calls work in
+        """
+        return self.rpc_connector.companyId
+
+    @property
+    def companyName(self):
+        """
+        name of the company the calls work in
+        """
+        return self.rpc_connector.companyName
+
+    @property
+    def isMultiCompany(self):
+        """
+        the logged user has more than one company to choose from
+        """
+        return self.rpc_connector.isMultiCompany
+
+    def updateCompany(self, companyName):
+        """
+        switch the company all the following calls work in
+        Odoo keeps no active company per session: it is the first id of the
+        context key allowed_company_ids, sent with every call
+        :companyName the company name, or its id
+        :return: the id of the company now active
+        :raise ValueError: the user has no such company
+        """
+        companyId = self.rpc_connector.updateCompany(companyName)
+        self.loadedViews = [] # reset the cashed view because they were read in the other company
+        return companyId
 
     def loginWithDial(self, context={}):
         """

@@ -1,0 +1,6 @@
+# OdooQtUi is written with Linux line endings (decided 2026-09-15): git stores
+# text normalised and checks every text file out with LF, whatever wrote it.
+* text=auto eol=lf
+# Binary, never converted.
+*.png binary
+*.odg binary
