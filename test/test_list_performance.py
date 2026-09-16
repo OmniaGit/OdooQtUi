@@ -119,6 +119,49 @@ class ColumnsRead(unittest.TestCase):
         self.assertEqual(view._fieldsToRead(), ['name', 'mystery'])
 
 
+class ImageColumns(unittest.TestCase):
+    """Which columns are pictures, and which field is read to draw them."""
+
+    class _Element(object):
+        def __init__(self, tag, **attrib):
+            self.tag = tag
+            self.attrib = attrib
+
+    def _view(self, ordered, types, elements):
+        view = TemplateTreeListView.__new__(TemplateTreeListView)
+        view.labelsOrdered = ordered
+        view.__dict__['fieldsNameTypeRel'] = types
+        view.treeObj = type('tree', (), {'widgets_to_add_in_line': elements})()
+        return view
+
+    def test_a_field_asked_for_as_an_image_is_a_picture_column(self):
+        view = self._view(['image_1920', 'name'],
+                          {'image_1920': {'type': 'image'}, 'name': {'type': 'char'},
+                           'image_128': {'type': 'image'}},
+                          {0: self._Element('field', widget='image'),
+                           1: self._Element('field')})
+        # image_128 and not image_1920: the cell is 60 pixels, and the big one is
+        # four times the bytes for no more pixels on screen.
+        self.assertEqual(view._imageColumns(), {0: 'image_128'})
+
+    def test_without_the_widget_it_is_not_drawn(self):
+        view = self._view(['datas', 'name'],
+                          {'datas': {'type': 'binary'}, 'name': {'type': 'char'}},
+                          {0: self._Element('field'), 1: self._Element('field')})
+        self.assertEqual(view._imageColumns(), {})
+
+    def test_a_button_column_is_never_a_picture(self):
+        view = self._view(['toggle_check_out'], {},
+                          {0: self._Element('button', widget='image')})
+        self.assertEqual(view._imageColumns(), {})
+
+    def test_a_model_without_the_small_sizes_keeps_its_own_field(self):
+        # ir.attachment's preview has no siblings: it is read as it is.
+        view = self._view(['preview'], {'preview': {'type': 'image'}},
+                          {0: self._Element('field', widget='image')})
+        self.assertEqual(view._imageColumns(), {0: 'preview'})
+
+
 class Paging(unittest.TestCase):
     """pagingFilter: what the < and > buttons search for."""
 
