@@ -58,6 +58,13 @@ class RpcConnection(object):
         self._cache_search_condition = {}
         self._cache_align_table = {}
         self._cache_read = {}
+        # The definition of a model's fields: the same answer every time for one
+        # user and one language, and an expensive one -- fields_get of
+        # product.product is 116 KB and 156 ms, measured on 2026-09-16, and a
+        # window that builds three lists asks for three of them before it shows
+        # anything. Cleared with the rest on logout, since another user may see
+        # other fields.
+        self._cache_fields_get = {}
 
     def logout(self):
         self.userName = ''
@@ -353,10 +360,26 @@ class RpcConnection(object):
     def fieldsGet(self, obj, attributesToRead=None, context={}):
         '''
         @attributesToRead: ['string', 'help', 'type'], None means all attributes
+
+        Answered from the cache when the same model, the same attributes and the
+        same language were asked for before: what a model's fields are does not
+        change while an application is running, and asking again is one of the
+        slowest calls there is.
         '''
         localContext = dict(self.contextUser)
         localContext.update(context)
-        return self.sockInstance.fieldsGet(obj, attributesToRead, context=localContext)
+        key = (obj,
+               tuple(attributesToRead) if attributesToRead else None,
+               localContext.get('lang', self.activeLanguage()))
+        if key not in self._cache_fields_get:
+            self._cache_fields_get[key] = self.sockInstance.fieldsGet(obj,
+                                                                      attributesToRead,
+                                                                      context=localContext)
+        return self._cache_fields_get[key]
+
+    def activeLanguage(self):
+        """The language the calls carry, which is part of what fields_get answers."""
+        return self.contextUser.get('lang', 'en_US')
 
     def defaultGet(self, obj, fieldsToRead=[], context={}):
         '''
