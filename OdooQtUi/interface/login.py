@@ -36,22 +36,39 @@ class RainbowMan(QSplashScreen):
         QSplashScreen.__init__(self)
         self.setWindowFlag(Qt.FramelessWindowHint)
         self.setWindowFlag(Qt.WindowStaysOnTopHint)
-        # rainbow_man_png = os.path.join(resource_path(), "rainbow_man.png")
-
-        image_path = utils.getImagePath("rainbow_man.png")
-        pixmap = QPixmap(image_path)
-        custom_path = os.path.join(os.path.dirname(sys.executable), 'src', 'images', 'rainbow_man.png')
-        if os.path.exists(custom_path):
-            image_path = custom_path
-            pixmap = QPixmap(custom_path)
-
-        if pixmap.isNull():
-            utils.logWarning("rainbow_man.png could not be loaded from %r; splash will show blank" % image_path,
+        # Beside the executable first, which is where a standalone build keeps
+        # src\images; then wherever the application said its images are, which
+        # for a CAD add-in is the only one that answers; then the copy inside the
+        # package, which is what a checkout has. A compiled build finds none of
+        # the last two on its own: Nuitka rewrites __file__ to the path of the
+        # machine that compiled the module, and a compiled module carries no
+        # image files.
+        searched = [os.path.join(os.path.dirname(sys.executable), 'src', 'images',
+                                 'rainbow_man.png'),
+                    utils.getImagePath("rainbow_man.png")]
+        pixmap = None
+        for candidate in searched:
+            if candidate and os.path.exists(candidate):
+                pixmap = QPixmap(candidate)
+                if not pixmap.isNull():
+                    break
+        self.hasImage = pixmap is not None and not pixmap.isNull()
+        if not self.hasImage:
+            utils.logWarning("rainbow_man.png was not found in %s; the login shows no splash"
+                             % ", ".join(repr(path) for path in searched if path),
                              "RainbowMan.__init__")
-
+            return
         self.setPixmap(pixmap)
 
+    def show(self):
+        """Shown only with an image: a QSplashScreen whose pixmap is null paints a
+        white rectangle on screen, which is worse than no splash at all."""
+        if self.hasImage:
+            QSplashScreen.show(self)
+
     def progress(self):
+        if not self.hasImage:
+            return
         for i in range(10):
             QApplication.processEvents()
             time.sleep(0.1)

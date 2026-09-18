@@ -181,12 +181,30 @@ def getModulePath():
     return utilsDir
 
 
+#: Where the application keeps its images, when it has said so with
+#: setImagesDirectory. A compiled build cannot be found by walking up from
+#: __file__: Nuitka rewrites it to the path of the machine that compiled it, and
+#: the images of a package do not travel inside a compiled module at all.
+_IMAGES_DIRECTORY = ''
+
+
+def setImagesDirectory(path):
+    """Say where this application's images are, once, at start-up."""
+    global _IMAGES_DIRECTORY
+    _IMAGES_DIRECTORY = path or ''
+    return _IMAGES_DIRECTORY
+
+
 def getImagePath(imageName):
     """
     Get the full path of an image name looking at the pre defined icon/image repository/folder
     :imageName name of the image es. my_image.bmp
     :return: image fill path or empty string if not found
     """
+    if _IMAGES_DIRECTORY:
+        candidate = os.path.join(_IMAGES_DIRECTORY, imageName)
+        if os.path.exists(candidate):
+            return candidate
     path = getIconsDirectory()
     if os.path.exists(path):
         return os.path.join(path, imageName)
