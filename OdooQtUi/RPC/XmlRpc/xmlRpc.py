@@ -75,7 +75,9 @@ class XmlRpcConnection(object):
             raise ex
         
     def timeoutTransport(self, force=False):
-        t = TimeoutTransport()
+        # The transport follows the scheme: a plain one on an https URL sends
+        # clear HTTP to port 443, and the proxy answers 400 Bad Request.
+        t = TimeoutTransport(use_https=self.scheme == 'https')
         if force:
             t.set_timeout(force)
         else:
@@ -327,6 +329,10 @@ class XmlRpcConnection(object):
 class TimeoutTransport(xmlrpc.Transport):
     timeout = 5.0
 
+    def __init__(self, use_https=False, **kwargs):
+        super().__init__(**kwargs)
+        self.use_https = use_https
+
     def set_timeout(self, timeout):
         self.timeout = timeout
 
@@ -338,5 +344,10 @@ class TimeoutTransport(xmlrpc.Transport):
         if self._connection and host == self._connection[0]:
             return self._connection[1]
         chost, self._extra_headers, _x509 = self.get_host_info(host)
-        self._connection = host, httplib.HTTPConnection(chost, timeout=self.timeout)
+        if self.use_https:
+            # What xmlrpc.client.SafeTransport opens, with the timeout added.
+            connection = httplib.HTTPSConnection(chost, timeout=self.timeout)
+        else:
+            connection = httplib.HTTPConnection(chost, timeout=self.timeout)
+        self._connection = host, connection
         return self._connection[1]
