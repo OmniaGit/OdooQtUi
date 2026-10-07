@@ -14,8 +14,9 @@ The development rule of every OmniaSolutions application that is not an Odoo
 module:
 
 - **`<year>` is the build branch** (`2026`). Every package, executable and
-  installer is built from it, test builds included, and every definitive change
-  for that year's version ends up in it.
+  installer that reaches a customer is built from it, and every definitive
+  change for that year's version ends up in it. Test builds are the exception:
+  see Builds.
 - **`<developer>_dev_<year>` is where a developer works and tests**
   (`matteo_dev_2026`). A change is tested there and merged into `<year>` once
   it works; nothing is developed on `<year>` directly.
@@ -51,9 +52,20 @@ Every Omnia library is a versioned Python package:
 - Every package, executable and installer is built on the VirtualBox VM
   **`OdooPLM 2.12 Compile`**, and on no other machine (Python 3.12.10 per user,
   MSVC 2022, Inno Setup).
-- A build starts from git, never from a working tree: the `<year>` branch
-  (`2026`) is exported with `git archive` to the share and built from there, so
-  every build names the commit it came from.
+- **There are two kinds of build** (decided 2026-10-06):
+  - **Test build:** every repository is built from the branch that holds its
+    latest commits, `<developer>_dev_<year>` or `<year>` alike, so the newest
+    work of everybody is in it. Nothing is merged and nothing is pushed; a test
+    build never reaches a customer.
+  - **Production build:** the dev branches are merged into `<year>` first,
+    `<year>` is pushed, and the build starts from it. Other people use the same
+    tools, so which dev branches go in is not known in advance: the operator
+    chooses them, repository by repository.
+- A build starts from git, never from a working tree: the chosen commits are
+  exported with `git archive` to the share and built from there, so every
+  build names the commits it came from (`versions.txt`).
+- CoreBom and OdooPLM do both with `CoreBom/Setup/build.sh test|prod`; its use
+  is in `CoreBom/Setup/README.md`.
 - The host drives the VM with `VBoxManage guestcontrol`: it writes a `.bat` to
   the share (`~/workspace_virtual_machine/share`, `\\VBoxSvr\share` in the
   guest), starts it in the background, and reads its log and status file from
