@@ -43,6 +43,24 @@ DB_INST = None
 getFunctionName = lambda: inspect.stack()[1][3]
 
 
+def attachmentContentField(serverVersion):
+    """The ir.attachment field holding the file content. Odoo 20 removed
+    datas for raw: a read of datas there answers nothing, without an error."""
+    try:
+        serverVersion = int(serverVersion)
+    except (TypeError, ValueError):
+        return 'raw'
+    return 'raw' if serverVersion >= 20 else 'datas'
+
+
+def binaryContent(value):
+    """The base64 content of a binary field as read over RPC: the string
+    itself up to Odoo 19, a dict {content, size, filename} since Odoo 20."""
+    if isinstance(value, dict):
+        return value.get('content') or ''
+    return value or ''
+
+
 def launchTryIconMessage(title, message, level='info'):
     if level.upper() == 'INFO':
         iconMode = 1    # Info

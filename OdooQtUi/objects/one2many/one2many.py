@@ -417,10 +417,12 @@ class One2many(OdooFieldTemplate):
             mainVLay.addWidget(labelBody)
             attachmentLay = QtWidgets.QHBoxLayout()
             if attachment_ids:
-                res = self.odooConnector.rpc_connector.read('ir.attachment', ['datas', 'datas_fname'], attachment_ids)
+                # The file name is in name since Odoo 13, the content in raw since 20.
+                contentField = utils.attachmentContentField(self.odooConnector.rpc_connector.serverVersion)
+                res = self.odooConnector.rpc_connector.read('ir.attachment', [contentField, 'name'], attachment_ids)
                 for attachDict in res:
-                    fileContent = attachDict.get('datas', '')
-                    fileName = attachDict.get('datas_fname', '')
+                    fileContent = utils.binaryContent(attachDict.get(contentField))
+                    fileName = attachDict.get('name', '')
                     imageLay = QtWidgets.QVBoxLayout()
                     labelImage = utilsUi.getQtImageFromContent(fileContent, imageWidth=120, imageHeight=120)
                     imageLay.addWidget(labelImage)
