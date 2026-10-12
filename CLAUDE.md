@@ -47,6 +47,7 @@ Every Omnia library is a versioned Python package:
 | omnia_erp_odoo | `omnia_erp_odoo` | `omnia-erp-odoo` |
 | omnia_erp_sap | `omnia_erp_sap` | `omnia-erp-sap` |
 | omnia_erp_thinkteam | `omnia_erp_thinkteam` | `omnia-erp-thinkteam` |
+| omnia_cad_solidworks | `omnia_cad_solidworks` | `omnia-cad-solidworks` |
 | OdooPlmClientExtention | `OdooPLMClientCadExt`, `cad_extensions` | `omnia-odooplm-cce` |
 | OdooQtUi | `OdooQtUi` | `OdooQtUi`, published under its own name |
 | PyComBridge | the installer `PyComBridge-<version>-x64.exe` | - |
