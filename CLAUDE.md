@@ -49,6 +49,7 @@ Every Omnia library is a versioned Python package:
 | omnia_erp_thinkteam | `omnia_erp_thinkteam` | `omnia-erp-thinkteam` |
 | omnia_cad_solidworks | `omnia_cad_solidworks` | `omnia-cad-solidworks` |
 | omnia_cad_solidedge | `omnia_cad_solidedge` | `omnia-cad-solidedge` |
+| omnia_cad_inventor | `omnia_cad_inventor` | `omnia-cad-inventor` |
 | omnia_cad_autocadlt | `omnia_cad_autocadlt` | `omnia-cad-autocadlt` |
 | OdooPlmClientExtention | `OdooPLMClientCadExt`, `cad_extensions` | `omnia-odooplm-cce` |
 | OdooQtUi | `OdooQtUi` | `OdooQtUi`, published under its own name |
