@@ -53,6 +53,7 @@ Every Omnia library is a versioned Python package:
 | omnia_cad_creo | `omnia_cad_creo` | `omnia-cad-creo` |
 | omnia_cad_autocad | `omnia_cad_autocad` | `omnia-cad-autocad` |
 | omnia_cad_autocadlt | `omnia_cad_autocadlt` | `omnia-cad-autocadlt` |
+| omnia_app_corebom | `omnia_app_corebom` | - (an application: CoreBom.exe) |
 | OdooQtUi | `OdooQtUi` | `OdooQtUi`, published under its own name |
 | PyComBridge | the installer `PyComBridge-<version>-x64.exe` | - |
 
