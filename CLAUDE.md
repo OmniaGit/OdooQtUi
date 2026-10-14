@@ -5,9 +5,8 @@ Guidance for Claude Code (claude.ai/code) in the OdooQtUi repository.
 ## OmniaSolutions: branches, versions and builds
 
 This section is the same in every OmniaSolutions repository (OmniaConfigurator3,
-client_utils, MultiCad, MultiDbClient, OdooQtUi, OdooPlmClientExtention,
-CoreBom, PyComBridge, PLM_BOX, every omnia_erp_* and omnia_cad_*): change it in
-all of them together.
+client_utils, MultiCad, MultiDbClient, OdooQtUi, CoreBom, PyComBridge, PLM_BOX,
+every omnia_erp_* and omnia_cad_*): change it in all of them together.
 
 ### Branches
 
@@ -54,7 +53,6 @@ Every Omnia library is a versioned Python package:
 | omnia_cad_creo | `omnia_cad_creo` | `omnia-cad-creo` |
 | omnia_cad_autocad | `omnia_cad_autocad` | `omnia-cad-autocad` |
 | omnia_cad_autocadlt | `omnia_cad_autocadlt` | `omnia-cad-autocadlt` |
-| OdooPlmClientExtention | `cad_extensions` | `omnia-odooplm-cce` |
 | OdooQtUi | `OdooQtUi` | `OdooQtUi`, published under its own name |
 | PyComBridge | the installer `PyComBridge-<version>-x64.exe` | - |
 
