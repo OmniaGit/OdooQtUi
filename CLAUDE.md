@@ -5,7 +5,7 @@ Guidance for Claude Code (claude.ai/code) in the OdooQtUi repository.
 ## OmniaSolutions: branches, versions and builds
 
 This section is the same in every OmniaSolutions repository (OmniaConfigurator3,
-client_utils, MultiCad, MultiDbClient, OdooQtUi, CoreBom, PyComBridge, PLM_BOX,
+client_utils, MultiCad, MultiDbClient, OdooQtUi, omnia_plm_core, PyComBridge, PLM_BOX,
 every omnia_erp_* and omnia_cad_*): change it in all of them together.
 
 ### Branches
@@ -75,8 +75,8 @@ Every Omnia library is a versioned Python package:
 - A build starts from git, never from a working tree: the chosen commits are
   exported with `git archive` to the share and built from there, so every
   build names the commits it came from (`versions.txt`).
-- CoreBom and OdooPLM do both with `CoreBom/Setup/build.sh test|prod`; its use
-  is in `CoreBom/Setup/README.md`.
+- CoreBom and OdooPLM do both with `omnia_plm_core/Setup/build.sh test|prod`; its use
+  is in `omnia_plm_core/Setup/README.md`.
 - The host drives the VM with `VBoxManage guestcontrol`: it writes a `.bat` to
   the share (`~/workspace_virtual_machine/share`, `\\VBoxSvr\share` in the
   guest), starts it in the background, and reads its log and status file from
