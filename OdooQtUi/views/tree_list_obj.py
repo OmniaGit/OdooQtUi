@@ -594,7 +594,7 @@ class TemplateTreeListView(TemplateView):
                     col_index = self.labelsOrdered.index(fieldName)
                     self.treeObj.tableWidget.setColumnHidden(col_index, bool(inv))
                     ronly = utils.evaluateAttrs(row_vals, fieldObj.readonly, client_context)
-                    widget.setReadonly(ronly)
+                    fieldObj.setReadonly(ronly)
                 except Exception as ex:
                     logWarning('Cannot set readonly and invisible attributes for field %r err %r' % (fieldName, ex), '_setFieldsModifiers')
 
