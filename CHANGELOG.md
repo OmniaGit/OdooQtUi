@@ -21,6 +21,9 @@ First release of the PySide6 / Odoo 19 generation of the library.
 - `OdooQtUi.RPC.errors`: `OdooRpcError`, `OdooServerError`,
   `OdooConnectionError`; `utilsUi.showRpcError` and the `rpcErrorBoundary`
   decorator for Qt slots.
+- `auto_close_msecs` on `popInfo`, `popWarning`, `popMessage` and
+  `AdvancedErrorPopUP`: an info or a warning closes by itself after that many
+  milliseconds (0, the default, waits for Close); an error always waits.
 - Many2one fields search the server as the user types (`name_search` with the
   field's domain and context, 8 proposals).
 - `tools/make_screenshots.py` takes the README screenshots again.
