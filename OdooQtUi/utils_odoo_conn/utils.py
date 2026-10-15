@@ -29,12 +29,9 @@ try:
 except Exception as ex:
     pass
 
-try:
-    import Image
-    from win32com.client import Dispatch
-except Exception as ex:
-    logging.error('Windows imports cannot be loaded')
-    logging.error(ex)
+# Image (PIL) and win32com are imported by the two functions that use them:
+# imported here, `import Image` -- PIL's Python 2 name -- failed on every run
+# and logged two errors in every log.
 # C:\Users\Daniel\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup
 
 TRY_ICON_OBJ = None
@@ -83,6 +80,7 @@ def startUpEnable(pathFrom, startUpflag=False):
         if osName != 'WINDOWS':
             logging.warning("OS not supported")
             return
+        from win32com.client import Dispatch
         objShell = Dispatch("WScript.Shell")
         userMenu = objShell.SpecialFolders("StartMenu")
         pathTo = os.path.join(userMenu, 'Programs\Startup', os.path.basename(str(pathFrom)))
@@ -362,6 +360,7 @@ def convertJpgToPng(jpgPath, savePngPath=''):
         if not savePngPath:
             savePngPath = os.path.splitext(jpgPath)[0] + '.png'
         if os.path.exists(jpgPath):
+            from PIL import Image
             im = Image.open(jpgPath)
             im.save(savePngPath, 'PNG')
         else:
