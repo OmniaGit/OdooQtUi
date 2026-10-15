@@ -57,6 +57,7 @@ Every Omnia library is a versioned Python package:
 | omnia_app_odooplm | `omnia_app_odooplm` | - (an application: OdooPLM.exe and its add-ins) |
 | OdooQtUi | `OdooQtUi` | `OdooQtUi`, published under its own name |
 | PyComBridge | the installer `PyComBridge-<version>-x64.exe` | - |
+| OmniaGLTFConverter | the installer `OmniaGLTFConverter-<version>-x64.exe` (test), `OmniaGLTFConverter.exe` (download) | - |
 
 ### Builds
 
