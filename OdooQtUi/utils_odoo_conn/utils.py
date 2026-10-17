@@ -962,6 +962,82 @@ def onchangeValueToWidget(value):
     return value
 
 
+#: How Odoo writes a datetime and a date, in UTC for a datetime.
+ODOO_DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
+ODOO_DATE_FORMAT = '%Y-%m-%d'
+
+
+def userTimezone(connector):
+    """The timezone of the user logged in: `tz` of the context Odoo gave at
+    the login (res.users.context_get), UTC when the user has none set.
+
+    connector: a MainConnector or its rpc_connector. dateutil and not
+    zoneinfo: zoneinfo finds no timezone on Windows without the tzdata
+    package, which PyComBridge's Python does not have (checked 2026-10-17).
+    """
+    from dateutil import tz as dateutil_tz
+    rpc = getattr(connector, 'rpc_connector', connector)
+    name = (getattr(rpc, 'contextUser', None) or {}).get('tz') or 'UTC'
+    return dateutil_tz.gettz(name) or dateutil_tz.UTC
+
+
+def odooDatetime(value):
+    """A datetime Odoo answered -- its string, an XML-RPC DateTime, a
+    datetime -- as a naive datetime in UTC; None for no value."""
+    if not value:
+        return None
+    if isinstance(value, datetime.datetime):
+        return value.replace(tzinfo=None) if value.tzinfo is None \
+            else value.astimezone(datetime.timezone.utc).replace(tzinfo=None)
+    if not isinstance(value, str):
+        value = getattr(value, 'value', str(value))   # xmlrpc.client.DateTime
+        return datetime.datetime.strptime(value, '%Y%m%dT%H:%M:%S')
+    return datetime.datetime.strptime(value[:19], ODOO_DATETIME_FORMAT)
+
+
+def utcToUser(value, connector):
+    """A datetime of Odoo (UTC) as the user's wall clock time: a naive
+    datetime in the user's timezone, None for no value."""
+    utc = odooDatetime(value)
+    if utc is None:
+        return None
+    zone = userTimezone(connector)
+    return utc.replace(tzinfo=datetime.timezone.utc).astimezone(zone).replace(tzinfo=None)
+
+
+def utcToUserText(value, connector):
+    """utcToUser as text, the way Odoo writes it; '' for no value."""
+    local = utcToUser(value, connector)
+    return local.strftime(ODOO_DATETIME_FORMAT) if local else ''
+
+
+def userToUtc(value, connector):
+    """The user's wall clock time -- a naive datetime or a QDateTime -- as
+    Odoo stores it: the UTC string. False for no value."""
+    if hasattr(value, 'isValid') and not value.isValid():
+        return False
+    if hasattr(value, 'toPython'):          # QDateTime
+        value = value.toPython()
+    if not value:
+        return False
+    local = value.replace(tzinfo=userTimezone(connector))
+    return local.astimezone(datetime.timezone.utc).strftime(ODOO_DATETIME_FORMAT)
+
+
+def odooDate(value):
+    """A date Odoo answered -- its string, an XML-RPC DateTime, a date -- as a
+    date; None for no value. A date has no timezone."""
+    if not value:
+        return None
+    if isinstance(value, datetime.datetime):
+        return value.date()
+    if isinstance(value, datetime.date):
+        return value
+    if not isinstance(value, str):
+        return datetime.datetime.strptime(getattr(value, 'value', str(value))[:8], '%Y%m%d').date()
+    return datetime.datetime.strptime(value[:10], ODOO_DATE_FORMAT).date()
+
+
 class ParentValues(dict):
     """`parent` in a list expression: the record of the form around the list.
 

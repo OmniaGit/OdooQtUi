@@ -6,9 +6,9 @@
 # Redistributions must keep the attribution in the NOTICE file.
 # See the LICENSE and NOTICE files at the root of the project.
 
-from datetime import datetime
 from PySide6 import QtCore
 from PySide6 import QtWidgets
+from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.utils_odoo_conn import utilsUi
 
 from OdooQtUi.utils_odoo_conn import constants
@@ -43,20 +43,21 @@ class Datetime(OdooFieldTemplate):
             self.qtHorizontalWidget.addWidget(self.translateButton)
 
     def valueChanged(self, newDateTime):
-        self.currentValue = newDateTime
+        # shown in the user's timezone, kept as Odoo stores it: UTC
+        self.currentValue = utils.userToUtc(newDateTime, self.odooConnector)
         self.valueTemplateChanged()
 
     def setValue(self, newVal, viewType='form'):
+        """newVal as Odoo answers it, in UTC; shown in the timezone of the
+        user (their `tz` in Odoo, UTC when they have none)."""
+        local = utils.utcToUser(newVal, self.odooConnector)
         pyqtDateTime = QtCore.QDateTime()
-        if newVal:
-            # year, month, day, hour, minute, second
-            if not isinstance(newVal, str):
-                datetimeVal = datetime.strptime(newVal.value, '%Y%m%dT%H:%M:%S')
-            else:
-                datetimeVal = datetime.strptime(newVal, '%Y-%m-%d %H:%M:%S')
-            self.currentValue = datetimeVal
-            pyqtDateTime = QtCore.QDateTime(datetimeVal.year, datetimeVal.month, datetimeVal.day, datetimeVal.hour, datetimeVal.minute, datetimeVal.second)
+        if local:
+            pyqtDateTime = QtCore.QDateTime(local.year, local.month, local.day,
+                                            local.hour, local.minute, local.second)
         self.widgetQtObj.setDateTime(pyqtDateTime)
+        # after the widget: its dateTimeChanged has already set a value
+        self.currentValue = utils.odooDatetime(newVal).strftime(utils.ODOO_DATETIME_FORMAT) if local else False
 
     def setReadonly(self, val=False):
         super(Datetime, self).setReadonly(val)
@@ -80,12 +81,12 @@ class Datetime(OdooFieldTemplate):
 
     @property
     def value(self):
+        """The UTC string Odoo stores, False for none: what a write, a
+        create and an onchange send."""
         return self.currentValue
 
     @property
     def valueInterface(self):
-        if self.currentValue:
-            self.currentValue = str(self.widgetQtObj.dateTime().toString('yyyy-MM-dd hh:mm:ss'))
         return self.currentValue
 
     def eraseValue(self):

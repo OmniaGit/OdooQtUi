@@ -646,7 +646,8 @@ class SearchView(object):
         return okCancelLay
 
     def getSingleFieldLayoutCustom(self):
-        singleFieldLay = QVBoxLayCustom(self.advancedFilterFields)
+        singleFieldLay = QVBoxLayCustom(self.advancedFilterFields,
+                                        odooConnector=getattr(self.parent, 'odooConnector', None))
         singleFieldLay.removeButton.clicked.connect(partial(self.removeCustomFilter, singleFieldLay))
         return singleFieldLay
 
@@ -833,8 +834,9 @@ class Condition():
 
 
 class QVBoxLayCustom(QtWidgets.QVBoxLayout):
-    def __init__(self, advancedFilterFields):
+    def __init__(self, advancedFilterFields, odooConnector=None):
         super(QVBoxLayCustom, self).__init__()
+        self.odooConnector = odooConnector
         self.mainWidget = QtWidgets.QWidget()
         self.removeLay = QtWidgets.QHBoxLayout()
         self.mainLay = QtWidgets.QVBoxLayout()
@@ -948,7 +950,8 @@ class QVBoxLayCustom(QtWidgets.QVBoxLayout):
         elif fieldType == 'date':
             return str(self.dateWidget.date().toPyDate())
         elif fieldType == 'datetime':
-            return str(self.datetimeWidget.dateTime().toPyDateTime())
+            # typed in the user's timezone, compared with Odoo's UTC
+            return utils.userToUtc(self.datetimeWidget.dateTime(), self.odooConnector)
         elif fieldType == 'integer':
             return self.integerSpinboxWidget.value()
         elif fieldType in ['float', 'monetary']:

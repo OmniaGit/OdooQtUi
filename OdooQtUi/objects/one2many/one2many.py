@@ -403,7 +403,7 @@ class One2many(OdooFieldTemplate):
             write_date = messageDict.get('write_date', '')
             attachment_ids = messageDict.get('attachment_ids', [])
             labelUser = QtWidgets.QLabel(userName)
-            labelDate = QtWidgets.QLabel(write_date)
+            labelDate = QtWidgets.QLabel(utils.utcToUserText(write_date, self.odooConnector))
             labelBody = QtWidgets.QTextEdit()
             labelBody.setFrameShape(QtWidgets.QFrame.NoFrame)
             labelBody.insertHtml(bodyMessage)

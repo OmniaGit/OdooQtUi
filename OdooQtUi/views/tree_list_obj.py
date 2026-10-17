@@ -415,6 +415,9 @@ class TemplateTreeListView(TemplateView):
                             val=tmp_val[1]
                         else:
                             val=tmp_val
+                    elif field_type == 'datetime':
+                        # Odoo's UTC, shown in the user's timezone
+                        val = utils.utcToUserText(val, self.odooConnector)
                     elif fieldName in tagNames:
                         # many2many_tags: the names, as Odoo's list shows them
                         names = tagNames[fieldName]

@@ -11,8 +11,9 @@ Created on 7 Feb 2017
 
 @author: dsmerghetto
 '''
-from PySide6 import QtGui
+from PySide6 import QtCore
 from PySide6 import QtWidgets
+from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.utils_odoo_conn import utilsUi
 
 from OdooQtUi.utils_odoo_conn import constants
@@ -46,13 +47,16 @@ class Date(OdooFieldTemplate):
             self.addWidget(self.translateButton)
 
     def valueChanged(self, newDate):
-        self.currentValue = newDate
+        self.currentValue = newDate.toString('yyyy-MM-dd') if newDate.isValid() else False
         self.valueTemplateChanged()
 
     def setValue(self, newVal, viewType='form'):
-        # To Be Implemented
-        self.widgetQtObj
-        self.currentValue = newVal
+        """newVal as Odoo answers it ('2026-10-17'); a date has no timezone.
+        It was never shown: setValue only kept it."""
+        day = utils.odooDate(newVal)
+        self.widgetQtObj.setDate(QtCore.QDate(day.year, day.month, day.day) if day else QtCore.QDate())
+        # after the widget: its dateChanged has already set a value
+        self.currentValue = day.strftime(utils.ODOO_DATE_FORMAT) if day else False
 
     def setReadonly(self, val=False):
         super(Date, self).setReadonly(val)
@@ -76,8 +80,7 @@ class Date(OdooFieldTemplate):
 
     @property
     def value(self):
-        if self.currentValue:
-            self.currentValue = str(self.widgetQtObj.date().toString('yyyy-MM-dd'))
+        """The date as Odoo writes it, False for none."""
         return self.currentValue
 
     @property
