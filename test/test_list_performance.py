@@ -212,6 +212,49 @@ class ImagesOfOdoo20(unittest.TestCase):
             self.assertFalse(table.item(0, 0).icon().isNull(), server)
 
 
+class TagColumns(unittest.TestCase):
+    """A many2many drawn as tags shows the names, as Odoo's list does: the
+    users a product's documents are checked out by (plm's
+    document_checkout_user_ids), one read for the page."""
+
+    class _Element(object):
+        def __init__(self, tag, **attrib):
+            self.tag = tag
+            self.attrib = attrib
+
+    def _view(self, elements, reads):
+        class _View(TemplateTreeListView):
+            model = 'product.product'
+            fieldsNameTypeRel = {'document_checkout_user_ids': {'type': 'many2many', 'relation': 'res.users'},
+                                 'seller_ids': {'type': 'many2many', 'relation': 'res.partner'}}
+        view = _View.__new__(_View)
+        view.labelsOrdered = ['document_checkout_user_ids', 'seller_ids']
+        view.treeObj = type('tree', (), {'widgets_to_add_in_line': elements})()
+
+        def read(model, fields, ids):
+            reads.append((model, list(fields), list(ids)))
+            return [{'id': i, 'display_name': 'User %d' % i} for i in ids]
+        connection = type('rpc', (), {'read': staticmethod(read)})()
+        view.odooConnector = type('connector', (), {'rpc_connector': connection})()
+        return view
+
+    def test_the_names_of_a_tags_column_in_one_read(self):
+        reads = []
+        view = self._view({0: self._Element('field', widget='many2many_tags'),
+                           1: self._Element('field')}, reads)
+        names = view._tagNames([{'document_checkout_user_ids': [2, 6], 'seller_ids': [9]},
+                                {'document_checkout_user_ids': [6], 'seller_ids': []}])
+        self.assertEqual({'document_checkout_user_ids': {2: 'User 2', 6: 'User 6'}}, names)
+        self.assertEqual([('res.users', ['display_name'], [2, 6])], reads)
+
+    def test_no_ids_no_read(self):
+        reads = []
+        view = self._view({0: self._Element('field', widget='many2many_tags')}, reads)
+        self.assertEqual({'document_checkout_user_ids': {}},
+                         view._tagNames([{'document_checkout_user_ids': []}]))
+        self.assertEqual([], reads)
+
+
 class Paging(unittest.TestCase):
     """pagingFilter: what the < and > buttons search for."""
 

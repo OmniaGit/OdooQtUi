@@ -331,6 +331,7 @@ class TemplateTreeListView(TemplateView):
         if modern:
             headers, hidden_columns = self._columnRules()
             rowContext = dict(self.odooConnector.rpc_connector.contextUser)
+        tagNames = self._tagNames(records)
         for row_index, record in enumerate(records):
             if row_index not in self.row_widgets:
                 self.row_widgets[row_index] = {}
@@ -371,6 +372,10 @@ class TemplateTreeListView(TemplateView):
                             val=tmp_val[1]
                         else:
                             val=tmp_val
+                    elif fieldName in tagNames:
+                        # many2many_tags: the names, as Odoo's list shows them
+                        names = tagNames[fieldName]
+                        val = ', '.join(names.get(i, str(i)) for i in (val or []))
                     elif field_type in ['many2many','one2many']:
                         val=f"Record {len(val)}"
                     localList.append(val)
@@ -413,6 +418,32 @@ class TemplateTreeListView(TemplateView):
         # the viewport has no height and rowAt answers -1 for every row, which
         # reads the pictures of the whole page instead of the ones on screen.
         QtCore.QTimer.singleShot(0, self._loadVisibleImages)
+
+    def _tagNames(self, records):
+        """{field: {id: display name}} of the many2many columns the view draws as
+        tags (widget="many2many_tags"), one read per column for the whole page:
+        the names Odoo's list shows -- the users a document is checked out by --
+        where a plain many2many shows only how many there are."""
+        out = {}
+        for col_index, fieldName in enumerate(self.labelsOrdered):
+            element = self.treeObj.widgets_to_add_in_line.get(col_index)
+            if element is None or element.tag != 'field' \
+                    or element.attrib.get('widget') != 'many2many_tags':
+                continue
+            definition = self.fieldsNameTypeRel.get(fieldName, {})
+            relation = definition.get('relation')
+            if definition.get('type') != 'many2many' or not relation:
+                continue
+            ids = sorted(set(i for record in records for i in (record.get(fieldName) or [])))
+            names = {}
+            if ids:
+                try:
+                    for row in self.odooConnector.rpc_connector.read(relation, ['display_name'], ids) or []:
+                        names[row['id']] = row.get('display_name') or str(row['id'])
+                except Exception as ex:
+                    utils.logMessage('warning', 'names of %r: %r' % (relation, ex), 'tagNames')
+            out[fieldName] = names
+        return out
 
     # -- the picture columns ---------------------------------------------------
 
