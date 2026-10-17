@@ -211,6 +211,30 @@ class ImagesOfOdoo20(unittest.TestCase):
             self.assertEqual(self.PNG, view._imageCache[(7, 'image_128')], server)
             self.assertFalse(table.item(0, 0).icon().isNull(), server)
 
+    def test_a_cell_its_row_hides_gets_no_picture(self):
+        # plm's document list: preview or preview_related, the other one hidden
+        try:
+            from PySide6 import QtWidgets, QtGui
+        except ImportError:
+            self.skipTest('PySide6 is not installed')
+        app = QtWidgets.QApplication.instance() or QtWidgets.QApplication([])
+        table = QtWidgets.QTableWidget(1, 1)
+        table.setItem(0, 0, QtWidgets.QTableWidgetItem(''))
+        table.resize(300, 300)
+        reads = []
+        view = TemplateTreeListView.__new__(TemplateTreeListView)
+        view.treeObj = type('tree', (), {'tableWidget': table})()
+        view.idLineRel = {0: 7}
+        view._imageCache = {}
+        view._hiddenCells = {(0, 0)}
+        view._image_rows_connected = True
+        view._imageColumns = lambda: {0: 'preview_related'}
+        connection = type('rpc', (), {'read': staticmethod(lambda model, fields, ids: reads.append(ids) or [])})()
+        view.odooConnector = type('connector', (), {'rpc_connector': connection})()
+        view._loadVisibleImages()
+        self.assertEqual([], reads)
+        self.assertTrue(table.item(0, 0).icon().isNull())
+
 
 class TagColumns(unittest.TestCase):
     """A many2many drawn as tags shows the names, as Odoo's list does: the

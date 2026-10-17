@@ -340,6 +340,10 @@ class TemplateTreeListView(TemplateView):
             headers, hidden_columns = self._columnRules()
             rowContext = dict(self.odooConnector.rpc_connector.contextUser)
         tagNames = self._tagNames(records)
+        #: (row, column) of the cells an `invisible` hides in their row: no
+        #: picture is drawn there either (preview / preview_related of plm's
+        #: document list, one or the other in each row)
+        self._hiddenCells = set()
         for row_index, record in enumerate(records):
             if row_index not in self.row_widgets:
                 self.row_widgets[row_index] = {}
@@ -355,6 +359,7 @@ class TemplateTreeListView(TemplateView):
                     if not utils.isConstantModifier(cellInvisible) \
                             and utils.evaluateExpression(cellInvisible, rowValues, rowContext):
                         localList.append('')
+                        self._hiddenCells.add((row_index, col_index))
                         continue
                 elif row_index == 0:
                     client_context = dict(self.odooConnector.rpc_connector.contextUser)
@@ -476,11 +481,14 @@ class TemplateTreeListView(TemplateView):
             table.verticalScrollBar().valueChanged.connect(self._loadVisibleImages)
             self._image_rows_connected = True
         wanted = {}
+        hidden = getattr(self, '_hiddenCells', set())
         for row_index in self._visibleRows():
             recordId = self.idLineRel.get(row_index)
             if not recordId:
                 continue
             for col_index, fieldName in columns.items():
+                if (row_index, col_index) in hidden:
+                    continue
                 if (recordId, fieldName) in self._imageCache:
                     self._drawImageCell(row_index, col_index, recordId, fieldName)
                 else:
