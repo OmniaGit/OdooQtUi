@@ -207,7 +207,10 @@ class TemplateTreeListView(TemplateView):
         self.idValsRel[recordID] = self.idValsRel[recordID].update(valuesDict.copy())
 
     @utils.timeit
-    def loadIds(self, objIds=[], forceFieldValues={}, readonlyFields={}, invisibleFields={}):
+    def loadIds(self, objIds=[], forceFieldValues={}, readonlyFields={}, invisibleFields={},
+                keepOrder=False):
+        """The records of objIds, by id; keepOrder lists them as given -- a list
+        the server ordered, the most recent first."""
         self.treeObj.tableWidget.clearContents()
         self.treeObj.tableWidget.setRowCount(0)
         self.row_widgets = {}
@@ -222,7 +225,8 @@ class TemplateTreeListView(TemplateView):
                 for col_index, is_hidden in hidden.items():
                     self.treeObj.tableWidget.setColumnHidden(col_index, is_hidden)
             return
-        return self._loadIds(objIds, forceFieldValues, readonlyFields, invisibleFields)
+        return self._loadIds(objIds, forceFieldValues, readonlyFields, invisibleFields,
+                             keepOrder=keepOrder)
 
     @utils.timeit
     def loadForceEmptyIds(self, forceFieldValues={}, readonlyFields={}, invisibleFields={}):
@@ -298,7 +302,8 @@ class TemplateTreeListView(TemplateView):
                  objIds=[],
                  forceFieldValues={},
                  readonlyFields={},
-                 invisibleFields={}):
+                 invisibleFields={},
+                 keepOrder=False):
         """
         Load the ids passed reading it's values from odoo
 
@@ -312,7 +317,10 @@ class TemplateTreeListView(TemplateView):
             self.buttToRight.setHidden(True)
         else:
             self.buttToRight.setHidden(False)
-        objIds.sort()
+        if keepOrder:
+            objIds = list(objIds)
+        else:
+            objIds.sort()
         records = self.odooConnector.rpc_connector.read(self.model,
                                                         self._fieldsToRead(),
                                                         objIds) or []
