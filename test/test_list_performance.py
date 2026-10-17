@@ -236,6 +236,120 @@ class ImagesOfOdoo20(unittest.TestCase):
         self.assertTrue(table.item(0, 0).icon().isNull())
 
 
+class _AttachmentList(TemplateTreeListView):
+    model = 'ir.attachment'
+
+
+class ImagesInTheBackground(unittest.TestCase):
+    """Over JSON-RPC the pictures are read off the window's thread: the table is
+    there at once on a slow network and the pictures follow (the user,
+    2026-10-17). XML-RPC shares one ServerProxy and keeps reading in line."""
+
+    PNG = ImagesOfOdoo20.PNG
+
+    def _view(self, connectionType, read):
+        from PySide6 import QtWidgets
+        self.app = QtWidgets.QApplication.instance() or QtWidgets.QApplication([])
+        table = QtWidgets.QTableWidget(1, 1)
+        table.setItem(0, 0, QtWidgets.QTableWidgetItem(''))
+        table.resize(300, 300)
+        view = _AttachmentList.__new__(_AttachmentList)
+        view.treeObj = type('tree', (), {'tableWidget': table})()
+        view.idLineRel = {0: 7}
+        view._imageCache = {}
+        view._image_rows_connected = True
+        view._imageColumns = lambda: {0: 'preview'}
+        connection = type('rpc', (), {'read': staticmethod(read),
+                                      'connectionType': connectionType})()
+        view.odooConnector = type('connector', (), {'rpc_connector': connection})()
+        self.table = table
+        return view
+
+    def _settle(self, view):
+        import time
+        for _ in range(100):
+            self.app.processEvents()
+            loader = getattr(view, '_imageLoader', None)
+            if loader is None or (loader.isFinished() and not self.table.item(0, 0).icon().isNull()):
+                break
+            time.sleep(0.01)
+        self.app.processEvents()
+
+    def test_jsonrpc_reads_in_a_thread_and_draws_after(self):
+        try:
+            import PySide6  # noqa: F401
+        except ImportError:
+            self.skipTest('PySide6 is not installed')
+        import threading
+        threads = []
+
+        def read(model, fields, ids):
+            threads.append(threading.current_thread())
+            return [{'id': 7, 'preview': {'content': self.PNG, 'size': 70}}]
+        view = self._view('jsonrpc', read)
+        view._loadVisibleImages()
+        self.assertTrue(self.table.item(0, 0).icon().isNull())   # not yet
+        view._imageLoader.wait(5000)
+        self._settle(view)
+        self.assertIsNot(threading.main_thread(), threads[0])
+        self.assertFalse(self.table.item(0, 0).icon().isNull())
+
+    def test_pictures_of_a_page_no_longer_shown_are_dropped(self):
+        try:
+            import PySide6  # noqa: F401
+        except ImportError:
+            self.skipTest('PySide6 is not installed')
+        view = self._view('jsonrpc', lambda model, fields, ids:
+                          [{'id': 7, 'preview': {'content': self.PNG, 'size': 70}}])
+        view._loadVisibleImages()
+        view._imageGeneration = getattr(view, '_imageGeneration', 0) + 1   # a new page
+        view._imageLoader.wait(5000)
+        self._settle(view)
+        self.assertTrue(self.table.item(0, 0).icon().isNull())
+        self.assertEqual({}, view._imageCache)
+
+    def test_xmlrpc_reads_in_line(self):
+        try:
+            import PySide6  # noqa: F401
+        except ImportError:
+            self.skipTest('PySide6 is not installed')
+        view = self._view('xmlrpc', lambda model, fields, ids: [{'id': 7, 'preview': self.PNG}])
+        view._loadVisibleImages()
+        self.assertIsNone(getattr(view, '_imageLoader', None))
+        self.assertFalse(self.table.item(0, 0).icon().isNull())
+
+
+class BinaryPresence(unittest.TestCase):
+    """plm's document list hides `preview` where it is empty and
+    `preview_related` where it is not: the first read carries no binaries, so a
+    search tells the rows apart, one call per field."""
+
+    class _Element(object):
+        def __init__(self, tag, **attrib):
+            self.tag = tag
+            self.attrib = attrib
+
+    def test_the_rows_with_a_preview(self):
+        class _View(_AttachmentList):
+            fieldsNameTypeRel = {'name': {'type': 'char'},
+                                 'preview': {'type': 'binary'},
+                                 'preview_related': {'type': 'binary'}}
+        view = _View.__new__(_View)
+        view.labelsOrdered = ['name', 'preview', 'preview_related']
+        view.treeObj = type('tree', (), {'widgets_to_add_in_line': {
+            1: self._Element('field', invisible='preview == False'),
+            2: self._Element('field', invisible='preview != False')}})()
+        searches = []
+
+        def search(model, domain):
+            searches.append(domain)
+            return [7]
+        view.odooConnector = type('connector', (), {'rpc_connector': type('rpc', (), {
+            'search': staticmethod(search)})()})()
+        self.assertEqual({'preview': {7}}, view._binaryPresence([7, 8]))
+        self.assertEqual([[('id', 'in', [7, 8]), ('preview', '!=', False)]], searches)
+
+
 class TagColumns(unittest.TestCase):
     """A many2many drawn as tags shows the names, as Odoo's list does: the
     users a product's documents are checked out by (plm's
