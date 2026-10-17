@@ -450,7 +450,8 @@ class TemplateTreeListView(TemplateView):
             ids = [recordId for _row, _col, recordId in rows]
             records = self.odooConnector.rpc_connector.read(self.model, [fieldName], ids) or []
             for record in records:
-                self._imageCache[(record.get('id'), fieldName)] = record.get(fieldName) or ''
+                # a string up to Odoo 19, {content, size} since 20
+                self._imageCache[(record.get('id'), fieldName)] = utils.binaryContent(record.get(fieldName))
             for row_index, col_index, recordId in rows:
                 self._drawImageCell(row_index, col_index, recordId, fieldName)
 

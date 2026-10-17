@@ -179,6 +179,39 @@ class ImageColumns(unittest.TestCase):
         self.assertEqual(view._imageColumns(), {0: 'preview'})
 
 
+class ImagesOfOdoo20(unittest.TestCase):
+    """Odoo 20 reads an image as {content, size}: the cell draws the content,
+    as it drew the string up to 19 (the search list showed no picture)."""
+
+    PNG = ('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==')
+
+    def test_the_cell_gets_the_content(self):
+        try:
+            from PySide6 import QtWidgets
+        except ImportError:
+            self.skipTest('PySide6 is not installed')
+        app = QtWidgets.QApplication.instance() or QtWidgets.QApplication([])
+        table = QtWidgets.QTableWidget(1, 1)
+        table.setItem(0, 0, QtWidgets.QTableWidgetItem('x'))
+        table.resize(300, 300)
+        answers = {'odoo20': [{'id': 7, 'image_128': {'content': self.PNG, 'size': 70}}],
+                   'odoo19': [{'id': 7, 'image_128': self.PNG}]}
+        for server, records in answers.items():
+            view = TemplateTreeListView.__new__(TemplateTreeListView)
+            view.treeObj = type('tree', (), {'tableWidget': table})()
+            view.idLineRel = {0: 7}
+            view._imageCache = {}
+            view._image_rows_connected = True
+            view._imageColumns = lambda: {0: 'image_128'}
+            connection = type('rpc', (), {'read': staticmethod(lambda model, fields, ids: records)})()
+            view.odooConnector = type('connector', (), {'rpc_connector': connection})()
+            type(view).model = 'product.product'
+            table.item(0, 0).setIcon(__import__('PySide6').QtGui.QIcon())
+            view._loadVisibleImages()
+            self.assertEqual(self.PNG, view._imageCache[(7, 'image_128')], server)
+            self.assertFalse(table.item(0, 0).icon().isNull(), server)
+
+
 class Paging(unittest.TestCase):
     """pagingFilter: what the < and > buttons search for."""
 
