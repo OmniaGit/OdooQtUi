@@ -127,6 +127,11 @@ class Binary(OdooFieldTemplate):
         self.valueTemplateChanged()
 
     def setValue(self, newVal, fileName='', viewType='form'):
+        if isinstance(newVal, dict):
+            # Odoo 20 reads a binary as {content, size, filename}: the content
+            # is what the field held up to 19, and what is written back
+            fileName = fileName or newVal.get('filename') or ''
+            newVal = utils.binaryContent(newVal)
         self.currentValue = newVal
         if self.xmlWidget == 'image':
             self.pixmap = QtGui.QPixmap()

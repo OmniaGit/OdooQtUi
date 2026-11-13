@@ -12,8 +12,11 @@ Created on 02 feb 2017
 @author: Daniel
 '''
 import json
+import time
 import socket
 import logging
+import datetime
+import email.utils
 import requests
 #
 from OdooQtUi.RPC.XmlRpc.xmlRpc import XmlRpcConnection
@@ -45,6 +48,8 @@ class RpcConnection(object):
         # and the user's own default one: see loadUserCompanies.
         self.userCompanies = []
         self.userDefaultCompanyId = False
+        #: the server's clock less this PC's, both in UTC: see computeDeltaTime
+        self.deltaTime = datetime.timedelta(0)
         self.clearCache()
         return super(RpcConnection, self).__init__()
 
@@ -73,6 +78,7 @@ class RpcConnection(object):
         self.contextUser.pop('allowed_company_ids', None)
         self.userCompanies = []
         self.userDefaultCompanyId = False
+        self.deltaTime = datetime.timedelta(0)
 
     @property
     def serverVersion(self):
@@ -159,6 +165,7 @@ class RpcConnection(object):
         if self.userId:
             self.computeUserLanguage()
             self.computeUserCompanies()
+            self.computeDeltaTime()
         if not res:
             self.userId = False
         return res
@@ -171,6 +178,41 @@ class RpcConnection(object):
 
     def listDb(self):
         return self.sockInstance.listDb()
+
+    def computeDeltaTime(self):
+        """The server's clock less this PC's, both in UTC, into self.deltaTime.
+
+        Odoo answers its dates in UTC; a file's time is this PC's clock. The
+        difference is only the two clocks', never a timezone: a timezone
+        moves with the date (summer time), a clock difference does not, so a
+        file saved in January is read right in July (the user, 2026-10-17).
+
+        The server's time is the HTTP Date header of a call every Odoo
+        answers, /jsonrpc common.version: standard HTTP, so it needs no
+        module on the server (CoreBom talks to plain Odoo). It is to the
+        second, and taken at the middle of the call; 0 when it cannot be
+        read.
+        """
+        self.deltaTime = datetime.timedelta(0)
+        try:
+            before = time.time()
+            response = requests.post(self.getCleanServer() + '/jsonrpc',
+                                     json={'jsonrpc': '2.0', 'method': 'call', 'id': 0,
+                                           'params': {'service': 'common', 'method': 'version', 'args': []}},
+                                     timeout=5)
+            after = time.time()
+            server = email.utils.parsedate_to_datetime(response.headers['Date'])
+        except Exception as ex:
+            logging.warning('Unable to read the server time, no clock difference: %r' % (ex,))
+            return self.deltaTime
+        here = datetime.datetime.fromtimestamp((before + after) / 2, datetime.timezone.utc)
+        # The header drops the fraction of the second, half a second on
+        # average; whole seconds, as the dates Odoo answers, so a file stamped
+        # from one reads it back exactly.
+        difference = server + datetime.timedelta(seconds=0.5) - here
+        self.deltaTime = datetime.timedelta(seconds=round(difference.total_seconds()))
+        logging.info('Server clock less this PC clock: %s' % self.deltaTime)
+        return self.deltaTime
 
     def computeUserLanguage(self):
         if not self.userId:

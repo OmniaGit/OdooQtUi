@@ -11,6 +11,7 @@ Created on 24 Mar 2017
 
 @author: dsmerghetto
 '''
+import re
 import base64
 
 from PySide6 import QtWidgets, QtCore, QtGui
@@ -75,6 +76,29 @@ class RowSelectionDelegate(QtWidgets.QStyledItemDelegate):
             QtWidgets.QStyledItemDelegate.paint(self, painter, option, index)
 
 
+
+
+class _ImageLoader(QtCore.QThread):
+    """Reads pictures off the window's thread: [(field, ids)] in, the records
+    out through `loaded`, which Qt delivers on the window's thread. It touches
+    no widget; an error is logged and leaves the cells as they are."""
+
+    loaded = QtCore.Signal(object)
+
+    def __init__(self, rpc, model, requests):
+        super(_ImageLoader, self).__init__()
+        self.rpc = rpc
+        self.model = model
+        self.requests = requests
+
+    def run(self):
+        results = []
+        for fieldName, ids in self.requests:
+            try:
+                results.append((fieldName, self.rpc.read(self.model, [fieldName], ids) or []))
+            except Exception as ex:
+                utils.logMessage('warning', 'pictures of %r: %r' % (self.model, ex), 'imageLoader')
+        self.loaded.emit(results)
 
 
 class TemplateTreeListView(TemplateView):
@@ -207,7 +231,10 @@ class TemplateTreeListView(TemplateView):
         self.idValsRel[recordID] = self.idValsRel[recordID].update(valuesDict.copy())
 
     @utils.timeit
-    def loadIds(self, objIds=[], forceFieldValues={}, readonlyFields={}, invisibleFields={}):
+    def loadIds(self, objIds=[], forceFieldValues={}, readonlyFields={}, invisibleFields={},
+                keepOrder=False):
+        """The records of objIds, by id; keepOrder lists them as given -- a list
+        the server ordered, the most recent first."""
         self.treeObj.tableWidget.clearContents()
         self.treeObj.tableWidget.setRowCount(0)
         self.row_widgets = {}
@@ -222,7 +249,8 @@ class TemplateTreeListView(TemplateView):
                 for col_index, is_hidden in hidden.items():
                     self.treeObj.tableWidget.setColumnHidden(col_index, is_hidden)
             return
-        return self._loadIds(objIds, forceFieldValues, readonlyFields, invisibleFields)
+        return self._loadIds(objIds, forceFieldValues, readonlyFields, invisibleFields,
+                             keepOrder=keepOrder)
 
     @utils.timeit
     def loadForceEmptyIds(self, forceFieldValues={}, readonlyFields={}, invisibleFields={}):
@@ -298,7 +326,8 @@ class TemplateTreeListView(TemplateView):
                  objIds=[],
                  forceFieldValues={},
                  readonlyFields={},
-                 invisibleFields={}):
+                 invisibleFields={},
+                 keepOrder=False):
         """
         Load the ids passed reading it's values from odoo
 
@@ -308,11 +337,16 @@ class TemplateTreeListView(TemplateView):
         :invisibleFields
         """
         self.labelsOrdered = self.treeObj.orderedFields
+        # pictures still on their way belong to the page before
+        self._imageGeneration = getattr(self, '_imageGeneration', 0) + 1
         if len(objIds) < self.passRange:
             self.buttToRight.setHidden(True)
         else:
             self.buttToRight.setHidden(False)
-        objIds.sort()
+        if keepOrder:
+            objIds = list(objIds)
+        else:
+            objIds.sort()
         records = self.odooConnector.rpc_connector.read(self.model,
                                                         self._fieldsToRead(),
                                                         objIds) or []
@@ -331,12 +365,21 @@ class TemplateTreeListView(TemplateView):
         if modern:
             headers, hidden_columns = self._columnRules()
             rowContext = dict(self.odooConnector.rpc_connector.contextUser)
+        tagNames = self._tagNames(records)
+        binaryPresence = self._binaryPresence(objIds) if modern else {}
+        #: (row, column) of the cells an `invisible` hides in their row: no
+        #: picture is drawn there either (preview / preview_related of plm's
+        #: document list, one or the other in each row)
+        self._hiddenCells = set()
         for row_index, record in enumerate(records):
             if row_index not in self.row_widgets:
                 self.row_widgets[row_index] = {}
             fieldDict[row_index] = record
             localList = []
             rowValues = utils.recordValues({}, record) if modern else {}
+            for binaryField, filled in binaryPresence.items():
+                # not read with the row: whether it is set, for the modifiers
+                rowValues[binaryField] = record.get('id') in filled
             for col_index, fieldName in enumerate(self.labelsOrdered):
                 fieldPyDefinition = self.fieldsNameTypeRel.get(fieldName, {})
                 val = record.get(fieldName, '')
@@ -346,6 +389,7 @@ class TemplateTreeListView(TemplateView):
                     if not utils.isConstantModifier(cellInvisible) \
                             and utils.evaluateExpression(cellInvisible, rowValues, rowContext):
                         localList.append('')
+                        self._hiddenCells.add((row_index, col_index))
                         continue
                 elif row_index == 0:
                     client_context = dict(self.odooConnector.rpc_connector.contextUser)
@@ -371,6 +415,13 @@ class TemplateTreeListView(TemplateView):
                             val=tmp_val[1]
                         else:
                             val=tmp_val
+                    elif field_type == 'datetime':
+                        # Odoo's UTC, shown in the user's timezone
+                        val = utils.utcToUserText(val, self.odooConnector)
+                    elif fieldName in tagNames:
+                        # many2many_tags: the names, as Odoo's list shows them
+                        names = tagNames[fieldName]
+                        val = ', '.join(names.get(i, str(i)) for i in (val or []))
                     elif field_type in ['many2many','one2many']:
                         val=f"Record {len(val)}"
                     localList.append(val)
@@ -414,6 +465,57 @@ class TemplateTreeListView(TemplateView):
         # reads the pictures of the whole page instead of the ones on screen.
         QtCore.QTimer.singleShot(0, self._loadVisibleImages)
 
+    def _binaryPresence(self, objIds):
+        """{binary field: {ids where it is set}} for the binary fields a cell's
+        `invisible` reads -- `preview == False` in plm's document list. The
+        first read leaves binaries out, and Odoo 20 answers a read of one with
+        the whole content even under bin_size: a search tells set from unset
+        for the page in one call per field."""
+        fields = set()
+        for col_index in range(len(self.labelsOrdered)):
+            element = self.treeObj.widgets_to_add_in_line.get(col_index)
+            expression = element.attrib.get('invisible') if element is not None else None
+            if not expression or utils.isConstantModifier(expression):
+                continue
+            for name, definition in self.fieldsNameTypeRel.items():
+                if definition.get('type') in self.BINARY_TYPES \
+                        and re.search(r'\b%s\b' % re.escape(name), expression):
+                    fields.add(name)
+        out = {}
+        for name in fields:
+            try:
+                out[name] = set(self.odooConnector.rpc_connector.search(
+                    self.model, [('id', 'in', list(objIds)), (name, '!=', False)]) or [])
+            except Exception as ex:
+                utils.logMessage('warning', 'which rows have %r: %r' % (name, ex), 'binaryPresence')
+        return out
+
+    def _tagNames(self, records):
+        """{field: {id: display name}} of the many2many columns the view draws as
+        tags (widget="many2many_tags"), one read per column for the whole page:
+        the names Odoo's list shows -- the users a document is checked out by --
+        where a plain many2many shows only how many there are."""
+        out = {}
+        for col_index, fieldName in enumerate(self.labelsOrdered):
+            element = self.treeObj.widgets_to_add_in_line.get(col_index)
+            if element is None or element.tag != 'field' \
+                    or element.attrib.get('widget') != 'many2many_tags':
+                continue
+            definition = self.fieldsNameTypeRel.get(fieldName, {})
+            relation = definition.get('relation')
+            if definition.get('type') != 'many2many' or not relation:
+                continue
+            ids = sorted(set(i for record in records for i in (record.get(fieldName) or [])))
+            names = {}
+            if ids:
+                try:
+                    for row in self.odooConnector.rpc_connector.read(relation, ['display_name'], ids) or []:
+                        names[row['id']] = row.get('display_name') or str(row['id'])
+                except Exception as ex:
+                    utils.logMessage('warning', 'names of %r: %r' % (relation, ex), 'tagNames')
+            out[fieldName] = names
+        return out
+
     # -- the picture columns ---------------------------------------------------
 
     def _loadVisibleImages(self):
@@ -437,22 +539,75 @@ class TemplateTreeListView(TemplateView):
             table.verticalScrollBar().valueChanged.connect(self._loadVisibleImages)
             self._image_rows_connected = True
         wanted = {}
+        hidden = getattr(self, '_hiddenCells', set())
         for row_index in self._visibleRows():
             recordId = self.idLineRel.get(row_index)
             if not recordId:
                 continue
             for col_index, fieldName in columns.items():
+                if (row_index, col_index) in hidden:
+                    continue
                 if (recordId, fieldName) in self._imageCache:
                     self._drawImageCell(row_index, col_index, recordId, fieldName)
                 else:
                     wanted.setdefault(fieldName, []).append((row_index, col_index, recordId))
-        for fieldName, rows in wanted.items():
-            ids = [recordId for _row, _col, recordId in rows]
+        if not wanted:
+            return
+        requests = [(fieldName, [recordId for _row, _col, recordId in rows])
+                    for fieldName, rows in wanted.items()]
+        if self._asyncImages():
+            self._startImageLoader(requests, wanted)
+            return
+        for fieldName, ids in requests:
             records = self.odooConnector.rpc_connector.read(self.model, [fieldName], ids) or []
-            for record in records:
-                self._imageCache[(record.get('id'), fieldName)] = record.get(fieldName) or ''
+            self._storeImages(fieldName, records)
+        self._drawWanted(wanted)
+
+    def _asyncImages(self):
+        """The pictures are read in a thread of their own over JSON-RPC, whose
+        transport keeps a Session per thread; XML-RPC shares one ServerProxy,
+        which a second thread must not use, and reads them here."""
+        rpc = self.odooConnector.rpc_connector
+        return getattr(rpc, 'connectionType', '') in ('jsonrpc', 'secure-jsonrpc')
+
+    def _storeImages(self, fieldName, records):
+        for record in records:
+            # a string up to Odoo 19, {content, size} since 20
+            self._imageCache[(record.get('id'), fieldName)] = utils.binaryContent(record.get(fieldName))
+
+    def _drawWanted(self, wanted):
+        for fieldName, rows in wanted.items():
             for row_index, col_index, recordId in rows:
-                self._drawImageCell(row_index, col_index, recordId, fieldName)
+                # the row may hold another record by now: a page turned
+                if self.idLineRel.get(row_index) == recordId:
+                    self._drawImageCell(row_index, col_index, recordId, fieldName)
+
+    def _startImageLoader(self, requests, wanted):
+        """Read the pictures of the rows on screen without holding the window:
+        on a slow network the table is there at once and the pictures follow.
+        One loader at a time; rows scrolled to meanwhile are read after it, and
+        what arrives for a page no longer shown is dropped."""
+        if getattr(self, '_imageLoader', None) is not None and self._imageLoader.isRunning():
+            self._imagesPending = True
+            return
+        self._imagesPending = False
+        generation = getattr(self, '_imageGeneration', 0)
+        loader = _ImageLoader(self.odooConnector.rpc_connector, self.model, requests)
+
+        def loaded(results):
+            if generation != getattr(self, '_imageGeneration', 0):
+                return          # another page since
+            for fieldName, records in results:
+                self._storeImages(fieldName, records)
+            self._drawWanted(wanted)
+
+        def finished():
+            if getattr(self, '_imagesPending', False):
+                QtCore.QTimer.singleShot(0, self._loadVisibleImages)
+        loader.loaded.connect(loaded)
+        loader.finished.connect(finished)
+        self._imageLoader = loader
+        loader.start()
 
     def _visibleRows(self):
         """The rows the user can see, plus half a screen of margin either way.
@@ -594,7 +749,7 @@ class TemplateTreeListView(TemplateView):
                     col_index = self.labelsOrdered.index(fieldName)
                     self.treeObj.tableWidget.setColumnHidden(col_index, bool(inv))
                     ronly = utils.evaluateAttrs(row_vals, fieldObj.readonly, client_context)
-                    widget.setReadonly(ronly)
+                    fieldObj.setReadonly(ronly)
                 except Exception as ex:
                     logWarning('Cannot set readonly and invisible attributes for field %r err %r' % (fieldName, ex), '_setFieldsModifiers')
 
