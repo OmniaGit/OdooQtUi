@@ -57,7 +57,7 @@ Every Omnia library is a versioned Python package:
 | omnia_app_corebomclient | `omnia_app_corebomclient` | - (an application: CoreBomClient.exe and its add-ins; it was OdooPLM, omnia_app_odooplm) |
 | OdooQtUi | `OdooQtUi` | `OdooQtUi`, published under its own name |
 | PyComBridge | the installer `PyComBridge-<version>-x64.exe` | - |
-| OmniaGLTFConverter | the installer `OmniaGLTFConverter-<version>-x64.exe` (test), `OmniaGLTFConverter.exe` (download) | - |
+| CoreBomGLTF | the installer `CoreBomGLTF-<version>-x64.exe` (test), `CoreBomGLTF.exe` (download) | - |
 
 ### Builds
 
