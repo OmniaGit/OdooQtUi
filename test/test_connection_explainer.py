@@ -68,6 +68,11 @@ class TestConnectionExplainer(unittest.TestCase):
         self.assertEqual(text, 'Odoo does not answer')
         self.assertEqual(seen[0][1], connection.urlCommon)
 
+    def test_an_error_that_is_not_about_the_connection(self):
+        errors.set_connection_explainer(lambda error, url: None)
+        self.assertIsNone(errors.connection_problem(ValueError('no'), 'http://x'))
+        self.assertEqual(errors.explain_connection_error(OSError('down'), 'http://x'), 'down')
+
     def test_a_broken_explainer_does_not_hide_the_error(self):
         errors.set_connection_explainer(lambda error, url: 1 / 0)
         self.assertEqual(errors.explain_connection_error(OSError('down'), 'http://x'), 'down')
