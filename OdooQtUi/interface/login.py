@@ -21,6 +21,7 @@ from PySide6 import QtWidgets, QtCore
 
 from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.utils_odoo_conn import constants
+from OdooQtUi.RPC.errors import explain_connection_error
 from PySide6.QtWidgets import QProgressBar
 from PySide6.QtWidgets import QApplication
 from PySide6.QtWidgets import QSplashScreen
@@ -415,6 +416,10 @@ class LoginDialComplete(LoginDial):
                     utils.logWarning("Rainbow man splash failed to display: %r" % splash_ex, "acceptDial")
                 self.accept()
             else:
+                # A login that did not reach Odoo is not a wrong password.
+                failure = getattr(rpc.sockInstance, 'last_exception', None)
+                if isinstance(failure, OSError):
+                    raise Exception(explain_connection_error(failure, rpc.sockInstance.urlCommon))
                 raise Exception('Bad Username or Password!')
         except Exception as ex:
             import traceback

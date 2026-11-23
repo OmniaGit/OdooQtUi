@@ -5,8 +5,8 @@ Guidance for Claude Code (claude.ai/code) in the OdooQtUi repository.
 ## OmniaSolutions: branches, versions and builds
 
 This section is the same in every OmniaSolutions repository (OmniaConfigurator3,
-client_utils, MultiCad, MultiDbClient, OdooQtUi, OdooPlmClientExtention,
-CoreBom, PyComBridge, PLM_BOX): change it in all of them together.
+client_utils, CoreBomCad, MultiDbClient, OdooQtUi, omnia_plm_core, PyComBridge, PLM_BOX,
+every omnia_erp_* and omnia_cad_*): change it in all of them together.
 
 ### Branches
 
@@ -40,13 +40,24 @@ Every Omnia library is a versioned Python package:
 
 | Repository | Import | Distribution |
 |---|---|---|
-| MultiCad | `multyCad`, `multyCadApplication`, `multiCadCom` | `omnia-multicad` |
+| CoreBomCad | `multyCad`, `multyCadApplication`, `multiCadCom` | `omnia-multicad` |
 | client_utils | `OmniaSolutions` | `omnia-utils` |
 | MultiDbClient | `DbWrapper` | `omnia-dbwrapper` |
-| OdooPlmClientExtention | `OdooPLMClientCadExt`, `cad_extensions` | `omnia-odooplm-cce` |
+| omnia_erp_odoo | `omnia_erp_odoo` | `omnia-erp-odoo` |
+| omnia_erp_sap | `omnia_erp_sap` | `omnia-erp-sap` |
+| omnia_erp_thinkteam | `omnia_erp_thinkteam` | `omnia-erp-thinkteam` |
+| omnia_cad_solidworks | `omnia_cad_solidworks` | `omnia-cad-solidworks` |
+| omnia_cad_solidedge | `omnia_cad_solidedge` | `omnia-cad-solidedge` |
+| omnia_cad_inventor | `omnia_cad_inventor` | `omnia-cad-inventor` |
+| omnia_cad_thinkdesign | `omnia_cad_thinkdesign` | `omnia-cad-thinkdesign` |
+| omnia_cad_creo | `omnia_cad_creo` | `omnia-cad-creo` |
+| omnia_cad_autocad | `omnia_cad_autocad` | `omnia-cad-autocad` |
+| omnia_cad_autocadlt | `omnia_cad_autocadlt` | `omnia-cad-autocadlt` |
+| omnia_app_corebom | `omnia_app_corebom` | - (an application: CoreBom.exe) |
+| omnia_app_corebomclient | `omnia_app_corebomclient` | - (an application: CoreBomClient.exe and its add-ins; it was OdooPLM, omnia_app_odooplm) |
 | OdooQtUi | `OdooQtUi` | `OdooQtUi`, published under its own name |
 | PyComBridge | the installer `PyComBridge-<version>-x64.exe` | - |
-| OmniaGLTFConverter | the installer `OmniaGLTFConverter-<version>-x64.exe` (test), `OmniaGLTFConverter.exe` (download) | - |
+| CoreBomGLTF | the installer `CoreBomGLTF-<version>-x64.exe` (test), `CoreBomGLTF.exe` (download) | - |
 
 ### Builds
 
@@ -65,8 +76,8 @@ Every Omnia library is a versioned Python package:
 - A build starts from git, never from a working tree: the chosen commits are
   exported with `git archive` to the share and built from there, so every
   build names the commits it came from (`versions.txt`).
-- CoreBom and OdooPLM do both with `CoreBom/Setup/build.sh test|prod`; its use
-  is in `CoreBom/Setup/README.md`.
+- CoreBom and OdooPLM do both with `omnia_plm_core/Setup/build.sh test|prod`; its use
+  is in `omnia_plm_core/Setup/README.md`.
 - The host drives the VM with `VBoxManage guestcontrol`: it writes a `.bat` to
   the share (`~/workspace_virtual_machine/share`, `\\VBoxSvr\share` in the
   guest), starts it in the background, and reads its log and status file from

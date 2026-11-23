@@ -251,13 +251,22 @@ def getIconPath(iconName):
     return image_path
 
 
+#: The message types that may close by themselves; an error always waits for Close.
+AUTO_CLOSE_TYPES = ('INFO', 'WARNING')
+
+
 class AdvancedErrorPopUP(QtWidgets.QDialog):
 
     def __init__(self,
                  parent,
                  messageBody="",
                  mess_type='warning',
-                 short_text_header=''):
+                 short_text_header='',
+                 auto_close_msecs=0):
+        """auto_close_msecs: 0, the default, leaves the dialog open until Close;
+        more than 0 closes an INFO or a WARNING by itself after that many
+        milliseconds, unless the user opens More or copies the message first.
+        Ignored for an ERROR."""
         QtWidgets.QDialog.__init__(self, parent)
         self.mainLayout = QtWidgets.QVBoxLayout(self)
         top_widget = QtWidgets.QWidget()
@@ -331,8 +340,20 @@ class AdvancedErrorPopUP(QtWidgets.QDialog):
         self.setMaximumSize(1200, 250)
         QtCore.QTimer.singleShot(0, self.resizeMe)
         self._lineEditVisible = False
+        self._autoCloseTimer = None
+        if auto_close_msecs > 0 and mess_type in AUTO_CLOSE_TYPES:
+            self._autoCloseTimer = QtCore.QTimer(self)
+            self._autoCloseTimer.setSingleShot(True)
+            self._autoCloseTimer.timeout.connect(self.close)
+            self._autoCloseTimer.start(auto_close_msecs)
+
+    def stopAutoClose(self):
+        """The user is reading: the dialog waits for Close."""
+        if self._autoCloseTimer is not None:
+            self._autoCloseTimer.stop()
 
     def showMore(self):
+        self.stopAutoClose()
         self._lineEditVisible = not self._lineEditVisible
         if self._lineEditVisible:
             self.lineEdit.setMinimumSize(600, 400)
@@ -357,6 +378,7 @@ class AdvancedErrorPopUP(QtWidgets.QDialog):
         look at the problem needs. Without More, what the label says, since that
         is the whole message.
         """
+        self.stopAutoClose()
         if self._has_more:
             text = self.lineEdit.toPlainText()
             if self._short_text_header and self._short_text_header not in text:
@@ -390,38 +412,44 @@ def popError(parent, ex):
                err)
 
 
-def popWarning(parent, ex):
+def popWarning(parent, ex, auto_close_msecs=0):
     """
         pop an warning message
         :parent qt parent windows
         :ex python Exception object
+        :auto_close_msecs more than 0 closes it by itself after that many milliseconds
     """
-    popMessage(parent, ex, 'WARNING')
+    popMessage(parent, ex, 'WARNING', auto_close_msecs=auto_close_msecs)
 
 
 def popInfo(parent,
-            ex):
+            ex,
+            auto_close_msecs=0):
     """
         pop an warning message
         :parent qt parent windows
         :ex python Exception object
+        :auto_close_msecs more than 0 closes it by itself after that many milliseconds
     """
-    popMessage(parent, ex, 'INFO')
+    popMessage(parent, ex, 'INFO', auto_close_msecs=auto_close_msecs)
 
 
 def popMessage(parent,
                ex,
                msg_type='info',
-               short_text_header=''):
+               short_text_header='',
+               auto_close_msecs=0):
     """
         pop an warning message
         :parent qt parent windows
         :ex python Exception object or string 
+        :auto_close_msecs see AdvancedErrorPopUP; ignored for an ERROR
     """
     dialObj = AdvancedErrorPopUP(parent,
                                  messageBody=ex,
                                  mess_type=msg_type,
-                                 short_text_header=short_text_header)
+                                 short_text_header=short_text_header,
+                                 auto_close_msecs=auto_close_msecs)
     logMessage(msg_type, ex, 'popMessage')
     dialObj.exec()
 

@@ -57,3 +57,33 @@ class OdooServerError(OdooRpcError):
 
 class OdooConnectionError(OdooRpcError):
     """The call did not reach Odoo, or its answer did not come back."""
+
+
+#: The function the application gives (set_connection_explainer) to put a
+#: failed connection into words the user can act on; OdooQtUi has none of its own.
+_connection_explainer = None
+
+
+def set_connection_explainer(explainer):
+    """Register explainer(error, url) -> text, the words for an error that
+    kept a call from reaching Odoo at url, or None for an error that is not
+    about the connection. None takes it away."""
+    global _connection_explainer
+    _connection_explainer = explainer
+
+
+def connection_problem(error, url):
+    """The words of the registered explainer when *error* kept a call from
+    reaching the server at *url*; None when it did not, or nobody explains."""
+    if _connection_explainer is not None:
+        try:
+            return _connection_explainer(error, url) or None
+        except Exception:
+            pass
+    return None
+
+
+def explain_connection_error(error, url):
+    """The words for a failed connection: the registered explainer's, else the
+    error's own."""
+    return connection_problem(error, url) or str(error)

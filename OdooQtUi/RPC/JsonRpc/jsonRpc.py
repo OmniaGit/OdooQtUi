@@ -72,6 +72,7 @@ class JsonRpcConnection(object):
         self.max_timeout = 7200
         self.raise_error = False
         self.last_error = ''
+        self.last_exception = None
         self._request_id = 0
         # One Session per thread: without it every RPC opens a new TCP
         # connection (and a new TLS handshake on https), and a single save
@@ -135,7 +136,8 @@ class JsonRpcConnection(object):
             response.raise_for_status()
             data = response.json()
         except requests.exceptions.RequestException as ex:
-            raise socket.error(str(ex))
+            # from ex: the caller tells a proxy from a server by its type
+            raise socket.error(str(ex)) from ex
         if data.get('error'):
             err = data['error']
             err_data = err.get('data') or {}
@@ -173,11 +175,15 @@ class JsonRpcConnection(object):
     def loginWithUser(self):
         if not self.socketNoLogin:
             self.loginNoUser()
+        #: what kept the last login from reaching Odoo, None when it did: a
+        #: refused password is not an error, a proxy that does not answer is
+        self.last_exception = None
         try:
             self.userId = self._call('common', 'login', [self.databaseName, self.userName, self.userPassword])
             if not self.userId:
                 return False
         except Exception as ex:
+            self.last_exception = ex
             utils.logMessage('error', 'Error during login with user: %r' % (ex), 'loginWithUser')
             return False
         self.socketYesLogin = True
