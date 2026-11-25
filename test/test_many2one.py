@@ -143,6 +143,61 @@ class Searching(unittest.TestCase):
         self.assertFalse([call for call in server.calls if call[0] == 'readSearch'])
 
 
+class Proposals(unittest.TestCase):
+    """The list of a many2one opens with the server's first proposals, as
+    Odoo's does on a click (2026-11-25: a unit of measure could not be
+    changed without typing)."""
+
+    def items(self, field):
+        combo = field.widgetQtObj2
+        return [(combo.itemText(i), combo.itemData(i)) for i in range(combo.count())]
+
+    def test_the_list_opens_with_the_proposals(self):
+        field, server = many2one({})
+        field.setValue([7, 'Cliente ABC'])
+        field._loadProposals()
+        method, _model, kwargs, _context = server.calls[-1]
+        self.assertEqual((method, kwargs['name'], kwargs['limit']), ('name_search', '', 8))
+        self.assertEqual([('', False), ('Cliente ABC', 7), ('Mario Rossi', 11), ('My Company', 1),
+                          ('Create and Edit...', '__create__')], self.items(field))
+        self.assertEqual('Cliente ABC', field.widgetQtObj2.currentText())
+
+    def test_the_current_value_is_not_proposed_twice(self):
+        field, _server = many2one({})
+        field.setValue([11, 'Mario Rossi'])
+        field._loadProposals()
+        self.assertEqual(1, [name for name, _id in self.items(field)].count('Mario Rossi'))
+
+    def test_a_required_field_with_a_value_has_no_blank(self):
+        field, _server = many2one({'required': '1'})
+        field.setValue([7, 'Cliente ABC'])
+        self.assertNotIn(('', False), self.items(field))
+
+    def test_a_required_field_still_empty_shows_blank(self):
+        field, _server = many2one({'required': '1'})
+        field.setValue(False)
+        self.assertEqual(('', False), self.items(field)[0])
+
+    def test_opening_the_list_changes_nothing(self):
+        field, _server = many2one({})
+        field.setValue([7, 'Cliente ABC'])
+        told = []
+        field.value_changed_signal.connect(told.append)
+        field._loadProposals()
+        self.assertEqual([], told)
+        self.assertEqual(7, field.value)
+
+    def test_a_proposal_picked_is_the_value(self):
+        field, _server = many2one({})
+        field.setValue([7, 'Cliente ABC'])
+        field._loadProposals()
+        told = []
+        field.value_changed_signal.connect(told.append)
+        field.widgetQtObj2.setCurrentIndex(field.widgetQtObj2.findData(11))
+        self.assertEqual([11, 'Mario Rossi'], field.currentValue)
+        self.assertEqual(['parent_id'], told)
+
+
 class Attributes(unittest.TestCase):
 
     def test_python_false_from_odoo_17(self):

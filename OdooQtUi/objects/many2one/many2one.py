@@ -32,6 +32,19 @@ CREATE_LABEL = 'Create and Edit...'
 CREATE_ITEM = '__create__'
 
 
+class _ProposalCombo(QtWidgets.QComboBox):
+    """A combo that calls beforePopup before its list opens."""
+
+    def __init__(self, parent=None):
+        super(_ProposalCombo, self).__init__(parent)
+        self.beforePopup = None
+
+    def showPopup(self):
+        if self.beforePopup is not None:
+            self.beforePopup()
+        super(_ProposalCombo, self).showPopup()
+
+
 class Many2one(OdooFieldTemplate):
     """A many2one, searched on the server as the user types.
 
@@ -89,7 +102,8 @@ class Many2one(OdooFieldTemplate):
         self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
         self.qtHorizontalWidget.addWidget(self.labelQtObj)
         self.widgetQtObj = QtWidgets.QWidget(self)
-        self.widgetQtObj2 = QtWidgets.QComboBox(self)
+        self.widgetQtObj2 = _ProposalCombo(self)
+        self.widgetQtObj2.beforePopup = self._loadProposals
         self.widgetQtObj2.setStyleSheet(constants.SELECTION_STYLE)
         self.widgetQtObj2.setToolTip(self.tooltip)
         self.widgetQtObj2.setEditable(True)
@@ -116,23 +130,38 @@ class Many2one(OdooFieldTemplate):
 
     # -- the combo: blank, the current value, create -------------------------
 
-    def _fillCombo(self):
-        """The combo holds what can be picked without a search."""
+    def _fillCombo(self, proposals=()):
+        """The combo: the current value, the proposals the server gave
+        (_loadProposals), create. The blank entry, which empties the field,
+        only where the field may be empty: picked by mistake it cleared a
+        required unit of measure (2026-11-25)."""
         self._updating = True
         try:
             combo = self.widgetQtObj2
             combo.clear()
-            combo.addItem('', False)
+            if not self.required or not self.currentValue:
+                combo.addItem('', False)
+            currentId = self.currentValue[0] if self.currentValue else False
             if self.currentValue:
-                combo.addItem(self.currentValue[1], self.currentValue[0])
-                combo.setCurrentIndex(1)
-            else:
-                combo.setCurrentIndex(0)
+                combo.addItem(self.currentValue[1], currentId)
+            for recordId, name in proposals:
+                if recordId != currentId:
+                    combo.addItem(name, recordId)
+            combo.setCurrentIndex(max(0, combo.findData(currentId)) if currentId else 0)
             if self.canCreate:
                 combo.addItem(CREATE_LABEL, CREATE_ITEM)
             self._restoreText()
         finally:
             self._updating = False
+
+    @utilsUi.rpcErrorBoundary
+    def _loadProposals(self):
+        """Before the list opens: the first records the server proposes,
+        as Odoo shows them on a click. The combo held the current value only,
+        and a unit of measure could not be changed without typing."""
+        if not self.relation or not self.widgetQtObj2.isEnabled():
+            return
+        self._fillCombo(self.nameSearch(''))
 
     def _restoreText(self):
         if self.widgetQtObj2.lineEdit():
