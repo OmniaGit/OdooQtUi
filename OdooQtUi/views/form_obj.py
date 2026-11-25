@@ -37,6 +37,7 @@ from OdooQtUi.objects.one2many.one2many import One2many
 from OdooQtUi.objects.binary.binary import Binary
 from OdooQtUi.objects.text.text import Text
 from OdooQtUi.objects import button
+from OdooQtUi.widgets.page_tab_widget import PageTabWidget
 
 
 #: useHeader that shows of a form's header only its statusbar.
@@ -161,7 +162,7 @@ class TemplateFormView(TemplateView):
                                           xmlParent=childXlmElement)
             elif childXmlTag == 'notebook':
                 qvboxLayout.addLayout(row_container)
-                tabWidget = QtWidgets.QTabWidget(self)
+                tabWidget = PageTabWidget(self)
                 tabWidget.setStyleSheet(constants.NOOTEBOOK_STYLE)
                 tabWidgetBar = tabWidget.tabBar()
                 tabWidgetBar.setStyleSheet(constants.NOOTEBOOK_TABBAR_STYLE)
