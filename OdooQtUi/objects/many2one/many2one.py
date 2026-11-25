@@ -19,6 +19,7 @@ from PySide6 import QtWidgets
 from OdooQtUi.utils_odoo_conn import utils, utilsUi
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
+from OdooQtUi.widgets.record_picker import pickRecords
 
 #: What the web client proposes while the user types.
 SEARCH_LIMIT = 8
@@ -30,6 +31,22 @@ CREATE_LABEL = 'Create and Edit...'
 
 #: The item data of the combo entries that are not a record.
 CREATE_ITEM = '__create__'
+#: The entry that opens the whole list, with a search (Odoo's "Search More...").
+SEARCH_MORE_LABEL = 'Search More...'
+SEARCH_MORE_ITEM = '__search_more__'
+
+
+class _ProposalCombo(QtWidgets.QComboBox):
+    """A combo that calls beforePopup before its list opens."""
+
+    def __init__(self, parent=None):
+        super(_ProposalCombo, self).__init__(parent)
+        self.beforePopup = None
+
+    def showPopup(self):
+        if self.beforePopup is not None:
+            self.beforePopup()
+        super(_ProposalCombo, self).showPopup()
 
 
 class Many2one(OdooFieldTemplate):
@@ -89,7 +106,8 @@ class Many2one(OdooFieldTemplate):
         self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
         self.qtHorizontalWidget.addWidget(self.labelQtObj)
         self.widgetQtObj = QtWidgets.QWidget(self)
-        self.widgetQtObj2 = QtWidgets.QComboBox(self)
+        self.widgetQtObj2 = _ProposalCombo(self)
+        self.widgetQtObj2.beforePopup = self._loadProposals
         self.widgetQtObj2.setStyleSheet(constants.SELECTION_STYLE)
         self.widgetQtObj2.setToolTip(self.tooltip)
         self.widgetQtObj2.setEditable(True)
@@ -101,7 +119,8 @@ class Many2one(OdooFieldTemplate):
             utilsUi.setRequiredBackground(self.widgetQtObj2, constants.SELECTION_STYLE)
         self.qtHorizontalWidget.addWidget(self.widgetQtObj2)
         if self.canWrite:
-            self.editButton = QtWidgets.QPushButton('E')
+            self.editButton = QtWidgets.QPushButton('\u2192')     # an arrow, as Odoo's internal link
+            self.editButton.setToolTip('Open %s' % self.fieldStringInterface)
             self.editButton.clicked.connect(self.editItem)
             self.editButton.setStyleSheet(constants.BUTTON_STYLE_MANY_2_ONE)
             self.qtHorizontalWidget.addWidget(self.editButton)
@@ -115,23 +134,41 @@ class Many2one(OdooFieldTemplate):
 
     # -- the combo: blank, the current value, create -------------------------
 
-    def _fillCombo(self):
-        """The combo holds what can be picked without a search."""
+    def _fillCombo(self, proposals=()):
+        """The combo: the current value, the proposals the server gave
+        (_loadProposals), create. The blank entry, which empties the field,
+        only where the field may be empty: picked by mistake it cleared a
+        required unit of measure (2026-11-25)."""
         self._updating = True
         try:
             combo = self.widgetQtObj2
             combo.clear()
-            combo.addItem('', False)
+            if not self.required or not self.currentValue:
+                combo.addItem('', False)
+            currentId = self.currentValue[0] if self.currentValue else False
             if self.currentValue:
-                combo.addItem(self.currentValue[1], self.currentValue[0])
-                combo.setCurrentIndex(1)
-            else:
-                combo.setCurrentIndex(0)
+                combo.addItem(self.currentValue[1], currentId)
+            for recordId, name in proposals:
+                if recordId != currentId:
+                    combo.addItem(name, recordId)
+            combo.setCurrentIndex(max(0, combo.findData(currentId)) if currentId else 0)
+            if proposals:
+                # As Odoo: offered whenever there are proposals to go beyond.
+                combo.addItem(SEARCH_MORE_LABEL, SEARCH_MORE_ITEM)
             if self.canCreate:
                 combo.addItem(CREATE_LABEL, CREATE_ITEM)
             self._restoreText()
         finally:
             self._updating = False
+
+    @utilsUi.rpcErrorBoundary
+    def _loadProposals(self):
+        """Before the list opens: the first records the server proposes,
+        as Odoo shows them on a click. The combo held the current value only,
+        and a unit of measure could not be changed without typing."""
+        if not self.relation or not self.widgetQtObj2.isEnabled():
+            return
+        self._fillCombo(self.nameSearch(''))
 
     def _restoreText(self):
         if self.widgetQtObj2.lineEdit():
@@ -349,11 +386,28 @@ class Many2one(OdooFieldTemplate):
         data = self.widgetQtObj2.currentData()
         if data == CREATE_ITEM:
             self._createAndEdit()
+        elif data == SEARCH_MORE_ITEM:
+            self._searchMore()
         elif not data:
             if self.currentValue:
                 self._setCurrent(False)
         elif not self.currentValue or data != self.currentValue[0]:
             self._setCurrent([data, self.widgetQtObj2.currentText()])
+
+    def _searchMore(self):
+        """The whole list of the related model, with its search, through
+        the field's domain: the record picked is the value, nothing picked
+        leaves the one there was."""
+        ids = pickRecords(self.odooConnector, self.relation, self.evaluatedDomain(), multi=False,
+                          title='Search: %s' % self.fieldStringInterface)
+        if not ids:
+            self._fillCombo()
+            return
+        res = self.odooConnector.rpc_connector.read(self.relation, ['display_name'], ids[:1])
+        if res:
+            self._setCurrent([ids[0], res[0].get('display_name', '')])
+        else:
+            self._fillCombo()
 
     def _createAndEdit(self):
         dialog = QtWidgets.QDialog()

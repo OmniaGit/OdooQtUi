@@ -22,6 +22,7 @@ from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.utils_odoo_conn import utilsUi
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
+from OdooQtUi.widgets.record_picker import pickRecords
 
 
 class Many2many(OdooFieldTemplate):
@@ -52,7 +53,6 @@ class Many2many(OdooFieldTemplate):
             self.canCreate = json.loads(self.fieldXmlAttributes.get('can_create', 'true'))
             self.canWrite = json.loads(self.fieldXmlAttributes.get('can_write', 'true'))
         self.qtVBoxLayout = QtWidgets.QVBoxLayout()
-        self.evaluatedIds = {}
         self.loaded_ids = []
         self.labelQtObj = QtWidgets.QLabel(self.fieldStringInterface)
         self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
@@ -60,15 +60,23 @@ class Many2many(OdooFieldTemplate):
         remove_button = True
         if self.readonly:
             remove_button = False
+        #: Whether its rows may be removed at all; setReadonly takes the Remove
+        #: buttons away while the form is read-only and gives them back after.
+        self._removeAllowed = remove_button
         if parent_view_type != 'tree':
             qHl = self.getQtObject()
             self.treeViewObj = self.odooConnector.initTreeListViewObject(odooObjectName=self.relation,
                                                                          viewName='',
                                                                          view_id=False,
-                                                                         viewCheckBoxes={0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled},
+                                                                         viewCheckBoxes={},
                                                                          viewFilter=False,
                                                                          remove_button=remove_button)
             self.treeViewObj.parentView = qtParent
+            # The list shows the records of the field, all of them: the paging
+            # arrows a search list has are not for it.
+            self._hidePaging()
+            # A row taken off with its Remove button is a change of the field.
+            self.treeViewObj.on_rows_removed = self.valueChanged
             self.qtVBoxLayout.addWidget(self.treeViewObj)
             self.qtVBoxLayout.addLayout(qHl)
         elif parent_view_type == 'tree':
@@ -82,20 +90,34 @@ class Many2many(OdooFieldTemplate):
 
     @property
     def currentValue(self):
+        """The ids the field holds: the rows of its list, in their order.
+
+        idLineRel is {row: id}. It was read as if it held an 'ids' key, which
+        it never does, so the field was always empty: an item added vanished
+        at once and the form saved no relation at all."""
         if self.treeViewObj:
-            if isinstance(self.treeViewObj.idLineRel, dict):
-                return self.treeViewObj.idLineRel.get('ids', [])
-            return self.treeViewObj.idLineRel.ids()
-        return self.loaded_ids
+            rows = self.treeViewObj.idLineRel
+            return [rows[row] for row in sorted(rows) if rows[row]]
+        return list(self.loaded_ids)
+
+    def addIds(self, ids):
+        """Add ids to the field, those it does not hold yet, and tell the form
+        the field changed, so that its save writes the relation."""
+        value = self.currentValue
+        added = [objId for objId in ids if objId and objId not in value]
+        if not added:
+            return
+        self.setValue(value + added)
+        self.valueChanged()
 
     def getQtObject(self):
         qhw = QtWidgets.QHBoxLayout()
         self.createButt = QtWidgets.QPushButton('Create', self)
-        self.createButt.setStyleSheet(constants.BUTTON_STYLE)
+        self.createButt.setStyleSheet(constants.BUTTON_STYLE_X2MANY_LINK)
         self.createButt.clicked.connect(self.createAndAdd)
 
         self.btnAddAnItem = QtWidgets.QPushButton('Add an item', self)
-        self.btnAddAnItem.setStyleSheet(constants.BUTTON_STYLE)
+        self.btnAddAnItem.setStyleSheet(constants.BUTTON_STYLE_X2MANY_LINK)
         self.btnAddAnItem.clicked.connect(self.addAnItem)
             
         qhw.addWidget(self.createButt)
@@ -138,8 +160,7 @@ class Many2many(OdooFieldTemplate):
                 fieldVals = tmpviewObjForm.getAllFieldsValues()
                 objId = self.odooConnector.rpc_connector.create(self.relation, fieldVals)
                 if objId:
-                    self.currentValue.append(objId)
-                    self.setValue(self.currentValue)
+                    self.addIds([objId])
         except OdooRpcError:
             raise           # told by rpcErrorBoundary
         except Exception as ex:
@@ -150,8 +171,8 @@ class Many2many(OdooFieldTemplate):
             self.treeViewObj.loadIds(relIds, {}, {}, {})
             self.widgetQtObj = self.treeViewObj.treeObj.tableWidget
             self.fieldsToReadOrdered = self.treeViewObj.treeObj.orderedFields
-            # self.setRemoveButtons(self.widgetQtObj)
             self.setupTableWidgetLay(self.widgetQtObj)
+            self._hidePaging()
             if self.required:
                 utilsUi.setRequiredBackground(self.widgetQtObj, '')
         elif self.label_name_values:
@@ -165,17 +186,10 @@ class Many2many(OdooFieldTemplate):
 
     def setupTableWidgetLay(self, tableWidget):
         tableWidget.resizeColumnsToContents()
+        if self.treeViewObj:
+            self.treeViewObj.fitColumnsToCellWidgets()
         tableWidget.setShowGrid(False)
         tableWidget.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
-
-    def setRemoveButtons(self, tableWidget):
-        rowCount = tableWidget.rowCount()
-        colCount = tableWidget.columnCount()
-        for rowCount in range(0, rowCount):
-            btn = QtWidgets.QPushButton('Remove')
-            btn.setStyleSheet(constants.BUTTON_ADD_AN_ITEM)
-            tableWidget.setCellWidget(rowCount, colCount - 1, btn)
-            btn.clicked.connect(partial(self.removeItem, rowCount))
 
     def getOrderedFieldsStrings(self, orderedFields, fieldsDict):
         labelsOrdered = []
@@ -208,67 +222,28 @@ class Many2many(OdooFieldTemplate):
 
     @utilsUi.rpcErrorBoundary
     def addAnItem(self):
-        def acceptDial():
-            dial.accept()
-
-        def rejectDial():
-            dial.reject()
-
-        def commonMove():
-            currRange = viewObj.currentRange
-            currRangeTuple = tuple(currRange)
-            if currRangeTuple not in list(self.evaluatedIds.keys()):
-                resIds = self.odooConnector.rpc_connector.search(self.relation, [], limit=viewObj.passRange, offset=currRange[-1])
-                self.evaluatedIds[currRangeTuple] = resIds
-            else:
-                resIds = self.evaluatedIds[currRangeTuple]
-            viewObj.treeObj.tableWidget.clear()
-            viewObj.loadIds(resIds, {}, {}, {})
-
-        def toLeft():
-            commonMove()
-
-        def toRight():
-            commonMove()
-
-        #raise Exception('To be moved in list view with a flag')
-        viewObj = self.odooConnector.initTreeListViewObject(self.relation,
-                                                            viewCheckBoxes={0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled})
-        viewObj.buttToLeft.clicked.connect(toLeft)
-        viewObj.buttToRight.clicked.connect(toRight)
-        resIds = self.odooConnector.rpc_connector.search(self.relation, [], limit=viewObj.currentRange[-1], offset=viewObj.currentRange[0])
-        viewObj.loadIds(resIds, {}, {}, {})
-        dial = QtWidgets.QDialog()
-        vlay = QtWidgets.QVBoxLayout()
-        utilsUi.setLayoutMarginAndSpacing(vlay)
-        layButt, okButt, cancelButt = utilsUi.getButtonBox('right')
-        okButt.setStyleSheet(constants.BUTTON_STYLE_OK)
-        cancelButt.setStyleSheet(constants.BUTTON_STYLE_CANCEL)
-        okButt.clicked.connect(acceptDial)
-        cancelButt.clicked.connect(rejectDial)
-        vlay.addWidget(viewObj)
-        vlay.addLayout(layButt)
-        dial.setLayout(vlay)
-        dial.setStyleSheet(constants.VIOLET_BACKGROUND)
-        dial.resize(800, 500)
-        if dial.exec() == QtWidgets.QDialog.Accepted:
-            checkedRows = []
-            localIndexId = {}
-            table = viewObj.treeObj.tableWidget
-            for rowIndex in range(table.rowCount()):
-                item = table.item(rowIndex, 0)
-                if item and item.checkState() == QtCore.Qt.Checked:
-                    objId = viewObj.idLineRel.get(rowIndex, False)
-                    if objId:
-                        self.currentValue.append(objId)
-                        localIndexId[rowIndex] = objId
-                    checkedRows.append(rowIndex)
-            self.setValue(self.currentValue)
+        # Only the records the field does not hold yet: one already there,
+        # offered again, was added twice (2026-11-25).
+        notHeld = [('id', 'not in', self.currentValue)]
+        self.addIds(pickRecords(self.odooConnector, self.relation, notHeld, multi=True,
+                                title='Add: %s' % self.fieldPyDefinition.get('string', self.fieldName)))
 
     def valueChanged(self):
         self.valueTemplateChanged()
 
+    def _hidePaging(self):
+        if self.treeViewObj:
+            self.treeViewObj.buttToLeft.setHidden(True)
+            self.treeViewObj.buttToRight.setHidden(True)
+
     def setReadonly(self, val=False):
+        if self.treeViewObj:
+            removable = self._removeAllowed and not val
+            if self.treeViewObj.remove_button != removable:
+                # The rows drawn again with or without their Remove button.
+                ids = self.currentValue
+                self.treeViewObj.remove_button = removable
+                self.setValue(ids)
         if self.btnAddAnItem:
             self.btnAddAnItem.setDisabled(val)
         if self.widgetQtObj:
@@ -293,12 +268,7 @@ class Many2many(OdooFieldTemplate):
         if self.widgetQtObj:
             self.widgetQtObj.setHidden(val)
         if self.treeViewObj:
-            if val:
-                self.treeViewObj.buttToLeft.hide()
-                self.treeViewObj.buttToRight.hide()
-            else:
-                self.treeViewObj.buttToLeft.show()
-                self.treeViewObj.buttToRight.show()
+            self._hidePaging()
             self.treeViewObj.treeObj.tableWidget.setHidden(val)
             #self.treeViewObj.treeObj.widgetContents.setHidden(val)
         if self.label_name_values:

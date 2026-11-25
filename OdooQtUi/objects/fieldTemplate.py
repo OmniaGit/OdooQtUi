@@ -88,6 +88,10 @@ class OdooFieldTemplate(QtWidgets.QWidget):
         self.invisibleConditions, self.readonlyConditions = utils.evaluateModifiers(self.modifiers)
         self.qtHorizontalWidget = QtWidgets.QHBoxLayout(self)
         utilsUi.setLayoutMarginAndSpacing(self.qtHorizontalWidget)
+        # Little room above and below: a field is one line of a form, and six
+        # pixels on each side doubled the height of every row (2026-11-25).
+        self.qtHorizontalWidget.setContentsMargins(constants.LAY_OUT_SPACING, constants.FIELD_V_MARGIN,
+                                                   constants.LAY_OUT_SPACING, constants.FIELD_V_MARGIN)
         self.hide()
         if constants.DEBUG:
             self.setStyleSheet("border: 2px solid black;")
@@ -102,8 +106,11 @@ class OdooFieldTemplate(QtWidgets.QWidget):
         self.parentModel = parentModel
 
     def connectTranslationButton(self):
-        self.translateButton = QtWidgets.QPushButton('T')
-        self.translateButton.setStyleSheet(constants.BUTTON_STYLE)
+        # The language the value is shown in, as Odoo marks a translatable field.
+        language = (getattr(self.odooConnector, 'activeLanguage', '') or 'en_US')[:2].upper()
+        self.translateButton = QtWidgets.QPushButton(language)
+        self.translateButton.setToolTip('Translate')
+        self.translateButton.setStyleSheet(constants.BUTTON_STYLE_TRANSLATE)
         self.translateButton.clicked.connect(self.translateDialog)
         # self.qtHorizontalWidget.setSpacing(10)
 
@@ -129,12 +136,19 @@ class OdooFieldTemplate(QtWidgets.QWidget):
         self.hideTranslateButton(val)
 
     def setInvisible(self, val):
-        utilsUi.setLayoutMarginAndSpacing(self.qtHorizontalWidget, 0)
+        # It reset the field's layout here with setLayoutMarginAndSpacing(.., 0),
+        # which reads 0 as "not given" and put the six pixels back on every
+        # field shown, undoing the margins the form had set (2026-11-25).
         self.hideTranslateButton(val)
         if val:
             self.hide()
         else:
             self.show()
+        # A label a group moved into its label column goes with the field,
+        # whatever the field type does with it itself.
+        moved = getattr(self, 'movedLabel', None)
+        if moved is not None:
+            moved.setHidden(val)
 
     def showChatterWidget(self):
         pass

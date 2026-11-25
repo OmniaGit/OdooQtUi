@@ -46,6 +46,7 @@ class ViewOdooObj(object):
         self.localSearchMode = ''
         self.useHeader = False
         self.useChatter = False
+        self.hideFormContent = False
         self.loginInfos = {}
         self.localViewCheckBoxes = False
 
@@ -57,7 +58,13 @@ class ViewOdooObj(object):
                  localViewFilter, 
                  loginInfos, 
                  viewCheckBoxes, 
-                 hideFormContent):
+                 hideFormContent,
+                 useHeader=False,
+                 useChatter=False):
+        # The header and the chatter are built into the widgets: a view built
+        # without them is not the one asked for with them.
+        if self.useHeader != useHeader or self.useChatter != useChatter:
+            return False
         if self.localViewType == localViewType and \
             self.localOdooObjectName == localOdooObjectName and \
             self.localViewName == localViewName and \
@@ -302,7 +309,10 @@ class MainConnector(object):
                                                   viewName,
                                                   view_id,
                                                   viewFilter,
-                                                  viewCheckBoxes)
+                                                  viewCheckBoxes,
+                                                  hideFormContent,
+                                                  useHeader,
+                                                  useChatter)
             if not viewObj:
                 viewObj = self.appendLoadedView(viewType=viewType,
                                                 odooObjectName=odooObjectName,
@@ -443,10 +453,13 @@ class MainConnector(object):
                                view_id,
                                viewFilter=False,
                                viewCheckBoxes=False,
-                               hideFormContent=False):
+                               hideFormContent=False,
+                               useHeader=False,
+                               useChatter=False):
         loginInfos = self.rpc_connector.getLoginInfos()
         for viewObj in self.loadedViews:
-            if viewObj.hasMatch(viewType, odooObjectName, viewName, view_id, viewFilter, loginInfos, viewCheckBoxes, hideFormContent):
+            if viewObj.hasMatch(viewType, odooObjectName, viewName, view_id, viewFilter, loginInfos,
+                                viewCheckBoxes, hideFormContent, useHeader, useChatter):
                 return viewObj
         return False
 

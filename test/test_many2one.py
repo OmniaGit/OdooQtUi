@@ -21,6 +21,7 @@ import os
 import subprocess
 import sys
 import unittest
+from unittest import mock
 from xml.etree import ElementTree
 
 os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')
@@ -143,6 +144,99 @@ class Searching(unittest.TestCase):
         self.assertFalse([call for call in server.calls if call[0] == 'readSearch'])
 
 
+class Proposals(unittest.TestCase):
+    """The list of a many2one opens with the server's first proposals, as
+    Odoo's does on a click (2026-11-25: a unit of measure could not be
+    changed without typing)."""
+
+    def items(self, field):
+        combo = field.widgetQtObj2
+        return [(combo.itemText(i), combo.itemData(i)) for i in range(combo.count())]
+
+    def test_the_list_opens_with_the_proposals(self):
+        field, server = many2one({})
+        field.setValue([7, 'Cliente ABC'])
+        field._loadProposals()
+        method, _model, kwargs, _context = server.calls[-1]
+        self.assertEqual((method, kwargs['name'], kwargs['limit']), ('name_search', '', 8))
+        self.assertEqual([('', False), ('Cliente ABC', 7), ('Mario Rossi', 11), ('My Company', 1),
+                          ('Search More...', '__search_more__'), ('Create and Edit...', '__create__')],
+                         self.items(field))
+        self.assertEqual('Cliente ABC', field.widgetQtObj2.currentText())
+
+    def test_the_current_value_is_not_proposed_twice(self):
+        field, _server = many2one({})
+        field.setValue([11, 'Mario Rossi'])
+        field._loadProposals()
+        self.assertEqual(1, [name for name, _id in self.items(field)].count('Mario Rossi'))
+
+    def test_a_required_field_with_a_value_has_no_blank(self):
+        field, _server = many2one({'required': '1'})
+        field.setValue([7, 'Cliente ABC'])
+        self.assertNotIn(('', False), self.items(field))
+
+    def test_a_required_field_still_empty_shows_blank(self):
+        field, _server = many2one({'required': '1'})
+        field.setValue(False)
+        self.assertEqual(('', False), self.items(field)[0])
+
+    def test_opening_the_list_changes_nothing(self):
+        field, _server = many2one({})
+        field.setValue([7, 'Cliente ABC'])
+        told = []
+        field.value_changed_signal.connect(told.append)
+        field._loadProposals()
+        self.assertEqual([], told)
+        self.assertEqual(7, field.value)
+
+    def test_a_proposal_picked_is_the_value(self):
+        field, _server = many2one({})
+        field.setValue([7, 'Cliente ABC'])
+        field._loadProposals()
+        told = []
+        field.value_changed_signal.connect(told.append)
+        field.widgetQtObj2.setCurrentIndex(field.widgetQtObj2.findData(11))
+        self.assertEqual([11, 'Mario Rossi'], field.currentValue)
+        self.assertEqual(['parent_id'], told)
+
+
+class SearchMore(unittest.TestCase):
+
+    def items(self, field):
+        combo = field.widgetQtObj2
+        return [combo.itemText(i) for i in range(combo.count())]
+
+    def test_offered_with_the_proposals_before_create(self):
+        field, _server = many2one({})
+        field.setValue([7, 'Cliente ABC'])
+        self.assertNotIn('Search More...', self.items(field))
+        field._loadProposals()
+        self.assertEqual(['Search More...', 'Create and Edit...'], self.items(field)[-2:])
+
+    def test_the_record_picked_is_the_value(self):
+        field, _server = many2one({'domain': "[('is_company', '=', True)]"})
+        field.setValue([7, 'Cliente ABC'])
+        field._loadProposals()
+        told = []
+        field.value_changed_signal.connect(told.append)
+        with mock.patch('OdooQtUi.objects.many2one.many2one.pickRecords', return_value=[5]) as pick:
+            field.widgetQtObj2.setCurrentIndex(field.widgetQtObj2.findData('__search_more__'))
+        args, kwargs = pick.call_args
+        self.assertEqual(('res.partner', [('is_company', '=', True)]), args[1:3])
+        self.assertFalse(kwargs['multi'])
+        self.assertEqual([5, 'Record 5'], field.currentValue)
+        self.assertEqual(['parent_id'], told)
+
+    def test_nothing_picked_keeps_the_value(self):
+        field, _server = many2one({})
+        field.setValue([7, 'Cliente ABC'])
+        field._loadProposals()
+        with mock.patch('OdooQtUi.objects.many2one.many2one.pickRecords', return_value=[]):
+            field.widgetQtObj2.setCurrentIndex(field.widgetQtObj2.findData('__search_more__'))
+        self.assertEqual([7, 'Cliente ABC'], field.currentValue)
+        self.assertEqual('Cliente ABC', field.widgetQtObj2.currentText())
+
+
 class Attributes(unittest.TestCase):
 
     def test_python_false_from_odoo_17(self):
@@ -159,6 +253,30 @@ class Attributes(unittest.TestCase):
     def test_the_no_create_option(self):
         field, _server = many2one({'options': "{'no_create': True}"})
         self.assertFalse(field.canCreate)
+
+
+class Look(unittest.TestCase):
+    """The many2one's way into its record is an arrow with a tooltip, as
+    Odoo's internal link, not a teal "E" (2026-11-25)."""
+
+    def test_an_arrow_that_says_what_it_opens(self):
+        field, _server = many2one({'string': 'Parent'})
+        self.assertEqual('\u2192', field.editButton.text())
+        self.assertEqual('Open Parent', field.editButton.toolTip())
+
+
+class TranslateButton(unittest.TestCase):
+    """A translatable field shows the language its value is in, as Odoo does,
+    not a "T"."""
+
+    def test_the_language_of_the_user(self):
+        from types import SimpleNamespace
+        from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
+        holder = SimpleNamespace(odooConnector=SimpleNamespace(activeLanguage='it_IT'),
+                                 translateDialog=lambda: None)
+        OdooFieldTemplate.connectTranslationButton(holder)
+        self.assertEqual('IT', holder.translateButton.text())
+        self.assertEqual('Translate', holder.translateButton.toolTip())
 
 
 if __name__ == '__main__':

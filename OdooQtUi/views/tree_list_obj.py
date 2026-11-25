@@ -22,6 +22,7 @@ from OdooQtUi.utils_odoo_conn import utils, utilsUi
 from OdooQtUi.utils_odoo_conn import constants
 from functools import partial
 from OdooQtUi.utils_odoo_conn.utils import logWarning, logError
+from OdooQtUi.widgets.remove_button import removeButton
 
 
 class RowSelectionDelegate(QtWidgets.QStyledItemDelegate):
@@ -132,9 +133,20 @@ class TemplateTreeListView(TemplateView):
         self._image_rows_connected = False
         self.passRange = 40
         self.remove_button = remove_button
+        #: Called with no argument after a row is taken off with its Remove
+        #: button: the field that owns the list (a many2many) marks itself
+        #: changed there.
+        self.on_rows_removed = None
         # The form around the list, when the list is a one2many or a many2many
         # of it: what `parent.<field>` reads in a column expression.
         self.parentView = None
+        #: The column that holds the check boxes: the first one the user sees
+        #: (see _checkBoxFlags). getSelectedIds reads it.
+        self._checkColumn = 0
+        #: Called with the record id of a row double-clicked, in place of
+        #: opening its form: a list used to pick records (a many2many's
+        #: "Add an item") takes the row instead.
+        self.doubleClickCallback = None
         self._initViewObj()
 
     def _initViewObj(self):
@@ -275,9 +287,18 @@ class TemplateTreeListView(TemplateView):
     SMALL_IMAGE_FIELDS = ('image_128', 'image_256')
 
     def _fieldsToRead(self):
-        """The columns of the view, minus the ones the first read does not carry."""
+        """The columns of the view, minus the ones the first read does not carry.
+
+        Only a <field> column is a field. A <button> column carries the name of
+        a method (project.project's list has `action_view_tasks` from Odoo 19),
+        and asked for in the read it made the server refuse the whole list:
+        a many2many to projects could show no row, and a product that had a
+        project could not be opened in its form."""
         wanted = []
-        for fieldName in self.labelsOrdered:
+        for col_index, fieldName in enumerate(self.labelsOrdered):
+            element = self.treeObj.widgets_to_add_in_line.get(col_index)
+            if element is not None and element.tag != 'field':
+                continue
             definition = self.fieldsNameTypeRel.get(fieldName, {})
             if definition.get('type') in self.BINARY_TYPES:
                 continue
@@ -442,6 +463,7 @@ class TemplateTreeListView(TemplateView):
             self.idLineRel[records.index(record)] = recordId
         if self.remove_button:
             headers.append('')
+        flagsDict = self._checkBoxFlags(flagsDict, hidden_columns)
         utilsUi.commonPopulateTable(headers,
                                     valuesList,
                                     self.treeObj.tableWidget,
@@ -699,6 +721,9 @@ class TemplateTreeListView(TemplateView):
             model_index = args[0]
             row_index = model_index.row()
             obj_id = self.idLineRel.get(row_index, False)
+            if self.doubleClickCallback is not None:
+                self.doubleClickCallback(obj_id)
+                return
             viewObj = self.odooConnector.initFormViewObj(self.model)
             viewObj.loadIds([obj_id])
             dialog = QtWidgets.QDialog()
@@ -803,8 +828,7 @@ class TemplateTreeListView(TemplateView):
         rowCount = self.treeObj.tableWidget.rowCount()
         colCount = self.treeObj.tableWidget.columnCount()
         for rowCount in range(0, rowCount):
-            btn = QtWidgets.QPushButton('Remove')
-            btn.setStyleSheet(constants.BUTTON_ADD_AN_ITEM)
+            btn = removeButton()
             self.treeObj.tableWidget.setCellWidget(rowCount, colCount - 1, btn)
             btn.clicked.connect(partial(self.removeItem, rowCount))
 
@@ -822,13 +846,32 @@ class TemplateTreeListView(TemplateView):
             elif found:
                 del self.idLineRel[rowInd]
                 self.idLineRel[rowInd - 1] = objId
+        if found and self.on_rows_removed:
+            self.on_rows_removed()
 
     def refreshColumns(self):
         if self.treeObj.tableWidget:
             self.treeObj.tableWidget.resizeColumnsToContents()
             self.treeObj.tableWidget.setColumnWidth(0, 92)
             self.treeObj.tableWidget.setColumnWidth(1, 82)
+            self.fitColumnsToCellWidgets()
             self.treeObj.tableWidget.horizontalHeader().setStretchLastSection(True)
+
+    def fitColumnsToCellWidgets(self):
+        """Every column wide enough for the buttons drawn in its cells: a
+        cell widget gets the cell less the item padding of the list's style
+        (TABLE_LIST_LIST, 8 px each side), so a column as wide as the button
+        cut its text ("iew Task", 2026-11-25)."""
+        table = self.treeObj.tableWidget
+        for column in range(table.columnCount()):
+            wanted = 0
+            for row in range(table.rowCount()):
+                widget = table.cellWidget(row, column)
+                if widget is not None and not widget.isHidden():
+                    wanted = max(wanted, widget.sizeHint().width())
+            wanted += constants.LIST_CELL_PADDING
+            if wanted > constants.LIST_CELL_PADDING and table.columnWidth(column) < wanted:
+                table.setColumnWidth(column, wanted)
 
     def setRowSelected(self, rowIndex):
         self.treeObj.tableWidget.selectRow(rowIndex)
@@ -876,11 +919,30 @@ class TemplateTreeListView(TemplateView):
     def sortResults(self, fieldName='', filterMode='DESC'):
         utils.logMessage('warning', 'Sorting not implemented in tree list view', 'sortResults')
 
+    def _checkBoxFlags(self, flagsDict, hiddenColumns):
+        """flagsDict with the check boxes of column 0 moved to the first
+        column the user sees that shows a value, not a button.
+
+        The first column of a view is often one Odoo hides (project's
+        `sequence`): the boxes sat there, nobody could tick them, and a
+        many2many's "Add an item" added nothing (2026-11-25)."""
+        self._checkColumn = 0
+        if not flagsDict or 0 not in flagsDict or not hiddenColumns.get(0):
+            return flagsDict
+        columns = self.treeObj.widgets_to_add_in_line      # {column index: xml element}
+        for col_index in sorted(columns):
+            if columns[col_index].tag == 'field' and not hiddenColumns.get(col_index):
+                moved = dict(flagsDict)
+                moved[col_index] = moved.pop(0)
+                self._checkColumn = col_index
+                return moved
+        return flagsDict
+
     def getSelectedIds(self):
         outIds = []
         if self.viewCheckBoxes:
             for rowIndex in range(self.treeObj.tableWidget.rowCount()):
-                item = self.treeObj.tableWidget.item(rowIndex, 0)
+                item = self.treeObj.tableWidget.item(rowIndex, self._checkColumn)
                 if item and item.checkState() == QtCore.Qt.Checked:
                     idd = self.idLineRel.get(rowIndex, False)
                     if idd:
