@@ -22,6 +22,7 @@ from OdooQtUi.utils_odoo_conn import utils, utilsUi
 from OdooQtUi.utils_odoo_conn import constants
 from functools import partial
 from OdooQtUi.utils_odoo_conn.utils import logWarning, logError
+from OdooQtUi.widgets.remove_button import removeButton
 
 
 class RowSelectionDelegate(QtWidgets.QStyledItemDelegate):
@@ -827,8 +828,7 @@ class TemplateTreeListView(TemplateView):
         rowCount = self.treeObj.tableWidget.rowCount()
         colCount = self.treeObj.tableWidget.columnCount()
         for rowCount in range(0, rowCount):
-            btn = QtWidgets.QPushButton('Remove')
-            btn.setStyleSheet(constants.BUTTON_ADD_AN_ITEM)
+            btn = removeButton()
             self.treeObj.tableWidget.setCellWidget(rowCount, colCount - 1, btn)
             btn.clicked.connect(partial(self.removeItem, rowCount))
 
@@ -854,7 +854,24 @@ class TemplateTreeListView(TemplateView):
             self.treeObj.tableWidget.resizeColumnsToContents()
             self.treeObj.tableWidget.setColumnWidth(0, 92)
             self.treeObj.tableWidget.setColumnWidth(1, 82)
+            self.fitColumnsToCellWidgets()
             self.treeObj.tableWidget.horizontalHeader().setStretchLastSection(True)
+
+    def fitColumnsToCellWidgets(self):
+        """Every column wide enough for the buttons drawn in its cells: a
+        cell widget gets the cell less the item padding of the list's style
+        (TABLE_LIST_LIST, 8 px each side), so a column as wide as the button
+        cut its text ("iew Task", 2026-11-25)."""
+        table = self.treeObj.tableWidget
+        for column in range(table.columnCount()):
+            wanted = 0
+            for row in range(table.rowCount()):
+                widget = table.cellWidget(row, column)
+                if widget is not None and not widget.isHidden():
+                    wanted = max(wanted, widget.sizeHint().width())
+            wanted += constants.LIST_CELL_PADDING
+            if wanted > constants.LIST_CELL_PADDING and table.columnWidth(column) < wanted:
+                table.setColumnWidth(column, wanted)
 
     def setRowSelected(self, rowIndex):
         self.treeObj.tableWidget.selectRow(rowIndex)

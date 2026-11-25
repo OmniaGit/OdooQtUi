@@ -124,6 +124,60 @@ class Picked(unittest.TestCase):
         view.odooConnector.initFormViewObj.assert_not_called()
 
 
+class NotHeld(unittest.TestCase):
+    """The dialog offers only the records the field does not hold."""
+
+    def test_the_search_leaves_out_what_the_field_holds(self):
+        field = Many2many.__new__(Many2many)
+        field.relation = 'project.project'
+        field.fieldName = 'project_ids'
+        field.fieldPyDefinition = {'string': 'Projects'}
+        field.treeViewObj = mock.Mock(idLineRel={0: 40, 1: 41})
+        view = mock.Mock(currentRange=[0, 40], idLineRel={})
+        connector = mock.Mock()
+        connector.initTreeListViewObject.return_value = view
+        connector.rpc_connector.search.return_value = []
+        field.odooConnector = connector
+        titles = []
+        with mock.patch.object(QtWidgets.QDialog, 'exec', return_value=QtWidgets.QDialog.Rejected), \
+                mock.patch.object(QtWidgets.QDialog, 'setWindowTitle', side_effect=titles.append), \
+                mock.patch.object(QtWidgets.QVBoxLayout, 'addWidget'):
+            Many2many.addAnItem.__wrapped__(field) if hasattr(Many2many.addAnItem, '__wrapped__') \
+                else Many2many.addAnItem(field)
+        domain = [('id', 'not in', [40, 41])]
+        self.assertEqual(domain, connector.initTreeListViewObject.call_args.kwargs['deafult_filter'])
+        self.assertEqual(domain, connector.rpc_connector.search.call_args.args[1])
+        self.assertEqual(['Add: Projects'], titles)
+
+
+class Columns(unittest.TestCase):
+
+    def test_a_button_column_holds_the_button_and_the_padding(self):
+        view = listView(rows=1)
+        table = view.treeObj.tableWidget
+        button = QtWidgets.QPushButton('View Tasks')
+        table.setCellWidget(0, 1, button)
+        table.setColumnWidth(1, 20)
+        view.fitColumnsToCellWidgets()
+        self.assertEqual(button.sizeHint().width() + constants.LIST_CELL_PADDING, table.columnWidth(1))
+
+    def test_a_text_column_is_left_alone(self):
+        view = listView(rows=1)
+        view.treeObj.tableWidget.setColumnWidth(2, 33)
+        view.fitColumnsToCellWidgets()
+        self.assertEqual(33, view.treeObj.tableWidget.columnWidth(2))
+
+
+class Bin(unittest.TestCase):
+
+    def test_a_bin_not_a_word(self):
+        from OdooQtUi.widgets.remove_button import removeButton
+        button = removeButton()
+        self.assertEqual('', button.text())
+        self.assertFalse(button.icon().isNull())
+        self.assertEqual('Remove', button.toolTip())
+
+
 class Field(QtWidgets.QWidget):
     def __init__(self):
         super(Field, self).__init__()

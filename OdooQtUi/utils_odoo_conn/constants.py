@@ -193,6 +193,9 @@ GROUP_TITLE_STYLE = FONT_SIZE + BOLD_FONT + 'padding-top: 8px; padding-bottom: 4
 GROUP_COLUMN_SPACING = 32
 GROUP_LABEL_SPACING = 12
 GROUP_ROW_SPACING = 4
+#: The width a list cell keeps around a widget drawn in it: the left and
+#: right padding of QTableWidget::item in TABLE_LIST_LIST.
+LIST_CELL_PADDING = 16
 #: Pixels above and below the input of a field (fieldTemplate).
 FIELD_V_MARGIN = 2
 #: Margins of a notebook page: left, top, right, bottom.

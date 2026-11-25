@@ -171,7 +171,6 @@ class Many2many(OdooFieldTemplate):
             self.treeViewObj.loadIds(relIds, {}, {}, {})
             self.widgetQtObj = self.treeViewObj.treeObj.tableWidget
             self.fieldsToReadOrdered = self.treeViewObj.treeObj.orderedFields
-            # self.setRemoveButtons(self.widgetQtObj)
             self.setupTableWidgetLay(self.widgetQtObj)
             self._hidePaging()
             if self.required:
@@ -187,17 +186,10 @@ class Many2many(OdooFieldTemplate):
 
     def setupTableWidgetLay(self, tableWidget):
         tableWidget.resizeColumnsToContents()
+        if self.treeViewObj:
+            self.treeViewObj.fitColumnsToCellWidgets()
         tableWidget.setShowGrid(False)
         tableWidget.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
-
-    def setRemoveButtons(self, tableWidget):
-        rowCount = tableWidget.rowCount()
-        colCount = tableWidget.columnCount()
-        for rowCount in range(0, rowCount):
-            btn = QtWidgets.QPushButton('Remove')
-            btn.setStyleSheet(constants.BUTTON_ADD_AN_ITEM)
-            tableWidget.setCellWidget(rowCount, colCount - 1, btn)
-            btn.clicked.connect(partial(self.removeItem, rowCount))
 
     def getOrderedFieldsStrings(self, orderedFields, fieldsDict):
         labelsOrdered = []
@@ -236,29 +228,16 @@ class Many2many(OdooFieldTemplate):
         def rejectDial():
             dial.reject()
 
-        def commonMove():
-            currRange = viewObj.currentRange
-            currRangeTuple = tuple(currRange)
-            if currRangeTuple not in list(self.evaluatedIds.keys()):
-                resIds = self.odooConnector.rpc_connector.search(self.relation, [], limit=viewObj.passRange, offset=currRange[-1])
-                self.evaluatedIds[currRangeTuple] = resIds
-            else:
-                resIds = self.evaluatedIds[currRangeTuple]
-            viewObj.treeObj.tableWidget.clear()
-            viewObj.loadIds(resIds, {}, {}, {})
-
-        def toLeft():
-            commonMove()
-
-        def toRight():
-            commonMove()
-
-        #raise Exception('To be moved in list view with a flag')
+        # Only the records the field does not hold yet: one already there,
+        # offered again, was added twice (2026-11-25). The list pages through
+        # the same domain with its own arrows (pagingFilter); the paging this
+        # dialog did besides, through self.evaluatedIds, kept the pages of
+        # the last time and searched from the wrong offset.
+        notHeld = [('id', 'not in', self.currentValue)]
         viewObj = self.odooConnector.initTreeListViewObject(self.relation,
-                                                            viewCheckBoxes={0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled})
-        viewObj.buttToLeft.clicked.connect(toLeft)
-        viewObj.buttToRight.clicked.connect(toRight)
-        resIds = self.odooConnector.rpc_connector.search(self.relation, [], limit=viewObj.currentRange[-1], offset=viewObj.currentRange[0])
+                                                            viewCheckBoxes={0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled},
+                                                            deafult_filter=notHeld)
+        resIds = self.odooConnector.rpc_connector.search(self.relation, notHeld, limit=viewObj.currentRange[-1], offset=viewObj.currentRange[0])
         viewObj.loadIds(resIds, {}, {}, {})
         dial = QtWidgets.QDialog()
         vlay = QtWidgets.QVBoxLayout()
@@ -271,6 +250,7 @@ class Many2many(OdooFieldTemplate):
         vlay.addWidget(viewObj)
         vlay.addLayout(layButt)
         dial.setLayout(vlay)
+        dial.setWindowTitle('Add: %s' % self.fieldPyDefinition.get('string', self.fieldName))
         dial.setStyleSheet(constants.VIOLET_BACKGROUND)
         dial.resize(800, 500)
         # The rows ticked, else the rows selected (Ctrl / Shift for several);

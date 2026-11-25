@@ -60,6 +60,9 @@ class Tree(QtWidgets.QWidget):
         self.buttToLeft = QtWidgets.QPushButton()
         self.buttToRight = QtWidgets.QPushButton()
 
+    def fitColumnsToCellWidgets(self):
+        pass
+
     def loadIds(self, ids, *args, **kwargs):
         self.idLineRel = dict(enumerate(ids))
         self.treeObj.tableWidget.setRowCount(len(ids))
