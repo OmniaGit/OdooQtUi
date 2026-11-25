@@ -198,15 +198,10 @@ class TemplateFormView(TemplateView):
                 qvboxLayout.addWidget(tabWidget)
                 # tabWidget.currentChanged.connect(partial(self.computeNooteBookPage, tabWidget))
             elif childXmlTag == 'group':
-                colspan = xmlAttrs.get('col', None)
-                if colspan:
-                    colspan = eval(colspan)
-                else:
-                    colspan = row_widget_limit
                 qvboxLayout.addLayout(row_container)
-                self.computeRecursion(qvboxLayout=self._conditionalLayout(childXlmElement, qvboxLayout),
-                                      xmlParent=childXlmElement,
-                                      row_widget_limit=colspan)
+                row_container = QtWidgets.QHBoxLayout()
+                row_container.setSpacing(0)
+                self._computeGroup(childXlmElement, qvboxLayout)
             elif childXmlTag == 'button':
                 buttonObj = button.Button(qtParent=self,
                                           xmlObject=childXlmElement,
@@ -264,6 +259,201 @@ class TemplateFormView(TemplateView):
         if not row_container.parent():
             qvboxLayout.addLayout(row_container)
         return qvboxLayout
+
+    # --- groups, laid out as Odoo lays them out ------------------------------
+    #
+    # A <group> holding only groups puts them side by side, one column each; a
+    # <group> holding fields is a grid of `col` cells (2 by default), where a
+    # field takes its label's cell and the ones after it -- `colspan` of them
+    # in all, the label included, 2 by default, 1 with nolabel -- and starts a
+    # new row when the row is full. `string` on a group is its title. The
+    # labels sit in a column of their own, so they line up and the fields
+    # start at the same place, which a row of label+field widgets never did.
+
+    def _computeGroup(self, xmlGroup, parentLayout):
+        layout = self._conditionalLayout(xmlGroup, parentLayout)
+        title = xmlGroup.attrib.get('string')
+        if title:
+            titleLabel = QtWidgets.QLabel(title)
+            titleLabel.setStyleSheet(constants.GROUP_TITLE_STYLE)
+            layout.addWidget(titleLabel)
+        children = [child for child in xmlGroup if isinstance(child.tag, str)]
+        if children and all(child.tag == 'group' for child in children):
+            columns = QtWidgets.QHBoxLayout()
+            columns.setSpacing(constants.GROUP_COLUMN_SPACING)
+            for child in children:
+                column = QtWidgets.QVBoxLayout()
+                column.setSpacing(0)
+                column.setContentsMargins(0, 0, 0, 0)
+                self._computeGroup(child, column)
+                column.addStretch(1)
+                columns.addLayout(column, 1)
+            layout.addLayout(columns)
+            return
+        self._computeGroupGrid(xmlGroup, children, layout)
+
+    def _computeGroupGrid(self, xmlGroup, children, layout):
+        try:
+            cols = max(1, int(xmlGroup.attrib.get('col', 2)))
+        except ValueError:
+            cols = 2
+        grid = QtWidgets.QGridLayout()
+        grid.setContentsMargins(0, 0, 0, 0)
+        grid.setHorizontalSpacing(constants.GROUP_LABEL_SPACING)
+        grid.setVerticalSpacing(constants.GROUP_ROW_SPACING)
+        layout.addLayout(grid)
+        cell = [0, 0]           # row, column
+
+        def newRow():
+            if cell[1]:
+                cell[0] += 1
+                cell[1] = 0
+
+        def take(span):
+            span = max(1, min(span, cols))
+            if cell[1] + span > cols:
+                newRow()
+            at = (cell[0], cell[1])
+            cell[1] += span
+            if cell[1] >= cols:
+                newRow()
+            return at, span
+
+        pendingLabel = None     # a <label for=...>: the next element is its field
+        for child in children:
+            tag = child.tag
+            if tag == 'field':
+                fieldObj = self.computeField(child)
+                if not fieldObj:
+                    continue
+                self.appendToglobalMapping('field_' + fieldObj.fieldName, fieldObj)
+                if self._alwaysInvisible(child):
+                    layout.addWidget(fieldObj)      # hidden, and taking no cell
+                    continue
+                nolabel = utils.evaluateBoolean(child.attrib.get('nolabel', False)) \
+                    or pendingLabel is not None
+                span = self._colspan(child, 1 if nolabel else 2)
+                label = self._takeFieldLabel(fieldObj, hide=nolabel)
+                (row, column), span = take(span if pendingLabel is None else span + 1)
+                if pendingLabel is not None:
+                    grid.addWidget(pendingLabel, row, column)
+                    pendingLabel = None
+                    column += 1
+                    span -= 1
+                if label is not None and not nolabel:
+                    grid.addWidget(label, row, column, QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+                    column += 1
+                    span -= 1
+                self._fillCell(fieldObj)
+                grid.addWidget(fieldObj, row, column, 1, max(1, span))
+            elif tag == 'label' and child.attrib.get('for'):
+                pendingLabel = self._labelFor(child)
+            elif tag == 'separator':
+                newRow()
+                text = child.attrib.get('string', '')
+                if text:
+                    separator = QtWidgets.QLabel(text)
+                    separator.setStyleSheet(constants.GROUP_TITLE_STYLE)
+                    grid.addWidget(separator, cell[0], 0, 1, cols)
+                    cell[0] += 1
+            else:
+                # Anything else -- a group, a div, a notebook, a button -- is
+                # laid out as before, in a cell of its own: after a <label for>
+                # the one beside it, otherwise a whole row.
+                holder = QtWidgets.QWidget(self)
+                holderLayout = QtWidgets.QVBoxLayout(holder)
+                holderLayout.setContentsMargins(0, 0, 0, 0)
+                holderLayout.setSpacing(0)
+                single = ElementTree.Element('single')
+                single.append(child)
+                if tag == 'group':
+                    self._computeGroup(child, holderLayout)
+                else:
+                    self.computeRecursion(qvboxLayout=holderLayout, xmlParent=single)
+                if pendingLabel is not None:
+                    (row, column), span = take(self._colspan(child, 2))
+                    grid.addWidget(pendingLabel, row, column)
+                    grid.addWidget(holder, row, column + 1, 1, max(1, span - 1))
+                    pendingLabel = None
+                else:
+                    newRow()
+                    grid.addWidget(holder, cell[0], 0, 1, cols)
+                    cell[0] += 1
+        # the label columns as wide as their text, the field columns sharing the rest
+        for column in range(cols):
+            grid.setColumnStretch(column, 0 if column % 2 == 0 and cols > 1 else 1)
+
+    @staticmethod
+    def _fillCell(fieldObj):
+        """The field as wide as its cell, as Odoo draws it: the stretch each
+        field type puts after its input kept the input at its smallest width
+        (a 120 pixel many2one beside a full-width char)."""
+        fieldLayout = getattr(fieldObj, 'qtHorizontalWidget', None)
+        if not isinstance(fieldLayout, QtWidgets.QLayout):
+            return
+        for index in reversed(range(fieldLayout.count())):
+            spacer = fieldLayout.itemAt(index).spacerItem()
+            if spacer is not None and spacer.expandingDirections() & QtCore.Qt.Horizontal:
+                fieldLayout.removeItem(spacer)
+        # The room to the input, not to what sits beside it (the empty widget a
+        # many2one keeps after its combo, its E button).
+        inputs = (QtWidgets.QComboBox, QtWidgets.QLineEdit, QtWidgets.QAbstractSpinBox,
+                  QtWidgets.QTextEdit, QtWidgets.QPlainTextEdit)
+        for index in range(fieldLayout.count()):
+            if isinstance(fieldLayout.itemAt(index).widget(), inputs):
+                fieldLayout.setStretch(index, 1)
+                break
+
+    @staticmethod
+    def _colspan(xmlElement, default):
+        try:
+            return int(xmlElement.attrib.get('colspan', default))
+        except ValueError:
+            return default
+
+    @staticmethod
+    def _alwaysInvisible(xmlElement):
+        invisible = xmlElement.attrib.get('invisible')
+        return invisible is not None and utils.isConstantModifier(invisible) \
+            and bool(utils.evaluateExpression(invisible))
+
+    def _labelFor(self, xmlLabel):
+        """The text of a <label for="x"/>: its string, else the field's."""
+        text = xmlLabel.attrib.get('string') or \
+            self.fieldsNameTypeRel.get(xmlLabel.attrib.get('for'), {}).get('string', '')
+        label = QtWidgets.QLabel(text)
+        label.setStyleSheet(constants.LABEL_STYLE)
+        return label
+
+    def _takeFieldLabel(self, fieldObj, hide=False):
+        """The field's own label, out of the field's layout so the grid can put
+        it in the label column; with hide (nolabel), parked out of sight -- the
+        field's setInvisible keeps showing and hiding it either way."""
+        label = getattr(fieldObj, 'labelQtObj', None)
+        if not isinstance(label, QtWidgets.QLabel):
+            return None
+        for layoutName in ('qtVBoxLayout', 'qtHorizontalWidget'):
+            fieldLayout = getattr(fieldObj, layoutName, None)
+            if isinstance(fieldLayout, QtWidgets.QLayout) and fieldLayout.indexOf(label) >= 0:
+                fieldLayout.removeWidget(label)
+                break
+        if hide:
+            label.setParent(self._labelParking())
+            return None
+        label.setParent(self)
+        label.setHidden(fieldObj.isHidden())
+        fieldObj.movedLabel = label
+        return label
+
+    def _labelParking(self):
+        """A widget never shown: a label put there stays out of sight whatever
+        setHidden the field's setInvisible calls on it."""
+        parking = getattr(self, '_parkedLabels', None)
+        if parking is None:
+            parking = QtWidgets.QWidget(self)
+            parking.setHidden(True)
+            self._parkedLabels = parking
+        return parking
 
     def _conditionalLayout(self, xmlElement, parentLayout):
         """The layout the children of a div or a group go into.

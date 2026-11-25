@@ -135,6 +135,11 @@ class OdooFieldTemplate(QtWidgets.QWidget):
             self.hide()
         else:
             self.show()
+        # A label a group moved into its label column goes with the field,
+        # whatever the field type does with it itself.
+        moved = getattr(self, 'movedLabel', None)
+        if moved is not None:
+            moved.setHidden(val)
 
     def showChatterWidget(self):
         pass

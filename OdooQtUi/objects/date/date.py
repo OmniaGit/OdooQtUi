@@ -18,6 +18,7 @@ from OdooQtUi.utils_odoo_conn import utilsUi
 
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
+from OdooQtUi.widgets.empty_date_edit import EmptyDateTimeEdit
 
 
 class Date(OdooFieldTemplate):
@@ -35,7 +36,7 @@ class Date(OdooFieldTemplate):
     def getQtObject(self):
         self.labelQtObj = QtWidgets.QLabel(self.fieldStringInterface)
         self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
-        self.widgetQtObj = QtWidgets.QDateEdit(self)
+        self.widgetQtObj = EmptyDateTimeEdit(self, dateOnly=True)
         self.widgetQtObj.setStyleSheet(constants.DATE_STYLE)
         self.widgetQtObj.setToolTip(self.tooltip)
         self.widgetQtObj.dateChanged.connect(self.valueChanged)
@@ -47,14 +48,20 @@ class Date(OdooFieldTemplate):
             self.addWidget(self.translateButton)
 
     def valueChanged(self, newDate):
-        self.currentValue = newDate.toString('yyyy-MM-dd') if newDate.isValid() else False
+        if self.widgetQtObj.isEmpty() or not newDate.isValid():
+            self.currentValue = False
+        else:
+            self.currentValue = newDate.toString('yyyy-MM-dd')
         self.valueTemplateChanged()
 
     def setValue(self, newVal, viewType='form'):
         """newVal as Odoo answers it ('2026-10-17'); a date has no timezone.
         It was never shown: setValue only kept it."""
         day = utils.odooDate(newVal)
-        self.widgetQtObj.setDate(QtCore.QDate(day.year, day.month, day.day) if day else QtCore.QDate())
+        if day:
+            self.widgetQtObj.setDate(QtCore.QDate(day.year, day.month, day.day))
+        else:
+            self.widgetQtObj.setEmpty()
         # after the widget: its dateChanged has already set a value
         self.currentValue = day.strftime(utils.ODOO_DATE_FORMAT) if day else False
 

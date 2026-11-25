@@ -13,6 +13,7 @@ from OdooQtUi.utils_odoo_conn import utilsUi
 
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
+from OdooQtUi.widgets.empty_date_edit import EmptyDateTimeEdit
 
 
 class Datetime(OdooFieldTemplate):
@@ -30,7 +31,7 @@ class Datetime(OdooFieldTemplate):
     def getQtObject(self):
         self.labelQtObj = QtWidgets.QLabel(self.fieldStringInterface)
         self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
-        self.widgetQtObj = QtWidgets.QDateTimeEdit(self)
+        self.widgetQtObj = EmptyDateTimeEdit(self)
         self.widgetQtObj.setStyleSheet(constants.DATE_STYLE)
         self.widgetQtObj.setToolTip(self.tooltip)
         self.widgetQtObj.dateTimeChanged.connect(self.valueChanged)
@@ -44,18 +45,21 @@ class Datetime(OdooFieldTemplate):
 
     def valueChanged(self, newDateTime):
         # shown in the user's timezone, kept as Odoo stores it: UTC
-        self.currentValue = utils.userToUtc(newDateTime, self.odooConnector)
+        if self.widgetQtObj.isEmpty():
+            self.currentValue = False
+        else:
+            self.currentValue = utils.userToUtc(newDateTime, self.odooConnector)
         self.valueTemplateChanged()
 
     def setValue(self, newVal, viewType='form'):
         """newVal as Odoo answers it, in UTC; shown in the timezone of the
         user (their `tz` in Odoo, UTC when they have none)."""
         local = utils.utcToUser(newVal, self.odooConnector)
-        pyqtDateTime = QtCore.QDateTime()
         if local:
-            pyqtDateTime = QtCore.QDateTime(local.year, local.month, local.day,
-                                            local.hour, local.minute, local.second)
-        self.widgetQtObj.setDateTime(pyqtDateTime)
+            self.widgetQtObj.setDateTime(QtCore.QDateTime(local.year, local.month, local.day,
+                                                          local.hour, local.minute, local.second))
+        else:
+            self.widgetQtObj.setEmpty()
         # after the widget: its dateTimeChanged has already set a value
         self.currentValue = utils.odooDatetime(newVal).strftime(utils.ODOO_DATETIME_FORMAT) if local else False
 

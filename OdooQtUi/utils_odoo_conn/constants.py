@@ -172,6 +172,13 @@ BUTTON_STYLE_REVERSED = 'background-color: #000000; color: #ffffff; border-radiu
 BUTTON_ADD_AN_ITEM = 'border: none;color:blue;background-color:white;' + BOLD_FONT
 LABEL_STYLE = 'margin-right: 0px;' + BOLD_FONT + FONT_SIZE
 LABEL_SEPARATOR = LABEL_STYLE + FONT_SIZE + BOLD_FONT
+#: A group laid out as Odoo lays it out: its title, the room between its
+#: columns, between a label and its field, and between two rows.
+GROUP_TITLE_STYLE = FONT_SIZE + BOLD_FONT + 'padding-top: 8px; padding-bottom: 4px;' \
+    'border-bottom: 1px solid #d1d5db; margin-bottom: 4px;'
+GROUP_COLUMN_SPACING = 32
+GROUP_LABEL_SPACING = 12
+GROUP_ROW_SPACING = 6
 CHAR_STYLE = COMMON_FIELDS_BOTTOM_BORDER
 FLOAT_STYLE = COMMON_FIELDS_BOTTOM_BORDER
 INTEGER_STYLE = COMMON_FIELDS_BOTTOM_BORDER
