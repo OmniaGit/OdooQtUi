@@ -55,6 +55,7 @@ class Tree(QtWidgets.QWidget):
         super(Tree, self).__init__()
         self.idLineRel = {}
         self.on_rows_removed = None
+        self.remove_button = True
         self.treeObj = mock.Mock(tableWidget=QtWidgets.QTableWidget(), orderedFields=[])
         self.buttToLeft = QtWidgets.QPushButton()
         self.buttToRight = QtWidgets.QPushButton()
@@ -189,6 +190,39 @@ class TheFormsOnchange(unittest.TestCase):
             view._on_change('name')
         rpc.onchange.assert_called_once()
         self.assertEqual(['name'], rpc.onchange.call_args[0][3])
+
+
+class ReadOnly(unittest.TestCase):
+    """A read-only many2many offers nothing to change: no Remove on its rows,
+    Add and Create disabled; and no paging arrows, ever (2026-11-25)."""
+
+    def test_read_only_takes_the_remove_buttons_away_and_back(self):
+        field, changes = projects()
+        field.setValue([7, 3])
+        tree = field.treeViewObj
+        tree.remove_button = True
+        field.setReadonly(True)
+        self.assertFalse(tree.remove_button)
+        self.assertTrue(field.btnAddAnItem.isEnabled() is False)
+        self.assertEqual([7, 3], field.value)
+        field.setReadonly(False)
+        self.assertTrue(tree.remove_button)
+        self.assertEqual([7, 3], field.value)
+        self.assertEqual([], changes)
+
+    def test_a_field_readonly_by_definition_never_gets_them(self):
+        field, _changes = projects()
+        field._removeAllowed = False
+        field.treeViewObj.remove_button = False
+        field.setReadonly(False)
+        self.assertFalse(field.treeViewObj.remove_button)
+
+    def test_no_paging_arrows(self):
+        field, _changes = projects()
+        field.setValue([7])
+        field.setInvisible(False)
+        self.assertTrue(field.treeViewObj.buttToLeft.isHidden())
+        self.assertTrue(field.treeViewObj.buttToRight.isHidden())
 
 
 if __name__ == '__main__':

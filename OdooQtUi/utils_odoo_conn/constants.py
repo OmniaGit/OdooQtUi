@@ -30,15 +30,15 @@ _THEMED = {
                                      'max-width:100px;border: 0.1px solid $surface;'
                                      'border-bottom-right-radius: 10px;'
                                      'border-top-right-radius: 10px;'),
+    # Tabs as Odoo draws them: the one open is a white tab framed on three
+    # sides and open below, the others grey text on the line it stands on.
     'NOOTEBOOK_TABBAR_STYLE': (
-        'QTabBar::tab:!selected {border: 3px solid $border;border-left-style: none;'
-        'border-right-style: none;border-top-style: none;min-width:180px;} '
-        'QTabBar::tab:selected {border: 3px solid $primary;border-left-style: none;'
-        'border-right-style: none;border-top-style: none;color: $primary;'
-        'font-size: 14px;min-width:150px} '
-        'QTabBar::tab:hover {border: 3px solid $primary;border-left-style: none;'
-        'border-right-style: none;border-top-style: none;color: $primary;'
-        'font-size: 14px;font-weight: bold;min-width:150px}'),
+        'QTabBar::tab {padding: 6px 16px; margin-right: 2px; font-size: 14px;'
+        ' color: $muted; background: transparent; border: 1px solid transparent;'
+        ' border-bottom: 1px solid $border;} '
+        'QTabBar::tab:selected {color: $text; background: $surface;'
+        ' border: 1px solid $border; border-bottom: 1px solid $surface;} '
+        'QTabBar::tab:hover:!selected {color: $accent;}'),
     # The dialogs, and where the purple was. A window is a surface: the colour
     # the product is recognised by belongs to what it puts on that surface, not
     # to the sheet of paper the form is written on.
@@ -58,7 +58,21 @@ _THEMED = {
     'COMMON_FIELDS_REQUIRED_BACKGROUND': 'background-color: $required',
     'BUTTON_STYLE': 'background-color: white;border-color: $accent;font-weight: bold;font-color:black;',
     'BUTTON_STYLE_HOVER': 'background-color: $accent;border-color: $accent;font-weight: bold;border-radius: 0px;border: none;color: white;padding: 5px 10px;font-size: 14px;',
-    'BUTTON_STYLE_MANY_2_ONE': 'background-color: $accent;border-color: $accent;max-width:30px;max-height:10px;font-weight: bold;border-radius: 0px;border: none;color: white;padding: 5px 10px;font-size: 14px;',
+    # The arrow after a many2one that opens its record, as Odoo's internal link.
+    'BUTTON_STYLE_MANY_2_ONE': ('QPushButton { background: transparent; border: none;'
+                                ' color: $accent; font-size: 16px; font-weight: bold;'
+                                ' padding: 0px 6px; }'
+                                'QPushButton:hover { color: $primary_dark; }'),
+    # The language a translatable field is shown in, which opens its translations.
+    'BUTTON_STYLE_TRANSLATE': ('QPushButton { background: transparent; color: $muted;'
+                               ' border: 1px solid $border; border-radius: 3px;'
+                               ' font-size: 11px; padding: 1px 4px; }'
+                               'QPushButton:hover { color: $accent; border-color: $accent; }'),
+    # The actions under a one2many or many2many list, as Odoo's "Add a line".
+    'BUTTON_STYLE_X2MANY_LINK': ('QPushButton { background: transparent; border: none;'
+                                 ' color: $accent; font-size: 13px; padding: 4px 8px 4px 0px; }'
+                                 'QPushButton:hover { text-decoration: underline; }'
+                                 'QPushButton:disabled { color: #adb5bd; }'),
     'BUTTON_STYLE_MANY_2_ONE__2': 'background-color: $accent;border-color: $accent;font-weight: bold;border-radius: 0px;border: none;color: white;padding: 5px 10px;font-size: 14px;',
     'BUTTON_STYLE_LINK': 'color: $accent;font-weight: bold;',
     # An action on a row of a list: light, so a column of them does not outweigh
@@ -81,8 +95,8 @@ _THEMED = {
     height: 12px;
 }
 QScrollBar::handle:horizontal {
-    background-color: $primary;
-    border: 1px solid $primary_dark;
+    background-color: #c1c4c9;
+    border: 1px solid #c1c4c9;
     border-radius: 0px;
     min-width: 20px;
 }
@@ -97,8 +111,8 @@ QScrollBar:vertical {
     width: 12px;
 }
 QScrollBar::handle:vertical {
-    background-color: $primary;
-    border: 1px solid $primary_dark;
+    background-color: #c1c4c9;
+    border: 1px solid #c1c4c9;
     border-radius: 0px;
     min-height: 20px;
 }

@@ -101,7 +101,8 @@ class Many2one(OdooFieldTemplate):
             utilsUi.setRequiredBackground(self.widgetQtObj2, constants.SELECTION_STYLE)
         self.qtHorizontalWidget.addWidget(self.widgetQtObj2)
         if self.canWrite:
-            self.editButton = QtWidgets.QPushButton('E')
+            self.editButton = QtWidgets.QPushButton('\u2192')     # an arrow, as Odoo's internal link
+            self.editButton.setToolTip('Open %s' % self.fieldStringInterface)
             self.editButton.clicked.connect(self.editItem)
             self.editButton.setStyleSheet(constants.BUTTON_STYLE_MANY_2_ONE)
             self.qtHorizontalWidget.addWidget(self.editButton)

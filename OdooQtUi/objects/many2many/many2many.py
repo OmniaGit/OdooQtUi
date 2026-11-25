@@ -60,6 +60,9 @@ class Many2many(OdooFieldTemplate):
         remove_button = True
         if self.readonly:
             remove_button = False
+        #: Whether its rows may be removed at all; setReadonly takes the Remove
+        #: buttons away while the form is read-only and gives them back after.
+        self._removeAllowed = remove_button
         if parent_view_type != 'tree':
             qHl = self.getQtObject()
             self.treeViewObj = self.odooConnector.initTreeListViewObject(odooObjectName=self.relation,
@@ -69,6 +72,9 @@ class Many2many(OdooFieldTemplate):
                                                                          viewFilter=False,
                                                                          remove_button=remove_button)
             self.treeViewObj.parentView = qtParent
+            # The list shows the records of the field, all of them: the paging
+            # arrows a search list has are not for it.
+            self._hidePaging()
             # A row taken off with its Remove button is a change of the field.
             self.treeViewObj.on_rows_removed = self.valueChanged
             self.qtVBoxLayout.addWidget(self.treeViewObj)
@@ -107,11 +113,11 @@ class Many2many(OdooFieldTemplate):
     def getQtObject(self):
         qhw = QtWidgets.QHBoxLayout()
         self.createButt = QtWidgets.QPushButton('Create', self)
-        self.createButt.setStyleSheet(constants.BUTTON_STYLE)
+        self.createButt.setStyleSheet(constants.BUTTON_STYLE_X2MANY_LINK)
         self.createButt.clicked.connect(self.createAndAdd)
 
         self.btnAddAnItem = QtWidgets.QPushButton('Add an item', self)
-        self.btnAddAnItem.setStyleSheet(constants.BUTTON_STYLE)
+        self.btnAddAnItem.setStyleSheet(constants.BUTTON_STYLE_X2MANY_LINK)
         self.btnAddAnItem.clicked.connect(self.addAnItem)
             
         qhw.addWidget(self.createButt)
@@ -167,6 +173,7 @@ class Many2many(OdooFieldTemplate):
             self.fieldsToReadOrdered = self.treeViewObj.treeObj.orderedFields
             # self.setRemoveButtons(self.widgetQtObj)
             self.setupTableWidgetLay(self.widgetQtObj)
+            self._hidePaging()
             if self.required:
                 utilsUi.setRequiredBackground(self.widgetQtObj, '')
         elif self.label_name_values:
@@ -278,7 +285,19 @@ class Many2many(OdooFieldTemplate):
     def valueChanged(self):
         self.valueTemplateChanged()
 
+    def _hidePaging(self):
+        if self.treeViewObj:
+            self.treeViewObj.buttToLeft.setHidden(True)
+            self.treeViewObj.buttToRight.setHidden(True)
+
     def setReadonly(self, val=False):
+        if self.treeViewObj:
+            removable = self._removeAllowed and not val
+            if self.treeViewObj.remove_button != removable:
+                # The rows drawn again with or without their Remove button.
+                ids = self.currentValue
+                self.treeViewObj.remove_button = removable
+                self.setValue(ids)
         if self.btnAddAnItem:
             self.btnAddAnItem.setDisabled(val)
         if self.widgetQtObj:
@@ -303,12 +322,7 @@ class Many2many(OdooFieldTemplate):
         if self.widgetQtObj:
             self.widgetQtObj.setHidden(val)
         if self.treeViewObj:
-            if val:
-                self.treeViewObj.buttToLeft.hide()
-                self.treeViewObj.buttToRight.hide()
-            else:
-                self.treeViewObj.buttToLeft.show()
-                self.treeViewObj.buttToRight.show()
+            self._hidePaging()
             self.treeViewObj.treeObj.tableWidget.setHidden(val)
             #self.treeViewObj.treeObj.widgetContents.setHidden(val)
         if self.label_name_values:

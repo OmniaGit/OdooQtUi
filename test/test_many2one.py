@@ -161,5 +161,29 @@ class Attributes(unittest.TestCase):
         self.assertFalse(field.canCreate)
 
 
+class Look(unittest.TestCase):
+    """The many2one's way into its record is an arrow with a tooltip, as
+    Odoo's internal link, not a teal "E" (2026-11-25)."""
+
+    def test_an_arrow_that_says_what_it_opens(self):
+        field, _server = many2one({'string': 'Parent'})
+        self.assertEqual('\u2192', field.editButton.text())
+        self.assertEqual('Open Parent', field.editButton.toolTip())
+
+
+class TranslateButton(unittest.TestCase):
+    """A translatable field shows the language its value is in, as Odoo does,
+    not a "T"."""
+
+    def test_the_language_of_the_user(self):
+        from types import SimpleNamespace
+        from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
+        holder = SimpleNamespace(odooConnector=SimpleNamespace(activeLanguage='it_IT'),
+                                 translateDialog=lambda: None)
+        OdooFieldTemplate.connectTranslationButton(holder)
+        self.assertEqual('IT', holder.translateButton.text())
+        self.assertEqual('Translate', holder.translateButton.toolTip())
+
+
 if __name__ == '__main__':
     unittest.main()

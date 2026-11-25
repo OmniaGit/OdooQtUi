@@ -102,8 +102,11 @@ class OdooFieldTemplate(QtWidgets.QWidget):
         self.parentModel = parentModel
 
     def connectTranslationButton(self):
-        self.translateButton = QtWidgets.QPushButton('T')
-        self.translateButton.setStyleSheet(constants.BUTTON_STYLE)
+        # The language the value is shown in, as Odoo marks a translatable field.
+        language = (getattr(self.odooConnector, 'activeLanguage', '') or 'en_US')[:2].upper()
+        self.translateButton = QtWidgets.QPushButton(language)
+        self.translateButton.setToolTip('Translate')
+        self.translateButton.setStyleSheet(constants.BUTTON_STYLE_TRANSLATE)
         self.translateButton.clicked.connect(self.translateDialog)
         # self.qtHorizontalWidget.setSpacing(10)
 
