@@ -132,6 +132,10 @@ class TemplateTreeListView(TemplateView):
         self._image_rows_connected = False
         self.passRange = 40
         self.remove_button = remove_button
+        #: Called with no argument after a row is taken off with its Remove
+        #: button: the field that owns the list (a many2many) marks itself
+        #: changed there.
+        self.on_rows_removed = None
         # The form around the list, when the list is a one2many or a many2many
         # of it: what `parent.<field>` reads in a column expression.
         self.parentView = None
@@ -822,6 +826,8 @@ class TemplateTreeListView(TemplateView):
             elif found:
                 del self.idLineRel[rowInd]
                 self.idLineRel[rowInd - 1] = objId
+        if found and self.on_rows_removed:
+            self.on_rows_removed()
 
     def refreshColumns(self):
         if self.treeObj.tableWidget:

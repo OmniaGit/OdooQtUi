@@ -69,6 +69,8 @@ class Many2many(OdooFieldTemplate):
                                                                          viewFilter=False,
                                                                          remove_button=remove_button)
             self.treeViewObj.parentView = qtParent
+            # A row taken off with its Remove button is a change of the field.
+            self.treeViewObj.on_rows_removed = self.valueChanged
             self.qtVBoxLayout.addWidget(self.treeViewObj)
             self.qtVBoxLayout.addLayout(qHl)
         elif parent_view_type == 'tree':
@@ -82,11 +84,25 @@ class Many2many(OdooFieldTemplate):
 
     @property
     def currentValue(self):
+        """The ids the field holds: the rows of its list, in their order.
+
+        idLineRel is {row: id}. It was read as if it held an 'ids' key, which
+        it never does, so the field was always empty: an item added vanished
+        at once and the form saved no relation at all."""
         if self.treeViewObj:
-            if isinstance(self.treeViewObj.idLineRel, dict):
-                return self.treeViewObj.idLineRel.get('ids', [])
-            return self.treeViewObj.idLineRel.ids()
-        return self.loaded_ids
+            rows = self.treeViewObj.idLineRel
+            return [rows[row] for row in sorted(rows) if rows[row]]
+        return list(self.loaded_ids)
+
+    def addIds(self, ids):
+        """Add ids to the field, those it does not hold yet, and tell the form
+        the field changed, so that its save writes the relation."""
+        value = self.currentValue
+        added = [objId for objId in ids if objId and objId not in value]
+        if not added:
+            return
+        self.setValue(value + added)
+        self.valueChanged()
 
     def getQtObject(self):
         qhw = QtWidgets.QHBoxLayout()
@@ -138,8 +154,7 @@ class Many2many(OdooFieldTemplate):
                 fieldVals = tmpviewObjForm.getAllFieldsValues()
                 objId = self.odooConnector.rpc_connector.create(self.relation, fieldVals)
                 if objId:
-                    self.currentValue.append(objId)
-                    self.setValue(self.currentValue)
+                    self.addIds([objId])
         except OdooRpcError:
             raise           # told by rpcErrorBoundary
         except Exception as ex:
@@ -252,18 +267,13 @@ class Many2many(OdooFieldTemplate):
         dial.setStyleSheet(constants.VIOLET_BACKGROUND)
         dial.resize(800, 500)
         if dial.exec() == QtWidgets.QDialog.Accepted:
-            checkedRows = []
-            localIndexId = {}
+            checked = []
             table = viewObj.treeObj.tableWidget
             for rowIndex in range(table.rowCount()):
                 item = table.item(rowIndex, 0)
                 if item and item.checkState() == QtCore.Qt.Checked:
-                    objId = viewObj.idLineRel.get(rowIndex, False)
-                    if objId:
-                        self.currentValue.append(objId)
-                        localIndexId[rowIndex] = objId
-                    checkedRows.append(rowIndex)
-            self.setValue(self.currentValue)
+                    checked.append(viewObj.idLineRel.get(rowIndex, False))
+            self.addIds(checked)
 
     def valueChanged(self):
         self.valueTemplateChanged()
