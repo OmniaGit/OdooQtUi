@@ -39,6 +39,10 @@ from OdooQtUi.objects.text.text import Text
 from OdooQtUi.objects import button
 
 
+#: useHeader that shows of a form's header only its statusbar.
+STATUSBAR_ONLY = 'statusbar'
+
+
 class TemplateFormView(TemplateView):
     nootebook_changed_signal = QtCore.Signal(int)
     form_changed = QtCore.Signal(str)
@@ -324,7 +328,13 @@ class TemplateFormView(TemplateView):
         buttonsRow.setSpacing(4)
         headerLayout.addLayout(buttonsRow)
         statusBars = []
+        # useHeader 'statusbar': where the record is, and nothing to act on --
+        # the form shows the state, the buttons stay out (an edit dialog).
+        onlyStatus = useHeader == STATUSBAR_ONLY
         for xmlObj in archHeader:
+            if onlyStatus and not (xmlObj.tag == 'field'
+                                   and xmlObj.attrib.get('widget') == 'statusbar'):
+                continue
             if xmlObj.tag == 'button':
                 buttonObj = button.Button(qtParent=self,
                                           xmlObject=xmlObj,
