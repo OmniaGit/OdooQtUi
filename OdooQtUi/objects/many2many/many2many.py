@@ -22,6 +22,7 @@ from OdooQtUi.utils_odoo_conn import utils
 from OdooQtUi.utils_odoo_conn import utilsUi
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
+from OdooQtUi.widgets.record_picker import pickRecords
 
 
 class Many2many(OdooFieldTemplate):
@@ -52,7 +53,6 @@ class Many2many(OdooFieldTemplate):
             self.canCreate = json.loads(self.fieldXmlAttributes.get('can_create', 'true'))
             self.canWrite = json.loads(self.fieldXmlAttributes.get('can_write', 'true'))
         self.qtVBoxLayout = QtWidgets.QVBoxLayout()
-        self.evaluatedIds = {}
         self.loaded_ids = []
         self.labelQtObj = QtWidgets.QLabel(self.fieldStringInterface)
         self.labelQtObj.setStyleSheet(constants.LABEL_STYLE)
@@ -222,55 +222,11 @@ class Many2many(OdooFieldTemplate):
 
     @utilsUi.rpcErrorBoundary
     def addAnItem(self):
-        def acceptDial():
-            dial.accept()
-
-        def rejectDial():
-            dial.reject()
-
         # Only the records the field does not hold yet: one already there,
-        # offered again, was added twice (2026-11-25). The list pages through
-        # the same domain with its own arrows (pagingFilter); the paging this
-        # dialog did besides, through self.evaluatedIds, kept the pages of
-        # the last time and searched from the wrong offset.
+        # offered again, was added twice (2026-11-25).
         notHeld = [('id', 'not in', self.currentValue)]
-        viewObj = self.odooConnector.initTreeListViewObject(self.relation,
-                                                            viewCheckBoxes={0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled},
-                                                            deafult_filter=notHeld)
-        resIds = self.odooConnector.rpc_connector.search(self.relation, notHeld, limit=viewObj.currentRange[-1], offset=viewObj.currentRange[0])
-        viewObj.loadIds(resIds, {}, {}, {})
-        dial = QtWidgets.QDialog()
-        vlay = QtWidgets.QVBoxLayout()
-        utilsUi.setLayoutMarginAndSpacing(vlay)
-        layButt, okButt, cancelButt = utilsUi.getButtonBox('right')
-        okButt.setStyleSheet(constants.BUTTON_STYLE_OK)
-        cancelButt.setStyleSheet(constants.BUTTON_STYLE_CANCEL)
-        okButt.clicked.connect(acceptDial)
-        cancelButt.clicked.connect(rejectDial)
-        vlay.addWidget(viewObj)
-        vlay.addLayout(layButt)
-        dial.setLayout(vlay)
-        dial.setWindowTitle('Add: %s' % self.fieldPyDefinition.get('string', self.fieldName))
-        dial.setStyleSheet(constants.VIOLET_BACKGROUND)
-        dial.resize(800, 500)
-        # The rows ticked, else the rows selected (Ctrl / Shift for several);
-        # a double click takes its row at once.
-        viewObj.treeObj.tableWidget.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
-        doubleClicked = []
-
-        def takeRow(objId):
-            doubleClicked.append(objId)
-            dial.accept()
-        viewObj.doubleClickCallback = takeRow
-        if dial.exec() == QtWidgets.QDialog.Accepted:
-            self.addIds(self._pickedIds(viewObj, doubleClicked))
-
-    def _pickedIds(self, viewObj, extraIds=()):
-        """The ids picked in the "Add an item" list, in the order of its
-        rows: ticked or selected, and extraIds (the row double-clicked)."""
-        picked = set(viewObj.getSelectedIds()) | set(extraIds)
-        rows = viewObj.idLineRel
-        return [rows[row] for row in sorted(rows) if rows[row] in picked]
+        self.addIds(pickRecords(self.odooConnector, self.relation, notHeld, multi=True,
+                                title='Add: %s' % self.fieldPyDefinition.get('string', self.fieldName)))
 
     def valueChanged(self):
         self.valueTemplateChanged()

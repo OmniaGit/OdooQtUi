@@ -21,6 +21,7 @@ import os
 import subprocess
 import sys
 import unittest
+from unittest import mock
 from xml.etree import ElementTree
 
 os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')
@@ -159,7 +160,8 @@ class Proposals(unittest.TestCase):
         method, _model, kwargs, _context = server.calls[-1]
         self.assertEqual((method, kwargs['name'], kwargs['limit']), ('name_search', '', 8))
         self.assertEqual([('', False), ('Cliente ABC', 7), ('Mario Rossi', 11), ('My Company', 1),
-                          ('Create and Edit...', '__create__')], self.items(field))
+                          ('Search More...', '__search_more__'), ('Create and Edit...', '__create__')],
+                         self.items(field))
         self.assertEqual('Cliente ABC', field.widgetQtObj2.currentText())
 
     def test_the_current_value_is_not_proposed_twice(self):
@@ -196,6 +198,43 @@ class Proposals(unittest.TestCase):
         field.widgetQtObj2.setCurrentIndex(field.widgetQtObj2.findData(11))
         self.assertEqual([11, 'Mario Rossi'], field.currentValue)
         self.assertEqual(['parent_id'], told)
+
+
+class SearchMore(unittest.TestCase):
+
+    def items(self, field):
+        combo = field.widgetQtObj2
+        return [combo.itemText(i) for i in range(combo.count())]
+
+    def test_offered_with_the_proposals_before_create(self):
+        field, _server = many2one({})
+        field.setValue([7, 'Cliente ABC'])
+        self.assertNotIn('Search More...', self.items(field))
+        field._loadProposals()
+        self.assertEqual(['Search More...', 'Create and Edit...'], self.items(field)[-2:])
+
+    def test_the_record_picked_is_the_value(self):
+        field, _server = many2one({'domain': "[('is_company', '=', True)]"})
+        field.setValue([7, 'Cliente ABC'])
+        field._loadProposals()
+        told = []
+        field.value_changed_signal.connect(told.append)
+        with mock.patch('OdooQtUi.objects.many2one.many2one.pickRecords', return_value=[5]) as pick:
+            field.widgetQtObj2.setCurrentIndex(field.widgetQtObj2.findData('__search_more__'))
+        args, kwargs = pick.call_args
+        self.assertEqual(('res.partner', [('is_company', '=', True)]), args[1:3])
+        self.assertFalse(kwargs['multi'])
+        self.assertEqual([5, 'Record 5'], field.currentValue)
+        self.assertEqual(['parent_id'], told)
+
+    def test_nothing_picked_keeps_the_value(self):
+        field, _server = many2one({})
+        field.setValue([7, 'Cliente ABC'])
+        field._loadProposals()
+        with mock.patch('OdooQtUi.objects.many2one.many2one.pickRecords', return_value=[]):
+            field.widgetQtObj2.setCurrentIndex(field.widgetQtObj2.findData('__search_more__'))
+        self.assertEqual([7, 'Cliente ABC'], field.currentValue)
+        self.assertEqual('Cliente ABC', field.widgetQtObj2.currentText())
 
 
 class Attributes(unittest.TestCase):

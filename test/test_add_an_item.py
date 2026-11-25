@@ -45,6 +45,8 @@ from OdooQtUi.objects.many2many.many2many import Many2many
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.views.form_obj import TemplateFormView
 from OdooQtUi.views.tree_list_obj import TemplateTreeListView
+from OdooQtUi.widgets import record_picker
+from OdooQtUi.widgets.record_picker import pickedIds, pickRecords
 
 APPLICATION = QtWidgets.QApplication.instance() or QtWidgets.QApplication([])
 
@@ -98,7 +100,7 @@ class Picked(unittest.TestCase):
                                return_value=CHECK):
             view.treeObj.tableWidget.item(2, 2).setSelected(True)
             view.treeObj.tableWidget.item(0, 2).setSelected(True)
-            self.assertEqual([10, 12], self.field()._pickedIds(view))
+            self.assertEqual([10, 12], pickedIds(view))
 
     def test_the_rows_ticked_in_the_column_shown(self):
         view = listView()
@@ -106,13 +108,13 @@ class Picked(unittest.TestCase):
         with mock.patch.object(type(view), 'viewCheckBoxes', new_callable=mock.PropertyMock,
                                return_value=CHECK):
             view.treeObj.tableWidget.item(1, 2).setCheckState(QtCore.Qt.Checked)
-            self.assertEqual([11], self.field()._pickedIds(view))
+            self.assertEqual([11], pickedIds(view))
 
     def test_the_row_double_clicked(self):
         view = listView()
         with mock.patch.object(type(view), 'viewCheckBoxes', new_callable=mock.PropertyMock,
                                return_value=CHECK):
-            self.assertEqual([12], self.field()._pickedIds(view, [12]))
+            self.assertEqual([12], pickedIds(view, [12]))
 
     def test_a_double_click_goes_to_the_callback(self):
         view = listView()
@@ -133,21 +135,63 @@ class NotHeld(unittest.TestCase):
         field.fieldName = 'project_ids'
         field.fieldPyDefinition = {'string': 'Projects'}
         field.treeViewObj = mock.Mock(idLineRel={0: 40, 1: 41})
-        view = mock.Mock(currentRange=[0, 40], idLineRel={})
+        field.odooConnector = mock.Mock()
+        with mock.patch.object(record_picker.QtWidgets.QDialog, 'exec'), \
+                mock.patch('OdooQtUi.objects.many2many.many2many.pickRecords', return_value=[]) as pick:
+            Many2many.addAnItem(field)
+        args, kwargs = pick.call_args
+        self.assertEqual(('project.project', [('id', 'not in', [40, 41])]), args[1:3])
+        self.assertEqual((True, 'Add: Projects'), (kwargs['multi'], kwargs['title']))
+
+
+class Picker(unittest.TestCase):
+    """pickRecords: the one dialog for Add an item and Search More."""
+
+    def run_picker(self, multi, accepted=True, double=None, select=()):
+        view = listView()
+        view.currentRange = [0, 40]
+        view.loadIds = mock.Mock()
         connector = mock.Mock()
         connector.initTreeListViewObject.return_value = view
-        connector.rpc_connector.search.return_value = []
-        field.odooConnector = connector
+        connector.rpc_connector.search.return_value = [10, 11, 12]
         titles = []
-        with mock.patch.object(QtWidgets.QDialog, 'exec', return_value=QtWidgets.QDialog.Rejected), \
+
+        def exec_(dialog):
+            for row in select:
+                view.treeObj.tableWidget.item(row, 2).setSelected(True)
+            if double is not None:
+                view.doubleClickCallback(double)
+                return QtWidgets.QDialog.Accepted
+            return QtWidgets.QDialog.Accepted if accepted else QtWidgets.QDialog.Rejected
+        with mock.patch.object(QtWidgets.QDialog, 'exec', exec_), \
                 mock.patch.object(QtWidgets.QDialog, 'setWindowTitle', side_effect=titles.append), \
-                mock.patch.object(QtWidgets.QVBoxLayout, 'addWidget'):
-            Many2many.addAnItem.__wrapped__(field) if hasattr(Many2many.addAnItem, '__wrapped__') \
-                else Many2many.addAnItem(field)
-        domain = [('id', 'not in', [40, 41])]
-        self.assertEqual(domain, connector.initTreeListViewObject.call_args.kwargs['deafult_filter'])
-        self.assertEqual(domain, connector.rpc_connector.search.call_args.args[1])
-        self.assertEqual(['Add: Projects'], titles)
+                mock.patch.object(QtWidgets.QVBoxLayout, 'addWidget'), \
+                mock.patch.object(type(view), 'viewCheckBoxes', new_callable=mock.PropertyMock,
+                                  return_value=record_picker.CHECK_BOXES if multi else {}):
+            ids = pickRecords(connector, 'uom.uom', [('x', '=', 1)], multi=multi, title='T')
+        return ids, connector, view, titles
+
+    def test_the_list_has_the_search_and_the_domain(self):
+        _ids, connector, _view, titles = self.run_picker(True, accepted=False)
+        kwargs = connector.initTreeListViewObject.call_args.kwargs
+        self.assertTrue(kwargs['viewFilter'])
+        self.assertEqual([('x', '=', 1)], kwargs['deafult_filter'])
+        self.assertEqual(['T'], titles)
+
+    def test_cancelled_is_nothing(self):
+        self.assertEqual([], self.run_picker(True, accepted=False)[0])
+
+    def test_several_selected(self):
+        self.assertEqual([10, 12], self.run_picker(True, select=(0, 2))[0])
+
+    def test_one_double_clicked(self):
+        ids, _c, view, _t = self.run_picker(False, double=11)
+        self.assertEqual([11], ids)
+        self.assertEqual(QtWidgets.QAbstractItemView.SingleSelection,
+                         view.treeObj.tableWidget.selectionMode())
+
+    def test_single_takes_one(self):
+        self.assertEqual([10], self.run_picker(False, select=(0, 2))[0])
 
 
 class Columns(unittest.TestCase):

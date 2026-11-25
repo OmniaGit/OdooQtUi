@@ -19,6 +19,7 @@ from PySide6 import QtWidgets
 from OdooQtUi.utils_odoo_conn import utils, utilsUi
 from OdooQtUi.utils_odoo_conn import constants
 from OdooQtUi.objects.fieldTemplate import OdooFieldTemplate
+from OdooQtUi.widgets.record_picker import pickRecords
 
 #: What the web client proposes while the user types.
 SEARCH_LIMIT = 8
@@ -30,6 +31,9 @@ CREATE_LABEL = 'Create and Edit...'
 
 #: The item data of the combo entries that are not a record.
 CREATE_ITEM = '__create__'
+#: The entry that opens the whole list, with a search (Odoo's "Search More...").
+SEARCH_MORE_LABEL = 'Search More...'
+SEARCH_MORE_ITEM = '__search_more__'
 
 
 class _ProposalCombo(QtWidgets.QComboBox):
@@ -148,6 +152,9 @@ class Many2one(OdooFieldTemplate):
                 if recordId != currentId:
                     combo.addItem(name, recordId)
             combo.setCurrentIndex(max(0, combo.findData(currentId)) if currentId else 0)
+            if proposals:
+                # As Odoo: offered whenever there are proposals to go beyond.
+                combo.addItem(SEARCH_MORE_LABEL, SEARCH_MORE_ITEM)
             if self.canCreate:
                 combo.addItem(CREATE_LABEL, CREATE_ITEM)
             self._restoreText()
@@ -379,11 +386,28 @@ class Many2one(OdooFieldTemplate):
         data = self.widgetQtObj2.currentData()
         if data == CREATE_ITEM:
             self._createAndEdit()
+        elif data == SEARCH_MORE_ITEM:
+            self._searchMore()
         elif not data:
             if self.currentValue:
                 self._setCurrent(False)
         elif not self.currentValue or data != self.currentValue[0]:
             self._setCurrent([data, self.widgetQtObj2.currentText()])
+
+    def _searchMore(self):
+        """The whole list of the related model, with its search, through
+        the field's domain: the record picked is the value, nothing picked
+        leaves the one there was."""
+        ids = pickRecords(self.odooConnector, self.relation, self.evaluatedDomain(), multi=False,
+                          title='Search: %s' % self.fieldStringInterface)
+        if not ids:
+            self._fillCombo()
+            return
+        res = self.odooConnector.rpc_connector.read(self.relation, ['display_name'], ids[:1])
+        if res:
+            self._setCurrent([ids[0], res[0].get('display_name', '')])
+        else:
+            self._fillCombo()
 
     def _createAndEdit(self):
         dialog = QtWidgets.QDialog()
