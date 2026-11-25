@@ -192,7 +192,11 @@ GROUP_TITLE_STYLE = FONT_SIZE + BOLD_FONT + 'padding-top: 8px; padding-bottom: 4
     'border-bottom: 1px solid #d1d5db; margin-bottom: 4px;'
 GROUP_COLUMN_SPACING = 32
 GROUP_LABEL_SPACING = 12
-GROUP_ROW_SPACING = 6
+GROUP_ROW_SPACING = 4
+#: Pixels above and below the input of a field (fieldTemplate).
+FIELD_V_MARGIN = 2
+#: Margins of a notebook page: left, top, right, bottom.
+NOTEBOOK_PAGE_MARGINS = (8, 6, 8, 6)
 CHAR_STYLE = COMMON_FIELDS_BOTTOM_BORDER
 FLOAT_STYLE = COMMON_FIELDS_BOTTOM_BORDER
 INTEGER_STYLE = COMMON_FIELDS_BOTTOM_BORDER

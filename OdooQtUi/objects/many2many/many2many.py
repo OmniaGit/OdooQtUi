@@ -68,7 +68,7 @@ class Many2many(OdooFieldTemplate):
             self.treeViewObj = self.odooConnector.initTreeListViewObject(odooObjectName=self.relation,
                                                                          viewName='',
                                                                          view_id=False,
-                                                                         viewCheckBoxes={0: QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled},
+                                                                         viewCheckBoxes={},
                                                                          viewFilter=False,
                                                                          remove_button=remove_button)
             self.treeViewObj.parentView = qtParent
@@ -273,14 +273,24 @@ class Many2many(OdooFieldTemplate):
         dial.setLayout(vlay)
         dial.setStyleSheet(constants.VIOLET_BACKGROUND)
         dial.resize(800, 500)
+        # The rows ticked, else the rows selected (Ctrl / Shift for several);
+        # a double click takes its row at once.
+        viewObj.treeObj.tableWidget.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
+        doubleClicked = []
+
+        def takeRow(objId):
+            doubleClicked.append(objId)
+            dial.accept()
+        viewObj.doubleClickCallback = takeRow
         if dial.exec() == QtWidgets.QDialog.Accepted:
-            checked = []
-            table = viewObj.treeObj.tableWidget
-            for rowIndex in range(table.rowCount()):
-                item = table.item(rowIndex, 0)
-                if item and item.checkState() == QtCore.Qt.Checked:
-                    checked.append(viewObj.idLineRel.get(rowIndex, False))
-            self.addIds(checked)
+            self.addIds(self._pickedIds(viewObj, doubleClicked))
+
+    def _pickedIds(self, viewObj, extraIds=()):
+        """The ids picked in the "Add an item" list, in the order of its
+        rows: ticked or selected, and extraIds (the row double-clicked)."""
+        picked = set(viewObj.getSelectedIds()) | set(extraIds)
+        rows = viewObj.idLineRel
+        return [rows[row] for row in sorted(rows) if rows[row] in picked]
 
     def valueChanged(self):
         self.valueTemplateChanged()

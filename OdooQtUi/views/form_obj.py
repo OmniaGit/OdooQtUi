@@ -181,6 +181,7 @@ class TemplateFormView(TemplateView):
                     pageWidget = QtWidgets.QWidget(tabWidget)
                     pageVboxLayout = QtWidgets.QVBoxLayout()
                     pageVboxLayout.setSpacing(0)
+                    pageVboxLayout.setContentsMargins(*constants.NOTEBOOK_PAGE_MARGINS)
                     if modifReadonly:
                         pageWidget.setDisabled(True)
                     if nootebookIndex != 0:
@@ -391,6 +392,8 @@ class TemplateFormView(TemplateView):
         fieldLayout = getattr(fieldObj, 'qtHorizontalWidget', None)
         if not isinstance(fieldLayout, QtWidgets.QLayout):
             return
+        # The grid spaces its cells: the field keeps no margin of its own.
+        fieldLayout.setContentsMargins(0, 0, 0, 0)
         for index in reversed(range(fieldLayout.count())):
             spacer = fieldLayout.itemAt(index).spacerItem()
             if spacer is not None and spacer.expandingDirections() & QtCore.Qt.Horizontal:

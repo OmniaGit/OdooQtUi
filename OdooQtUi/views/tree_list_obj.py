@@ -139,6 +139,13 @@ class TemplateTreeListView(TemplateView):
         # The form around the list, when the list is a one2many or a many2many
         # of it: what `parent.<field>` reads in a column expression.
         self.parentView = None
+        #: The column that holds the check boxes: the first one the user sees
+        #: (see _checkBoxFlags). getSelectedIds reads it.
+        self._checkColumn = 0
+        #: Called with the record id of a row double-clicked, in place of
+        #: opening its form: a list used to pick records (a many2many's
+        #: "Add an item") takes the row instead.
+        self.doubleClickCallback = None
         self._initViewObj()
 
     def _initViewObj(self):
@@ -455,6 +462,7 @@ class TemplateTreeListView(TemplateView):
             self.idLineRel[records.index(record)] = recordId
         if self.remove_button:
             headers.append('')
+        flagsDict = self._checkBoxFlags(flagsDict, hidden_columns)
         utilsUi.commonPopulateTable(headers,
                                     valuesList,
                                     self.treeObj.tableWidget,
@@ -712,6 +720,9 @@ class TemplateTreeListView(TemplateView):
             model_index = args[0]
             row_index = model_index.row()
             obj_id = self.idLineRel.get(row_index, False)
+            if self.doubleClickCallback is not None:
+                self.doubleClickCallback(obj_id)
+                return
             viewObj = self.odooConnector.initFormViewObj(self.model)
             viewObj.loadIds([obj_id])
             dialog = QtWidgets.QDialog()
@@ -891,11 +902,30 @@ class TemplateTreeListView(TemplateView):
     def sortResults(self, fieldName='', filterMode='DESC'):
         utils.logMessage('warning', 'Sorting not implemented in tree list view', 'sortResults')
 
+    def _checkBoxFlags(self, flagsDict, hiddenColumns):
+        """flagsDict with the check boxes of column 0 moved to the first
+        column the user sees that shows a value, not a button.
+
+        The first column of a view is often one Odoo hides (project's
+        `sequence`): the boxes sat there, nobody could tick them, and a
+        many2many's "Add an item" added nothing (2026-11-25)."""
+        self._checkColumn = 0
+        if not flagsDict or 0 not in flagsDict or not hiddenColumns.get(0):
+            return flagsDict
+        columns = self.treeObj.widgets_to_add_in_line      # {column index: xml element}
+        for col_index in sorted(columns):
+            if columns[col_index].tag == 'field' and not hiddenColumns.get(col_index):
+                moved = dict(flagsDict)
+                moved[col_index] = moved.pop(0)
+                self._checkColumn = col_index
+                return moved
+        return flagsDict
+
     def getSelectedIds(self):
         outIds = []
         if self.viewCheckBoxes:
             for rowIndex in range(self.treeObj.tableWidget.rowCount()):
-                item = self.treeObj.tableWidget.item(rowIndex, 0)
+                item = self.treeObj.tableWidget.item(rowIndex, self._checkColumn)
                 if item and item.checkState() == QtCore.Qt.Checked:
                     idd = self.idLineRel.get(rowIndex, False)
                     if idd:

@@ -88,6 +88,10 @@ class OdooFieldTemplate(QtWidgets.QWidget):
         self.invisibleConditions, self.readonlyConditions = utils.evaluateModifiers(self.modifiers)
         self.qtHorizontalWidget = QtWidgets.QHBoxLayout(self)
         utilsUi.setLayoutMarginAndSpacing(self.qtHorizontalWidget)
+        # Little room above and below: a field is one line of a form, and six
+        # pixels on each side doubled the height of every row (2026-11-25).
+        self.qtHorizontalWidget.setContentsMargins(constants.LAY_OUT_SPACING, constants.FIELD_V_MARGIN,
+                                                   constants.LAY_OUT_SPACING, constants.FIELD_V_MARGIN)
         self.hide()
         if constants.DEBUG:
             self.setStyleSheet("border: 2px solid black;")
@@ -132,7 +136,9 @@ class OdooFieldTemplate(QtWidgets.QWidget):
         self.hideTranslateButton(val)
 
     def setInvisible(self, val):
-        utilsUi.setLayoutMarginAndSpacing(self.qtHorizontalWidget, 0)
+        # It reset the field's layout here with setLayoutMarginAndSpacing(.., 0),
+        # which reads 0 as "not given" and put the six pixels back on every
+        # field shown, undoing the margins the form had set (2026-11-25).
         self.hideTranslateButton(val)
         if val:
             self.hide()
