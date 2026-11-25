@@ -621,6 +621,10 @@ class TemplateFormView(TemplateView):
             outDict[fieldName] = fieldObject.on_change
         return outDict
     
+    #: The field types the onchange of Odoo 17 and later is not sent, and is not
+    #: asked about.
+    ONCHANGE_LEFT_OUT = ('one2many', 'many2many', 'binary')
+
     def _on_change(self, fieldName):
         '''
             [
@@ -635,6 +639,14 @@ class TemplateFormView(TemplateView):
             return {}
         rpc = self.odooConnector.rpc_connector
         if rpc.serverVersion >= 17:
+            fieldType = self.fieldsNameTypeRel.get(fieldName, {}).get('type')
+            if fieldType in self.ONCHANGE_LEFT_OUT:
+                # Not in the values the onchange is sent (see
+                # _onchangeValuesAndSpec), and the server pops the fields that
+                # changed from those values: asked about one of these it
+                # answers KeyError (a project added to a product, Odoo 19,
+                # 2026-11-25). Their own server onchange is not run.
+                return {}
             values, fieldsSpec = self._onchangeValuesAndSpec()
             result = rpc.onchange(self.model, self.activeIds, values, [fieldName], fieldsSpec)
             result = dict(result) if isinstance(result, dict) else {}
@@ -659,7 +671,7 @@ class TemplateFormView(TemplateView):
             fieldName = name[7:] if name.startswith('header_') else name
             fieldType = self.fieldsNameTypeRel.get(fieldName, {}).get('type') \
                 or getattr(fieldObj, 'fieldType', '')
-            if fieldType in ('one2many', 'many2many', 'binary'):
+            if fieldType in self.ONCHANGE_LEFT_OUT:
                 continue
             try:
                 value = utils.widgetValueToOnchange(fieldObj.value, fieldType)

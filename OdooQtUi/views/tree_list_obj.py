@@ -279,9 +279,18 @@ class TemplateTreeListView(TemplateView):
     SMALL_IMAGE_FIELDS = ('image_128', 'image_256')
 
     def _fieldsToRead(self):
-        """The columns of the view, minus the ones the first read does not carry."""
+        """The columns of the view, minus the ones the first read does not carry.
+
+        Only a <field> column is a field. A <button> column carries the name of
+        a method (project.project's list has `action_view_tasks` from Odoo 19),
+        and asked for in the read it made the server refuse the whole list:
+        a many2many to projects could show no row, and a product that had a
+        project could not be opened in its form."""
         wanted = []
-        for fieldName in self.labelsOrdered:
+        for col_index, fieldName in enumerate(self.labelsOrdered):
+            element = self.treeObj.widgets_to_add_in_line.get(col_index)
+            if element is not None and element.tag != 'field':
+                continue
             definition = self.fieldsNameTypeRel.get(fieldName, {})
             if definition.get('type') in self.BINARY_TYPES:
                 continue

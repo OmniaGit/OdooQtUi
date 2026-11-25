@@ -28,6 +28,7 @@ No server: the RPC layer is replaced by a recorder.
 import os
 import sys
 import unittest
+from xml.etree import ElementTree
 
 os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -87,10 +88,14 @@ class FieldsGetCache(unittest.TestCase):
 class ColumnsRead(unittest.TestCase):
     """_fieldsToRead: the columns of the view, minus what no cell can draw."""
 
-    def _view(self, ordered, types):
+    def _view(self, ordered, types, buttons=()):
         view = TemplateTreeListView.__new__(TemplateTreeListView)
         view.labelsOrdered = ordered
         view.__dict__['fieldsNameTypeRel'] = types
+        elements = dict((index, ElementTree.Element('button' if name in buttons else 'field',
+                                                    {'name': name}))
+                        for index, name in enumerate(ordered))
+        view.treeObj = type('tree', (), {'widgets_to_add_in_line': elements})()
         return view
 
     def test_a_binary_column_is_not_read(self):
@@ -113,10 +118,18 @@ class ColumnsRead(unittest.TestCase):
         self.assertEqual(view._fieldsToRead(), columns)
 
     def test_a_column_the_model_does_not_describe_is_still_read(self):
-        # A button column, or a field the view names and fields_get does not
-        # know: read it rather than drop a column silently.
+        # A field the view names and fields_get does not know: read it rather
+        # than drop a column silently.
         view = self._view(['name', 'mystery'], {'name': {'type': 'char'}})
         self.assertEqual(view._fieldsToRead(), ['name', 'mystery'])
+
+    def test_a_button_column_is_not_read(self):
+        # project.project's list from Odoo 19: asked for in the read, the
+        # method's name made the server refuse the whole list (2026-11-25).
+        view = self._view(['name', 'action_view_tasks', 'user_id'],
+                          {'name': {'type': 'char'}, 'user_id': {'type': 'many2one'}},
+                          buttons=('action_view_tasks',))
+        self.assertEqual(view._fieldsToRead(), ['name', 'user_id'])
 
 
 class ImageColumns(unittest.TestCase):

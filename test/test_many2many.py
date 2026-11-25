@@ -42,6 +42,7 @@ from PySide6 import QtWidgets
 
 from OdooQtUi.objects.many2many.many2many import Many2many
 from OdooQtUi.views.tree_list_obj import TemplateTreeListView
+from OdooQtUi.views.form_obj import TemplateFormView
 
 APPLICATION = QtWidgets.QApplication.instance() or QtWidgets.QApplication([])
 
@@ -155,6 +156,39 @@ class RemovingItems(unittest.TestCase):
         tree.setRemoveButtons = mock.Mock()
         TemplateTreeListView.removeItem(tree, 0)
         self.assertEqual({0: 3}, tree.idLineRel)
+
+
+class TheFormsOnchange(unittest.TestCase):
+    """From Odoo 17 the server pops the fields that changed from the values it
+    is sent, and the form sends no x2many or binary: asked about a project
+    added, Odoo 19 answered KeyError: 'project_ids' (2026-11-25)."""
+
+    def form(self, version=19):
+        view = TemplateFormView.__new__(TemplateFormView)
+        view.skipOnChange = False
+        view.activeIds = [468]
+        view.viewObj = mock.Mock(odooFieldsNameTypeRel={
+            'name': {'type': 'char'}, 'project_ids': {'type': 'many2many'},
+            'attachment': {'type': 'binary'}, 'line_ids': {'type': 'one2many'}})
+        view.__dict__['interfaceFieldsDict'] = {}
+        rpc = mock.Mock(serverVersion=version)
+        rpc.onchange.return_value = {'value': {}}
+        view.odooConnector = mock.Mock(rpc_connector=rpc)
+        return view, rpc
+
+    def test_an_x2many_or_binary_is_not_asked_about(self):
+        for name in ('project_ids', 'line_ids', 'attachment'):
+            view, rpc = self.form()
+            with mock.patch.object(TemplateFormView, 'interfaceFieldsDict', {}, create=True):
+                self.assertEqual({}, view._on_change(name), name)
+            rpc.onchange.assert_not_called()
+
+    def test_any_other_field_is(self):
+        view, rpc = self.form()
+        with mock.patch.object(TemplateFormView, 'interfaceFieldsDict', {}, create=True):
+            view._on_change('name')
+        rpc.onchange.assert_called_once()
+        self.assertEqual(['name'], rpc.onchange.call_args[0][3])
 
 
 if __name__ == '__main__':
