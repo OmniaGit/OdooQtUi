@@ -45,6 +45,10 @@ from OdooQtUi.views.tree_list_obj import TemplateTreeListView
 from OdooQtUi.views.form_obj import TemplateFormView
 
 APPLICATION = QtWidgets.QApplication.instance() or QtWidgets.QApplication([])
+# The parents of the fields made here. A field holding its own Qt parent made
+# a reference cycle, and PySide6 6.12 crashed when the garbage collector broke
+# it (CI, 2026-11-25).
+_PARENTS = []
 
 
 class Tree(QtWidgets.QWidget):
@@ -88,7 +92,7 @@ def projects():
                                   'string': 'Projects'}}
     parent = QtWidgets.QWidget()
     field = Many2many(parent, xml, definition, odooConnector=Connector())
-    field._parent = parent          # kept alive with the field
+    _PARENTS.append(parent)         # kept alive by the module, not by the field
     changes = []
     field.value_changed_signal.connect(changes.append)
     return field, changes
