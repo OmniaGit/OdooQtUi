@@ -40,6 +40,9 @@ from PySide6 import QtCore, QtWidgets
 from OdooQtUi.objects.many2one.many2one import Many2one, CREATE_ITEM
 
 APPLICATION = QtWidgets.QApplication.instance() or QtWidgets.QApplication([])
+# The forms of the fields made here, kept out of a reference cycle with them:
+# PySide6 6.12 crashed when the garbage collector broke one (CI, 2026-11-25).
+_FORMS = []
 
 
 class Server(object):
@@ -82,7 +85,7 @@ def many2one(attributes, values={}):
     connector = Connector()
     form = Form(values)
     field = Many2one(form, xml, {'parent_id': {'type': 'many2one', 'relation': 'res.partner'}}, connector)
-    form.field = field      # kept alive with the form
+    _FORMS.append(form)     # kept alive by the module, not by a cycle with the field
     return field, connector.rpc_connector
 
 
