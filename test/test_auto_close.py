@@ -40,7 +40,14 @@ class AutoClose(unittest.TestCase):
     def exec_for(self, dialog, give_up_msecs=3000):
         """How long exec() lasted; a dialog still open at give_up_msecs is
         closed from outside, and the time says so."""
-        self.QtCore.QTimer.singleShot(give_up_msecs, dialog.reject)
+        # A precise timer: Qt's default coarse one may fire up to 5% early, and
+        # closed a dialog that stayed open at 2.85 s, under the 2.9 s the
+        # tests ask for (2026-11-26).
+        giveUp = self.QtCore.QTimer(dialog)
+        giveUp.setSingleShot(True)
+        giveUp.setTimerType(self.QtCore.Qt.PreciseTimer)
+        giveUp.timeout.connect(dialog.reject)
+        giveUp.start(give_up_msecs)
         start = time.monotonic()
         dialog.exec()
         return time.monotonic() - start
